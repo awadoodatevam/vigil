@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 10-product-map (ID prefix `PM-`) |
-| Version | 1.1 |
+| Version | 1.2 |
 | Date | 9 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Amended by Round 2 (Section 19). |
+| Status | Baseline (owner reviewed). Amended by Round 2 (Section 19) and Round 3 (PM-DC-01, PM-DC-04). |
 
 ## 1. Purpose
 
@@ -828,10 +828,10 @@ These are not part of Vigil (CTX-C-03). They MUST be kept in a separate part of 
 
 | ID | Working name | Job | Talks to | Trace |
 | --- | --- | --- | --- | --- |
-| PM-DC-01 | `demo-lab` | Mock Jazz services (complete list): USSD gateway; balance-check API; bundle-purchase API; database server; SMS queue; synthetic USSD session check. | Monitored by PM-DC-02; the database server is reached by `vigil-runner` as a target | SL-A3-01 |
+| PM-DC-01 | `demo-lab` | Mock Jazz services (complete list): USSD gateway; balance-check API; bundle-purchase API; database server; SMS queue; synthetic USSD session check. Clarification (v1.2, SB-A-03): the mock SMS dispatcher is part of the SMS queue mock, and the mock report export job on the reporting server exists only for fault SL-F-3. | Monitored by PM-DC-02; the database server is reached by `vigil-runner` as a target | SL-A3-01 |
 | PM-DC-02 | `demo-monitoring` | Configuration of the real Zabbix, Prometheus and Alertmanager that monitor the lab and send webhooks to Vigil. | `demo-lab`; `vigil-api` (webhooks) | SL-A3-01, SL-A1-01 |
 | PM-DC-03 | `demo-faults` | Triggers faults SL-F-1 to SL-F-4 and the storm re-run. | `demo-lab`; blocking of outbound traffic to cloud AI providers for SL-F-4 (PM-ASM-04) | SL-A3-02 |
-| PM-DC-04 | `demo-control` | Demo control panel application (screen SL-A4-12), with its own presenter login: triggers faults, starts a storm re-run, resets to the starting state in 60 seconds or less. | `demo-faults`; `vigil-api` only (reset) | SL-A3-03, SL-A4-12 |
+| PM-DC-04 | `demo-control` | Demo control panel application (screen SL-A4-12), with its own presenter login: triggers faults, starts a storm re-run, resets to the starting state in 60 seconds or less. | `demo-faults`; `vigil-api` only (reset); read-only queries to the Zabbix problem API and the Alertmanager alerts API, only to know when "Clear all faults" is complete (v1.2, SB-A-02) | SL-A3-03, SL-A4-12 |
 | PM-DC-05 | `demo-data` | The invented Jazz data set and seed bundle (`31-demo-data/`), loaded through `vigil-setup` (PM-M22-03). It is content, not code. | `vigil-api` (through `demo-control` at reset) | SL-DR-01 to SL-DR-04 |
 | PM-DC-06 | Backup video | Recording of the full demo. Not software. | None | SL-A3-08 |
 
@@ -1131,6 +1131,7 @@ Record fields, relationships and lifecycle states (Round 2); demo values and the
 | 0.3 | 8 Oct 2026 | Resolved review pass 2 findings (Section 17). |
 | 1.0 | 9 Oct 2026 | Owner review recorded; Round 1 closed. |
 | 1.1 | 9 Oct 2026 | Amendments DM-A-01 to DM-A-28 from Round 2 added as Section 19 (CTX-D-014). |
+| 1.2 | 9 Oct 2026 | PM-DC-01 clarified and PM-DC-04 "Talks to" extended (`30-jazz-storyboard` SB-A-02, SB-A-03; CTX-D-017). |
 
 ## 19. Amendments from Round 2 (complete list)
 

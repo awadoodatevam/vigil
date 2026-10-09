@@ -1,0 +1,39 @@
+# DD-F-01  Tenant settings and identity (seed parts 1 and 2, DM-R-56)
+# All names are invented (SL-DR-01). Passwords are NOT in this file: they come from
+# deployment secrets, one per seeded user (PM-M02-02, SL-B-14).
+
+tenant_settings:                      # DM-E-02
+  customer_name: "Jazz"              # subject to CTX-O-05
+  customer_logo: null                 # supplied by the branding build package after CTX-O-05
+  environment_label: "Demo environment — fictional data"   # SL-A3-06, SL-DR-03
+
+teams:                                # DM-E-04
+  - {team_key: noc-l1,             name: "NOC L1"}
+  - {team_key: db-ops,             name: "Database Operations"}
+  - {team_key: vas-ops,            name: "VAS Operations"}
+  - {team_key: it-apps,            name: "IT Applications"}
+  - {team_key: it-infra,           name: "IT Infrastructure"}
+  - {team_key: vas-service-owners, name: "VAS Service Owners"}
+  - {team_key: noc-management,     name: "NOC Management"}
+  - {team_key: it-ops-head,        name: "IT Operations Head"}
+  - {team_key: customer-care,      name: "Customer Care"}
+
+users:                                # DM-E-03; display names resolve SL-O-18
+  - {username: presenter,      display_name: "Demo Presenter"}
+  - {username: noc-l1,         display_name: "Ayesha Siddiqui (NOC L1)"}
+  - {username: dbops-engineer, display_name: "Bilal Qureshi (DB Ops)"}
+  - {username: dbops-lead,     display_name: "Sana Rauf (DB Ops Lead)"}
+  - {username: admin,          display_name: "Vigil Administrator"}
+
+team_memberships:                     # DM-E-05 (complete list; SL-A3-07)
+  - {team_key: noc-l1, username: noc-l1}
+  - {team_key: db-ops, username: dbops-engineer}
+  - {team_key: db-ops, username: dbops-lead}
+
+permission_grants:                    # DM-E-06, DM-E06-R1 (complete list)
+  presenter:      [view]
+  noc-l1:         [acknowledge]
+  dbops-engineer: [acknowledge, approve_action]
+  dbops-lead:     [acknowledge, approve_action]
+  admin:          [view, manage_setup, manage_routing, manage_ai_settings,
+                   rerun_ai_investigation, edit_workflow, run_test_replay, publish_workflow]

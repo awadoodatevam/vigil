@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 00-context (ID prefix `CTX-`) |
-| Version | 1.6 |
+| Version | 1.7 |
 | Date | 9 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed) |
@@ -73,7 +73,7 @@ Each round is one conversation in the Claude project and produces the files list
 | R0 | Context and scope | `00-context.md`, `01-scope-lock.md` | Closed, 8 Oct 2026 |
 | R1 | Product map: every module of the full product, its job, what it owns, what it talks to; working module names; AI task list confirmation | `10-product-map.md` | Closed, 9 Oct 2026 |
 | R2 | Core domain model: entities, relationships, lifecycles and state machines | `20-domain-model.md` | Closed, 9 Oct 2026 |
-| R3 | Jazz storyboard and demo data: scene-by-scene script with Real/Simplified/Staged tags; the invented Jazz data set; exact demo values | `30-jazz-storyboard.md`, `31-demo-data/` | Not started |
+| R3 | Jazz storyboard and demo data: scene-by-scene script with Real/Simplified/Staged tags; the invented Jazz data set; exact demo values | `30-jazz-storyboard.md`, `31-demo-data/` | Closed, 9 Oct 2026 |
 | R4 | Demo cut: per module, keep / simplify / stage / later, keeping product shape; screen-by-screen content | `40-demo-cut.md` | Not started |
 | R5 | Architecture: applications, stack, integrations, AI layer, hosting, final module names | `50-architecture.md` | Not started |
 | R6 | Build plan: packages sized for Claude Code, each with spec, done-check and tests; repository conventions | `60-build-plan.md`, `CLAUDE.md` | Not started |
@@ -133,6 +133,9 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | CTX-D-014 | 9 Oct 2026 | Domain model `20-domain-model` v1.0 adopted: 82 entities, 16 state machines, rules DM-R-01 to DM-R-69 and decisions DM-D-01 to DM-D-21; `10-product-map` amended to v1.1 (DM-A-01 to DM-A-28). | Round 2 output; owner agreed the seven review items. |
 | CTX-D-015 | 9 Oct 2026 | SL-A1-07 clarified: "the synthetic USSD check reports success" means no alert of the check component is firing, and recovery conditions count only while every active monitoring source is healthy (DM-D-11). | Silence from a broken source is not recovery; no source queries needed. |
 | CTX-D-016 | 9 Oct 2026 | SL-A2-05 clarified: AI fallback applies to SL-T-1 and SL-T-2; SL-T-3 has one provider and changes it only through re-embedding (DM-D-21). | Similarity scores from different providers are not comparable. |
+| CTX-D-017 | 9 Oct 2026 | Jazz storyboard `30-jazz-storyboard` v1.0 and demo data set `31-demo-data` v1.0 adopted, with decisions SB-D-01 to SB-D-12. Amendments written: `20-domain-model` v1.1 (DM-E-16, DM-E-38) and `10-product-map` v1.2 (PM-DC-01, PM-DC-04). | Round 3 output; owner agreed the seven review items. |
+| CTX-D-018 | 9 Oct 2026 | Demo setup (resolves CTX-O-03): Microsoft Teams meeting; the senior manager narrates and Abdul operates every screen; mobile pages in a phone-size browser window; attendees do not join a demo Teams channel (`30-jazz-storyboard` SB-D-08). | Owner answers in the Round 3 conversation. |
+| CTX-D-019 | 9 Oct 2026 | Scope-lock clarifications from Round 3 (no item added to list A): SL-A3-01 — the SMS queue mock includes its dispatcher and a mock report export job exists only for SL-F-3; SL-A3-07 — teams without members are configuration data. `01-scope-lock` v1.7. | Found by the final consistency audit of Round 3; keeps the complete lists exact. Raised to Abdul at the Round 3 close for confirmation. |
 
 ## 14. Open items
 
@@ -140,7 +143,7 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | --- | --- | --- | --- |
 | CTX-O-01 | Target demo date | Abdul with the senior manager | Before R6 closes |
 | CTX-O-02 | Hosting: cloud account, domain name, approval of running costs (server, domain, AI usage, Jira) | Muzaffar | Before R5 closes |
-| CTX-O-03 | Meeting tool, presenter, who shares the phone screen, and whether attendees join a demo Teams channel to receive messages themselves | Abdul | R3 |
+| CTX-O-03 | Closed by CTX-D-018, 9 Oct 2026 (was: meeting tool, presenter, who shares the phone screen, and whether attendees join a demo Teams channel to receive messages themselves). | Abdul | R3 |
 | CTX-O-04 | Availability of a GPU server for the local AI model, and the acceptable local-model answer time | Abdul | R5 |
 | CTX-O-05 | Confirmation from the senior manager that the Jazz name and logo may be shown in the demo | Abdul | Before the branding build package |
 
@@ -163,3 +166,4 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | 1.4 | 8 Oct 2026 | Review pass 3 recorded; Round 0 closed. |
 | 1.5 | 9 Oct 2026 | Round 1 closed; decisions CTX-D-012 and CTX-D-013 added. |
 | 1.6 | 9 Oct 2026 | Round 2 closed; decisions CTX-D-014 to CTX-D-016 added. |
+| 1.7 | 9 Oct 2026 | Round 3 closed; decisions CTX-D-017 to CTX-D-019 added; CTX-O-03 closed. |

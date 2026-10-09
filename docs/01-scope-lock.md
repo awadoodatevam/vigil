@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 01-scope-lock (ID prefix `SL-`) |
-| Version | 1.6 |
+| Version | 1.7 |
 | Date | 9 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Locked (owner review recorded in Section 13). Changes only through Section 8. |
@@ -75,13 +75,13 @@ Items marked "demo-only" are outside the Vigil product (CTX-C-03).
 
 | ID | Item | Requirement | Trace |
 | --- | --- | --- | --- |
-| SL-A3-01 | Jazz lab (demo-only) | The lab MUST run these mock Jazz services in our own environment (complete list): USSD gateway; balance-check API; bundle-purchase API; database server; SMS queue; synthetic USSD session check. They MUST be monitored by real Zabbix and real Prometheus with Alertmanager. | CTX-G-1; demo-only |
+| SL-A3-01 | Jazz lab (demo-only) | The lab MUST run these mock Jazz services in our own environment (complete list): USSD gateway; balance-check API; bundle-purchase API; database server; SMS queue; synthetic USSD session check. They MUST be monitored by real Zabbix and real Prometheus with Alertmanager. Clarification (CTX-D-019): the SMS queue mock includes its SMS dispatcher, and a mock report export job on a reporting server exists only to produce fault SL-F-3; neither is an additional lab service. | CTX-G-1; demo-only |
 | SL-A3-02 | Fault injection (demo-only) | These faults MUST be triggerable on demand (complete list): **SL-F-1** database server disk full; **SL-F-2** a second fault that keeps the service down after the fix (definition SL-O-02); **SL-F-3** one unrelated alert at the same time as SL-F-1; **SL-F-4** cloud AI providers unreachable (scope SL-O-16). | CTX-G-1; demo-only |
 | SL-A3-03 | Demo control panel (demo-only) | A separate demo-only application, not part of Vigil, with its own login used only by the presenter. It MUST: trigger SL-F-1 to SL-F-4; start a storm re-run; reset to the starting state. Reset MUST complete in 60 seconds or less. Reset MUST NOT modify or delete records of earlier demo runs (mechanism SL-O-17). The control panel MUST call Vigil only through Vigil's public interfaces. | CTX-G-1; SL-B-10; demo-only |
 | SL-A3-04 | Repeatability | From a reset, the primary demo MUST run to completion 5 times in a row with the same result, meaning (complete list): one storm incident plus one separate SL-F-3 incident; the same root-cause hypothesis; the same severity and owner; the same best past-incident match and similarity score; the action executed once; the incident resolved; the Jira ticket resolved. The alert count MAY vary within 100 to 200. | CTX-G-1 |
 | SL-A3-05 | Hosting | Vigil MUST be served from a cloud server under our own domain, over HTTPS only, behind the demo login. | CTX-G-1; SL-B-14 |
 | SL-A3-06 | Demo configuration values | The demo MUST set these product settings (SL-B-09): customer name and logo = Jazz (subject to CTX-O-05); environment label = "Demo environment — fictional data". | SL-DR-03; CTX-O-05 |
-| SL-A3-07 | Demo users | Vigil MUST be seeded with these named users and teams (complete list), display names SL-O-18: **presenter**, no team, view access to all Vigil screens; **noc-l1**, team NOC L1, acknowledges; **dbops-engineer**, team Database Operations, acknowledges and approves actions; **dbops-lead**, team Database Operations, acknowledges and approves actions (second approver in SL-A2-06); **admin**, no team, setup, routing rules, AI settings, re-run AI investigation (CTX-D-013), workflow draft editing, test replay, publish and rollback. Users, teams and permissions are seeded data; there are no user or role management screens (SL-C-06). | SL-B-13; BSD-BR-024 |
+| SL-A3-07 | Demo users | Vigil MUST be seeded with these named users and teams (complete list), display names SL-O-18: **presenter**, no team, view access to all Vigil screens; **noc-l1**, team NOC L1, acknowledges; **dbops-engineer**, team Database Operations, acknowledges and approves actions; **dbops-lead**, team Database Operations, acknowledges and approves actions (second approver in SL-A2-06); **admin**, no team, setup, routing rules, AI settings, re-run AI investigation (CTX-D-013), workflow draft editing, test replay, publish and rollback. Users, teams and permissions are seeded data; there are no user or role management screens (SL-C-06). Clarification (CTX-D-019): further teams without members (component and service owners, informed parties, escalation levels) are configuration data under SL-B-09, not demo users; they are listed in `31-demo-data` DD-F-01. | SL-B-13; BSD-BR-024 |
 | SL-A3-08 | Backup video (demo-only) | A recording of the full demo (SL-A1 and SL-A2) MUST exist before the first live presentation, for use if the live session or network fails. | CTX-G-1; demo-only |
 
 ### 5.4 A4 — Screens (complete list)
@@ -274,3 +274,4 @@ Project-wide open items CTX-O-01 to CTX-O-05 are listed in `00-context.md` Secti
 | 1.4 | 8 Oct 2026 | Resolved independent review pass 3 findings (see Section 13). |
 | 1.5 | 9 Oct 2026 | SL-A3-07 clarified: admin may re-run AI investigation (CTX-D-013, from Round 1). No item added to list A. |
 | 1.6 | 9 Oct 2026 | SL-A1-07 and SL-A2-05 clarified (CTX-D-015, CTX-D-016, from Round 2). No item added to list A. |
+| 1.7 | 9 Oct 2026 | SL-A3-01 and SL-A3-07 clarified (CTX-D-019, from Round 3). No item added to list A. |

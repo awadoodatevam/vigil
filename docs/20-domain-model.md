@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 20-domain-model (ID prefix `DM-`) |
-| Version | 1.0 |
+| Version | 1.1 |
 | Date | 9 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 2 closed. |
+| Status | Baseline (owner reviewed). Amended by Round 3 (SB-A-01, SB-A-05). |
 
 ## 1. Purpose
 
@@ -486,7 +486,7 @@ Owner `vigil-intake` · Configuration (area `sources`) · Trace: SL-A1-01, PM-M0
 
 | Field | Type | Req | Meaning |
 | --- | --- | --- | --- |
-| `alert_type` | Key | Y | Vigil's alert type code. The value `unclassified` is reserved and always exists. Demo set: the seven types of SL-A1-01 plus the SL-F-3 type (values Round 3). |
+| `alert_type` | Key | Y | Vigil's alert type code. The value `unclassified` is reserved and always exists. The demo set is defined in `31-demo-data` DD-F-03 (amended in v1.1 by SB-A-01). |
 | `display_name` | Text(100) | Y | Shown in incidents, tickets and messages. |
 
 #### DM-E-17 Alert type mapping
@@ -845,7 +845,7 @@ Owner `vigil-incidents` · Immutable · Trace: SL-A1-03, SL-A1-06, SL-A1-07, BSD
 | `kind` | Enum{diagnostic_result, ai_investigation, similarity_match, approval, action_execution, recovery_verification} | Y | |
 | `producer_module` | Text(40) | Y | |
 | `producer_record_id` | Id | Y | |
-| `source_system` | Text(200) | Y | Where the evidence came from (Example: "lab-db-01 via runner, operation disk_usage"). |
+| `source_system` | Text(200) | Y | Where the evidence came from (Example: "lab-db-01 via runner, operation fs_usage"; amended in v1.1 by SB-A-05). |
 | `collected_at` | Timestamp | Y | |
 | `summary` | Text(200) | Y | One line, used in the evidence summary (PM-M09-11). |
 | `content` | Json | Y | Copy of the producer's record content needed by other modules. |
@@ -2228,4 +2228,5 @@ Open items carried from earlier documents and still open after this round: SL-O-
 | 0.4 | 9 Oct 2026 | Answered the Claude Code readiness test questions (Section 17). |
 | 0.5 | 9 Oct 2026 | Answered readiness test pass 2 questions (Section 17). Draft for owner review. |
 | 1.0 | 9 Oct 2026 | Owner review recorded; Round 2 closed. |
+| 1.1 | 9 Oct 2026 | DM-E-16 `alert_type` meaning points to the demo data set; DM-E-38 `source_system` example uses an operation key (`30-jazz-storyboard` SB-A-01, SB-A-05; CTX-D-017). |
 

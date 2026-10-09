@@ -1,0 +1,130 @@
+# DD-F-03  Monitoring sources, alert types and mappings (seed part 6), plus the lab alert
+# catalogue used to configure demo-monitoring (demo-only, PM-DC-02; not seeded into Vigil).
+
+monitoring_sources:                   # DM-E-15; health values resolve SL-O-12 and DM-O-03
+  - name: "Zabbix — Jazz lab"
+    source_kind: zabbix
+    connector_instance: zabbix-lab     # handle in DD-F-07
+    webhook_token_ref: cred-webhook-zabbix
+    health_check_interval_s: 60
+    stale_after_s: 180
+    disconnected_after_s: 600
+  - name: "Alertmanager — Jazz lab"
+    source_kind: alertmanager
+    connector_instance: alertmanager-lab
+    webhook_token_ref: cred-webhook-alertmanager
+    health_check_interval_s: 60
+    stale_after_s: 180
+    disconnected_after_s: 600
+
+alert_types:                          # DM-E-16 (complete list; `unclassified` is built in)
+  # storm types (SL-A1-01)
+  - {alert_type: disk_full,             display_name: "Disk full"}
+  - {alert_type: db_write_errors,       display_name: "Database write errors"}
+  - {alert_type: ussd_gateway_timeout,  display_name: "USSD gateway timeouts"}
+  - {alert_type: balance_api_errors,    display_name: "Balance-check API errors"}
+  - {alert_type: bundle_api_errors,     display_name: "Bundle-purchase API errors"}
+  - {alert_type: sms_queue_growth,      display_name: "SMS queue growth"}
+  - {alert_type: synthetic_ussd_failed, display_name: "Synthetic USSD session failed"}
+  # SL-F-3 type
+  - {alert_type: batch_job_failed,      display_name: "Report export job failed"}
+  # used only by past incidents (DD-F-09)
+  - {alert_type: cpu_high,              display_name: "CPU utilisation high"}
+  - {alert_type: memory_high,           display_name: "Memory utilisation high"}
+  - {alert_type: api_latency_high,      display_name: "API latency high"}
+  - {alert_type: db_lock_waits,         display_name: "Database lock waits"}
+  - {alert_type: db_connections_exhausted, display_name: "Database connection pool exhausted"}
+  - {alert_type: cert_expiring,         display_name: "TLS certificate expiring"}
+  - {alert_type: smsc_bind_lost,        display_name: "SMSC bind lost"}
+  - {alert_type: recharge_api_errors,   display_name: "Recharge API errors"}
+  - {alert_type: backup_failed,         display_name: "Backup job failed"}
+  - {alert_type: portal_unavailable,    display_name: "Self-care portal unavailable"}
+
+alert_type_mappings:                  # DM-E-17, evaluated in `order` (DM-E17-R1). Field names assumed (DD-ASM-01).
+  - {source_kind: zabbix,       order: 10, field: trigger_name,    operator: contains, value: "free disk space is",  alert_type: disk_full}
+  - {source_kind: zabbix,       order: 20, field: trigger_name,    operator: contains, value: "write errors",        alert_type: db_write_errors}
+  - {source_kind: zabbix,       order: 30, field: trigger_name,    operator: starts_with, value: "SMS queue",        alert_type: sms_queue_growth}
+  - {source_kind: zabbix,       order: 40, field: trigger_name,    operator: equals,   value: "Report export job failed", alert_type: batch_job_failed}
+  - {source_kind: alertmanager, order: 10, field: label.alertname, operator: equals,   value: "UssdGatewayTimeouts",        alert_type: ussd_gateway_timeout}
+  - {source_kind: alertmanager, order: 20, field: label.alertname, operator: equals,   value: "BalanceApiErrors",           alert_type: balance_api_errors}
+  - {source_kind: alertmanager, order: 30, field: label.alertname, operator: equals,   value: "BundleApiErrors",            alert_type: bundle_api_errors}
+  - {source_kind: alertmanager, order: 40, field: label.alertname, operator: equals,   value: "UssdSyntheticSessionFailed", alert_type: synthetic_ussd_failed}
+
+# ---------------------------------------------------------------------------------------
+# Lab alert catalogue (demo-only). Each entry is one alert family; the product of its dimensions
+# is the number of alerts (one alert key each) that fire during the SL-F-1 storm. Count: 138 (DD-K-01).
+# Alertmanager: the label names are the dimension keys plus `component`; annotation
+#   summary = "<alert type display name> on <dimension values joined by ' / '>"
+#   (Example: "Balance-check API errors on balance-api-2 / /v1/balance").
+# Zabbix: the trigger name carries the dimension (pool or route); the problem name is the trigger name.
+# These are the ONLY alerts the lab sends to Vigil (DD-F-10 monitoring_configuration).
+lab_alert_catalogue:
+  - id: LA-01
+    alert_type: disk_full
+    source: zabbix
+    host: lab-db-01
+    component_tag: null
+    trigger_names:
+      - "Filesystem /data: free disk space is below 10%"
+      - "Filesystem /data: free disk space is below 2%"
+    count: 2
+  - id: LA-02
+    alert_type: db_write_errors
+    source: zabbix
+    host: lab-db-01
+    component_tag: subscriber-db
+    trigger_name_pattern: "Subscriber DB: write errors on pool {pool}"
+    dimensions: {pool: [pool-01, pool-02, pool-03, pool-04, pool-05, pool-06, pool-07, pool-08]}
+    count: 8
+  - id: LA-03
+    alert_type: sms_queue_growth
+    source: zabbix
+    host: lab-vas-01
+    component_tag: sms-queue
+    trigger_name_pattern: "SMS queue {route}: depth growing"
+    dimensions: {route: [smsc-route-01, smsc-route-02, smsc-route-03, smsc-route-04, smsc-route-05,
+                         smsc-route-06, smsc-route-07, smsc-route-08, smsc-route-09, smsc-route-10,
+                         smsc-route-11, smsc-route-12, smsc-route-13, smsc-route-14, smsc-route-15,
+                         smsc-route-16, smsc-route-17, smsc-route-18, smsc-route-19, smsc-route-20]}
+    count: 20
+  - id: LA-04
+    alert_type: ussd_gateway_timeout
+    source: alertmanager
+    alertname: UssdGatewayTimeouts
+    labels: {component: ussd-gateway}
+    dimensions: {node: [ussd-gw-a, ussd-gw-b],
+                 menu: [main-menu, balance, data-bundles, voice-bundles, sms-bundles, bundle-status,
+                        balance-details, usage-history, my-number, language, help, exit]}
+    count: 24
+  - id: LA-05
+    alert_type: balance_api_errors
+    source: alertmanager
+    alertname: BalanceApiErrors
+    labels: {component: balance-api}
+    dimensions: {api_instance: [balance-api-1, balance-api-2, balance-api-3, balance-api-4],
+                 endpoint: [/v1/balance, /v1/balance/data, /v1/balance/minutes, /v1/balance/sms, /v1/balance/validity, /v1/balance/summary]}
+    count: 24
+  - id: LA-06
+    alert_type: bundle_api_errors
+    source: alertmanager
+    alertname: BundleApiErrors
+    labels: {component: bundle-api}
+    dimensions: {api_instance: [bundle-api-1, bundle-api-2, bundle-api-3, bundle-api-4],
+                 bundle_family: [daily, weekly, fortnightly, monthly, data, voice, sms, night, weekend]}
+    count: 36
+  - id: LA-07
+    alert_type: synthetic_ussd_failed
+    source: alertmanager
+    alertname: UssdSyntheticSessionFailed
+    labels: {component: ussd-synthetic}
+    dimensions: {probe_city: [karachi, lahore, islamabad, peshawar, quetta, multan],
+                 journey: [balance-check, bundle-purchase, bundle-status, main-menu]}
+    count: 24
+  # SL-F-3 (not counted in the 138)
+  - id: LA-08
+    alert_type: batch_job_failed
+    source: zabbix
+    host: lab-rpt-01
+    component_tag: reporting-app
+    trigger_names: ["Report export job failed"]
+    count: 1
