@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 01-scope-lock (ID prefix `SL-`) |
-| Version | 1.3 |
-| Date | 8 October 2026 |
+| Version | 1.5 |
+| Date | 9 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Locked (owner review recorded in Section 13). Changes only through Section 8. |
 
@@ -20,7 +20,7 @@ Anything not in list A or list B is not built. Rounds 1–6 add detail to the it
 
 ## 2. Inputs read
 
-`docs/00-context.md` v1.3; `docs/sources/Techfinity NOC Demo — What Will Be Delivered.md`; `docs/sources/Continuum — Business Solution Document.md` v0.2.
+`docs/00-context.md` v1.4; `docs/sources/Techfinity NOC Demo — What Will Be Delivered.md`; `docs/sources/Continuum — Business Solution Document.md` v0.2.
 
 ## 3. Definitions (complete list)
 
@@ -29,7 +29,7 @@ Anything not in list A or list B is not built. Rounds 1–6 add detail to the it
 | Demo run | One presentation of the demo, starting from the starting state. |
 | Starting state | The state after a reset (complete list): lab healthy with all faults cleared; Zabbix and Alertmanager connected and healthy; service map loaded; 50 past incidents and their runbooks loaded; workflow version 1 published and active; default routing rules active; default AI settings active (SL-O-20); demo users seeded (SL-A3-07); no open incidents; dashboard showing seeded history. |
 | Storm re-run | Demo tooling (SL-A3-03): injects fault SL-F-1 again in the lab, so real monitoring sends a new alert storm to Vigil. Live effects occur. |
-| Test replay | Vigil product feature (SL-A2-06): Vigil re-processes the stored alerts of an earlier incident through a selected workflow version in an isolated test run. Diagnostic and AI steps in a test replay MUST reuse the stored diagnostic results and AI outputs of the original incident. A test replay MUST NOT (complete list): create a live incident; call Jira, Teams, email, AI providers or any other connector; run any diagnostic or action on a target; write live audit events. Its result MUST be stored and shown as a test result, labelled "Test". |
+| Test replay | Vigil product feature (SL-A2-06): Vigil re-processes the stored alerts of an earlier incident through a selected workflow version or unpublished draft in an isolated test run. Diagnostic and AI steps in a test replay MUST reuse the stored diagnostic results and AI outputs of the original incident. A test replay MUST NOT (complete list): create a live incident; call Jira, Teams, email, AI providers or any other connector; run any diagnostic or action on a target; write live audit events. Its result MUST be stored and shown as a test result, labelled "Test". |
 | Re-run AI investigation | Vigil product feature (SL-A2-07): an action in the incident workspace (SL-A4-03) that runs AI task SL-T-1 again, live, through the AI gateway (SL-B-08), using the incident's current evidence. |
 | Environment label | A product setting (SL-B-09): text shown as a persistent banner on every Vigil screen and prefixed to every Jira ticket title, Teams message and email that Vigil sends. Demo value: "Demo environment — fictional data". |
 | Real / Simplified / Staged | Tags given to each scene in Round 3. Real: the product feature works as specified. Simplified: works, with a narrower scope stated in Round 3. Staged: prepared output shown, no product logic. Scenes SL-A1-01 to SL-A1-07 MUST be tagged Real or Simplified, never Staged. |
@@ -65,7 +65,7 @@ Anything not in list A or list B is not built. Rounds 1–6 add detail to the it
 | SL-A2-03 | Nobody acknowledges | If no acknowledgement arrives before the configured timer expires, Vigil MUST escalate to the next fixed escalation level (levels and timers SL-O-14) and record the escalation on the incident and in the Jira ticket. | BSD-BR-009 |
 | SL-A2-04 | The fix does not work | When fault SL-F-2 is active, the service stays down after the approved action. The incident MUST stay open and MUST escalate with the evidence. Vigil MUST NOT make more action attempts than the configured limit (SL-O-15). | BSD-BR-012, BSD-BR-014; BSD RULE-07 |
 | SL-A2-05 | Cloud AI unavailable | When fault SL-F-4 is active (scope SL-O-16), Vigil MUST fall back to the next provider allowed for the task. If no allowed provider is reachable, Vigil MUST continue routing by rules and MUST show on the incident that AI investigation is unavailable. | BSD-BR-021 |
-| SL-A2-06 | Change it live | In the drag-and-drop workflow editor (Section 5.6), an admin MUST be able to: drag a second Approval step into the P1 branch of the workflow and connect it, so P1 actions need two approvers; and shorten the escalation timer in the Escalation step's parameter panel. An admin MUST be able to change one routing rule in the routing-rules settings screen (SL-A4-08; exact rule SL-O-21). Vigil MUST run a test replay of the earlier incident against the changed draft and show the result. Vigil MUST let the admin publish the draft as version 2; after a storm re-run, the new incident MUST follow version 2. Vigil MUST show version history with who changed what and when, and MUST roll back to version 1 in one step. | BSD-BR-015, BSD-BR-016 |
+| SL-A2-06 | Change it live | In the drag-and-drop workflow editor (Section 5.6), an admin MUST be able to: drag a second Approval step into the P1 branch of the workflow and connect it, so P1 actions need two different approvers (in the demo, dbops-engineer approves first and dbops-lead second); and shorten the escalation timer in the Escalation step's parameter panel. An admin MUST be able to change one routing rule in the routing-rules settings screen (SL-A4-08; exact rule SL-O-21). Vigil MUST run a test replay of the earlier incident against the changed draft and show the result. Vigil MUST let the admin publish the draft as version 2; after a storm re-run, the new incident MUST follow version 2. Vigil MUST show version history with who changed what and when, and MUST roll back to version 1 in one step. | BSD-BR-015, BSD-BR-016 |
 | SL-A2-07 | Keep data in-house | After an admin switches every AI task to the local model, a re-run AI investigation on the incident MUST use only the local model. The AI usage log MUST show that no request went to an external AI provider during that re-run. | BSD-BR-020 |
 | SL-A2-08 | Audit trail | Vigil MUST show who did what and when, including every acknowledgement, approval, action, workflow change and routing-rule change. | BSD-BR-025 |
 
@@ -81,7 +81,7 @@ Items marked "demo-only" are outside the Vigil product (CTX-C-03).
 | SL-A3-04 | Repeatability | From a reset, the primary demo MUST run to completion 5 times in a row with the same result, meaning (complete list): one storm incident plus one separate SL-F-3 incident; the same root-cause hypothesis; the same severity and owner; the same best past-incident match and similarity score; the action executed once; the incident resolved; the Jira ticket resolved. The alert count MAY vary within 100 to 200. | CTX-G-1 |
 | SL-A3-05 | Hosting | Vigil MUST be served from a cloud server under our own domain, over HTTPS only, behind the demo login. | CTX-G-1; SL-B-14 |
 | SL-A3-06 | Demo configuration values | The demo MUST set these product settings (SL-B-09): customer name and logo = Jazz (subject to CTX-O-05); environment label = "Demo environment — fictional data". | SL-DR-03; CTX-O-05 |
-| SL-A3-07 | Demo users | Vigil MUST be seeded with these named users and teams (complete list), display names SL-O-18: **presenter**, no team, view access to all Vigil screens; **noc-l1**, team NOC L1, acknowledges; **dbops-engineer**, team Database Operations, acknowledges and approves actions; **dbops-lead**, team Database Operations, acknowledges and approves actions (second approver in SL-A2-06); **admin**, no team, setup, routing rules, AI settings, workflow publish and rollback. Users, teams and permissions are seeded data; there are no user or role management screens (SL-C-06). | SL-B-13; BSD-BR-024 |
+| SL-A3-07 | Demo users | Vigil MUST be seeded with these named users and teams (complete list), display names SL-O-18: **presenter**, no team, view access to all Vigil screens; **noc-l1**, team NOC L1, acknowledges; **dbops-engineer**, team Database Operations, acknowledges and approves actions; **dbops-lead**, team Database Operations, acknowledges and approves actions (second approver in SL-A2-06); **admin**, no team, setup, routing rules, AI settings, re-run AI investigation (CTX-D-013), workflow draft editing, test replay, publish and rollback. Users, teams and permissions are seeded data; there are no user or role management screens (SL-C-06). | SL-B-13; BSD-BR-024 |
 | SL-A3-08 | Backup video (demo-only) | A recording of the full demo (SL-A1 and SL-A2) MUST exist before the first live presentation, for use if the live session or network fails. | CTX-G-1; demo-only |
 
 ### 5.4 A4 — Screens (complete list)
@@ -111,7 +111,7 @@ Vigil screens SL-A4-01 to SL-A4-11 are product screens. SL-A4-12 belongs to the 
 | SL-T-2 | Incident summary text for the Jira ticket and messages | Claude; OpenAI; local model | SL-A1-05 |
 | SL-T-3 | Text embedding for similar-incident search | Local embedding model (default, used in the demo); OpenAI | SL-A1-06 |
 
-The demo uses the local embedding model for SL-T-3 (CTX-D-011): the same input always gives the same score, so the match in SL-A1-06 is identical on every run (SL-A3-04); search keeps working during fault SL-F-4; and it supports the data-stays-in-house story of SL-A2-07. When the SL-T-3 provider changes, Vigil MUST re-embed all stored past incidents with the new provider before the next similarity search. Similarity scores are only comparable within one provider.
+The SL-T-3 search text MUST be built only from fields that are identical on every run (complete list): alert types; affected services; root-cause hypothesis component. Similarity scores MUST be displayed and compared rounded to 2 decimal places. The demo uses the local embedding model for SL-T-3 (CTX-D-011): the same input gives the same score (SL-ASM-04), so the match in SL-A1-06 is identical on every run (SL-A3-04); search keeps working during fault SL-F-4; and it supports the data-stays-in-house story of SL-A2-07. When the SL-T-3 provider changes, Vigil MUST re-embed all stored past incidents with the new provider before the next similarity search. Similarity scores are only comparable within one provider.
 
 ### 5.6 Workflow editor capabilities (complete list)
 
@@ -124,7 +124,7 @@ The demo uses the local embedding model for SL-T-3 (CTX-D-011): the same input a
 | SL-WE-05 | Every editor change MUST be undoable and redoable, for at least the last 50 changes in the editing session. | CTX-D-010 |
 | SL-WE-06 | The canvas MUST support zoom, pan, fit-to-screen and an automatic layout command. | CTX-D-010 |
 | SL-WE-07 | Edits MUST be saved as a draft. The published version stays active and unchanged until the draft is published. | BSD-BR-016 |
-| SL-WE-08 | Before a test replay or publish, Vigil MUST validate the draft against these rules (complete list): exactly one Trigger step; every step reachable from the Trigger; no unconnected step and no unconnected Condition branch; on every path, each Action step is preceded by an Approval step and followed by a Recovery check step (enforces SL-B-04); any cycle passes through a Wait/timer step; every required parameter has a valid value. Each violation MUST be shown on the step it concerns, and publish MUST be blocked until all are fixed. | BSD-BR-016; SL-B-04 |
+| SL-WE-08 | Before a test replay or publish, Vigil MUST validate the draft against these rules (complete list): exactly one Trigger step; every step reachable from the Trigger; no unconnected step and no unconnected Condition branch; on every path, each Action step is preceded by an Approval step and followed by a Recovery check step (this graph check supports, and does not replace, the engine enforcement in SL-B-04); any cycle passes through a Wait/timer step; every required parameter has a valid value. Each violation MUST be shown on the step it concerns, and publish MUST be blocked until all are fixed. | BSD-BR-016; SL-B-04 |
 | SL-WE-09 | Version history MUST show, for each version, who published it, when, and the list of steps added, removed or changed compared with the previous version. | BSD-BR-016, BSD-BR-025 |
 | SL-WE-10 | The same canvas, read-only, MUST show a running incident's workflow with live step highlight (SL-A1-08). | BSD-BR-022 |
 
@@ -136,8 +136,8 @@ Built from the first build package onward.
 | --- | --- | --- |
 | SL-B-01 | Every stored record MUST carry a tenant identifier. | BSD-BR-024 |
 | SL-B-02 | Every received alert MUST be stored unchanged with its source identity and receive time. Processing MUST NOT modify or delete stored alerts. | BSD-BR-002 |
-| SL-B-03 | Workflows MUST be stored as versioned definitions and executed by Vigil's own workflow engine; no external workflow product is used. Step behaviour is code. The composition of steps and their parameters is data. Step types (complete list): trigger; condition (branch); diagnostic; AI task; approval; action; recovery check; escalation; notification; ticket create/update; wait/timer. There is no free-form scripting step. | BSD-BR-015, BSD-BR-016, BSD-BR-028; BSD §11.2 |
-| SL-B-04 | Every action that changes a target system MUST follow one path: policy check, then approval or preauthorization, then recheck, then execution, then recovery verification. Vigil MUST NOT provide any other way to run an action. The policy check MUST support the outcomes (complete list): blocked; approval required; preauthorized. The demo configuration uses "approval required" only. The "preauthorized" and "blocked" outcomes MUST have automated tests. | BSD-BR-012, BSD-BR-014, BSD-BR-030 (partial) |
+| SL-B-03 | Workflows MUST be stored as versioned definitions and executed by Vigil's own workflow engine; no external workflow product is used. Step behaviour is code. The composition of steps and their parameters is data. Step types and their named outputs (complete list): trigger (next); condition (one output per branch, plus "otherwise"); diagnostic (done, failed); AI task (done, unavailable); approval (approved, rejected, expired); action (succeeded, failed); recovery check (recovered, not recovered); escalation (next); notification (sent, failed); ticket create/update (done, failed); wait/timer (waits for a duration or until an event such as acknowledgement; outputs: event received, timed out). An action whose result is unknown is first reconciled by the engine (SL-B-11) and then leaves by "succeeded" or "failed". A condition is a structured comparison (field, operator, value); several comparisons MAY be combined with AND; fields and operators are a complete list defined in Round 2 (SL-O-23). There is no free-form scripting step and no free-form expression language. An Approval step's parameters MUST include the eligible team(s), and the approver of an Approval step MUST differ from every approver of earlier Approval steps in the same run. A workflow run MUST complete on the version it started with. Rollback MUST create a new version whose content equals the chosen earlier version and publish it (rolling back from version 2 to version 1 creates version 3). | BSD-BR-015, BSD-BR-016, BSD-BR-028; BSD §11.2 |
+| SL-B-04 | Every action that changes a target system MUST follow one path: policy check, then approval or preauthorization, then recheck, then execution, then recovery verification. Vigil MUST NOT provide any other way to run an action. The policy check MUST support the outcomes (complete list): blocked; approval required; preauthorized. The engine MUST enforce this path for every action, whatever the workflow graph contains. When the policy check returns "preauthorized", the Approval step MUST record "preauthorized" and leave by "approved" without a human. When it returns "blocked", the action MUST NOT run and the Approval step MUST leave by "rejected". The demo configuration uses "approval required" only. The "preauthorized" and "blocked" outcomes MUST have automated tests. | BSD-BR-012, BSD-BR-014, BSD-BR-030 (partial) |
 | SL-B-05 | Read-only diagnostic permission and action permission MUST be granted separately. | BSD-BR-024; BSD RULE-04 |
 | SL-B-06 | An append-only audit log MUST record decisions, acknowledgements, approvals, actions, outcomes and configuration changes. | BSD-BR-025 |
 | SL-B-07 | Monitoring sources, diagnostic and action targets, ticketing systems, notification channels and AI providers MUST each be reached through a common connector interface for their type. Adding a new connector MUST NOT require changes to the core. | BSD-BR-017 |
@@ -174,7 +174,7 @@ All differences are adopted by decision CTX-D-005 unless another decision is nam
 | SL-X-01 | Acknowledge and Approve buttons inside WhatsApp and Teams | Links to Vigil's own mobile pages, after login | CTX-D-006 |
 | SL-X-02 | WhatsApp, Teams and email | Teams and email; WhatsApp moved to SL-C-01 | CTX-D-006 |
 | SL-X-03 | Workflow studio with graph editing | Full drag-and-drop workflow editor (Section 5.6) with live highlight, test replay, versions, publish and rollback | CTX-D-010 |
-| SL-X-04 | "Change a routing rule in settings" | Kept in a routing-rules settings screen (SL-A4-08); approver count and timer are workflow form edits | CTX-D-005 |
+| SL-X-04 | "Change a routing rule in settings" | Kept in a routing-rules settings screen (SL-A4-08); approver count and timer are edited in the drag-and-drop workflow editor (Section 5.6) | CTX-D-005, CTX-D-010 |
 | SL-X-05 | 35-minute demo primary, 15-minute version optional | 15-minute demo primary (SL-A1); other parts are deep dives (SL-A2) | CTX-D-007 |
 | SL-X-06 | Guided setup with discovery | Connect and test sources; import the service map from a file; list readiness gaps | CTX-D-005 |
 | SL-X-07 | Dashboard plus several reports | Dashboard, AI usage and cost, audit trail only | CTX-D-005 |
@@ -223,6 +223,7 @@ BSD requirements not covered by this demo (complete list): BSD-BR-018 (industry 
 | SL-ASM-01 | Prometheus Alertmanager's grouping and timing settings can be configured to deliver 100 to 200 individual alerts to a webhook within 120 seconds. By default it batches alerts and waits before sending. | Fact check in R5; early build spike |
 | SL-ASM-02 | A Microsoft-supported mechanism exists to post Teams messages containing links into a channel or chat without building a bot. Microsoft is retiring the older Office 365 connector webhooks; the replacement route must be confirmed. | Fact check in R5; early build spike |
 | SL-ASM-03 | Anthropic offers no embeddings API, so Claude is not listed for SL-T-3. This does not affect the demo default (CTX-D-011). | Fact check in R5 |
+| SL-ASM-04 | The selected local embedding model returns the same vector for the same input text on the same server. | Fact check in R5; early build spike |
 
 ## 12. Open items (complete list)
 
@@ -234,7 +235,7 @@ BSD requirements not covered by this demo (complete list): BSD-BR-018 (industry 
 | SL-O-04 | Grouping time window length (SL-A1-02) | Claude, reviewed by Abdul | R3 |
 | SL-O-05 | Expected visible handling of the SL-F-3 incident (priority, ticket, notification) | Claude, reviewed by Abdul | R3 |
 | SL-O-06 | Exact diagnostic definitions: data path, number of largest folders, growth period (SL-A1-03) | Claude, reviewed by Abdul | R3 |
-| SL-O-07 | Expected severity, owner team and informed parties for the storm incident (SL-A1-04) | Claude, reviewed by Abdul | R3 |
+| SL-O-07 | Expected owner team and informed parties for the storm incident (SL-A1-04); its severity MUST be P1 | Claude, reviewed by Abdul | R3 |
 | SL-O-08 | Past-incident best match, similarity score display, success count, proposed action and its parameters (SL-A1-06) | Claude, reviewed by Abdul | R3 |
 | SL-O-09 | Approval expiry time and action limits (SL-A1-06) | Claude, reviewed by Abdul | R3 |
 | SL-O-10 | Dashboard data source: current demo run plus seeded history (SL-A1-09) | Claude, reviewed by Abdul | R3 |
@@ -248,7 +249,9 @@ BSD requirements not covered by this demo (complete list): BSD-BR-018 (industry 
 | SL-O-18 | Display names of demo users | Claude, reviewed by Abdul | R3 |
 | SL-O-19 | Screens included in checkpoint SL-CP-1 | Claude | R6 |
 | SL-O-20 | Default AI settings for SL-T-1 and SL-T-2: provider and fallback order (SL-T-3 default fixed by CTX-D-011) | Claude, reviewed by Abdul | R5 |
-| SL-O-21 | The routing rule changed in SL-A2-06 | Claude, reviewed by Abdul | R3 |
+| SL-O-21 | The routing rule changed in SL-A2-06. The change MUST NOT alter the storm incident's severity or owner team. | Claude, reviewed by Abdul | R3 |
+| SL-O-22 | Definition of workflow version 1, step by step. It MUST include a severity Condition step with a P1 branch. | Claude, reviewed by Abdul | R3 |
+| SL-O-23 | Complete list of fields and operators usable in Condition steps | Claude | R2 |
 
 Project-wide open items CTX-O-01 to CTX-O-05 are listed in `00-context.md` Section 14.
 
@@ -257,6 +260,7 @@ Project-wide open items CTX-O-01 to CTX-O-05 are listed in `00-context.md` Secti
 | Check | Result |
 | --- | --- |
 | CTX-Q-4 Independent review | Done, 8 Oct 2026, in two passes. Pass 1: 31 findings (9 High, 16 Medium, 6 Low), resolved in v1.1: MUST/MAY wording; prefixed IDs; reset compatible with SL-B-02 and SL-B-06; lab boundary SL-B-10; demo users (SL-A3-07); login on Acknowledge/Approval pages (SL-B-13); minimum security (SL-B-14); storm re-run and test replay defined; root-cause ownership split between grouping rule and AI; screens (SL-A4) and AI tasks (SL-T) listed; SL-B-11 and SL-B-12 added; preauthorization decided (SL-B-04, SL-C-17); SL-X-12 to SL-X-16, SL-O-04 to SL-O-20, SL-ASM-01 and SL-ASM-02 added; traces corrected. Pass 2 (verification): 2 partly resolved and 6 new findings (2 High, 4 Medium) plus 6 Low, resolved in v1.2: remaining MUST wording; allowed providers per AI task and re-embedding rule (SL-ASM-03); test replay reuses stored outputs; re-run AI investigation defined; teams added to demo users and notification recipients defined; demo control panel made a separate application; environment label made a product setting covering tickets and messages; SL-O-17 scope widened; root-cause tie-break; template fallback for SL-T-2; A3 trace column; SL-O-21 split from SL-O-03. |
+| CTX-Q-4 pass 3 | Review of the v1.3 owner-review changes, 8 Oct 2026: 10 Medium findings, none High; all resolved in v1.4 (stale SL-X-04; workflow v1 and P1 branch, SL-O-22; routing change constrained, SL-O-21; distinct approvers; named outputs per step type; structured conditions, SL-O-23; engine enforcement of SL-B-04 with preauthorized/blocked behaviour; run-on-start-version and rollback rule; test replay of drafts and admin permissions; stable SL-T-3 search text, rounding and SL-ASM-04). |
 | CTX-Q-7 Owner review | Done, 8 Oct 2026. Seven decisions reviewed: five agreed as proposed. Changed: workflow edits through forms replaced by a full drag-and-drop editor (CTX-D-010). Refined: SL-T-3 provider decided on what is best for the demo, not on cost or API availability (CTX-D-011). |
 
 ## 14. Change history
@@ -267,3 +271,5 @@ Project-wide open items CTX-O-01 to CTX-O-05 are listed in `00-context.md` Secti
 | 1.1 | 8 Oct 2026 | Resolved independent review pass 1 findings (see Section 13). |
 | 1.2 | 8 Oct 2026 | Resolved independent review pass 2 findings (see Section 13). |
 | 1.3 | 8 Oct 2026 | Owner review: drag-and-drop workflow editor added (Section 5.6, SL-A2-06, SL-A4-06, condition step type, SL-C-11 withdrawn, SL-C-18 and SL-C-19 added); SL-T-3 local embedding default. Status set to Locked. |
+| 1.4 | 8 Oct 2026 | Resolved independent review pass 3 findings (see Section 13). |
+| 1.5 | 9 Oct 2026 | SL-A3-07 clarified: admin may re-run AI investigation (CTX-D-013, from Round 1). No item added to list A. |

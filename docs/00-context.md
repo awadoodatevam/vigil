@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 00-context (ID prefix `CTX-`) |
-| Version | 1.3 |
-| Date | 8 October 2026 |
+| Version | 1.5 |
+| Date | 9 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed) |
 
@@ -71,7 +71,7 @@ Each round is one conversation in the Claude project and produces the files list
 | Round | Topic | Output files | Status |
 | --- | --- | --- | --- |
 | R0 | Context and scope | `00-context.md`, `01-scope-lock.md` | Closed, 8 Oct 2026 |
-| R1 | Product map: every module of the full product, its job, what it owns, what it talks to; working module names; AI task list confirmation | `10-product-map.md` | Not started |
+| R1 | Product map: every module of the full product, its job, what it owns, what it talks to; working module names; AI task list confirmation | `10-product-map.md` | Closed, 9 Oct 2026 |
 | R2 | Core domain model: entities, relationships, lifecycles and state machines | `20-domain-model.md` | Not started |
 | R3 | Jazz storyboard and demo data: scene-by-scene script with Real/Simplified/Staged tags; the invented Jazz data set; exact demo values | `30-jazz-storyboard.md`, `31-demo-data/` | Not started |
 | R4 | Demo cut: per module, keep / simplify / stage / later, keeping product shape; screen-by-screen content | `40-demo-cut.md` | Not started |
@@ -128,6 +128,8 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | CTX-D-009 | 8 Oct 2026 | The `docs/` folder in the repository is the master copy of all project documents. | Claude Code reads the repository; git keeps history. |
 | CTX-D-010 | 8 Oct 2026 | The demo includes a full drag-and-drop workflow editor (`01-scope-lock` Section 5.6), replacing form-based edits. | Owner decision: the workflow editor is what a prospective customer sees and judges; accepted despite its build effort. |
 | CTX-D-011 | 8 Oct 2026 | Similar-incident search (SL-T-3) uses a local embedding model by default in the demo; OpenAI remains an allowed alternative. | Best for the demo: identical results every run, keeps working when cloud AI is cut (SL-F-4), and supports the data-stays-in-house story. Not decided on cost or API availability. |
+| CTX-D-012 | 9 Oct 2026 | Product map `10-product-map` v1.0 adopted: 24 built and 4 Later-only modules with working names, module rules PM-R-01 to PM-R-09, and decisions PM-D-01 to PM-D-14. The AI task list SL-T-1 to SL-T-3 is confirmed complete. | Round 1 output; owner agreed the seven decisions put to review. |
+| CTX-D-013 | 9 Oct 2026 | The admin demo user may run "Re-run AI investigation" (clarification of SL-A3-07, PM-D-13). | SL-A2-07 has the admin switch providers and re-run; no user held the permission. |
 
 ## 14. Open items
 
@@ -144,6 +146,7 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | Check | Result |
 | --- | --- |
 | CTX-Q-4 Independent review | Done, 8 Oct 2026, in two passes. Pass 1: 31 findings across both R0 documents (9 High, 16 Medium, 6 Low). Pass 2 (verification of fixes): 29 resolved, 2 partly resolved, plus 6 new findings introduced by the fixes (2 High, 4 Medium) and 6 Low. All closed in version 1.2. Main fixes: document-prefixed IDs; MUST/MAY wording; reset compatible with the append-only rules; lab boundary and separate demo control panel application; demo users with teams; login on Acknowledge and Approval pages; minimum security items; defined terms (storm re-run, test replay, re-run AI investigation, environment label); root-cause rule; allowed providers per AI task (Claude has no embeddings API); source documents moved to `docs/sources/`. |
+| CTX-Q-4 pass 3 | Review of the owner-review changes: 10 Medium findings, all resolved in `01-scope-lock` v1.4. |
 | CTX-Q-7 Owner review | Done, 8 Oct 2026. Five of seven decisions agreed as proposed; two changed (CTX-D-010, CTX-D-011). |
 
 ## 16. Change history
@@ -153,4 +156,6 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | 1.0 | 8 Oct 2026 | Initial baseline (Round 0). |
 | 1.1 | 8 Oct 2026 | Resolved independent review findings: ID prefixes, added inputs-read, out-of-scope and quality-check sections, corrected BSD section reference, Q-1 exception for R1/R2, repository naming, "Resolved in" column for open items. |
 | 1.2 | 8 Oct 2026 | Resolved verification findings: source documents located in `docs/sources/`; BSD RULE and goal traces allowed in CTX-W-05; review results updated. |
-| 1.3 | 8 Oct 2026 | Owner review recorded; decisions CTX-D-010 and CTX-D-011 added; Round 0 closed. |
+| 1.3 | 8 Oct 2026 | Owner review recorded; decisions CTX-D-010 and CTX-D-011 added. |
+| 1.4 | 8 Oct 2026 | Review pass 3 recorded; Round 0 closed. |
+| 1.5 | 9 Oct 2026 | Round 1 closed; decisions CTX-D-012 and CTX-D-013 added. |
