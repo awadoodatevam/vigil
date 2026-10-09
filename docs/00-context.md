@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 00-context (ID prefix `CTX-`) |
-| Version | 1.5 |
+| Version | 1.6 |
 | Date | 9 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed) |
@@ -72,7 +72,7 @@ Each round is one conversation in the Claude project and produces the files list
 | --- | --- | --- | --- |
 | R0 | Context and scope | `00-context.md`, `01-scope-lock.md` | Closed, 8 Oct 2026 |
 | R1 | Product map: every module of the full product, its job, what it owns, what it talks to; working module names; AI task list confirmation | `10-product-map.md` | Closed, 9 Oct 2026 |
-| R2 | Core domain model: entities, relationships, lifecycles and state machines | `20-domain-model.md` | Not started |
+| R2 | Core domain model: entities, relationships, lifecycles and state machines | `20-domain-model.md` | Closed, 9 Oct 2026 |
 | R3 | Jazz storyboard and demo data: scene-by-scene script with Real/Simplified/Staged tags; the invented Jazz data set; exact demo values | `30-jazz-storyboard.md`, `31-demo-data/` | Not started |
 | R4 | Demo cut: per module, keep / simplify / stage / later, keeping product shape; screen-by-screen content | `40-demo-cut.md` | Not started |
 | R5 | Architecture: applications, stack, integrations, AI layer, hosting, final module names | `50-architecture.md` | Not started |
@@ -130,6 +130,9 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | CTX-D-011 | 8 Oct 2026 | Similar-incident search (SL-T-3) uses a local embedding model by default in the demo; OpenAI remains an allowed alternative. | Best for the demo: identical results every run, keeps working when cloud AI is cut (SL-F-4), and supports the data-stays-in-house story. Not decided on cost or API availability. |
 | CTX-D-012 | 9 Oct 2026 | Product map `10-product-map` v1.0 adopted: 24 built and 4 Later-only modules with working names, module rules PM-R-01 to PM-R-09, and decisions PM-D-01 to PM-D-14. The AI task list SL-T-1 to SL-T-3 is confirmed complete. | Round 1 output; owner agreed the seven decisions put to review. |
 | CTX-D-013 | 9 Oct 2026 | The admin demo user may run "Re-run AI investigation" (clarification of SL-A3-07, PM-D-13). | SL-A2-07 has the admin switch providers and re-run; no user held the permission. |
+| CTX-D-014 | 9 Oct 2026 | Domain model `20-domain-model` v1.0 adopted: 82 entities, 16 state machines, rules DM-R-01 to DM-R-69 and decisions DM-D-01 to DM-D-21; `10-product-map` amended to v1.1 (DM-A-01 to DM-A-28). | Round 2 output; owner agreed the seven review items. |
+| CTX-D-015 | 9 Oct 2026 | SL-A1-07 clarified: "the synthetic USSD check reports success" means no alert of the check component is firing, and recovery conditions count only while every active monitoring source is healthy (DM-D-11). | Silence from a broken source is not recovery; no source queries needed. |
+| CTX-D-016 | 9 Oct 2026 | SL-A2-05 clarified: AI fallback applies to SL-T-1 and SL-T-2; SL-T-3 has one provider and changes it only through re-embedding (DM-D-21). | Similarity scores from different providers are not comparable. |
 
 ## 14. Open items
 
@@ -159,3 +162,4 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | 1.3 | 8 Oct 2026 | Owner review recorded; decisions CTX-D-010 and CTX-D-011 added. |
 | 1.4 | 8 Oct 2026 | Review pass 3 recorded; Round 0 closed. |
 | 1.5 | 9 Oct 2026 | Round 1 closed; decisions CTX-D-012 and CTX-D-013 added. |
+| 1.6 | 9 Oct 2026 | Round 2 closed; decisions CTX-D-014 to CTX-D-016 added. |

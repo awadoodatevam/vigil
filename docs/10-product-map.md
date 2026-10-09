@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 10-product-map (ID prefix `PM-`) |
-| Version | 0.3 |
-| Date | 8 October 2026 |
+| Version | 1.1 |
+| Date | 9 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Draft for owner review (Round 1) |
+| Status | Baseline (owner reviewed). Amended by Round 2 (Section 19). |
 
 ## 1. Purpose
 
@@ -16,8 +16,8 @@ Round 2 defines the records named here in detail (fields, relationships, lifecyc
 
 ## 2. Inputs read
 
-- `docs/00-context.md` v1.4.
-- `docs/01-scope-lock.md` v1.4.
+- `docs/00-context.md` v1.4 (v1.5 records the closure of this round).
+- `docs/01-scope-lock.md` v1.4 (v1.5 adds the clarification of PM-D-13).
 - `docs/sources/Continuum — Business Solution Document.md` v0.2 (the BSD), all sections.
 - `docs/sources/Techfinity NOC Demo — What Will Be Delivered.md`, 7 October 2026.
 
@@ -147,6 +147,8 @@ Solid arrows are requests. Dotted arrows are events.
 | PM-R-09 | A user action MUST reach a module only after `vigil-api` has authenticated the user and confirmed the permission with `vigil-identity`. Modules MUST record the acting user with the change. | SL-B-13 |
 
 ## 6. Module cards
+
+Section 19 lists the amendments made by Round 2 (`20-domain-model`). Where Section 19 and an item in Sections 4 to 14 differ, Section 19 wins.
 
 Each card lists: job; records owned (complete list); requests it sends; events it publishes; events it reacts to; responsibilities. Responsibility IDs are `PM-Mnn-nn` (built) and `PM-Mnn-Ln` (Later, not built). Record names are working names; Round 2 defines them.
 
@@ -852,23 +854,23 @@ These are not part of Vigil (CTX-C-03). They MUST be kept in a separate part of 
 
 ### 12.1 Decisions made in this round
 
-Status "Owner review" means the decision is one of the seven put to Abdul under CTX-Q-7. Status "Proposed" means Claude made the decision within the scope lock; Abdul MAY change any of them. On agreement, the adoption of this document is recorded in the `00-context` decision log.
+Status "Agreed by owner" means Abdul agreed the decision under CTX-Q-7 on 9 October 2026. Status "Proposed" means Claude made the decision within the scope lock; Abdul MAY change any of them through the `00-context` decision log. Adoption of this document is recorded as CTX-D-012.
 
 | ID | Decision | Reason | Status | Trace |
 | --- | --- | --- | --- | --- |
-| PM-D-01 | Vigil is divided into 24 built modules and 4 Later-only modules (Section 4.1). Modules are code boundaries with their own records; how they are deployed is decided in Round 5. | Clear ownership lets Claude Code build and test one module at a time (CTX-C-01) and lets the pilot add parts without rebuilding (CTX-G-2). | Owner review | CTX-C-01, CTX-G-2; BSD §5.1 |
-| PM-D-02 | `vigil-runner` is the only part of Vigil that touches target servers. It runs only operations from its catalogue and holds diagnostic and action access as separate grants. | Matches BSD §5.2; in a pilot the runner can sit inside the customer network without changing other modules. | Owner review | SL-B-04, SL-B-05; BSD §5.2 |
+| PM-D-01 | Vigil is divided into 24 built modules and 4 Later-only modules (Section 4.1). Modules are code boundaries with their own records; how they are deployed is decided in Round 5. | Clear ownership lets Claude Code build and test one module at a time (CTX-C-01) and lets the pilot add parts without rebuilding (CTX-G-2). | Agreed by owner | CTX-C-01, CTX-G-2; BSD §5.1 |
+| PM-D-02 | `vigil-runner` is the only part of Vigil that touches target servers. It runs only operations from its catalogue and holds diagnostic and action access as separate grants. | Matches BSD §5.2; in a pilot the runner can sit inside the customer network without changing other modules. | Agreed by owner | SL-B-04, SL-B-05; BSD §5.2 |
 | PM-D-03 | Approvals belong to `vigil-actions`, which owns the whole action path; there is no separate approvals module. | One module owns policy check, approval, recheck, execution and reconciliation, so there is no second way to run an action. | Proposed | SL-B-04 |
-| PM-D-04 | Runbooks for SL-T-1 are selected by applicability rules in `vigil-knowledge`. The AI task list stays SL-T-1 to SL-T-3. | Same runbooks on every run (SL-A3-04); the AI cites only runbooks it was given; no extra AI task to build. | Owner review | SL-A1-04, SL-A3-04 |
+| PM-D-04 | Runbooks for SL-T-1 are selected by applicability rules in `vigil-knowledge`. The AI task list stays SL-T-1 to SL-T-3. | Same runbooks on every run (SL-A3-04); the AI cites only runbooks it was given; no extra AI task to build. | Agreed by owner | SL-A1-04, SL-A3-04 |
 | PM-D-05 | Only `vigil-recovery` can resolve an incident, and only with a passed recovery verification. | Makes BSD RULE-08 a property of the incident record, not only of the workflow graph. | Proposed | SL-A1-07; BSD RULE-08 |
-| PM-D-06 | Similar-incident history holds only imported records; resolved live incidents are not added (Later, PM-M16-L1). Search returns "no match" below a minimum similarity, and then no action is proposed. | Without the first rule a storm re-run in the same demo run would match the incident just resolved. Without the second, nearest-neighbour search always returns a match, so the unrelated SL-F-3 incident could get an action proposal. | Owner review | SL-A3-04, SL-A1-02 |
-| PM-D-07 | Severity and owner are assigned outside the workflow by direct requests: `vigil-correlation` asks `vigil-routing` to evaluate after every incident change, and `vigil-workflows` asks it once more before starting a run. Condition steps read the result. (v0.1 used an event for this; withdrawn because the event could arrive after the run had started.) | SL-B-03 has no routing step type; the P1 branch needs severity before the Condition step; direct requests remove the timing race. | Owner review | SL-A1-04, SL-B-03, SL-A3-04 |
-| PM-D-08 | The Escalation step is a long-running step with two modes. "Wait for acknowledgement": it waits up to its timer parameter for acknowledgement at each level, escalates one level on each timeout, and leaves by "next" when acknowledged or after the last level. "Escalate now": it escalates one level at once and leaves by "next" (used after a failed recovery, SL-A2-04, when the incident is already acknowledged). The timer is a step parameter (edited in the workflow editor); the teams at each level are routing configuration. | SL-A2-06 edits the timer in the Escalation step's parameter panel; levels are shared configuration (SL-B-09); the step has the single output "next" (SL-B-03). | Owner review | SL-A2-03, SL-A2-06, SL-B-03, SL-B-09; SL-O-14 |
+| PM-D-06 | Similar-incident history holds only imported records; resolved live incidents are not added (Later, PM-M16-L1). Search returns "no match" below a minimum similarity, and then no action is proposed. | Without the first rule a storm re-run in the same demo run would match the incident just resolved. Without the second, nearest-neighbour search always returns a match, so the unrelated SL-F-3 incident could get an action proposal. | Agreed by owner | SL-A3-04, SL-A1-02 |
+| PM-D-07 | Severity and owner are assigned outside the workflow by direct requests: `vigil-correlation` asks `vigil-routing` to evaluate after every incident change, and `vigil-workflows` asks it once more before starting a run. Condition steps read the result. (v0.1 used an event for this; withdrawn because the event could arrive after the run had started.) | SL-B-03 has no routing step type; the P1 branch needs severity before the Condition step; direct requests remove the timing race. | Agreed by owner | SL-A1-04, SL-B-03, SL-A3-04 |
+| PM-D-08 | The Escalation step is a long-running step with two modes. "Wait for acknowledgement": it waits up to its timer parameter for acknowledgement at each level, escalates one level on each timeout, and leaves by "next" when acknowledged or after the last level. "Escalate now": it escalates one level at once and leaves by "next" (used after a failed recovery, SL-A2-04, when the incident is already acknowledged). The timer is a step parameter (edited in the workflow editor); the teams at each level are routing configuration. | SL-A2-06 edits the timer in the Escalation step's parameter panel; levels are shared configuration (SL-B-09); the step has the single output "next" (SL-B-03). | Agreed by owner | SL-A2-03, SL-A2-06, SL-B-03, SL-B-09; SL-O-14 |
 | PM-D-09 | A seed bundle is loaded by `vigil-setup`, which passes each part to its owning module's import interface. | Keeps PM-R-01; the same path serves the demo starting state and a later customer onboarding. | Proposed | SL-A3-03; SL-O-17 |
 | PM-D-10 | Tickets change only through Ticket create/update steps and through escalations recorded by `vigil-routing`. | Ticket behaviour is visible in the workflow, as customers change behaviour through workflows (CTX §4); escalations reach the ticket when they happen (SL-A2-03). | Proposed | SL-A1-05, SL-A2-03, SL-B-03 |
 | PM-D-11 | `vigil-workflows` starts live runs and passes the version content to `vigil-engine`, which keeps its own copy; the engine never reads workflow definitions itself. One workflow per tenant in the build. | Keeps the request graph acyclic (PM-R-03) and lets runs resume on their start version (SL-B-11). | Proposed | SL-B-03, SL-B-11 |
 | PM-D-12 | The reconciliation that SL-B-03 assigns to "the engine" is started by `vigil-engine` (PM-M12-10) and carried out by `vigil-actions` (PM-M14-08). | Only `vigil-actions` knows the action's state query; the engine keeps control of when the run continues. | Proposed | SL-B-03, SL-B-11 |
-| PM-D-13 | "Re-run AI investigation" is permitted to the admin user. This is a clarification of SL-A3-07, whose admin list does not name it, and is recorded in `01-scope-lock` through Section 8 if Abdul agrees. | SL-A2-07 says the admin switches providers and then re-runs; no demo user holds the permission today. | Owner review | SL-A2-07, SL-A3-07 |
+| PM-D-13 | "Re-run AI investigation" is permitted to the admin user. This clarifies SL-A3-07, whose admin list did not name it; recorded as CTX-D-013 and in `01-scope-lock` v1.5. | SL-A2-07 says the admin switches providers and then re-runs; no demo user holds the permission today. | Agreed by owner | SL-A2-07, SL-A3-07 |
 | PM-D-14 | An SL-T-1 output that fails the checks of PM-M17-03 is not retried with another provider. | Keeps the shown result and the provider used the same on every run (SL-A3-04); fallback stays reserved for unreachable providers (SL-A2-05). | Proposed | SL-A1-04, SL-A3-04 |
 
 ### 12.2 Assumptions (complete list)
@@ -1118,7 +1120,7 @@ Record fields, relationships and lifecycle states (Round 2); demo values and the
 | CTX-Q-3 Scenario walkthrough | Done (Section 14). Every scene SL-A1-01 to SL-A1-09 has owning modules, named data and a defined outcome. Gaps found became PM-WV-01 to PM-WV-04 and open items PM-O-03, PM-O-04, PM-O-09, PM-O-13, PM-O-16. |
 | CTX-Q-4 Independent review | Done, 8 Oct 2026, on v0.1 by a separate Claude reviewer: 37 findings (7 High, 17 Medium, 13 Low). All resolved in v0.2. High findings and resolutions: (1) request order blocked evidence flow, fixed by evidence register entries holding copies (PM-M09-05) and callers passing search inputs to `vigil-knowledge`; (2) engine enforcement of SL-B-04 incomplete, fixed in PM-M12-06 (approval and reachable Recovery check) with PM-M09-06; (3) grouping could depend on arrival order, fixed by PM-M08-06 and open item PM-O-13; (4) escalation timer had no coherent owner, fixed by the long-running step protocol (PM-S-12 to PM-S-14) and PM-D-08; (5) inputs differed from the repository copy, fixed by PM-Q-N1; (6) nothing stopped SL-F-3 triggering an action, fixed by "no match" (PM-M16-03, PM-M14-02) and PM-WV-03; (7) routing could race the workflow run, fixed by direct requests (PM-D-07, PM-M08-07, PM-M11-07; event PM-EV-06 and PM-M09-10 withdrawn). Main Medium fixes: acknowledgers from notified teams, not a named team (PM-M09-04); Notification step recipient kinds (PM-M20-05); execution record written before the runner call (PM-M14-08); engine keeps its own copy of run content (PM-M12-01); all secrets as credential references (PM-M04); reset owned by PM-M22-03 with PM-O-17; data categories on every AI request (PM-M17-02, PM-M16-03); SL-T-1 checks require citations and define rejection (PM-M17-03); workflow version 1 requirements (Section 8.1); escalation evidence (PM-M20-03, PM-M19-03); incident title and evidence summary owners (PM-M09-01, PM-M09-11); one workflow per tenant (PM-M11-07); public-operation modules listed (PM-I-04); terms added (Section 3); open items PM-O-12, PM-O-14, PM-O-15. Low fixes: wording of PM-R-01, PM-R-04, PM-R-06, PM-M02-02; BSD trace forms (§9, §16.2); traces of PM-R-02, PM-M05-01, PM-M14-05, PM-M25; external-product dependencies recorded as PM-ASM-01 to PM-ASM-04; decision status column. |
 | CTX-Q-4 pass 2 | Done, 8 Oct 2026, on v0.2 by the same reviewer (verification): 34 of 37 findings resolved, 3 partly resolved; 13 new findings (1 High, 4 Medium, 8 Low). All resolved in v0.3: Escalation step "escalate now" mode so SL-A2-04 escalates after acknowledgement (PM-M10-05, PM-D-08, PM-WV-04); engine requires a Recovery check on every path and a recovery verification after any executed action (PM-M12-06); grouping reason copied to the incident (PM-M09, PM-M08-02); merge or delayed creation added to PM-O-13; "no search result" treated as "no match" with no approval records (PM-M14-02); approval event wording aligned; "waiting" defined as a protocol state (PM-S-12); runbook citation "at least one" and no retry recorded as PM-D-14; stale wording in PM-S-01 and PM-R-06; PM-WV-03 marked as proposed input to SL-O-05; reopen-run question added to PM-O-14; layout. The partly resolved approval-recipient finding is recorded under CTX-Q-2. |
-| CTX-Q-7 Owner review | Pending. Seven decisions marked "Owner review" in Section 12.1. |
+| CTX-Q-7 Owner review | Done, 9 Oct 2026. Seven decisions reviewed (PM-D-01, PM-D-02, PM-D-04, PM-D-06, PM-D-07, PM-D-08, PM-D-13): all agreed as proposed. |
 
 ## 18. Change history
 
@@ -1127,3 +1129,40 @@ Record fields, relationships and lifecycle states (Round 2); demo values and the
 | 0.1 | 8 Oct 2026 | First draft (Round 1). |
 | 0.2 | 8 Oct 2026 | Resolved independent review findings (Section 17). |
 | 0.3 | 8 Oct 2026 | Resolved review pass 2 findings (Section 17). |
+| 1.0 | 9 Oct 2026 | Owner review recorded; Round 1 closed. |
+| 1.1 | 9 Oct 2026 | Amendments DM-A-01 to DM-A-28 from Round 2 added as Section 19 (CTX-D-014). |
+
+## 19. Amendments from Round 2 (complete list)
+
+These amendments were made by `docs/20-domain-model.md` v1.0 (decision DM-D-18, adopted as CTX-D-014). Each row names the product map item it changes. New responsibility IDs (PM-M08-09, PM-M08-10, PM-M09-12, PM-M12-11, PM-M22-04) and request IDs (PM-I-44, PM-I-45) are defined here. Reasons and the rules referred to (`DM-` IDs) are in `20-domain-model`.
+
+| ID | Product map item | Amendment | Reason |
+| --- | --- | --- | --- |
+| DM-A-01 | PM-M06 `vigil-intake`, Owns | Adds: alert (firing episode, DM-E-21); webhook call (DM-E-18); alert type definition (DM-E-16); alert type mapping (DM-E-17); source health change (DM-E-23). | Normalisation needs alert types as data; recovery needs alert episodes and health history. |
+| DM-A-02 | PM-M07 `vigil-servicemap`, Owns | Adds: service map generation (DM-E-24). | No deletion (DM-C-04); references stay resolvable after a re-import. |
+| DM-A-03 | PM-M08 `vigil-correlation` | Owns adds correlation settings (DM-E-31). New responsibility PM-M08-09: MUST check forming incidents for stability and merge forming incidents (DM-R-12, DM-R-15). New responsibility PM-M08-10: MUST return, for a component, the alerts whose matched component it is (DM-R-35). | PM-O-03, PM-O-13, PM-O-09. |
+| DM-A-04 | PM-M09 `vigil-incidents` | Owns adds incident settings (DM-E-40). New responsibility PM-M09-12: MUST merge forming incidents on request of `vigil-correlation` (DM-R-12) and MUST close resolved incidents after the reopen window (DM-R-23). PM-I-09 purpose adds "merge forming incidents; move a stable incident to open". | PM-O-13, PM-O-14. |
+| DM-A-05 | PM-M10-02 | Adds: "The result is applied only while the incident is forming; afterwards it is recorded and not applied (DM-R-17). A dry run for a test replay is recorded and never applied." | PM-O-03, PM-O-06. |
+| DM-A-06 | PM-M10-05 | "an acknowledgement made after the step started" is replaced by "an acknowledgement, whenever it was made" (DM-D-09). | Avoids escalation of an incident that was acknowledged between the Notification step and the Escalation step. |
+| DM-A-07 | PM-M12 `vigil-engine` | New responsibility PM-M12-11: MUST NOT start any step other than the Trigger step of a live run while the incident is forming, and MUST cancel the unfinished live runs of an incident that becomes merged or closed, and the unfinished live run of a reopened incident when starting its new run (DM-R-16, DM-R-22, DM-SM07-T5). PM-WV-01 is then met by the engine for every workflow. | PM-O-03, PM-O-13. |
+| DM-A-08 | PM-M14-04, PM-M14-08 | PM-M14-04 adds: the approval expiry is the Approval step parameter `expiry` (Section 9). PM-M14-08 adds: the attempt limit and unresolved executions are also checked at the Approval step (DM-R-30). | SL-O-09, SL-A2-04. |
+| DM-A-09 | PM-M15 `vigil-recovery`, Sends requests to | Adds `vigil-correlation` (matched components, DM-R-35) — new request PM-I-44; PM-I-29 purpose adds "read source health history". | PM-O-09. |
+| DM-A-10 | PM-M16 `vigil-knowledge`, Owns | "minimum similarity setting" becomes "knowledge settings (minimum similarity, runbook limit, embedding provider and state)" (DM-E-67). | PM-O-05, PM-M16-04. |
+| DM-A-11 | PM-EV-02 "Alert state changed" | Also published when a new alert starts firing (DM-E21-R1 a). | Recovery checks MUST wake when a new alert fires (DM-R-37). |
+| DM-A-12 | PM-I-16 | Purpose adds "ask routing for a dry-run evaluation for a test replay". | DM-R-28. |
+| DM-A-13 | PM-M17-01 | Adds: after an SL-T-3 match, `vigil-investigation` adds an evidence entry of kind `similarity_match`. | The Approval page shows the evidence the proposal is based on (SL-A1-06). |
+| DM-A-14 | PM-WV-01 | Note added: met by PM-M12-11 (DM-A-07); workflow version 1 needs no extra step for it. | DM-R-16. |
+| DM-A-15 | PM-I-18 (`vigil-engine` → step-implementing modules) | Purpose adds (complete list): ask `vigil-actions` for the recovery check key of the run's latest executed action and pass it to `vigil-recovery` in the Recovery check step-start request (DM-R-34); ask `vigil-actions` whether the run has a proposal and an approved request for it (DM-R-31 guard); ask `vigil-actions` and `vigil-recovery` to cancel the run's pending approval request and observing verification when a run is cancelled (DM-SM07-T5). PM-I-17 purpose adds "read incident state". | PM-R-03: `vigil-recovery` cannot request `vigil-actions`. |
+| DM-A-16 | PM-M07-L1 | Clarified: earlier service map generations are kept as stored records only (DM-C-04); viewing, comparing or using them stays Later. | DM-C-04. |
+| DM-A-17 | PM-M22 `vigil-setup`, PM-I-41 | The import interfaces list adds `vigil-incidents` and `vigil-correlation` (DM-R-56). New responsibility PM-M22-04: MUST check cross-module key references after import (DM-R-60). | DM-E-31, DM-E-40. |
+| DM-A-18 | PM-M11 `vigil-workflows`, Sends requests to | Adds `vigil-identity` (check that teams named in step parameters are active, `parameter_valid`). PM-M11-07 adds: MUST start a new live run when an incident is reopened (DM-R-22); `vigil-workflows` reacts to "incident state changed" (PM-EV-08). The Trigger step's event value becomes `incident_created_or_reopened` (PM-S-01, DM-S-01). | DM-R-22; SL-WE-08. |
+| DM-A-19 | PM-M14-02 | The "no proposal" cases are the complete list of DM-R-29. | PM-O-04. |
+| DM-A-20 | PM-M08-01 | "open incident" means an incident in state `forming` or `open` (DM-R-10). | PM-O-13. |
+| DM-A-21 | PM-M19 `vigil-ticketing` | PM-M19-01 adds: a Ticket create step for a reopened incident reopens the existing ticket (DM-E76-R1, DM-SM14-T3); a created ticket carries the incident identifier as a label, used to avoid a duplicate after a restart (DM-E76-R2). | DM-R-22. |
+| DM-A-22 | PM-EV-03 "Source health changed" | Reacted to also by `vigil-engine` (wakes waiting Recovery check steps, DM-R-37). | DM-R-37. |
+| DM-A-23 | PM-M09-04 | Acknowledgement is per episode of the incident (DM-E-35 `episode`); reopening clears it. | DM-R-21. |
+| DM-A-24 | PM-M12-09, PM-M12 card | `vigil-engine` computes test-mode outputs itself (DM-R-48) and publishes test step changes with `mode = test` (DM-R-59). PM-I-18 is not used for test-mode steps. The engine's "Sends requests to" adds `vigil-knowledge` and `vigil-servicemap` (read-only test-mode reads); new request PM-I-45 lists the test-mode reads of DM-R-48. | PM-O-07. |
+| DM-A-25 | PM-M10-05 | Adds the start level and last-level behaviour of DM-S-08. | DM-S-08. |
+| DM-A-26 | PM-M22 `vigil-setup`, Sends requests to | Adds `vigil-identity` outside import: readiness gap `server_without_owner` checks that the owner team is active (DM-E-81). | DM-E-81. |
+| DM-A-27 | PM-M11 `vigil-workflows`, Sends requests to | Adds `vigil-diagnostics` (check that diagnostic keys in Diagnostic step parameters are active definitions, `parameter_valid`). | DM-S-03. |
+| DM-A-28 | PM-M18-03, PM-M16-03 | PM-M18-03 applies to SL-T-1 and SL-T-2 only, with the fallback triggers of DM-R-69; for SL-T-3 `vigil-knowledge` names its provider and there is no fallback (DM-E72-R2, DM-D-21). | DM-D-21. |
