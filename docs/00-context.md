@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 00-context (ID prefix `CTX-`) |
-| Version | 1.7 |
+| Version | 1.8 |
 | Date | 9 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed) |
@@ -20,7 +20,7 @@ Read this file first in every Claude conversation in the "Noc Automation" projec
 
 ## 3. Product name
 
-- **Vigil** is the working name for the whole product idea. It is used only by Abdul Wadood, Muzaffar Hussain and Claude. It is not a brand.
+- **Vigil** is the working name for the whole product idea. It is not a registered brand. In planning it is used by Abdul Wadood, Muzaffar Hussain and Claude; from Round 4 it is also the product name shown on Vigil's screens and in its tickets and messages, defined in one place (`40-demo-cut` DC-W-30, CTX-D-022).
 - The two source documents call the product "Continuum". Continuum and Vigil are the same product. All new documents and all code use Vigil only.
 - **The repository** means the git repository in the folder `noc automation` on Abdul's computer. Code packages and modules inside it use the lowercase prefix `vigil`. Round 1 assigns working module names; Round 5 makes them final.
 
@@ -74,7 +74,7 @@ Each round is one conversation in the Claude project and produces the files list
 | R1 | Product map: every module of the full product, its job, what it owns, what it talks to; working module names; AI task list confirmation | `10-product-map.md` | Closed, 9 Oct 2026 |
 | R2 | Core domain model: entities, relationships, lifecycles and state machines | `20-domain-model.md` | Closed, 9 Oct 2026 |
 | R3 | Jazz storyboard and demo data: scene-by-scene script with Real/Simplified/Staged tags; the invented Jazz data set; exact demo values | `30-jazz-storyboard.md`, `31-demo-data/` | Closed, 9 Oct 2026 |
-| R4 | Demo cut: per module, keep / simplify / stage / later, keeping product shape; screen-by-screen content | `40-demo-cut.md` | Not started |
+| R4 | Demo cut: per module, keep / simplify / stage / later, keeping product shape; screen-by-screen content | `40-demo-cut.md` | Closed, 9 Oct 2026 |
 | R5 | Architecture: applications, stack, integrations, AI layer, hosting, final module names | `50-architecture.md` | Not started |
 | R6 | Build plan: packages sized for Claude Code, each with spec, done-check and tests; repository conventions | `60-build-plan.md`, `CLAUDE.md` | Not started |
 | Build | One package at a time; checkpoints reviewed in the Claude project | `docs/packages/P-##.md`, code | Not started |
@@ -136,6 +136,9 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | CTX-D-017 | 9 Oct 2026 | Jazz storyboard `30-jazz-storyboard` v1.0 and demo data set `31-demo-data` v1.0 adopted, with decisions SB-D-01 to SB-D-12. Amendments written: `20-domain-model` v1.1 (DM-E-16, DM-E-38) and `10-product-map` v1.2 (PM-DC-01, PM-DC-04). | Round 3 output; owner agreed the seven review items. |
 | CTX-D-018 | 9 Oct 2026 | Demo setup (resolves CTX-O-03): Microsoft Teams meeting; the senior manager narrates and Abdul operates every screen; mobile pages in a phone-size browser window; attendees do not join a demo Teams channel (`30-jazz-storyboard` SB-D-08). | Owner answers in the Round 3 conversation. |
 | CTX-D-019 | 9 Oct 2026 | Scope-lock clarifications from Round 3 (no item added to list A): SL-A3-01 — the SMS queue mock includes its dispatcher and a mock report export job exists only for SL-F-3; SL-A3-07 — teams without members are configuration data. `01-scope-lock` v1.7. | Found by the final consistency audit of Round 3; keeps the complete lists exact. Raised to Abdul at the Round 3 close for confirmation. |
+| CTX-D-020 | 9 Oct 2026 | Demo cut `40-demo-cut` v1.0 adopted: lean cut (screens offer only what list A needs; modules keep their records and rules), screen-by-screen content of SL-A4-01 to SL-A4-12, product wording and outbound content, decisions DC-D-01 to DC-D-18. Amendments written: `01-scope-lock` v1.8, `10-product-map` v1.3 (Section 20), `20-domain-model` v1.2, `30-jazz-storyboard` v1.1, `31-demo-data` v1.1 (DC-A-01 to DC-A-10). | Round 4 output; owner agreed the seven review items (DC-D-02, DC-D-04, DC-D-05, DC-D-06, DC-D-07, DC-D-09, DC-D-11). |
+| CTX-D-021 | 9 Oct 2026 | Scope-lock clarification (no item added to list A): in SL-A2-01, "connect" means setting the address of an existing monitoring source and testing it on screen; sources and credentials are created by seed import (`40-demo-cut` DC-D-06). `01-scope-lock` v1.8. | Credentials live in the deployment secret store; the demo shows the connection test, not source creation. Agreed by owner in the Round 4 review. |
+| CTX-D-022 | 9 Oct 2026 | "Vigil" is shown as the product name on screens and in tickets and messages (`40-demo-cut` DC-D-04, DC-W-30); Section 3 amended. | The narration presents the product as Vigil (SB-S00); a product needs a visible name. Agreed by owner in the Round 4 review. |
 
 ## 14. Open items
 
@@ -167,3 +170,4 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | 1.5 | 9 Oct 2026 | Round 1 closed; decisions CTX-D-012 and CTX-D-013 added. |
 | 1.6 | 9 Oct 2026 | Round 2 closed; decisions CTX-D-014 to CTX-D-016 added. |
 | 1.7 | 9 Oct 2026 | Round 3 closed; decisions CTX-D-017 to CTX-D-019 added; CTX-O-03 closed. |
+| 1.8 | 9 Oct 2026 | Round 4 closed; decisions CTX-D-020 to CTX-D-022 added; Section 3 product name amended (CTX-D-022). |

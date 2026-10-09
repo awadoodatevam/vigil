@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 31-demo-data (ID prefix `DD-`) |
-| Version | 1.0 |
+| Version | 1.1 |
 | Date | 9 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 3 closed. |
@@ -47,7 +47,7 @@ This folder is the complete invented data set required by SL-DR-04. It contains 
 | DD-R-07 | File conventions (complete list): (1) `handle` fields (credential references, connector instances) and `connector_instance`, `credential_ref` and `webhook_token_ref` values are bundle-internal names that link records within the seed bundle; the import replaces them with record identifiers. (2) A field name ending in `_s` is the domain-model field without the suffix, a Duration in seconds. (3) Every record is seeded with `active = true`. (4) `R5` marks a value fixed in Round 5. | DM-C-01, DM-C-06 |
 | DD-R-08 | The alert type set has 18 types: the 7 storm types, the SL-F-3 type, and 10 types used only by past incidents (DD-F-03). DM-E-16 now points to this set (amended by SB-A-01; SB-D-11). | DM-E-16, SL-DR-04 |
 | DD-R-09 | Runbook file convention (DD-F-08): each `## ` heading starts one runbook; its fields come from the table under the heading; "(any)" means the empty set; `text` is everything after the table up to the next `## ` heading, kept as Markdown and trimmed. | DM-E-63 |
-| DD-R-10 | Placeholder grammar. In a command template, `{name}` is a placeholder only when `name` is a declared parameter of the operation; every other brace is literal (Example: the braces of the awk program in `purge_old_txlogs`). In a summary template, a placeholder is `{` + an output value name of the parser + `}`, where the name MAY contain `/` and `.` but not `}`. | DM-E-12, DM-E-53 |
+| DD-R-10 | Placeholder grammar. In a command template, `{name}` is a placeholder only when `name` is a declared parameter of the operation; every other brace is literal (Example: the braces of the awk program in `purge_old_txlogs`). In a summary template (diagnostic `summary_template`, registered action `result_summary_template`), a placeholder is `{` + an output value name of the parser + `}`, where the name MAY contain `/` and `.` but not `}`. | DM-E-12, DM-E-53 |
 | DD-R-11 | The seed bundle built from this folder has `bundle_name` "jazz-demo" and `bundle_version` equal to this README's version. | DM-E-82 |
 
 ## 5. Checks (complete list)
@@ -110,3 +110,4 @@ Checks DD-K-01 to DD-K-14 pass (Section 5). The independent review and the readi
 | 0.3 | 9 Oct 2026 | Resolved review pass 2 and readiness test findings: txlog ages refreshed by every storm, fixed 128 MiB free, only catalogue alerts sent, alert rule windows, label and annotation names, SL-F-4 by name override, UTC clock and storm window, control panel rules, conventions DD-R-09 to DD-R-11, stronger checks. |
 | 0.4 | 9 Oct 2026 | Readiness test pass 2: generic USSD menu names without other services, SL-F-4 clear undoes every step, 15 s scrape interval, 15 s margin after clearing faults. Draft for owner review. |
 | 1.0 | 9 Oct 2026 | Owner review recorded (CTX-D-017); final consistency audit fixes: stronger DD-K-03, DD-K-06, DD-K-07, DD-K-10 (verified by mutation tests), structured SL-A2-06 draft changes, 10 s sysstat interval, identity key order required of Round 5, notified-team channels; Round 3 closed. |
+| 1.1 | 9 Oct 2026 | `result_summary_template` added to the registered action in DD-F-04; DD-R-10 covers it (`40-demo-cut` DC-A-02; CTX-D-020). Checks DD-K-01 to DD-K-14 pass. |

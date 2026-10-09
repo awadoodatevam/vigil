@@ -95,6 +95,7 @@ registered_actions:                   # DM-E-55; resolves SL-O-08 (action, param
     precondition:    {operation_key: fs_used_pct, parameters: {mount: /data}, result_field: value, operator: greater_or_equal, value: "90"}
     reconciliation:  {operation_key: fs_used_pct, parameters: {mount: /data}, result_field: value, operator: less_than,        value: "85"}
     recovery_check_key: rc-subscriber-db
+    result_summary_template: "Removed {files_removed} files ({gib_removed} GiB)"   # DM-E-55 v1.2 (40-demo-cut DC-A-01, DC-A-02); names are removed_files parser outputs
 
 action_policies:                      # DM-E-56; demo uses approval_required only (SL-B-04)
   - {action_key: purge-archived-txlogs, service_key: null, outcome: approval_required}

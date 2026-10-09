@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 30-jazz-storyboard (ID prefix `SB-`) |
-| Version | 1.0 |
+| Version | 1.1 |
 | Date | 9 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 3 closed. |
+| Status | Baseline (owner reviewed). Round 3 closed. Amended by Round 4 (`40-demo-cut` DC-A-07). |
 
 ## 1. Purpose
 
@@ -181,8 +181,8 @@ The total is 14:15, within the 15-minute limit; the 45 s left is margin. The sto
 | --- | --- |
 | Operator | (1) Shows the similar-incident result in the incident. (2) Shows the "Approvals — Bilal" Teams channel: the approval request. (3) Copies its link into the phone window, logs in as `dbops-engineer`, reads the page, presses Approve, logs out. (4) Returns to Vigil and opens the action result. |
 | Exact values: best match | **PI-0342 "Subscriber DB /data full — archived transaction logs not purged"**, similarity **1.00**, fix success count **4** (resolves SL-O-08; DD-K-09). |
-| Exact values: Approval page (complete list, SL-A1-06) | Action **"Purge archived transaction logs"**. Parameters: path **/data/txlog_archive**, older than **1440 minutes (24 hours)**, at most **12884901888 bytes (12 GiB)**. Target **lab-db-01 (Subscriber DB server)**. Limits (DD-F-04): the four limit texts, plus "attempt 1 of 1". Expiry **15 minutes after the request**. Evidence: the three diagnostic summaries, the AI investigation and the similarity match PI-0342 (DM-V-12). Recovery checks **"Subscriber DB services recovered"**: all incident alerts resolved, and no firing alert on the Synthetic USSD session check, for 60 s. |
-| Exact values: after Approve | Rechecks (complete list, all passed): approval valid; action, parameters and target unchanged; incident open; precondition `/data` used ≥ 90%. Result: **succeeded**, with the number of files and GiB removed (measured values of DD-F-10; same on every run). |
+| Exact values: Approval page (complete list, SL-A1-06) | Action **"Purge archived transaction logs"**. Parameters: path **/data/txlog_archive**, older than **1440 minutes (24 hours)**, at most **12884901888 bytes (12 GiB)**. Target **lab-db-01 (Subscriber DB server)**. Limits (DD-F-04): the four limit texts, plus "attempt 1 of 1". Expiry **15 minutes after the request**. Evidence: the three diagnostic summaries, the AI investigation and the similarity match PI-0342 (DM-V-12). Recovery checks **"Subscriber DB services recovered"**: all incident alerts resolved, and no firing alert on the Synthetic USSD session check, for 60 s. Reading (v1.1, `40-demo-cut` DC-A-07, no value changed): the page shows the parameters as stored (`path: /data/txlog_archive`, `older_than_minutes: 1440`, `max_bytes: 12884901888`), with "24 hours" and "12 GiB" in the limit texts; the expiry is shown as the absolute time with the remaining time, and as "expires after 900 s" in messages. |
+| Exact values: after Approve | Rechecks (complete list, all passed): approval valid; action, parameters and target unchanged; incident open; precondition `/data` used ≥ 90% (shown as "Used percentage of one filesystem (mount=/data): value = 100 (required ≥ 90)", DC-A-07). Result: **succeeded**, with the number of files and GiB removed (measured values of DD-F-10; same on every run). |
 | Narrator | "Vigil found that this exact pattern happened before and was fixed 4 times by a registered action. It proposes that action: exact, limited, and only after a named approver agrees. Just before running, it checks everything again." |
 
 #### SB-S07 Recovery check (10:00–12:15) — SL-A1-07, Real
@@ -446,3 +446,4 @@ Open items resolved in this round are recorded in Section 10; as in earlier roun
 | 0.3 | 9 Oct 2026 | Resolved review pass 2 and readiness test findings (Section 16). |
 | 0.4 | 9 Oct 2026 | Answered readiness test pass 2 questions (Section 16). Draft for owner review. |
 | 1.0 | 9 Oct 2026 | Owner review recorded; final consistency audit (Section 16); Round 3 closed. |
+| 1.1 | 9 Oct 2026 | SB-S06 reading of the Approval page parameters, expiry and precondition text (`40-demo-cut` DC-A-07; CTX-D-020). |

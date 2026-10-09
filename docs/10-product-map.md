@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 10-product-map (ID prefix `PM-`) |
-| Version | 1.2 |
+| Version | 1.3 |
 | Date | 9 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Amended by Round 2 (Section 19) and Round 3 (PM-DC-01, PM-DC-04). |
+| Status | Baseline (owner reviewed). Amended by Round 2 (Section 19), Round 3 (PM-DC-01, PM-DC-04) and Round 4 (Section 20). |
 
 ## 1. Purpose
 
@@ -1132,6 +1132,7 @@ Record fields, relationships and lifecycle states (Round 2); demo values and the
 | 1.0 | 9 Oct 2026 | Owner review recorded; Round 1 closed. |
 | 1.1 | 9 Oct 2026 | Amendments DM-A-01 to DM-A-28 from Round 2 added as Section 19 (CTX-D-014). |
 | 1.2 | 9 Oct 2026 | PM-DC-01 clarified and PM-DC-04 "Talks to" extended (`30-jazz-storyboard` SB-A-02, SB-A-03; CTX-D-017). |
+| 1.3 | 9 Oct 2026 | Amendment DC-A-03 from Round 4 added as Section 20 (CTX-D-020). |
 
 ## 19. Amendments from Round 2 (complete list)
 
@@ -1167,3 +1168,11 @@ These amendments were made by `docs/20-domain-model.md` v1.0 (decision DM-D-18, 
 | DM-A-26 | PM-M22 `vigil-setup`, Sends requests to | Adds `vigil-identity` outside import: readiness gap `server_without_owner` checks that the owner team is active (DM-E-81). | DM-E-81. |
 | DM-A-27 | PM-M11 `vigil-workflows`, Sends requests to | Adds `vigil-diagnostics` (check that diagnostic keys in Diagnostic step parameters are active definitions, `parameter_valid`). | DM-S-03. |
 | DM-A-28 | PM-M18-03, PM-M16-03 | PM-M18-03 applies to SL-T-1 and SL-T-2 only, with the fallback triggers of DM-R-69; for SL-T-3 `vigil-knowledge` names its provider and there is no fallback (DM-E72-R2, DM-D-21). | DM-D-21. |
+
+## 20. Amendments from Round 4 (complete list)
+
+Made by `docs/40-demo-cut.md` v1.0 (adopted as CTX-D-020). Where Section 20 and an earlier item differ, Section 20 wins.
+
+| ID | Product map item | Amendment | Reason |
+| --- | --- | --- | --- |
+| DC-A-03 | PM-M14-09 | Clarification: `vigil-actions` adds an evidence entry when an approval request reaches a final state other than `cancelled`, and when an action execution reaches a final state (`40-demo-cut` DC-D-09, DC-W-05, DC-W-06). | Makes "for the approval and each execution" exact (SB-O-01). |
