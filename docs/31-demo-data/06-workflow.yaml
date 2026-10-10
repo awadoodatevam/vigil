@@ -1,71 +1,95 @@
-# DD-F-06  Workflow version 1 (seed part 16; resolves SL-O-22, meets PM-WV-01 to PM-WV-04)
-# Canvas positions (DM-V-05) are not content of record: they are produced by the automatic layout when Round 5 converts this file (DD-R-03).
-# Also holds the draft changes made live in SL-A2-06 (published as version 2).
+# DD-F-06  Workflow and workflow version 1 (seed part 16), and the draft changes of SL-A2-06.
+# Resolves SL-O-22 (workflow version 1), SL-O-09 (approval expiry), SL-O-14 (escalation timer), PM-O-08 (recovery maximum wait).
+# Content structure: DM-V-05. Step types and parameters: DM Section 9. Requirements met: PM-WV-01 to PM-WV-04 (DD-K-07).
+# A named output with no connection ends the run when taken (DM-V-05).
 
 workflow:
-  name: "NOC incident handling"
+  name: "Incident handling"
+  version_1:
+    origin: seed
+    steps:
+      - {step_id: s-trigger,     type: trigger,        label: "Incident created or reopened", position: {x: 0,    y: 300}, parameters: {event: incident_created_or_reopened}}
+      - step_id: s-severity
+        type: condition
+        label: "Severity"
+        position: {x: 220, y: 300}
+        parameters:
+          branches:
+            - {label: p1, comparisons: [{field: severity, operator: equals, value: P1}]}
+      # P1 branch
+      - {step_id: s-diagnose,    type: diagnostic,     label: "Check the DB server",        position: {x: 440,  y: 100}, parameters: {diagnostics: [disk_usage, largest_folders, disk_growth], target: hypothesis_component}}
+      - {step_id: s-investigate, type: ai_task,        label: "AI investigation",           position: {x: 660,  y: 100}, parameters: {task: SL-T-1}}
+      - {step_id: s-summarise,   type: ai_task,        label: "AI summary",                 position: {x: 880,  y: 100}, parameters: {task: SL-T-2}}
+      - {step_id: s-ticket,      type: ticket,         label: "Create Jira ticket",         position: {x: 1100, y: 100}, parameters: {operation: create}}
+      - {step_id: s-notify,      type: notification,   label: "Notify owner, informed and NOC L1", position: {x: 1320, y: 100}, parameters: {recipients: [owner_team, informed_parties, named_teams], named_teams: [noc-l1]}}
+      - {step_id: s-wait-ack,    type: escalation,     label: "Wait for acknowledgement",   position: {x: 1540, y: 100}, parameters: {mode: wait_for_acknowledgement, timer_s: 600}}
+      - {step_id: s-similar,     type: ai_task,        label: "Find similar past incident", position: {x: 1760, y: 100}, parameters: {task: SL-T-3}}
+      - {step_id: s-approve,     type: approval,       label: "DB Ops approval",            position: {x: 1980, y: 100}, parameters: {eligible_teams: [db-ops], expiry_s: 900}}
+      - {step_id: s-action,      type: action,         label: "Run approved fix",           position: {x: 2200, y: 100}, parameters: {}}
+      - {step_id: s-recover,     type: recovery_check, label: "Verify recovery",            position: {x: 2420, y: 100}, parameters: {max_wait_s: 300}}
+      - {step_id: s-resolve,     type: ticket,         label: "Resolve Jira ticket",        position: {x: 2640, y: 0},   parameters: {operation: resolve}}
+      - {step_id: s-escalate,    type: escalation,     label: "Escalate with evidence",     position: {x: 2640, y: 200}, parameters: {mode: escalate_now}}
+      # otherwise branch (not P1)
+      - {step_id: s-summarise-2, type: ai_task,        label: "AI summary",                 position: {x: 440,  y: 500}, parameters: {task: SL-T-2}}
+      - {step_id: s-ticket-2,    type: ticket,         label: "Create Jira ticket",         position: {x: 660,  y: 500}, parameters: {operation: create}}
+      - {step_id: s-notify-2,    type: notification,   label: "Notify owner team",          position: {x: 880,  y: 500}, parameters: {recipients: [owner_team]}}
+      - {step_id: s-recover-2,   type: recovery_check, label: "Verify recovery",            position: {x: 1100, y: 500}, parameters: {max_wait_s: 14400}}
+      - {step_id: s-resolve-2,   type: ticket,         label: "Resolve Jira ticket",        position: {x: 1320, y: 500}, parameters: {operation: resolve}}
+    connections:
+      - {from_step_id: s-trigger,     from_output: next,          to_step_id: s-severity}
+      - {from_step_id: s-severity,    from_output: p1,            to_step_id: s-diagnose}
+      - {from_step_id: s-severity,    from_output: otherwise,     to_step_id: s-summarise-2}
+      - {from_step_id: s-diagnose,    from_output: done,          to_step_id: s-investigate}
+      - {from_step_id: s-diagnose,    from_output: failed,        to_step_id: s-investigate}
+      - {from_step_id: s-investigate, from_output: done,          to_step_id: s-summarise}
+      - {from_step_id: s-investigate, from_output: unavailable,   to_step_id: s-summarise}
+      - {from_step_id: s-summarise,   from_output: done,          to_step_id: s-ticket}
+      - {from_step_id: s-summarise,   from_output: unavailable,   to_step_id: s-ticket}
+      - {from_step_id: s-ticket,      from_output: done,          to_step_id: s-notify}
+      - {from_step_id: s-ticket,      from_output: failed,        to_step_id: s-notify}
+      - {from_step_id: s-notify,      from_output: sent,          to_step_id: s-wait-ack}
+      - {from_step_id: s-notify,      from_output: failed,        to_step_id: s-wait-ack}
+      - {from_step_id: s-wait-ack,    from_output: next,          to_step_id: s-similar}
+      - {from_step_id: s-similar,     from_output: done,          to_step_id: s-approve}
+      - {from_step_id: s-similar,     from_output: unavailable,   to_step_id: s-approve}
+      - {from_step_id: s-approve,     from_output: approved,      to_step_id: s-action}
+      - {from_step_id: s-approve,     from_output: rejected,      to_step_id: s-escalate}
+      - {from_step_id: s-approve,     from_output: expired,       to_step_id: s-escalate}
+      - {from_step_id: s-action,      from_output: succeeded,     to_step_id: s-recover}
+      - {from_step_id: s-action,      from_output: failed,        to_step_id: s-recover}
+      - {from_step_id: s-recover,     from_output: recovered,     to_step_id: s-resolve}
+      - {from_step_id: s-recover,     from_output: not_recovered, to_step_id: s-escalate}
+      - {from_step_id: s-summarise-2, from_output: done,          to_step_id: s-ticket-2}
+      - {from_step_id: s-summarise-2, from_output: unavailable,   to_step_id: s-ticket-2}
+      - {from_step_id: s-ticket-2,    from_output: done,          to_step_id: s-notify-2}
+      - {from_step_id: s-ticket-2,    from_output: failed,        to_step_id: s-notify-2}
+      - {from_step_id: s-notify-2,    from_output: sent,          to_step_id: s-recover-2}
+      - {from_step_id: s-notify-2,    from_output: failed,        to_step_id: s-recover-2}
+      - {from_step_id: s-recover-2,   from_output: recovered,     to_step_id: s-resolve-2}
+      - {from_step_id: s-recover-2,   from_output: not_recovered, to_step_id: s-escalate}      # PM-WV-04 holds on every branch
+# Outputs that end the run (no connection): s-resolve done/failed; s-escalate next; s-resolve-2 done/failed.
+# The not-P1 branch reaches s-escalate only if its 4-hour recovery wait ends; no demo scene runs that long.
+# Parameter names ending in _s are the Duration parameters of DM Section 9 (expiry, timer, max_wait) in seconds.
 
-version_1:
-  steps:
-    - {step_id: t1, type: trigger,        label: "Incident opened",            parameters: {event: incident_created_or_reopened}}
-    - {step_id: c1, type: condition,      label: "Severity",                   parameters: {branches: [{label: P1, comparisons: [{field: severity, operator: equals, value: P1}]}]}}
-    # P1 branch
-    - {step_id: d1, type: diagnostic,     label: "Collect disk diagnostics",   parameters: {diagnostics: [disk_usage, largest_folders, disk_growth], target: hypothesis_component}}
-    - {step_id: a1, type: ai_task,        label: "AI investigation",           parameters: {task: SL-T-1}}
-    - {step_id: a2, type: ai_task,        label: "Incident summary",           parameters: {task: SL-T-2}}
-    - {step_id: k1, type: ticket,         label: "Create Jira ticket",         parameters: {operation: create}}
-    - {step_id: n1, type: notification,   label: "Notify NOC, owner, informed", parameters: {recipients: [owner_team, informed_parties, named_teams], named_teams: [noc-l1]}}
-    - {step_id: e1, type: escalation,     label: "Wait for acknowledgement",   parameters: {mode: wait_for_acknowledgement, timer: 600}}
-    - {step_id: s1, type: ai_task,        label: "Find similar incidents",     parameters: {task: SL-T-3}}
-    - {step_id: p1, type: approval,       label: "DB Ops approval",            parameters: {eligible_teams: [db-ops], expiry: 900}}
-    - {step_id: x1, type: action,         label: "Run proposed fix",           parameters: {}}
-    - {step_id: r1, type: recovery_check, label: "Verify recovery",            parameters: {max_wait: 300}}
-    - {step_id: k2, type: ticket,         label: "Resolve Jira ticket",        parameters: {operation: resolve}}
-    - {step_id: e2, type: escalation,     label: "Escalate with evidence",     parameters: {mode: escalate_now}}
-    # otherwise branch (SL-F-3 and every non-P1 incident)
-    - {step_id: a3, type: ai_task,        label: "Incident summary",           parameters: {task: SL-T-2}}
-    - {step_id: k3, type: ticket,         label: "Create Jira ticket",         parameters: {operation: create}}
-  connections:          # [from_step_id, from_output, to_step_id]; outputs with no connection end the run
-    - [t1, next, c1]
-    - [c1, P1, d1]
-    - [c1, otherwise, a3]
-    - [d1, done, a1]
-    - [d1, failed, a1]
-    - [a1, done, a2]
-    - [a1, unavailable, a2]
-    - [a2, done, k1]
-    - [a2, unavailable, k1]
-    - [k1, done, n1]
-    - [k1, failed, n1]
-    - [n1, sent, e1]
-    - [n1, failed, e1]
-    - [e1, next, s1]
-    - [s1, done, p1]
-    - [s1, unavailable, p1]
-    - [p1, approved, x1]
-    - [p1, rejected, e2]
-    - [p1, expired, e2]
-    - [x1, succeeded, r1]
-    - [x1, failed, r1]
-    - [r1, recovered, k2]
-    - [r1, not_recovered, e2]
-    - [a3, done, k3]
-    - [a3, unavailable, k3]
-  # Ends: k2 (done, failed), e2 (next), k3 (done, failed).
-
-# SL-A2-06: changes the admin makes in the editor (complete list), then publishes as version 2.
-# Structured so that tools/check_data.py applies them (DD-K-07).
+# SL-A2-06: the draft changes the admin makes in the editor, applied in this order to a copy of version 1.
+# Publishing the result creates version 2 (DD-K-07 checks it). Rolling back to version 1 then creates version 3.
 draft_changes_for_version_2:
-  add_steps:
-    - {step_id: p2, type: approval, label: "DB Ops second approval", parameters: {eligible_teams: [db-ops], expiry: 900}}
-  delete_connections:
-    - [p1, approved, x1]
-  add_connections:
-    - [p1, approved, p2]
-    - [p2, approved, x1]
-    - [p2, rejected, e2]
-    - [p2, expired, e2]
-  parameter_changes:
-    - {step_id: e1, parameter: timer, from: 600, to: 60}
-# Expected version 2 change list (SL-WE-09): p2 added; p1 changed (outgoing connection); e1 changed (timer).
-# Rollback in SL-A2-06 creates version 3 with the content of version 1.
+  - change: add_step
+    step: {step_id: s-approve-2, type: approval, label: "DB Ops second approval", position: {x: 2090, y: 0}, parameters: {eligible_teams: [db-ops], expiry_s: 900}}
+  - change: remove_connection
+    connection: {from_step_id: s-approve, from_output: approved, to_step_id: s-action}
+  - change: add_connection
+    connection: {from_step_id: s-approve, from_output: approved, to_step_id: s-approve-2}
+  - change: add_connection
+    connection: {from_step_id: s-approve-2, from_output: approved, to_step_id: s-action}
+  - change: add_connection
+    connection: {from_step_id: s-approve-2, from_output: rejected, to_step_id: s-escalate}
+  - change: add_connection
+    connection: {from_step_id: s-approve-2, from_output: expired, to_step_id: s-escalate}
+  - change: set_parameter
+    step_id: s-wait-ack
+    parameter: timer_s
+    before: 600
+    after: 120
+# The first approval's expiry (900 s) covers both approvals, as DM-R-30 requires: the operator gives the second
+# approval within 10 minutes of the first request (30-jazz-storyboard SB-D02 step 8).

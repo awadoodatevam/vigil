@@ -3,91 +3,90 @@
 | Field | Value |
 | --- | --- |
 | Document | 31-demo-data (ID prefix `DD-`) |
-| Version | 1.1 |
-| Date | 9 October 2026 |
+| Version | 1.0 |
+| Date | 10 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 3 closed. |
 
 ## 1. Purpose
 
-This folder is the complete invented data set required by SL-DR-04. It contains the seed bundle content that brings a tenant to the starting state (`01-scope-lock` Section 3; DM-R-56), the lab alert catalogue and the fault values used by the demo-only components. It also contains the checks that prove the data produces the outcomes the storyboard needs. The storyboard (`30-jazz-storyboard.md`) explains how the data is used on screen.
+This folder is the complete invented data set for the demo (SL-DR-04): the content of the seed bundle that brings a tenant to the starting state (`01-scope-lock` Section 3), and the demo-only lab, monitoring and fault definitions that produce the alert storm. The scene-by-scene script that uses it is `docs/30-jazz-storyboard.md` (prefix `SB-`).
 
 ## 2. Inputs read
 
-`00-context` v1.6, `01-scope-lock` v1.6, `10-product-map` v1.1, `20-domain-model` v1.0. At the Round 3 close they became `00-context` v1.7, `01-scope-lock` v1.7, `10-product-map` v1.2 and `20-domain-model` v1.1 (`30-jazz-storyboard` Section 14.2).
+`docs/00-context.md` v1.6; `docs/01-scope-lock.md` v1.6; `docs/10-product-map.md` v1.1; `docs/20-domain-model.md` v1.0; `docs/sources/Techfinity NOC Demo — What Will Be Delivered.md` (story baseline). External product facts were checked on 10 October 2026 (`30-jazz-storyboard` Section 13).
 
 ## 3. Files (complete list)
 
 | ID | File | Content | Seed parts (DM-R-56) |
 | --- | --- | --- | --- |
 | DD-F-00 | `README.md` | This file | — |
-| DD-F-01 | `01-tenant-identity.yaml` | Tenant settings, 9 teams, users with display names, memberships, permission grants | 1, 2 |
-| DD-F-02 | `02-service-map.yaml` | Service map generation 1: 6 services, 18 components, identity keys, dependencies | 5 |
-| DD-F-03 | `03-monitoring.yaml` | Monitoring sources and health values, alert types, alert type mappings, lab alert catalogue (demo-only) | 6 |
-| DD-F-04 | `04-operations-actions-recovery.yaml` | Runner operations and grants, diagnostic definitions, registered action, action policy, recovery check definitions | 4, 12, 13, 14 |
-| DD-F-05 | `05-routing-escalation.yaml` | Routing rule set revision 1, the SL-A2-06 rule change, escalation policy revision 1 | 11 |
-| DD-F-06 | `06-workflow.yaml` | Workflow version 1 and the SL-A2-06 draft changes | 16 |
-| DD-F-07 | `07-settings.yaml` | Credential references, connector instances, AI providers, allowed providers, task assignments, data routing, knowledge, correlation and incident settings, delivery addresses, baselines | 3, 7, 8, 9, 10, 15, 17 |
-| DD-F-08 | `08-runbooks.md` | 6 runbooks | 8 |
-| DD-F-09 | `09-past-incidents.csv` | Exactly 50 past incidents (SL-DR-04), all labelled "Fictional record" | 8 |
-| DD-F-10 | `10-lab-and-faults.yaml` | Lab hosts, lab DB server facts, fault mechanics SL-F-1 to SL-F-4, monitoring configuration, timing targets, control panel rules (demo-only, not seeded) | — |
-| DD-F-11 | `tools/gen_past.py` | Deterministic generator of DD-F-09 (seeded random; re-running reproduces the file byte for byte) | — |
-| DD-F-12 | `tools/check_data.py` | Runs checks DD-K-01 to DD-K-14 over this folder | — |
+| DD-F-01 | `01-tenant-identity.yaml` | Tenant settings, 9 teams, 5 users with display names, memberships, permission grants | 1, 2 |
+| DD-F-02 | `02-service-map.yaml` | Service map generation 1: 4 services, 12 components, 15 identity keys, 6 dependencies | 5 |
+| DD-F-03 | `03-monitoring.yaml` | Monitoring sources with health thresholds, 18 alert types, 9 alert type mappings, and the lab alert catalogue (demo-only) | 6 |
+| DD-F-04 | `04-operations-actions-recovery.yaml` | 5 runner operations and 2 target grants, 3 diagnostic definitions, 1 registered action and its policy, 2 recovery check definitions | 4, 12, 13, 14 |
+| DD-F-05 | `05-routing-escalation.yaml` | Routing rule set revision 1 (3 rules), the SL-A2-06 rule change, escalation policy revision 1 (2 levels) | 11 |
+| DD-F-06 | `06-workflow.yaml` | Workflow version 1 (19 steps, 31 connections) and the SL-A2-06 draft changes that make version 2 | 16 |
+| DD-F-07 | `07-settings.yaml` | Credential references, connector instances, AI providers, allowed providers, task assignments, data routing, knowledge, incident and correlation settings, delivery addresses, baselines | 3, 7, 8, 9, 10, 15, 17 |
+| DD-F-08 | `08-runbooks.md` | 7 runbooks | 8 |
+| DD-F-09 | `09-past-incidents.csv` | Exactly 50 past incidents (SL-DR-04), each labelled "Fictional record" | 8 |
+| DD-F-10 | `10-lab-and-faults.yaml` | Lab hosts and mock behaviour, the lab DB server, fault mechanics SL-F-1 to SL-F-4, monitoring configuration, timing targets, control panel rules (demo-only, not seeded) | — |
+| DD-F-11 | `tools/gen_past.py` | Deterministic generator of DD-F-09 (fixed seed; re-running reproduces the file byte for byte) | — |
+| DD-F-12 | `tools/check_data.py` | Runs checks DD-K-01 to DD-K-15 over this folder (the baseline folder sizes 6 GiB and 1 GiB of DD-F-10 are repeated in the script; a change to them MUST change both) | — |
 
 ## 4. Data rules
 
 | ID | Rule | Trace |
 | --- | --- | --- |
-| DD-R-01 | All names, hosts, addresses and figures are invented. The data contains no real Jazz system name, IP address, host name, employee name, customer data or internal figure. The only real names are the customer name "Jazz" (subject to CTX-O-05) and Pakistani city names used as synthetic probe locations. | SL-DR-01 |
-| DD-R-02 | No public Jazz fact (such as a USSD short code or product name) is used, so the list SL-DR-02 asks for is empty (`30-jazz-storyboard` SB-Q-N2). Services are named by function, for example "Balance Check (USSD)". | SL-DR-02 |
-| DD-R-03 | The YAML, CSV and Markdown files hold the content of record. Round 5 chooses the seed bundle serialisation and the service map file format (SL-O-11). Round 5 MAY convert these files to that format, and MUST NOT change their content. | SL-O-11; DM-R-54 |
-| DD-R-04 | Past incident times are given as minutes before the seed import (`opened_minutes_before_import`), and the acknowledgement and recovery times as minutes after opening. The seed import MUST convert them to timestamps at import time, so the seeded history is always the last 30 days of the demo run (DD-O-01). | SL-A1-09; SL-O-10 |
-| DD-R-05 | `<demo-domain>` stands for the demo domain (CTX-O-02). Values marked `R5` in DD-F-07 are fixed in Round 5. | CTX-O-02 |
-| DD-R-06 | A change to any file MUST be followed by running `tools/check_data.py` (exit status 0 only when every check passes), and every check MUST pass before the change is committed. Command, from the repository root: `python3 docs/31-demo-data/tools/check_data.py docs/31-demo-data`. It needs Python 3 with PyYAML. | CTX-Q-2 |
-| DD-R-07 | File conventions (complete list): (1) `handle` fields (credential references, connector instances) and `connector_instance`, `credential_ref` and `webhook_token_ref` values are bundle-internal names that link records within the seed bundle; the import replaces them with record identifiers. (2) A field name ending in `_s` is the domain-model field without the suffix, a Duration in seconds. (3) Every record is seeded with `active = true`. (4) `R5` marks a value fixed in Round 5. | DM-C-01, DM-C-06 |
-| DD-R-08 | The alert type set has 18 types: the 7 storm types, the SL-F-3 type, and 10 types used only by past incidents (DD-F-03). DM-E-16 now points to this set (amended by SB-A-01; SB-D-11). | DM-E-16, SL-DR-04 |
+| DD-R-01 | All names, hosts, addresses and figures are invented. The data contains no real Jazz system name, IP address, host name, employee name, customer data or internal figure. The only real names are: the customer name "Jazz" (subject to CTX-O-05); Pakistani city names used as synthetic probe labels; and the public host names of the Claude and OpenAI APIs in the SL-F-4 definition. | SL-DR-01 |
+| DD-R-02 | No public Jazz fact (such as a USSD short code or product name) is used; services are named by function (owner decision SB-D-06). The list SL-DR-02 asks for is therefore empty. | SL-DR-02 |
+| DD-R-03 | The YAML, CSV and Markdown files hold the content of record. Round 5 chooses the seed bundle serialisation and the service map file format (SL-O-11). Round 5 MAY convert these files to that format and MUST NOT change their content. | SL-O-11; DM-R-54 |
+| DD-R-04 | Past incident times are minutes before the seed import (`opened_minutes_before_import`, at most 43,200, so every record falls in the last 30 days), and acknowledgement and recovery times are minutes after opening. The seed import MUST convert them to timestamps at import time (DD-O-01). | SL-A1-09; SL-O-10 |
+| DD-R-05 | `<demo-domain>` stands for the demo domain (CTX-O-02). Values marked `R5` are fixed in Round 5 (DD-O-02). | CTX-O-02 |
+| DD-R-06 | A change to any file MUST be followed by running `tools/check_data.py`, and every check MUST pass before the change is committed. Command, from the repository root: `python3 docs/31-demo-data/tools/check_data.py docs/31-demo-data` (Python 3 with PyYAML). A change to DD-F-09 MUST be made in `tools/gen_past.py` and the file regenerated, never by hand. | CTX-Q-2 |
+| DD-R-07 | File conventions (complete list): (1) `handle` values and the fields that hold them (`connector_instance`, `credential_ref`, `webhook_token_ref`) are bundle-internal names that link records within the seed bundle; the import replaces them with record identifiers. (2) A field or parameter name ending in `_s` is the domain-model field or parameter without the suffix, a Duration in seconds. (3) Every record is seeded with `active = true`. (4) `R5` marks a value fixed in Round 5. (5) In DD-F-09, list fields (`alert_types`, `affected_service_keys`) separate keys with `;`. | DM-C-01, DM-C-06 |
+| DD-R-08 | The alert type set has 18 types: the 7 storm types of SL-A1-01, the SL-F-3 type, and 10 types used only by past incidents (DD-F-03). This extends the demo set named in DM-E-16 (amendment SB-A-01). | DM-E-16, SL-DR-04 |
 | DD-R-09 | Runbook file convention (DD-F-08): each `## ` heading starts one runbook; its fields come from the table under the heading; "(any)" means the empty set; `text` is everything after the table up to the next `## ` heading, kept as Markdown and trimmed. | DM-E-63 |
-| DD-R-10 | Placeholder grammar. In a command template, `{name}` is a placeholder only when `name` is a declared parameter of the operation; every other brace is literal (Example: the braces of the awk program in `purge_old_txlogs`). In a summary template (diagnostic `summary_template`, registered action `result_summary_template`), a placeholder is `{` + an output value name of the parser + `}`, where the name MAY contain `/` and `.` but not `}`. | DM-E-12, DM-E-53 |
+| DD-R-10 | Placeholder grammar. In a command template, `{name}` is a placeholder only when `name` is a declared parameter of the operation; every other brace is literal (Example: the braces of the awk programs). In a diagnostic `summary_template`, a placeholder is `{` + an output value name of the operation's parser + `}`, where the name MAY contain `/` and `.` but not `}`. | DM-E-12, DM-E-53 |
 | DD-R-11 | The seed bundle built from this folder has `bundle_name` "jazz-demo" and `bundle_version` equal to this README's version. | DM-E-82 |
 
 ## 5. Checks (complete list)
 
-`tools/check_data.py` runs these checks. Results for this version: all pass.
+`tools/check_data.py` runs these checks. Results for this version: all 47 checks pass.
 
 | ID | Check | Result |
 | --- | --- | --- |
-| DD-K-01 | The lab storm produces between 100 and 200 alerts. It covers all seven SL-A1-01 alert types and includes at least one alert from each source. | 138 alerts: 30 from Zabbix, 108 from Alertmanager |
-| DD-K-02 | Every lab alert matches its intended component (DM-R-05). | Pass |
-| DD-K-02b | Every lab alert's trigger name or alertname is classified by the alert type mappings (DM-E17-R1) as its intended type. | Pass |
-| DD-K-03 | The service map passes the import rules of DM-R-55 (unique keys, existing references including identity-key components, `runs_on` and `target_key` rules, valid kind, criticality and source-kind values, no duplicate dependency), is acyclic counting the `runs_on` dependencies (DM-E28-R1, R2), and has the counts shown in SB-D02 (6 services, 18 components, 12 identity keys, 12 dependencies). | Pass |
-| DD-K-04 | All storm components form one group under the relation DM-R-07. `reporting-app` (SL-F-3) is related to none of them (DM-R-14). | Pass |
-| DD-K-05 | The hypothesis is `db-core-01` (DM-R-18). Routing gives the storm incident P1, owner `db-ops`, informed `vas-service-owners`, and gives the SL-F-3 incident P4, owner `it-infra`. | Pass |
-| DD-K-06 | The storm customer impact is Balance Check (USSD), Bundle Purchase and SMS Notifications, and the titles computed by DM-R-20 are exactly "Subscriber DB server: Disk full — 3 services affected" (storm) and "Reporting application: Report export job failed — 1 service affected" (SL-F-3). | Pass |
-| DD-K-07 | Version 2 is built by applying the structured `draft_changes_for_version_2` of DD-F-06 to version 1 (each change checked against version 1; every step output has at most one connection). Workflow version 1 and version 2 pass the SL-WE-08 rules checked by the script: one Trigger, every step reachable, no unconnected step, every Condition branch connected, Action guarded before and after, no cycle (so `cycle_has_wait` holds), and the parameter bounds of DM Section 9 for Approval, Recovery check, Escalation, AI task and Ticket steps. | Pass |
-| DD-K-08 | The runbooks given to SL-T-1 for the storm are RB-DB-001, RB-API-003 and RB-SMS-004 (DM-R-50). | Pass |
-| DD-K-09 | The storm search text (DM-R-51) equals the search text of exactly one past incident, PI-0342. No past incident uses `reporting-app` or `batch_job_failed`. PI-0342 links the action `purge-archived-txlogs`, with success count 4. Exactly 4 past incidents use that action (PI-0303, PI-0306, PI-0327, PI-0342), and each carries success count 4. | Pass |
-| DD-K-10 | Every cross-module key reference exists (DM-R-60); every bundle-internal handle resolves (DD-R-07); credential purposes match their use (webhook token, diagnostic and action grants with two different credentials, DM-E13-R1); every task assignment uses allowed provider kinds and SL-T-3 has exactly one provider (DM-E-71, DM-E72-R2); action policies and alert type mappings refer to existing actions, services and alert types; there are exactly 50 past incidents. | Pass |
-| DD-K-11 | Dashboard values over the seeded history alone (DM-R-53) are exactly: time to acknowledge 4.3 min, time to recover 28.2 min, 684 alerts, 634 alerts suppressed, 46 incidents merged. | Pass |
-| DD-K-12 | The readiness gaps in the starting state are exactly `bkp-srv-01` (server with no owner) and `svc-reporting` (service with no criticality). | Pass |
-| DD-K-13 | The eligible approvers for the DB Ops Approval step are exactly `dbops-engineer` and `dbops-lead`. | Pass |
-| DD-K-14 | Timing values are mutually consistent (complete list):<br>- health check interval < stale < disconnected;<br>- maximum storm gap (30 s, DD-F-10) < settle period < maximum forming time;<br>- observation window < the Recovery check maximum wait;<br>- escalation timer of version 1 is 600 s;<br>- stability check at most 5 s and closure check at most 60 s. | Pass |
+| DD-K-01 | Each lab catalogue row's count equals its number of dimension combinations. The SL-F-1 storm produces between 100 and 200 alerts, covers all seven SL-A1-01 alert types and has at least one alert from each source. SL-F-3 produces 1 alert. With SL-F-2, every storm alert except the disk_full alerts keeps firing. | 126 storm alerts: 31 from Zabbix, 95 from Alertmanager; 124 with SL-F-2 |
+| DD-K-02 | Every lab alert matches its intended component (DM-R-05) and is classified by the alert type mappings (DM-E17-R1), never `unclassified`. | Pass |
+| DD-K-03 | The service map passes the import rules of DM-R-55 (unique keys, existing references, `runs_on` and `target_key` rules, kind, criticality and source-kind values, DM-E27-R1), is acyclic counting `runs_on` (DM-E28-R1, R2), and has the counts 4 services, 12 components, 15 identity keys, 6 dependencies. | Pass |
+| DD-K-04 | The storm components form one connected group under the relation DM-R-07; the grouping window (300 s) is at least the storm length (120 s); the SL-F-3 component `report-export` is related to no storm component (DM-R-14). | Pass |
+| DD-K-05 | The storm hypothesis is `srv-db-01` (DM-R-18). Routing gives the storm incident P1, owner `db-ops`, informed `vas-service-owners`; the SL-F-3 incident P4, owner `it-apps`, no informed teams; after the SL-A2-06 change the storm result is P1, `db-ops`, informed `customer-care` and `vas-service-owners`. Escalation levels have no gaps. | Pass |
+| DD-K-06 | Storm customer impact is Balance Check (USSD), Bundle Purchase and SMS Notifications. Titles (DM-R-20): "Subscriber DB server: Disk full — 3 services affected" (storm) and "Report export job: Report export job failed — 1 service affected" (SL-F-3). | Pass |
+| DD-K-07 | Workflow version 1, and version 2 built by applying the draft changes, pass the SL-WE-08 rules (one Trigger, reachable, no unconnected step, Condition branches connected, Action guarded, no cycle) and the parameter bounds of DM Section 9. Version 1 meets PM-WV-02 to PM-WV-04, PM-WV-04 on both branches (PM-WV-01 is met by the engine, DM-R-16). Also checked: Condition comparisons use fields and operators of DM-R-25 and DM-R-26 with valid values, branch labels are unique and not `otherwise`, Notification recipients are valid kinds, step labels are at most 60 characters. A cycle is reported only when it has no Wait/timer step (the workflows have no cycle). Escalation timer 600 s in version 1 and 120 s in version 2; version 2 has 2 Approval steps. | Pass |
+| DD-K-08 | The runbooks given to SL-T-1 for the storm (DM-R-50, limit 3) are RB-API-01, RB-DB-01 and RB-USSD-01. | Pass |
+| DD-K-09 | The storm search text (DM-R-51) equals the search text of exactly one past incident, PI-1001, which links `purge-archived-txlogs` with success count 4; it has the alphabetically first key, so it also wins any tie on the rounded score (DM-E66-R1). Exactly 5 past incidents use that action (PI-1001, PI-1011, PI-1012, PI-1021, PI-1039), each with success count 4 (a success count belongs to the fix: the purge worked in 4 of its 5 uses; for a record without a registered action the count is the number of records of the same pattern, and the demo never shows it). No past incident uses `report_job_failed`, `svc-mgmt-reports`, `report-export` or `srv-rpt-01`. | Pass |
+| DD-K-10 | Every cross-module key reference exists (DM-R-60); routing conditions use routing fields only and the default rule is the last and only rule without conditions (DM-E41-R1); credentials match their purpose (webhook tokens, target grants, connector credentials) and the two grants use different credentials (DM-E13-R1); allowed providers equal DM-E71-R1; task assignments use allowed kinds; SL-T-3 has exactly one provider, equal to the knowledge embedding provider (DM-E72-R2); every notifiable team and both approvers have delivery addresses; exactly 50 past incidents with unique keys and alert counts of at least 1. | Pass |
+| DD-K-11 | Dashboard values over the seeded history alone (DM-R-53): time to acknowledge 5.7 min, time to recover 41.1 min, 575 alerts, 525 alerts suppressed, 46 incidents merged. Every past incident opened within the 30 days before the seed import (DM-R-53 applies no time filter: the dashboard counts all 50). | Pass |
+| DD-K-12 | Readiness gaps in the starting state are exactly `srv-rpt-01` (server with no owner) and `svc-mgmt-reports` (service with no criticality). (`source_not_healthy` depends on the running system: none in the starting state.) | Pass |
+| DD-K-13 | Eligible approvers for the DB Ops Approval step are exactly `dbops-engineer` and `dbops-lead`; `noc-l1` can acknowledge the storm incident. | Pass |
+| DD-K-14 | Timing values are mutually consistent, read from DD-F-03, DD-F-04, DD-F-06, DD-F-07 and the `timing_targets.numbers` of DD-F-10 (complete list): health check interval < stale < disconnected; maximum storm gap < settle period < maximum forming time; storm arrival time + settle period ≤ maximum forming time; storm arrival time ≤ grouping window; resolve-after-action time + observation window < the P1 Recovery check maximum wait; resolve-after-clear time + clear settle time ≤ 60 s; no-refire time ≥ reopen window; stability check ≤ 5 s; closure check ≤ 60 s; observation windows < maximum waits; approval expiry ≥ 600 s; minimum similarity between 0 and 1. The injected archive (device size − baseline − 0.25 GiB allowance for XFS overhead and free space) is larger than the largest baseline folder + 1 GiB and at most the 12 GiB action limit. Every LA-02 schema is a database schema with a named writer in the mock behaviour. | Pass |
+| DD-K-15 | The demo users are exactly those of SL-A3-07; there are 9 teams. | Pass |
 
-Checks that need running software are listed in `30-jazz-storyboard` Section 11 (SB-T-01 to SB-T-09).
+Checks that need running software are listed in `30-jazz-storyboard` Section 11 (SB-T-01 to SB-T-10).
 
 ## 6. Assumptions
 
 | ID | Assumption | Verified by |
 | --- | --- | --- |
-| DD-ASM-01 | The Zabbix connector can expose the host name, a tag value (`tag.component`) and the trigger name of each alert. The Alertmanager connector can expose the labels `component`, `instance` and `alertname`. The names used here are working names for those fields. Round 5 MUST keep the identity key order Zabbix [`tag.component`, `host`] and Alertmanager [`label.component`, `label.instance`] (SB-V-26). | Round 5 connector fact check (DM-O-04) |
-| DD-ASM-02 | The lab hosts run Linux with GNU coreutils and findutils. `sar -F MOUNT` from sysstat prints per-mount-point filesystem usage, including `%ufsused`. sysstat can record filesystem statistics (`-S XDISK`) every 10 s on the lab DB server. | Round 5 fact check; lab build |
-| DD-ASM-03 | The lab monitoring can meet the timing targets in DD-F-10 (arrival within 120 s with no gap above 30 s; no repeated firing entry; resolves within 60 s after the action and within 40 s after clearing faults; no re-firing within 300 s). The 45-second settle period depends on this. | Early lab spike (with SL-ASM-01, DM-ASM-05) |
-| DD-ASM-04 | With the local embedding model chosen in Round 5:<br>- the storm incident's best match is PI-0342 with score 1.00, because its search text is identical;<br>- the SL-F-3 incident's best score is below 0.95;<br>- no other past incident (PI-0303, PI-0306, PI-0327 share part of the pattern) also rounds to 1.00, which would win the alphabetical tie-break (DM-E66-R1). | Build spike SB-T-03; if it fails, Round 5 changes `min_similarity` by a decision |
-| DD-ASM-05 | Alertmanager's `group_by: ['...']` makes every alert its own notification group, so no firing alert is re-sent while other alerts join. Zabbix can send exactly one webhook per problem and one per recovery. | Round 5 fact check; SB-T-01 |
-| DD-ASM-06 | An XFS filesystem on a 20 GiB device leaves enough usable capacity for the 11 GiB baseline to sit between 55% and 57% used. The exact percentages, file counts and sizes are measured by SB-T-01 and recorded in DD-F-10. | SB-T-01 |
+| DD-ASM-01 | The Zabbix connector can read the event tag `component`, the host name and the event name from the webhook message of DD-F-10; the Alertmanager connector can read the labels `component`, `instance` and `alertname`. The Zabbix message content is defined by our own media type script (DD-F-10), so this depends only on the connector reading it. Input to Round 5 (DM-O-04): the identity key names and precedence used here are Zabbix [`component`, `host`] and Alertmanager [`component`, `instance`]; if Round 5 chooses other names, DD-F-02 and DD-F-03 are updated with them. | Round 5 connector design; SB-T-01 |
+| DD-ASM-02 | The lab DB server runs Linux with bash, GNU coreutils, GNU findutils and an awk that supports `-v` and `printf "%.0f"`: `df --output`, `du -x -B1 --max-depth`, `find -cmin` and `find -printf` behave as documented, and setting a file's modification time back leaves its change time at the time of the change. The command templates were run on test files on 10 October 2026 and behaved as specified. | Lab build; SB-T-01 |
+| DD-ASM-03 | The lab monitoring settings of DD-F-10 meet the timing targets there (arrival within 120 s with no gap above 25 s and no repeated firing entry; resolves within 60 s after the action and within 40 s after clearing; no re-firing within 300 s). The 40-second settle period depends on this. | Lab spike SB-T-01 |
+| DD-ASM-04 | With the local embedding model chosen in Round 5, the storm incident's best match is PI-1001 with score 1.00, because its search text is identical; a tie on the rounded score also goes to PI-1001 (first key, DM-E66-R1). | Build spike SB-T-03 |
+| DD-ASM-05 | An XFS filesystem on a 16 GiB device holds the 7 GiB baseline at 43 to 45% used, and the SL-F-1 injection (about 8.8 GiB) is larger than `/data/db` (6 GiB) plus 1 GiB and smaller than the 12 GiB action limit. Exact percentages, file counts and sizes are measured by SB-T-01 and recorded in DD-F-10. | SB-T-01 |
 
 ## 7. Explicitly out of scope
 
-The serialisation of the seed bundle (Round 5). The lab implementation (Round 6). Screen content (Round 4). Real connector addresses and secrets (Round 5 and deployment).
+The serialisation of the seed bundle and the service map file format (Round 5). The lab implementation (Round 6). Screen content (Round 4). Real connector addresses and secrets (Round 5 and deployment).
 
 ## 8. Open items
 
@@ -95,19 +94,18 @@ The serialisation of the seed bundle (Round 5). The lab implementation (Round 6)
 | --- | --- | --- | --- |
 | DD-O-01 | Seed bundle support for the relative times of DD-R-04 (the import interface of `vigil-knowledge` converts offsets to timestamps). | Claude | R5 |
 | DD-O-02 | Connector addresses, settings, credential locators, model names and prices marked `R5` in DD-F-07 (with DM-O-12, DM-O-13, PM-O-11). | Claude | R5 |
-| DD-O-03 | Measured lab values in DD-F-10 (baseline percentage, injected file count and size, diagnostic values). | Abdul | Lab spike SB-T-01, before the first rehearsal |
+| DD-O-03 | Measured lab values in DD-F-10 (baseline percentage, injected file count and size, diagnostic values, action result). | Abdul | Lab spike SB-T-01, before the first rehearsal |
+| DD-O-04 | Form of the Teams delivery address (PM-O-10). The fact check found that a Teams channel is now reached through a Workflows webhook address per channel, and that this address works as a secret; Round 5 decides how a delivery address refers to it (Example: a credential reference per address) and records any domain model change. | Claude | R5 |
 
 ## 9. Quality-check results
 
-Checks DD-K-01 to DD-K-14 pass (Section 5). The independent review and the readiness test of this folder are recorded with the storyboard (`30-jazz-storyboard` Section 16).
+See `30-jazz-storyboard` Section 17 (one review covers both outputs of Round 3).
 
 ## 10. Change history
 
 | Version | Date | Change |
 | --- | --- | --- |
-| 0.1 | 9 Oct 2026 | First version (Round 3). |
-| 0.2 | 9 Oct 2026 | Resolved independent review findings: lab disk values measured by spike, purge output, growth window, Alertmanager grouping, timers, parsers, permissions, missing fields, approver channels, Customer Care team, wording. |
-| 0.3 | 9 Oct 2026 | Resolved review pass 2 and readiness test findings: txlog ages refreshed by every storm, fixed 128 MiB free, only catalogue alerts sent, alert rule windows, label and annotation names, SL-F-4 by name override, UTC clock and storm window, control panel rules, conventions DD-R-09 to DD-R-11, stronger checks. |
-| 0.4 | 9 Oct 2026 | Readiness test pass 2: generic USSD menu names without other services, SL-F-4 clear undoes every step, 15 s scrape interval, 15 s margin after clearing faults. Draft for owner review. |
-| 1.0 | 9 Oct 2026 | Owner review recorded (CTX-D-017); final consistency audit fixes: stronger DD-K-03, DD-K-06, DD-K-07, DD-K-10 (verified by mutation tests), structured SL-A2-06 draft changes, 10 s sysstat interval, identity key order required of Round 5, notified-team channels; Round 3 closed. |
-| 1.1 | 9 Oct 2026 | `result_summary_template` added to the registered action in DD-F-04; DD-R-10 covers it (`40-demo-cut` DC-A-02; CTX-D-020). Checks DD-K-01 to DD-K-14 pass. |
+| 0.1 | 10 Oct 2026 | First draft (Round 3, restarted). |
+| 0.2 | 10 Oct 2026 | Resolved independent review and readiness test findings (`30-jazz-storyboard` Section 17): lab DB sizes, schema writers, SL-F-3 keeps failing, last injected file back-dated, SL-F-4 mechanism, reset and clear timing, command robustness, best-match key, PM-WV-04 on both branches, stronger checks. |
+| 0.3 | 10 Oct 2026 | Resolved verification pass 2: clear settle 12 s, SL-F-3 wording, DD-ASM-03 40 s, parser and comment fixes. |
+| 1.0 | 10 Oct 2026 | Owner review recorded (CTX-D-018); Round 3 closed. |

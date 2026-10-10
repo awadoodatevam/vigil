@@ -1,112 +1,119 @@
-# DD-F-04  Runner operations and grants (seed part 4), diagnostics (part 12), recovery
-# checks (part 13), registered action and policy (part 14). Resolves SL-O-06, SL-O-08
-# (action and parameters), SL-O-09, SL-O-15, DM-O-07, DM-O-14.
-# Lab DB server facts: DD-F-10.
+# DD-F-04  Runner operations and target grants (seed part 4), diagnostic definitions (part 12),
+# recovery check definitions (part 13), registered action and action policy (part 14).
+# Resolves SL-O-06, SL-O-08 (action and parameters), SL-O-09 (limits), SL-O-15, DM-O-07, DM-O-14.
+# The lab DB server facts these commands rely on are in DD-F-10 and assumption DD-ASM-02.
 
-operations:                           # DM-E-12. Commands run in bash on the target; GNU coreutils, findutils and sysstat (DD-ASM-02).
-                                      # Placeholders {name} are always unquoted in the template: the runner inserts each checked value shell-quoted.
+operations:                           # DM-E-12 (complete list, 5). Commands run in bash on the target.
+                                      # A placeholder {name} is a placeholder only when "name" is a declared parameter of the
+                                      # operation; every other brace is literal (awk programs). The runner inserts each checked
+                                      # value shell-quoted (DM-E-12), so placeholders are written unquoted here.
+                                      # Every template starts with "set -o pipefail", so a failing command anywhere in a
+                                      # pipeline fails the run; awk prints large numbers with %.0f, never %d.
   - operation_key: fs_usage
-    name: "Disk usage per filesystem"
+    name: "Disk usage of one filesystem"
     permission_kind: diagnostic
-    command_template: "LC_ALL=C df -B1 --output=target,size,used,avail,pcent -x tmpfs -x devtmpfs"
-    parameters: []
-    output_parser: df_table
+    command_template: "set -o pipefail; LC_ALL=C df -B1 --output=target,size,used,avail,pcent -- {mount}"
+    parameters:
+      - {name: mount, value_type: path, required: true, allowed_prefixes: ["/data"]}
+    output_parser: df_row
     timeout_s: 30
   - operation_key: largest_dirs
     name: "Largest folders under a path"
     permission_kind: diagnostic
-    command_template: "LC_ALL=C du -x -B1 --max-depth=1 -- {path} 2>/dev/null | sort -rn | head -n {count}"
+    command_template: "set -o pipefail; LC_ALL=C du -x -B1 --max-depth=1 -- {path} | sort -rn | awk -v c={count} 'NR <= c'"
     parameters:
       - {name: path,  value_type: path,    required: true, allowed_prefixes: ["/data"]}
-      - {name: count, value_type: integer, required: true, min: 2, max: 21}
+      - {name: count, value_type: integer, required: true, min: 2, max: 11}
     output_parser: du_top
     timeout_s: 30
-  - operation_key: fs_growth
-    name: "Filesystem usage growth over recent samples"
+  - operation_key: recent_growth
+    name: "Data written under a path recently"
     permission_kind: diagnostic
-    command_template: "LC_ALL=C sar -F MOUNT | grep -v -E '^(Average|Summary)' | awk -v m={mount} '$NF == m' | tail -n {samples}"
+    command_template: "set -o pipefail; LC_ALL=C find {path} -xdev -type f -cmin -{minutes} -printf '%s\\n' | awk 'BEGIN {n = 0; s = 0} {n += 1; s += $1} END {printf \"%.0f %.0f\\n\", n, s}'"
     parameters:
-      - {name: mount,   value_type: path,    required: true, allowed_prefixes: ["/data"]}
-      - {name: samples, value_type: integer, required: true, min: 2, max: 60}
-    output_parser: sar_fs_growth
+      - {name: path,    value_type: path,    required: true, allowed_prefixes: ["/data"]}
+      - {name: minutes, value_type: integer, required: true, min: 1, max: 1440}
+    output_parser: count_bytes
     timeout_s: 30
   - operation_key: fs_used_pct
     name: "Used percentage of one filesystem"
     permission_kind: diagnostic
-    command_template: "LC_ALL=C df -B1 --output=pcent -- {mount} | tail -n 1 | tr -dc '0-9'"
+    command_template: "set -o pipefail; LC_ALL=C df --output=pcent -- {mount} | tail -n 1 | tr -dc '0-9'"
     parameters:
       - {name: mount, value_type: path, required: true, allowed_prefixes: ["/data"]}
     output_parser: single_number
     timeout_s: 30
-  - operation_key: purge_old_txlogs
+  - operation_key: purge_old_archives
     name: "Purge archived transaction logs"
     permission_kind: action
     command_template: >-
-      LC_ALL=C find {path} -maxdepth 1 -type f -name '*.arc' -mmin +{older_than_minutes} -printf '%T@ %s %p\n'
+      set -o pipefail; cd -- {path} &&
+      LC_ALL=C find . -maxdepth 1 -type f -name '*.arc' -mmin +{older_than_minutes} -printf '%T@ %s %f\n'
       | sort -n
-      | awk -v max={max_bytes} '{ if (sum + $2 > max) exit; sum += $2; print $2, $3 }'
-      | while read -r size file; do rm -f -- "$file" && printf '%s %s\n' "$size" "$file"; done
+      | awk -v max={max_bytes} 'BEGIN {s = 0; stop = 0} {if (stop || s + $2 > max) {stop = 1; next} s += $2; print $2, $3}'
+      | while read -r size name; do rm -f -- "$name" && printf '%s %s\n' "$size" "$name"; done
     parameters:
       - {name: path,               value_type: path,    required: true, allowed_prefixes: ["/data/txlog_archive"]}
-      - {name: older_than_minutes, value_type: integer, required: true, min: 60,  max: 10080}
-      - {name: max_bytes,          value_type: integer, required: true, min: 1, max: 21474836480}
+      - {name: older_than_minutes, value_type: integer, required: true, min: 60, max: 10080}
+      - {name: max_bytes,          value_type: integer, required: true, min: 1,  max: 21474836480}
     output_parser: removed_files
     timeout_s: 120
 
-output_parsers:                       # complete list; code in vigil-runner (DM-E-12 output_parser). GiB = bytes / 1073741824, rounded half-up to 1 decimal place.
-  df_table:      "One row per output line after the header: {mount, size_bytes, used_bytes, avail_bytes, used_pct (integer, % sign removed)}. Also named values '<mount>.used_pct', '<mount>.used_gib', '<mount>.size_gib' for every row (size_gib from size_bytes)."
-  du_top:        "One row per line '<bytes> <path>': {path, size_bytes}; the line whose path equals the {path} parameter is dropped. Named values top1_path, top1_gib, top2_path, top2_gib, ... in output order."
-  sar_fs_growth: "Lines '<HH:MM:SS> MBfsfree MBfsused %fsused %ufsused Ifree Iused %Iused <mount>' (time first; with AM/PM output the AM/PM column is skipped). Named values: first_time, last_time, min_ufsused (lowest %ufsused), last_ufsused, growth_pct_points = last_ufsused - min_ufsused rounded half-up to an integer."
+output_parsers:                       # complete list; code in vigil-runner (DM-E-12 output_parser).
+                                      # GiB = bytes / 1073741824, rounded half-up to 1 decimal place.
+  df_row:        "The last output line '<mount> <size> <used> <avail> <pcent>%': named values mount, size_bytes, used_bytes, avail_bytes, used_pct (integer, % removed), size_gib, used_gib, avail_gib."
+  du_top:        "One line per folder, largest first: the size in bytes, a TAB, then the path (split on the first TAB); the line whose path equals the {path} parameter is dropped. Named values top1_path, top1_gib, top2_path, top2_gib, ... in output order."
+  count_bytes:   "One line '<files> <bytes>'. Named values files, bytes, gib."
   single_number: "The whole output read as an integer. Named value: value. Empty or non-numeric output makes the run 'failed'."
-  removed_files: "One line '<bytes> <path>' per removed file. Named values: files_removed (line count), bytes_removed (sum), gib_removed."
+  removed_files: "One line '<bytes> <file name>' per removed file. Named values files_removed (line count), bytes_removed (sum), gib_removed."
 
-target_access_grants:                 # DM-E-13; credentials are references only
+target_access_grants:                 # DM-E-13 (complete list): the lab DB server is the only target (SL-C-02)
   - {target_key: lab-db-01, connector_instance: linux-lab-db-01, permission_kind: diagnostic, credential_ref: cred-lab-db-01-diag}
   - {target_key: lab-db-01, connector_instance: linux-lab-db-01, permission_kind: action,     credential_ref: cred-lab-db-01-action}
 
-diagnostic_definitions:               # DM-E-53; resolves SL-O-06 (complete list, SL-A1-03)
+diagnostic_definitions:               # DM-E-53 (complete list, 3); resolves SL-O-06 (SL-A1-03)
   - diagnostic_key: disk_usage
-    name: "Disk usage per filesystem"
+    name: "Disk usage of /data"
     operation_key: fs_usage
-    parameter_values: {}
-    summary_template: "/data at {/data.used_pct}% used ({/data.used_gib} of {/data.size_gib} GiB)"
+    parameter_values: {mount: /data}
+    summary_template: "/data is {used_pct}% full ({used_gib} of {size_gib} GiB used, {avail_gib} GiB free)"
   - diagnostic_key: largest_folders
     name: "Largest folders under /data"
     operation_key: largest_dirs
-    parameter_values: {path: /data, count: 6}   # 6 lines = /data itself + up to 5 largest folders
-    summary_template: "Largest folder: {top1_path} ({top1_gib} GiB)"
+    parameter_values: {path: /data, count: 4}      # 4 lines = /data itself + its 3 largest folders
+    summary_template: "Largest folder under /data: {top1_path} ({top1_gib} GiB)"
   - diagnostic_key: disk_growth
-    name: "/data usage growth, last 5 minutes"
-    operation_key: fs_growth
-    parameter_values: {mount: /data, samples: 31}   # 31 samples 10 s apart = the last 5 minutes
-    summary_template: "/data grew {growth_pct_points} percentage points in the last 5 minutes"
+    name: "Data written under /data, last 15 minutes"
+    operation_key: recent_growth
+    parameter_values: {path: /data, minutes: 15}
+    summary_template: "{gib} GiB written to {files} files under /data in the last 15 minutes"
+# SL-O-06 reading: configured data path = /data; number of largest folders = 3; recent period = 15 minutes.
 
-registered_actions:                   # DM-E-55; resolves SL-O-08 (action, parameters), SL-O-09 (limits), SL-O-15
+registered_actions:                   # DM-E-55 (complete list, 1); resolves SL-O-08 (action, parameters), SL-O-09, SL-O-15
   - action_key: purge-archived-txlogs
     name: "Purge archived transaction logs"
-    operation_key: purge_old_txlogs
-    parameter_values: {path: /data/txlog_archive, older_than_minutes: 1440, max_bytes: 12884901888}   # 24 h; 12 GiB
+    operation_key: purge_old_archives
+    parameter_values: {path: /data/txlog_archive, older_than_minutes: 1440, max_bytes: 12884901888}   # 24 hours; 12 GiB
     limits:
       - "Deletes only *.arc files directly under /data/txlog_archive"
-      - "Deletes only files older than 24 hours"
-      - "Deletes at most 12 GiB"
-      - "Runs only on the lab DB server (lab-db-01)"
-    attempt_limit: 1
-    precondition:    {operation_key: fs_used_pct, parameters: {mount: /data}, result_field: value, operator: greater_or_equal, value: "90"}
-    reconciliation:  {operation_key: fs_used_pct, parameters: {mount: /data}, result_field: value, operator: less_than,        value: "85"}
+      - "Deletes only files last modified more than 24 hours ago"
+      - "Deletes at most 12 GiB, oldest files first"
+      - "Runs only on the Subscriber DB server (lab-db-01)"
+    attempt_limit: 1                                                                                   # SL-O-15
+    precondition:   {operation_key: fs_used_pct, parameters: {mount: /data}, result_field: value, operator: greater_or_equal, value: "90"}
+    reconciliation: {operation_key: fs_used_pct, parameters: {mount: /data}, result_field: value, operator: less_than,        value: "85"}
     recovery_check_key: rc-subscriber-db
-    result_summary_template: "Removed {files_removed} files ({gib_removed} GiB)"   # DM-E-55 v1.2 (40-demo-cut DC-A-01, DC-A-02); names are removed_files parser outputs
 
-action_policies:                      # DM-E-56; demo uses approval_required only (SL-B-04)
+action_policies:                      # DM-E-56 (complete list); the demo uses approval_required only (SL-B-04, SL-C-17)
   - {action_key: purge-archived-txlogs, service_key: null, outcome: approval_required}
 
-recovery_check_definitions:           # DM-E-61; resolves SL-O-01 and DM-O-14
+recovery_check_definitions:           # DM-E-61 (complete list, 2); resolves SL-O-01 and DM-O-14
   - recovery_check_key: rc-subscriber-db
     name: "Subscriber DB services recovered"
-    conditions:
+    conditions:                                     # DM-E61-R2
       - {kind: incident_alerts_resolved}
-      - {kind: component_no_firing_alert, component_key: ussd-synthetic, alert_types: []}
-    observation_window_s: 60
+      - {kind: component_no_firing_alert, component_key: ussd-probe, alert_types: []}
+    observation_window_s: 60                        # SL-O-01
     is_default: false
   - recovery_check_key: rc-default
     name: "All incident alerts resolved"

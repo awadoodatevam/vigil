@@ -1,56 +1,52 @@
 # DD-F-05  Routing rule set revision 1 and escalation policy revision 1 (seed part 11).
-# Resolves SL-O-07, SL-O-05 (severity and owner of the SL-F-3 incident), SL-O-14 (levels), SL-O-21.
+# Resolves SL-O-07 (owner and informed parties of the storm incident), SL-O-05 (priority of the SL-F-3 incident),
+# SL-O-14 (escalation levels) and SL-O-21 (the routing rule change of SL-A2-06).
+# Conditions use only routing fields of DM-R-25 and operators of DM-R-26. Rules are evaluated in list order (DM-E43-R1).
 
-routing_rule_set_revision_1:          # DM-E-41; evaluated top to bottom, first match wins
-  - rule_key: p1-critical-infra
-    name: "Critical service, infrastructure or database cause"
-    conditions:
-      - {field: highest_service_criticality, operator: at_least, value: critical}
-      - {field: hypothesis_component_kind,   operator: in,       value: [server, database]}
-    severity: P1
-    owner_mode: hypothesis_component_owner
-    owner_team_key: noc-l1
-    informed_team_keys: []
-    inform_affected_service_owners: true
-  - rule_key: p2-critical-app
-    name: "Critical service, application cause"
-    conditions:
-      - {field: highest_service_criticality, operator: at_least, value: critical}
-    severity: P2
-    owner_mode: hypothesis_component_owner
-    owner_team_key: noc-l1
-    informed_team_keys: []
-    inform_affected_service_owners: true
-  - rule_key: p3-high
-    name: "High-criticality service"
-    conditions:
-      - {field: highest_service_criticality, operator: at_least, value: high}
-    severity: P3
-    owner_mode: hypothesis_component_owner
-    owner_team_key: noc-l1
-    informed_team_keys: []
-    inform_affected_service_owners: false
-  - rule_key: p4-default
-    name: "Default"
-    conditions: []
-    severity: P4
-    owner_mode: hypothesis_component_owner
-    owner_team_key: noc-l1
-    informed_team_keys: []
-    inform_affected_service_owners: false
+routing_rule_set_revision_1:          # DM-E-41
+  rules:
+    - rule_key: critical-service
+      name: "Critical service affected"
+      conditions:
+        - {field: highest_service_criticality, operator: at_least, value: critical}
+      severity: P1
+      owner_mode: hypothesis_component_owner
+      owner_team_key: noc-l1                   # used only when the hypothesis component has no active owner team
+      informed_team_keys: []
+      inform_affected_service_owners: true
+    - rule_key: high-service
+      name: "High-criticality service affected"
+      conditions:
+        - {field: highest_service_criticality, operator: at_least, value: high}
+      severity: P2
+      owner_mode: hypothesis_component_owner
+      owner_team_key: noc-l1
+      informed_team_keys: []
+      inform_affected_service_owners: true
+    - rule_key: default
+      name: "Default"
+      conditions: []                           # default rule (DM-E41-R1)
+      severity: P4
+      owner_mode: hypothesis_component_owner
+      owner_team_key: noc-l1
+      informed_team_keys: []
+      inform_affected_service_owners: false
 
-# Expected results (DD-K-05):
-#   storm incident  -> rule p1-critical-infra -> P1, owner db-ops (owner of db-core-01), informed [vas-service-owners]
-#   SL-F-3 incident -> rule p4-default        -> P4, owner it-infra (owner of reporting-app), informed []
-#                      (svc-reporting has no criticality, so every criticality comparison is false, DM-R-26)
+# Expected results (checked by tools/check_data.py, DD-K-05):
+#   storm incident  -> rule critical-service: P1, owner db-ops (owner of srv-db-01), informed {vas-service-owners}  (SL-O-07)
+#   SL-F-3 incident -> rule default (Management Reports has no criticality, so no comparison is true): P4, owner it-apps
+#                      (owner of report-export), informed {}                                                       (SL-O-05)
 
-routing_change_in_SL-A2-06:           # SL-O-21; saved by admin in SL-A4-08 as revision 2
-  rule_key: p1-critical-infra
-  change: "informed_team_keys: [] -> [customer-care]"
-  effect_on_storm_incident: "severity P1 and owner db-ops unchanged; informed parties become [customer-care, vas-service-owners]"
+# SL-O-21: the routing rule change made on the routing-rules screen in SL-A2-06. It adds Customer Care to the informed
+# teams of rule critical-service. It changes neither the storm incident's severity nor its owner team (SL-O-21 constraint).
+routing_change_for_sl_a2_06:
+  rule_key: critical-service
+  field: informed_team_keys
+  before: []
+  after: [customer-care]
+  expected_storm_result_after_change: {severity: P1, owner_team_key: db-ops, informed_team_keys: [customer-care, vas-service-owners]}
 
-escalation_policy_revision_1:         # DM-E-42; resolves SL-O-14 (levels)
+escalation_policy_revision_1:         # DM-E-42; resolves SL-O-14 (levels). Timer values are workflow step parameters (DD-F-06).
   levels:
-    - {level: 1, team_keys: [noc-management]}
-    - {level: 2, team_keys: [it-ops-head]}
-# Timer values are Escalation step parameters (DD-F-06): 600 s in workflow version 1, 60 s after SL-A2-06.
+    - {level: 1, team_keys: [noc-shift-lead]}
+    - {level: 2, team_keys: [noc-management]}

@@ -1,0 +1,93 @@
+# DD-F-07  Connectors, AI, knowledge, correlation, incident, notification and reporting
+# settings (seed parts 3, 7, 8, 9, 10, 15, 17). Values marked R5 are fixed in Round 5.
+# <demo-domain> is the domain of CTX-O-02.
+
+credential_references:                # DM-E-11 (seed part 3). Locators point into the secret store (PM-O-11, Round 5); no secret value is in this repository.
+  - {handle: cred-webhook-zabbix,       purpose: webhook_token,      locator: R5}
+  - {handle: cred-webhook-alertmanager, purpose: webhook_token,      locator: R5}
+  - {handle: cred-zabbix-api,           purpose: external_api,       locator: R5}
+  - {handle: cred-alertmanager-api,     purpose: external_api,       locator: R5}
+  - {handle: cred-lab-db-01-diag,       purpose: target_diagnostic,  locator: R5}
+  - {handle: cred-lab-db-01-action,     purpose: target_action,      locator: R5}
+  - {handle: cred-jira,                 purpose: external_api,       locator: R5}
+  - {handle: cred-teams,                purpose: external_api,       locator: R5}
+  - {handle: cred-smtp,                 purpose: smtp,               locator: R5}
+  - {handle: cred-claude,               purpose: external_api,       locator: R5}
+  - {handle: cred-openai,               purpose: external_api,       locator: R5}
+
+connector_instances:                  # DM-E-10 (seed part 3); addresses and settings schemas: Round 5 (DM-O-12)
+  - {handle: zabbix-lab,       name: "Zabbix — Jazz lab",          kind: zabbix,          address: "https://zabbix.<demo-domain>",       settings: R5, credential_ref: cred-zabbix-api}
+  - {handle: alertmanager-lab, name: "Alertmanager — Jazz lab",    kind: alertmanager,    address: "https://alertmanager.<demo-domain>", settings: R5, credential_ref: cred-alertmanager-api}
+  - {handle: linux-lab-db-01,  name: "Lab DB server",              kind: linux_server,    address: "lab-db-01.<demo-domain>",            settings: R5, credential_ref: null}   # credentials per grant (DD-F-04)
+  - {handle: jira-demo,        name: "Jira Cloud — demo project",  kind: jira_cloud,      address: R5, settings: R5, credential_ref: cred-jira}
+  - {handle: teams-demo,       name: "Microsoft Teams — Vigil Demo", kind: ms_teams,      address: R5, settings: R5, credential_ref: cred-teams}
+  - {handle: email-demo,       name: "Email — demo domain",        kind: email,           address: R5, settings: R5, credential_ref: cred-smtp}
+  - {handle: claude-api,       name: "Claude API",                 kind: claude,          address: R5, settings: R5, credential_ref: cred-claude}
+  - {handle: openai-api,       name: "OpenAI API",                 kind: openai,          address: R5, settings: R5, credential_ref: cred-openai}
+  - {handle: local-llm,        name: "Local model",                kind: local_model,     address: R5, settings: R5, credential_ref: null}
+  - {handle: local-embed,      name: "Local embedding model",      kind: local_embedding, address: R5, settings: R5, credential_ref: null}
+
+ai_provider_configurations:           # DM-E-70; model names and prices: DM-O-13 (Round 5)
+  - {provider_key: claude,      provider_kind: claude,          connector_instance: claude-api,  location: external, model_name: R5, price_input_per_million: R5, price_output_per_million: R5}
+  - {provider_key: openai,      provider_kind: openai,          connector_instance: openai-api,  location: external, model_name: R5, price_input_per_million: R5, price_output_per_million: R5}
+  - {provider_key: local-llm,   provider_kind: local_model,     connector_instance: local-llm,   location: in_house, model_name: R5, price_input_per_million: 0, price_output_per_million: 0}
+  - {provider_key: local-embed, provider_kind: local_embedding, connector_instance: local-embed, location: in_house, model_name: R5, price_input_per_million: 0, price_output_per_million: 0}
+
+allowed_providers:                    # DM-E-71; exactly 01-scope-lock Section 5.5 (DM-E71-R1)
+  SL-T-1: [claude, openai, local_model]
+  SL-T-2: [claude, openai, local_model]
+  SL-T-3: [local_embedding, openai]
+
+task_assignments:                     # DM-E-72. SL-T-1/SL-T-2 order is the Round 3 proposal for SL-O-20 (Round 5 confirms); SL-T-3 fixed by CTX-D-011
+  SL-T-1: [claude, openai, local-llm]
+  SL-T-2: [claude, openai, local-llm]
+  SL-T-3: [local-embed]
+
+data_routing_rules:                   # DM-E-73; resolves DM-O-10: every category allowed to every provider in the starting state
+  alert_data:        [claude, openai, local-llm, local-embed]
+  service_context:   [claude, openai, local-llm, local-embed]
+  diagnostic_output: [claude, openai, local-llm, local-embed]
+  runbook_text:      [claude, openai, local-llm, local-embed]
+  incident_history:  [claude, openai, local-llm, local-embed]
+  incident_record:   [claude, openai, local-llm, local-embed]
+
+knowledge_settings:                   # DM-E-67; resolves PM-O-16 and DM-O-09
+  min_similarity: 0.95
+  runbook_limit: 3
+  embedding_provider_key: local-embed
+
+correlation_settings:                 # DM-E-31; resolves SL-O-04 and DM-O-01
+  grouping_window_s: 300
+  settle_period_s: 45
+  max_forming_s: 180
+  stability_check_interval_s: 5
+
+incident_settings:                    # DM-E-40; resolves DM-O-02
+  reopen_window_s: 300
+  closure_check_interval_s: 30
+
+delivery_addresses:                   # DM-E-77; Teams destination form PM-O-10 (Round 5). One channel per team with an address (7) and one per approver (2) in one demo Team "Vigil Demo"; VAS Operations and IT Applications receive no messages.
+  - {subject_kind: team, subject_key: noc-l1,             channel: teams, address: "Vigil Demo / NOC L1"}
+  - {subject_kind: team, subject_key: noc-l1,             channel: email, address: "noc-l1@<demo-domain>"}
+  - {subject_kind: team, subject_key: db-ops,             channel: teams, address: "Vigil Demo / Database Operations"}
+  - {subject_kind: team, subject_key: db-ops,             channel: email, address: "db-ops@<demo-domain>"}
+  - {subject_kind: team, subject_key: vas-service-owners, channel: teams, address: "Vigil Demo / VAS Service Owners"}
+  - {subject_kind: team, subject_key: vas-service-owners, channel: email, address: "vas-owners@<demo-domain>"}
+  - {subject_kind: team, subject_key: noc-management,     channel: teams, address: "Vigil Demo / NOC Management"}
+  - {subject_kind: team, subject_key: noc-management,     channel: email, address: "noc-management@<demo-domain>"}
+  - {subject_kind: team, subject_key: it-ops-head,        channel: teams, address: "Vigil Demo / IT Operations Head"}
+  - {subject_kind: team, subject_key: it-ops-head,        channel: email, address: "it-ops-head@<demo-domain>"}
+  - {subject_kind: team, subject_key: it-infra,           channel: teams, address: "Vigil Demo / IT Infrastructure"}
+  - {subject_kind: team, subject_key: it-infra,           channel: email, address: "it-infra@<demo-domain>"}
+  - {subject_kind: team, subject_key: customer-care,      channel: teams, address: "Vigil Demo / Customer Care"}
+  - {subject_kind: team, subject_key: customer-care,      channel: email, address: "customer-care@<demo-domain>"}
+  - {subject_kind: user, subject_key: dbops-engineer,     channel: teams, address: "Vigil Demo / Approvals — Bilal"}
+  - {subject_kind: user, subject_key: dbops-engineer,     channel: email, address: "dbops-engineer@<demo-domain>"}
+  - {subject_kind: user, subject_key: dbops-lead,         channel: teams, address: "Vigil Demo / Approvals — Sana"}
+  - {subject_kind: user, subject_key: dbops-lead,         channel: email, address: "dbops-lead@<demo-domain>"}
+
+baseline_values:                      # DM-E-80; invented
+  - {metric_key: time_to_acknowledge, value: 14.0, unit: minutes, label: "Illustrative baseline"}
+  - {metric_key: time_to_recover,     value: 95.0, unit: minutes, label: "Illustrative baseline"}
+  - {metric_key: alerts_suppressed,   value: 0,    unit: count,   label: "Illustrative baseline"}
+  - {metric_key: incidents_merged,    value: 0,    unit: count,   label: "Illustrative baseline"}

@@ -1,65 +1,85 @@
-# DD-F-10  Jazz lab and fault values (demo-only: PM-DC-01, PM-DC-02, PM-DC-03; not seeded into Vigil).
-# Resolves SL-O-02 and SL-O-16 (definitions in 30-jazz-storyboard Section 6). Every host and name is invented.
-# Values marked "measured" are recorded here by the lab spike SB-T-01 before the first rehearsal (SB-O-03).
+# DD-F-10  Jazz lab, fault mechanics, monitoring configuration and timing targets (demo-only: PM-DC-01 to PM-DC-04;
+# NOT seeded into Vigil). Resolves SL-O-02 and SL-O-16 (fault definitions in 30-jazz-storyboard Section 6).
+# Every host and name is invented. Values marked "measured" are recorded here by lab spike SB-T-01 (DD-O-03).
 
-lab_hosts:                            # Linux (GNU coreutils, findutils, sysstat); one VM per host unless Round 5 merges them
-  - {host: lab-db-01,    runs: [mock subscriber database], component: db-core-01}
-  - {host: lab-api-01,   runs: [mock balance-check API (4 instances), mock bundle-purchase API (4 instances)], component: api-app-01}
-  - {host: lab-vas-01,   runs: [mock USSD gateway (nodes ussd-gw-a, ussd-gw-b), mock SMS queue (20 routes), mock SMS dispatcher], component: vas-app-01}
-  - {host: lab-rpt-01,   runs: [mock report export job], component: rpt-srv-01}
-  - {host: lab-probe-01, runs: [synthetic USSD session probes for 6 cities x 4 journeys, every 15 s]}
+lab_hosts:                            # one Linux VM or container per host unless Round 5 merges them (GNU coreutils, findutils)
+  - {host: lab-db-01,    runs: [mock subscriber database],                                                            component: srv-db-01}
+  - {host: lab-api-01,   runs: [mock balance-check API (instances 1-4), mock bundle-purchase API (instances 1-4)],     component: srv-api-01}
+  - {host: lab-vas-01,   runs: [mock USSD gateway (nodes ussd-gw-a, ussd-gw-b), mock SMS queue with its SMS dispatcher (24 routes)], component: srv-vas-01}
+  - {host: lab-probe-01, runs: [synthetic USSD session probes (10 city labels x 5 journeys, every 10 s)],               component: srv-probe-01}
+  - {host: lab-rpt-01,   runs: [mock report export job (exists only to produce SL-F-3)],                              component: srv-rpt-01}
+# The real Zabbix server, Prometheus and Alertmanager monitor these hosts; where they run is decided in Round 5.
+
+mock_behaviour:                       # what each mock does (complete list); all traffic is generated inside the lab
+  subscriber_database: "Accepts reads and writes from the APIs, the USSD gateway and the SMS dispatcher, in 6 schemas (complete list, one Zabbix write-error item each, LA-02): subscriber_profile, balance_ledger, bundle_catalog, bundle_orders, ussd_sessions, sms_delivery. A write fails with 'No space left on device' while /data has less than 256 MiB free, or with 'database is read-only' while the read-only flag is set. It never writes files to /data itself, so /data use changes only through the faults and the action."
+  api_instances: "Each instance runs its own steady request stream on each of its 4 endpoints (one request per second per endpoint); a request fails when any of its writes fails. Writes per request (complete list): balance-check API, every endpoint: one row to balance_ledger and one update to subscriber_profile (last activity); bundle-purchase API, every endpoint: one row to bundle_orders, and /v1/bundles/offers also one update to bundle_catalog (offer view counter). Exposes request and error counters per instance and endpoint."
+  ussd_gateway: "Each node runs its own steady session stream on each of its 6 menus (one session per second per menu), calling the balance-check API (menu balance) or the bundle-purchase API (the other 5 menus), and writes one row per session to ussd_sessions; a session that gets an API error, a failed write or no answer within 2 s counts as a timeout. Exposes session and timeout counters per node and menu."
+  sms_queue: "Each of the 24 routes receives one message per second. The dispatcher records each delivery as one row in sms_delivery before sending; when the write fails it stops, so every route's queue depth grows. When writes work again the queues drain at 20 messages per second per route."
+  synthetic_probes: "Every 10 s, for each city label and journey, one scripted USSD session through the gateway; exposes the last result (1 = success, 0 = failure) per city and journey. City labels are synthetic probe names, not real probe sites."
+  report_export_job: "Runs every 10 minutes and writes its last result (success or failure) to a status file that Zabbix reads. While SL-F-3 is active, every run fails, so its alert stays firing until 'Clear all faults' or a reset."
+  every_writer_rate: "Each of the 6 schemas receives at least one write per second from the mocks above, so while writes fail every schema reports write errors (LA-02: 6 alerts)."
 
 lab_db_server:
-  data_filesystem: {mount: /data, type: xfs, device_size_gib: 20}
-  baseline_folders: {/data/db: 9 GiB, /data/txlog_archive: 1 GiB, /data/export: 1 GiB}
-  baseline_txlogs: "4 files of 256 MiB (*.arc) in /data/txlog_archive; every storm button and Reset first sets their modification times to 2, 3, 4 and 6 hours before now, so the action never deletes them"
-  database_growth: "the mock database never writes to /data; a write only checks free space and the read-only flag, so /data use changes only through the faults and the action"
+  data_filesystem: {mount: /data, type: xfs, device_size_gib: 16}
+  baseline_content: {/data/db: "6 GiB (database files)", /data/export: "1 GiB (export files)", /data/txlog_archive: "empty"}
+  baseline_used_gib: 7
+  baseline_used_pct: measured           # expected 43 to 45
+  no_purge_job: "No archive shipping or purge job runs in the lab; the nightly purge exists only in the story and in RB-DB-01. Only the registered action and the clear step delete archive files."
+  injected_size: "about 8.8 GiB (16 GiB device - 7 GiB baseline - XFS overhead - 64 MiB free); it MUST be larger than the largest baseline folder plus 1 GiB (so /data/txlog_archive is the largest folder) and at most the 12 GiB action limit (so the action removes every injected file). Measured by SB-T-01."
+  files_never_touched: "No reset, fault or clear step creates, changes or touches any file under /data/db or /data/export, so their change times stay older than any diagnostic period."
+  permissions: "Folders under /data are readable and traversable by the diagnostic user's group; the action user owns /data/txlog_archive and can delete files in it; neither user can write anywhere else under /data."
   clock: "every lab host and the Vigil server run in UTC, synchronised by NTP"
-  baseline_used_pct: measured           # expected 55 to 57 (11 GiB of the usable capacity)
-  permissions: "folders under /data are readable and traversable by the group 'vigil-diag', which the diagnostic user belongs to; the action user owns /data/txlog_archive"
-  sysstat: "sadc records filesystem statistics (-S XDISK) every 10 s, so a sample exists within 10 s after any injection"   # needed by fs_growth (DD-ASM-02)
-  db_write_rule: "writes fail with 'No space left on device' while /data free space is below 200 MiB, or while read-only mode is on"
-  expected_diagnostics_after_SL-F-1:
-    disk_usage: "/data at 100% used (<used> of <size> GiB, measured)"
-    largest_folders_top1: "/data/txlog_archive (<size> GiB, measured; the largest folder)"
-    disk_growth: "/data grew <last - lowest> percentage points in the last 5 minutes (measured; expected 42 to 44)"
+  expected_diagnostics_after_SL-F-1:   # exact values are measured by SB-T-01 and recorded here
+    disk_usage: "/data is 100% full (<used> of <size> GiB used, 0.1 GiB free)"
+    largest_folders_top1: "/data/txlog_archive (<size> GiB)"
+    disk_growth: "<gib> GiB written to <files> files under /data in the last 15 minutes"
+  expected_action_result: "every injected file removed (<files> files, <gib> GiB, both measured, under the 12 GiB limit); /data returns to its baseline percentage"
 
 faults:
   SL-F-1:
     name: "Subscriber DB /data full"
-    inject: "create 256 MiB *.arc files (fallocate) in /data/txlog_archive with modification times spread evenly from 48 to 26 hours before now, until /data free space would drop below 384 MiB; then one last file of (free space - 128 MiB), rounded down to a multiple of 4 KiB, so exactly 128 MiB stay free (df shows 100%)"
-    clear:  "delete the injected files that still exist"
-    expected_effect: "the 138 storm alerts of DD-F-03 fire within 120 s; the registered action deletes every injected file (measured count and size, under the 12 GiB limit) and /data returns to its baseline percentage"
+    story: "Archive shipping caught up after a link outage and wrote two days of transaction log archives back to /data."
+    inject: "(1) Read /data free space F. (2) Compute N = the number of 256 MiB files that fit while at least 320 MiB stay free, plus one last file of size (F - N x 256 MiB - 64 MiB) rounded down to a multiple of 4 KiB, so 64 MiB stay free (below the 256 MiB write limit and the 1 GiB disk trigger; df shows 100%). (3) Create the N + 1 files in /data/txlog_archive with fallocate, named txlog_000001.arc to txlog_<N+1>.arc (numbering restarts at 1 for every injection). (4) Set the modification times of all N + 1 files, the last one included, evenly from 47 hours to 26 hours before now. Every injected file is therefore older than the 24-hour purge limit and has a change time of now."
+    clear: "delete the injected files that still exist"
+    expected_effect: "the 126 storm alerts of DD-F-03 fire within 120 s"
   SL-F-2:
-    name: "Subscriber DB stays in read-only mode"
+    name: "Subscriber DB stays read-only"
+    story: "This time the database also switched itself to read-only mode."
     inject: "set the mock database's read-only flag; it stays set after disk space is freed"
-    clear:  "unset the read-only flag"
-    expected_effect: "with SL-F-1, after the action /data returns to baseline but database write errors continue, so every storm alert except the 2 disk_full alerts keeps firing"
+    clear: "unset the read-only flag"
+    expected_effect: "injected together with SL-F-1: after the action, /data returns to baseline but every storm alert except the 2 disk_full alerts keeps firing (124 alerts)"
   SL-F-3:
     name: "Unrelated report export failure"
-    inject: "make the next run of the mock report export job on lab-rpt-01 fail, started at the same moment as SL-F-1 (one control-panel button starts both)"
-    clear:  "the control panel starts a successful run of the job at once"
-    expected_effect: "one Zabbix alert 'Report export job failed' (DD-F-03, LA-08)"
+    inject: "set the report export job to fail on every run and start a run at once; injected by the same control-panel action as SL-F-1"
+    clear: "set the job back to succeed and start a successful run at once"
+    expected_effect: "one Zabbix alert 'Report export job failed' (LA-09) within 30 s"
   SL-F-4:
     name: "Cloud AI unreachable"
-    inject: "on the Vigil server: (1) override the Claude API and OpenAI API host names to 127.0.0.2, where nothing listens, so new connections are refused at once; (2) add an egress rule that rejects (TCP reset) connections to the addresses those names resolved to; (3) drop established connections to those addresses"
-    clear:  "undo all three injection steps (remove the host name override, remove the egress rule) and check that both host names resolve to their real addresses again"
-    scope:  "only the two cloud AI provider hosts; Jira, Teams, email, webhooks, the local model and the local embedding model stay reachable (PM-ASM-04)"
-    expected_effect: "each cloud provider call fails within 5 s (gateway connect timeout 5 s, Round 5), so a re-run falls back to the local model without a long wait (SB-ASM-03)"
+    inject: "in the network namespace from which Vigil's AI gateway makes its outbound calls (placed in Round 5 with the hosting): (1) resolve api.anthropic.com and api.openai.com and add an outbound rule that rejects, with a TCP reset, every connection to those addresses on port 443; (2) close established connections to them; (3) every 30 s while SL-F-4 is active, resolve both names again and add any new address to the rule. No host-name mapping is changed, so no request reaches another local service."
+    clear: "remove the rule; established connections are not affected"
+    executed_by: "the demo-faults component on the Vigil host (demo-only). It acts on the host's network, never calls Vigil, and is reached only from the control panel (SL-B-10)."
+    scope: "only the two cloud AI API host names; Jira, Teams, email, webhooks, the local model and the local embedding model stay reachable (PM-ASM-04)"
+    expected_effect: "every call to Claude or OpenAI fails as unreachable within 5 s, so the AI gateway falls back to the next provider (SB-ASM-03)"
 
-monitoring_configuration:             # demo-monitoring settings (DD-ASM-03)
-  zabbix: "item interval 15 s for the lab items; triggers on the last value (disk free, write error count over the last 30 s, queue depth change over the last 30 s, job result); one action, limited to problems tagged vigil=lab (the catalogue), that sends one webhook per problem with no repeat steps; recovery operations send one resolve webhook; no other trigger sends to Vigil"
-  alertmanager: "rule evaluation 15 s; error-rate rules over rate(...[30s]); synthetic rule on the last probe result; 'for' 15 s; keep_firing_for 0; a route for exactly the 4 catalogue alertnames to the Vigil webhook receiver, with group_by ['...'] (one alert per notification group), group_wait 5 s, group_interval 10 s, repeat_interval 4 h, send_resolved true; every other alert goes to a null receiver"
-  prometheus_scrape: "every lab scrape job (mock gateway, APIs, SMS queue, synthetic probes) runs every 15 s"
+monitoring_configuration:             # PM-DC-02 (complete list of settings that matter to the demo; DD-ASM-03, DD-ASM-05)
+  prometheus: "scrape_interval 5 s and evaluation_interval 5 s for every lab job; one alerting rule per Alertmanager catalogue row (LA-04..LA-08): error or timeout rate over a 20 s window above 0.2 per second, filesystem available bytes on /data below 1 GiB, or last probe result 0; 'for: 10s'; no keep_firing_for; every rule carries the label component (DD-F-02)"
+  alertmanager: "one route that matches exactly the 5 catalogue alertnames and sends to the Vigil webhook receiver with group_by ['...'] (every alert its own group), group_wait 5s, group_interval 10s, repeat_interval 12h, send_resolved true; every other alert goes to a receiver with no integration"
+  zabbix_items: "update interval 10 s for every lab item: /data free bytes; database write error count per schema; SMS queue depth per route; last report export result"
+  zabbix_triggers: "LA-01: /data free space below 1 GiB (last value). LA-02: write errors in the last 20 s above 0. LA-03: queue depth higher than 20 s ago and above 20 messages. LA-09: last report export result is failure. Each trigger carries the tags component (DD-F-02) and vigil=lab."
+  zabbix_action: "one trigger action limited to problems tagged vigil=lab; operation: send to the Vigil webhook media type at step 1 only (steps 1-1, so no repeat); recovery operation: send the recovery to the same media type; no update operations"
+  zabbix_media_type: "a webhook media type whose script posts one JSON message per problem or recovery to the Vigil webhook address with the source's token in an Authorization header. Parameters (complete list): event_id {EVENT.ID} (the alert key, the same for the problem and its recovery); event_value {EVENT.VALUE} (1 problem, 0 recovery); event_name {EVENT.NAME}; host {HOST.HOST}; tags {EVENT.TAGSJSON}; event_date {EVENT.DATE}; event_time {EVENT.TIME}; recovery_date {EVENT.RECOVERY.DATE}; recovery_time {EVENT.RECOVERY.TIME}; severity {EVENT.SEVERITY}"
 
 timing_targets:                       # verified by SB-T-01 and SB-T-05
-  storm_window: "no storm is injected between 23:50 and 00:20 UTC (the growth diagnostic reads only the current day's samples)"
-  storm_arrival: "every one of the 138 storm alerts reaches Vigil within 120 s of injection; no gap longer than 30 s between consecutive storm alerts; both disk_full alerts among them; exactly 138 firing entries (no repeated firing entry)"
-  resolve_after_action: "every storm alert's resolve notification reaches Vigil within 60 s after the action"
+  storm_arrival: "every one of the 126 storm alerts reaches Vigil as exactly one firing entry within 120 s of injection; no gap longer than 25 s between consecutive storm alert arrivals; no repeated firing entry for any storm alert during the storm"
+  resolve_after_action: "every storm alert's resolved entry reaches Vigil within 60 s after the action ends"
   no_refire: "no storm alert fires again within 300 s after it resolved"
-  resolve_after_clear: "after 'Clear all faults', every lab alert's resolve notification reaches Vigil within 40 s"
+  resolve_after_clear: "after 'Clear all faults', every lab alert's resolved entry reaches Vigil within 40 s"
+  numbers: {arrival_within_s: 120, max_gap_s: 25, resolve_after_action_s: 60, no_refire_s: 300, resolve_after_clear_s: 40, clear_settle_s: 12}
 
-control_panel:                        # demo-control and demo-faults behaviour (PM-DC-03, PM-DC-04; amendment SB-A-02)
-  clear_completion: "'Clear all faults' is complete 15 s after the Zabbix problem API and the Alertmanager alerts API (read-only) first show no firing catalogue alert (margin for the resolve webhooks to reach Vigil)"
-  storm_guard: "storm buttons are refused while any fault is active, while 'Clear all faults' is still running, and between 23:50 and 00:20 UTC"
-  reopen_spacing: "the 300 s spacing after a storm incident's resolution (SB-R-04) is the operator's responsibility; the panel does not check Vigil"
+control_panel:                        # PM-DC-03, PM-DC-04 (screen content in Round 4)
+  buttons: ["Storm: SL-F-1 + SL-F-3", "Storm re-run: SL-F-1", "Storm with read-only DB: SL-F-1 + SL-F-2", "Cut cloud AI: SL-F-4", "Clear all faults", "Reset"]
+  fault_state: "the control panel keeps its own record of active faults: a fault is active from the button that triggers it until 'Clear all faults' or a reset completes, even when the action has already removed SL-F-1's files"
+  clear_all_faults: "clears every active fault, then is complete 12 s after Zabbix (problem list, read-only API) and Alertmanager (alerts API, read-only) both show no firing catalogue alert (the 12 s are longer than Alertmanager's 10 s group_interval, so every resolved entry has reached Vigil)"
+  reset: "clears every active fault and, in parallel, starts the Vigil reset through Vigil's public interface (mechanism SL-O-17, Round 5); the reset is complete when both have finished, within 60 s in total (SB-T-05)"
+  storm_guard: "every storm button is refused while SL-F-1, SL-F-2 or SL-F-3 is active or 'Clear all faults' or a reset is running; an active SL-F-4 does not block storm buttons (SB-T-09 uses a storm during SL-F-4)"
+  vigil_state: "the control panel never reads Vigil's incidents; the spacing rules that depend on Vigil (SB-R-03, SB-R-04) are the operator's responsibility"

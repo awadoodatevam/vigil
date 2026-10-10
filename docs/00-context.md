@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 00-context (ID prefix `CTX-`) |
-| Version | 1.8 |
-| Date | 9 October 2026 |
+| Version | 1.7 |
+| Date | 10 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed) |
 
@@ -20,7 +20,7 @@ Read this file first in every Claude conversation in the "Noc Automation" projec
 
 ## 3. Product name
 
-- **Vigil** is the working name for the whole product idea. It is not a registered brand. In planning it is used by Abdul Wadood, Muzaffar Hussain and Claude; from Round 4 it is also the product name shown on Vigil's screens and in its tickets and messages, defined in one place (`40-demo-cut` DC-W-30, CTX-D-022).
+- **Vigil** is the working name for the whole product idea. It is used only by Abdul Wadood, Muzaffar Hussain and Claude. It is not a brand.
 - The two source documents call the product "Continuum". Continuum and Vigil are the same product. All new documents and all code use Vigil only.
 - **The repository** means the git repository in the folder `noc automation` on Abdul's computer. Code packages and modules inside it use the lowercase prefix `vigil`. Round 1 assigns working module names; Round 5 makes them final.
 
@@ -73,8 +73,8 @@ Each round is one conversation in the Claude project and produces the files list
 | R0 | Context and scope | `00-context.md`, `01-scope-lock.md` | Closed, 8 Oct 2026 |
 | R1 | Product map: every module of the full product, its job, what it owns, what it talks to; working module names; AI task list confirmation | `10-product-map.md` | Closed, 9 Oct 2026 |
 | R2 | Core domain model: entities, relationships, lifecycles and state machines | `20-domain-model.md` | Closed, 9 Oct 2026 |
-| R3 | Jazz storyboard and demo data: scene-by-scene script with Real/Simplified/Staged tags; the invented Jazz data set; exact demo values | `30-jazz-storyboard.md`, `31-demo-data/` | Closed, 9 Oct 2026 |
-| R4 | Demo cut: per module, keep / simplify / stage / later, keeping product shape; screen-by-screen content | `40-demo-cut.md` | Closed, 9 Oct 2026 |
+| R3 | Jazz storyboard and demo data: scene-by-scene script with Real/Simplified/Staged tags; the invented Jazz data set; exact demo values | `30-jazz-storyboard.md`, `31-demo-data/` | Closed, 10 Oct 2026 (restarted from scratch on 10 Oct 2026; the first run, made without web access, is in `docs/_superseded/`) |
+| R4 | Demo cut: per module, keep / simplify / stage / later, keeping product shape; screen-by-screen content | `40-demo-cut.md` | Not started |
 | R5 | Architecture: applications, stack, integrations, AI layer, hosting, final module names | `50-architecture.md` | Not started |
 | R6 | Build plan: packages sized for Claude Code, each with spec, done-check and tests; repository conventions | `60-build-plan.md`, `CLAUDE.md` | Not started |
 | Build | One package at a time; checkpoints reviewed in the Claude project | `docs/packages/P-##.md`, code | Not started |
@@ -133,12 +133,11 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | CTX-D-014 | 9 Oct 2026 | Domain model `20-domain-model` v1.0 adopted: 82 entities, 16 state machines, rules DM-R-01 to DM-R-69 and decisions DM-D-01 to DM-D-21; `10-product-map` amended to v1.1 (DM-A-01 to DM-A-28). | Round 2 output; owner agreed the seven review items. |
 | CTX-D-015 | 9 Oct 2026 | SL-A1-07 clarified: "the synthetic USSD check reports success" means no alert of the check component is firing, and recovery conditions count only while every active monitoring source is healthy (DM-D-11). | Silence from a broken source is not recovery; no source queries needed. |
 | CTX-D-016 | 9 Oct 2026 | SL-A2-05 clarified: AI fallback applies to SL-T-1 and SL-T-2; SL-T-3 has one provider and changes it only through re-embedding (DM-D-21). | Similarity scores from different providers are not comparable. |
-| CTX-D-017 | 9 Oct 2026 | Jazz storyboard `30-jazz-storyboard` v1.0 and demo data set `31-demo-data` v1.0 adopted, with decisions SB-D-01 to SB-D-12. Amendments written: `20-domain-model` v1.1 (DM-E-16, DM-E-38) and `10-product-map` v1.2 (PM-DC-01, PM-DC-04). | Round 3 output; owner agreed the seven review items. |
-| CTX-D-018 | 9 Oct 2026 | Demo setup (resolves CTX-O-03): Microsoft Teams meeting; the senior manager narrates and Abdul operates every screen; mobile pages in a phone-size browser window; attendees do not join a demo Teams channel (`30-jazz-storyboard` SB-D-08). | Owner answers in the Round 3 conversation. |
-| CTX-D-019 | 9 Oct 2026 | Scope-lock clarifications from Round 3 (no item added to list A): SL-A3-01 — the SMS queue mock includes its dispatcher and a mock report export job exists only for SL-F-3; SL-A3-07 — teams without members are configuration data. `01-scope-lock` v1.7. | Found by the final consistency audit of Round 3; keeps the complete lists exact. Raised to Abdul at the Round 3 close for confirmation. |
-| CTX-D-020 | 9 Oct 2026 | Demo cut `40-demo-cut` v1.0 adopted: lean cut (screens offer only what list A needs; modules keep their records and rules), screen-by-screen content of SL-A4-01 to SL-A4-12, product wording and outbound content, decisions DC-D-01 to DC-D-18. Amendments written: `01-scope-lock` v1.8, `10-product-map` v1.3 (Section 20), `20-domain-model` v1.2, `30-jazz-storyboard` v1.1, `31-demo-data` v1.1 (DC-A-01 to DC-A-10). | Round 4 output; owner agreed the seven review items (DC-D-02, DC-D-04, DC-D-05, DC-D-06, DC-D-07, DC-D-09, DC-D-11). |
-| CTX-D-021 | 9 Oct 2026 | Scope-lock clarification (no item added to list A): in SL-A2-01, "connect" means setting the address of an existing monitoring source and testing it on screen; sources and credentials are created by seed import (`40-demo-cut` DC-D-06). `01-scope-lock` v1.8. | Credentials live in the deployment secret store; the demo shows the connection test, not source creation. Agreed by owner in the Round 4 review. |
-| CTX-D-022 | 9 Oct 2026 | "Vigil" is shown as the product name on screens and in tickets and messages (`40-demo-cut` DC-D-04, DC-W-30); Section 3 amended. | The narration presents the product as Vigil (SB-S00); a product needs a visible name. Agreed by owner in the Round 4 review. |
+| CTX-D-017 | 10 Oct 2026 | Round 3 restarted from scratch: the first Round 3 output, the Round 4 output and the interrupted Round 5 draft moved to `docs/_superseded/`; `00-context`, `01-scope-lock`, `10-product-map` and `20-domain-model` restored to their end-of-Round-2 versions (commit eded314). | The first Round 3 ran without web access, so its fact check (CTX-Q-6) was skipped; Round 4 was built on it. Owner decision. |
+| CTX-D-018 | 10 Oct 2026 | Jazz storyboard `30-jazz-storyboard` v1.0 and demo data set `31-demo-data` v1.0 adopted, with decisions SB-D-01 to SB-D-13. Amendments written: `01-scope-lock` v1.7 (SB-A-02, SB-A-03, SB-A-04, SB-A-06), `20-domain-model` v1.1 (SB-A-01, SB-A-06, SB-A-07, SB-A-08). | Round 3 output; owner agreed the seven review items (SB-D-02, SB-D-03 with SB-D-04, SB-D-08, SB-D-09 with SB-D-12, SB-D-11, SB-D-13, and the key timing values). |
+| CTX-D-019 | 10 Oct 2026 | Demo setup (resolves CTX-O-03): Microsoft Teams meeting; the senior manager narrates and Abdul operates every screen; mobile pages in a phone-size browser window; attendees do not join a demo Teams channel (`30-jazz-storyboard` SB-D-01). No public Jazz fact is used (SB-D-06). | Owner answers in the Round 3 conversation. |
+| CTX-D-020 | 10 Oct 2026 | Scope-lock clarifications from Round 3 (no item added to list A): SL-A3-01 — the SMS queue mock includes its dispatcher, and a lab Reporting server runs a mock report export job only to produce SL-F-3; SL-A3-03 — triggering faults includes clearing them ("Clear all faults"), and a reset clears the lab in parallel with the Vigil reset; SL-A3-07 — teams without members are configuration data. `01-scope-lock` v1.7. | SL-F-3 needs a component unrelated to the storm (DM-R-14); a storm re-run needs every lab alert resolved (DM-R-24); routing needs owner teams. Agreed by owner in the Round 3 review. |
+| CTX-D-021 | 10 Oct 2026 | Teams messages are posted through Microsoft Workflows webhooks, not Office 365 connectors (fact check, `30-jazz-storyboard` Section 13); how a delivery address holds the per-channel webhook address is decided in Round 5 (DD-O-04, PM-O-10). | Microsoft disabled Office 365 connectors in Teams between 18 and 22 May 2026. |
 
 ## 14. Open items
 
@@ -146,7 +145,7 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | --- | --- | --- | --- |
 | CTX-O-01 | Target demo date | Abdul with the senior manager | Before R6 closes |
 | CTX-O-02 | Hosting: cloud account, domain name, approval of running costs (server, domain, AI usage, Jira) | Muzaffar | Before R5 closes |
-| CTX-O-03 | Closed by CTX-D-018, 9 Oct 2026 (was: meeting tool, presenter, who shares the phone screen, and whether attendees join a demo Teams channel to receive messages themselves). | Abdul | R3 |
+| CTX-O-03 | Closed by CTX-D-019, 10 Oct 2026 (was: meeting tool, presenter, who shares the phone screen, and whether attendees join a demo Teams channel to receive messages themselves). | Abdul | R3 |
 | CTX-O-04 | Availability of a GPU server for the local AI model, and the acceptable local-model answer time | Abdul | R5 |
 | CTX-O-05 | Confirmation from the senior manager that the Jazz name and logo may be shown in the demo | Abdul | Before the branding build package |
 
@@ -169,5 +168,4 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | 1.4 | 8 Oct 2026 | Review pass 3 recorded; Round 0 closed. |
 | 1.5 | 9 Oct 2026 | Round 1 closed; decisions CTX-D-012 and CTX-D-013 added. |
 | 1.6 | 9 Oct 2026 | Round 2 closed; decisions CTX-D-014 to CTX-D-016 added. |
-| 1.7 | 9 Oct 2026 | Round 3 closed; decisions CTX-D-017 to CTX-D-019 added; CTX-O-03 closed. |
-| 1.8 | 9 Oct 2026 | Round 4 closed; decisions CTX-D-020 to CTX-D-022 added; Section 3 product name amended (CTX-D-022). |
+| 1.7 | 10 Oct 2026 | Round 3 restarted (CTX-D-017) and closed; decisions CTX-D-017 to CTX-D-021 added; CTX-O-03 closed. |

@@ -1,141 +1,147 @@
-# DD-F-08 Runbooks (seed part 8, DM-E-63)
+# DD-F-08 Runbooks (seed part 8)
 
-All runbooks are invented (SL-DR-01) and written in NOC language. Each section is one runbook. Its fields are given in the table at the top of the section, and the text below the table is the `text` field. Every runbook is version 1. With `runbook_limit` = 3, the storm incident receives RB-DB-001, RB-API-003 and RB-SMS-004, in that order (DM-R-50; check DD-K-08).
+Seven invented runbooks in NOC language (DM-E-63, SL-DR-04). File convention (DD-R-09): each `## ` heading starts one runbook; its fields come from the table under the heading; "(any)" means the empty set; `text` is everything after the table up to the next `## ` heading, kept as Markdown and trimmed. Every runbook is version 1 and active.
 
-## RB-DB-001 — Subscriber DB data filesystem full
-
-| Field | Value |
-| --- | --- |
-| runbook_key | RB-DB-001 |
-| title | Subscriber DB data filesystem full |
-| applicable_alert_types | disk_full, db_write_errors, balance_api_errors, bundle_api_errors |
-| applicable_component_kinds | server, database |
-
-**Symptoms.** /data on the subscriber DB server reaches 100%, and the database stops accepting writes. The balance-check and bundle-purchase APIs then return errors, and USSD sessions time out. SMS confirmations queue up because delivery records cannot be written.
-
-**Most common cause.** The archived transaction logs under /data/txlog_archive are not purged because the nightly purge job has stalled. Each archived log is 256 MiB.
-
-**Checks (read-only).**
-
-1. Disk usage per filesystem. Confirm that /data is at or above 90%.
-2. Largest folders under /data. A /data/txlog_archive folder above 5 GiB confirms the cause.
-3. /data growth over the last 5 minutes. Growth of more than 10 percentage points means archiving is still running.
-
-**Fix.** Run the registered action "Purge archived transaction logs":
-
-- it deletes only *.arc files older than 24 hours;
-- it deletes at most 12 GiB;
-- it needs approval from Database Operations.
-
-Do not delete logs newer than 24 hours, because they may still be needed for recovery.
-
-**Recovery criteria.** All related alerts clear at source. The synthetic USSD session check passes from every probe city for 60 seconds.
-
-**Escalate when.** /data stays above 90% after the purge, or database writes keep failing while disk space is free. The database may then be in read-only protection mode; escalate to NOC Management through the escalation policy.
-
-## RB-USSD-002 — USSD gateway timeouts
+## RB-API-01
 
 | Field | Value |
 | --- | --- |
-| runbook_key | RB-USSD-002 |
-| title | USSD gateway timeouts |
-| applicable_alert_types | ussd_gateway_timeout |
-| applicable_component_kinds | (any) |
-
-**Symptoms.** USSD menus time out on one or both gateway nodes.
-
-**Checks.**
-
-1. Check whether every menu is affected, or only some.
-2. The gateway writes a session record to the subscriber database for every menu. If every menu times out, check the subscriber database first (RB-DB-001); if only balance or bundle menus time out, check those APIs (RB-API-003).
-
-**Fix.**
-
-- Database or API fault: fix the back end. Do not restart the gateway.
-- Gateway-only fault (one node, back ends healthy): VAS Operations restarts the affected node outside peak hours.
-
-**Recovery criteria.** The timeout alerts clear, and synthetic USSD sessions succeed.
-
-## RB-API-003 — Balance and bundle API errors
-
-| Field | Value |
-| --- | --- |
-| runbook_key | RB-API-003 |
-| title | Balance and bundle API errors |
+| runbook_key | RB-API-01 |
+| version | 1 |
+| title | Balance-check and bundle-purchase API error rate high |
 | applicable_alert_types | balance_api_errors, bundle_api_errors, api_latency_high |
 | applicable_component_kinds | (any) |
 
-**Symptoms.** Error rates rise on the balance-check and bundle-purchase APIs on every instance.
+**When to use:** BalanceApiErrors or BundleApiErrors firing on one or more API instances, or API latency above threshold.
 
-**Checks.**
+**First checks (L1, 5 minutes):**
 
-1. If every instance and every endpoint is failing, suspect the subscriber database.
-2. If only one instance is failing, suspect that instance.
-3. Check the API logs for "write failed" or "connection refused".
+1. Count the instances affected. One instance only: likely an instance problem. All instances: look downstream first (subscriber DB, charging).
+2. Check whether Subscriber DB alerts (disk, write errors, connections) are firing at the same time. If yes, the API errors are a symptom; follow the DB runbook and do not restart API instances.
+3. Check the synthetic USSD probes. Failures in all cities confirm customer impact.
 
-**Fix.**
+**Actions:**
 
-- Database cause: follow RB-DB-001.
-- Single-instance cause: IT Applications removes the instance from the pool and restarts it.
+- Single instance: IT Applications removes the instance from the pool and restarts it.
+- All instances with a DB problem: no API action. Inform IT Applications and wait for DB recovery.
 
-**Recovery criteria.** Error rates return below 1% for 60 seconds.
+**Escalate:** to IT Applications after 15 minutes without improvement, or at once when all instances are affected and the DB is healthy.
 
-## RB-SMS-004 — SMS queue growth
-
-| Field | Value |
-| --- | --- |
-| runbook_key | RB-SMS-004 |
-| title | SMS queue growth |
-| applicable_alert_types | sms_queue_growth, smsc_bind_lost |
-| applicable_component_kinds | (any) |
-
-**Symptoms.** Queue depth grows on many SMSC routes at once.
-
-**Checks.**
-
-1. If every route grows, check whether the SMS dispatcher can write delivery records to the subscriber database.
-2. If only some routes grow, check the SMSC binds for those routes.
-
-**Fix.**
-
-- Database cause: follow RB-DB-001. The queue drains by itself once writes resume.
-- Bind cause: VAS Operations re-binds the affected routes.
-
-**Recovery criteria.** Queue depth falls on every route.
-
-## RB-SYN-005 — Synthetic USSD session failures
+## RB-DB-01
 
 | Field | Value |
 | --- | --- |
-| runbook_key | RB-SYN-005 |
-| title | Synthetic USSD session failures |
-| applicable_alert_types | synthetic_ussd_failed |
-| applicable_component_kinds | (any) |
+| runbook_key | RB-DB-01 |
+| version | 1 |
+| title | Subscriber DB server: /data filling up |
+| applicable_alert_types | disk_full, disk_space_low, db_write_errors |
+| applicable_component_kinds | server, database |
 
-**Symptoms.** Synthetic USSD sessions fail from several probe cities.
+**When to use:** Disk space low or disk full on /data of the Subscriber DB server, usually with database write errors.
 
-**Checks.**
+**Background:** /data holds the subscriber database files (/data/db), export files (/data/export) and the transaction log archive (/data/txlog_archive). Archived transaction logs are shipped to backup every night and the nightly purge deletes local archives older than 24 hours. When shipping or the purge fails, archives build up, or a catch-up run writes many archives back at once. The database refuses writes when less than 256 MiB is free on /data.
 
-1. If every city fails, the cause is central: the gateway or a back end.
-2. If one city fails, check the probe and the regional network path.
+**First checks (read-only):**
 
-**Fix.** Fix the central cause. Synthetic sessions are the customer-experience signal used to confirm recovery.
+1. Disk usage of /data.
+2. Largest folders under /data. If /data/txlog_archive is the largest, the archive is the cause.
+3. How much was written recently. A large amount in a few minutes points to a catch-up run, not to database growth.
 
-**Recovery criteria.** Every probe city succeeds for 60 seconds.
+**Fix (registered action `purge-archived-txlogs`, needs DB Ops approval):** delete *.arc files directly under /data/txlog_archive that are older than 24 hours, oldest first, at most 12 GiB. Precondition: /data at 90% or more. Never delete files under /data/db.
 
-## RB-RPT-006 — Report export job failed
+**Recovery:** database write errors clear within about a minute after space is freed; API errors, USSD timeouts and SMS queue growth follow. Confirm with the synthetic USSD probes before closing.
+
+**If writes still fail after space is freed:** the database may have switched to read-only mode. Do not run the purge again. Escalate to the DB Ops lead; leaving read-only mode needs a change approval.
+
+## RB-DB-02
 
 | Field | Value |
 | --- | --- |
-| runbook_key | RB-RPT-006 |
+| runbook_key | RB-DB-02 |
+| version | 1 |
+| title | Subscriber DB: write errors, lock waits or connection exhaustion |
+| applicable_alert_types | db_write_errors, db_lock_waits, db_connections_exhausted, db_replication_lag |
+| applicable_component_kinds | database |
+
+**When to use:** database write errors without a disk alert, lock waits, connection pool exhaustion or replication lag.
+
+**First checks:**
+
+1. Check /data free space first (RB-DB-01). Write errors with a full disk belong to RB-DB-01.
+2. Lock waits: find the blocking session and its owner before any action.
+3. Connections exhausted: check which application holds most sessions.
+
+**Actions:** DB Ops only. Killing a session needs the owner's agreement; changing session limits needs a change request.
+
+**Escalate:** to the DB Ops lead when the database is in read-only mode, or when the problem lasts more than 20 minutes.
+
+## RB-RPT-01
+
+| Field | Value |
+| --- | --- |
+| runbook_key | RB-RPT-01 |
+| version | 1 |
 | title | Report export job failed |
-| applicable_alert_types | batch_job_failed |
+| applicable_alert_types | report_job_failed |
+| applicable_component_kinds | application |
+
+**When to use:** the report export job on the Reporting server reports a failed run.
+
+**Impact:** management reports are late. No customer service is affected.
+
+**Actions:** IT Applications re-runs the job during working hours. If it fails twice, raise a ticket with the job log attached. No action is needed at night.
+
+## RB-SMS-01
+
+| Field | Value |
+| --- | --- |
+| runbook_key | RB-SMS-01 |
+| version | 1 |
+| title | SMS queue growing |
+| applicable_alert_types | sms_queue_growth, smsc_bind_down |
 | applicable_component_kinds | (any) |
 
-**Symptoms.** The nightly or ad-hoc report export job on the reporting server ends with an error.
+**When to use:** queue depth growing on one or more SMS routes.
 
-**Checks.** Check the job log on the reporting server and the read access to the billing database.
+**First checks:**
 
-**Fix.** IT Infrastructure re-runs the job during business hours. It has no customer impact.
+1. Few routes: check the SMSC binds of those routes.
+2. All routes: the SMS dispatcher cannot record deliveries. Check the Subscriber DB (RB-DB-01, RB-DB-02).
 
-**Recovery criteria.** The next job run succeeds.
+**Actions:** do not flush queues; queued messages are customer notifications. VAS Operations restarts a stuck bind. The queue drains by itself after a DB recovery.
+
+**Escalate:** to VAS Operations when the oldest message is older than 30 minutes.
+
+## RB-SRV-01
+
+| Field | Value |
+| --- | --- |
+| runbook_key | RB-SRV-01 |
+| version | 1 |
+| title | Server CPU or memory pressure |
+| applicable_alert_types | cpu_saturation, memory_pressure |
+| applicable_component_kinds | server |
+
+**When to use:** CPU saturation or memory pressure on any platform server.
+
+**Actions:** identify the top processes. Known batch jobs: wait for them to finish. Unknown processes: escalate to IT Infrastructure.
+
+## RB-USSD-01
+
+| Field | Value |
+| --- | --- |
+| runbook_key | RB-USSD-01 |
+| version | 1 |
+| title | USSD gateway timeouts and synthetic session failures |
+| applicable_alert_types | ussd_timeouts, ussd_synthetic_failed, ussd_node_down |
+| applicable_component_kinds | (any) |
+
+**When to use:** USSD gateway timeouts on one or both nodes, or synthetic USSD sessions failing.
+
+**First checks:**
+
+1. One node only: check the node itself.
+2. Both nodes and several menus: the gateway is waiting on the balance-check or bundle-purchase APIs. Follow RB-API-01 and do not restart the gateway.
+3. Synthetic sessions failing in all cities confirms the impact; failures in one city point to the access network, not the platform.
+
+**Escalate:** to VAS Operations when one node is down or timeouts last more than 10 minutes with healthy APIs.

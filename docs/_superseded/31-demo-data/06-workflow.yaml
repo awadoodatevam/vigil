@@ -1,0 +1,71 @@
+# DD-F-06  Workflow version 1 (seed part 16; resolves SL-O-22, meets PM-WV-01 to PM-WV-04)
+# Canvas positions (DM-V-05) are not content of record: they are produced by the automatic layout when Round 5 converts this file (DD-R-03).
+# Also holds the draft changes made live in SL-A2-06 (published as version 2).
+
+workflow:
+  name: "NOC incident handling"
+
+version_1:
+  steps:
+    - {step_id: t1, type: trigger,        label: "Incident opened",            parameters: {event: incident_created_or_reopened}}
+    - {step_id: c1, type: condition,      label: "Severity",                   parameters: {branches: [{label: P1, comparisons: [{field: severity, operator: equals, value: P1}]}]}}
+    # P1 branch
+    - {step_id: d1, type: diagnostic,     label: "Collect disk diagnostics",   parameters: {diagnostics: [disk_usage, largest_folders, disk_growth], target: hypothesis_component}}
+    - {step_id: a1, type: ai_task,        label: "AI investigation",           parameters: {task: SL-T-1}}
+    - {step_id: a2, type: ai_task,        label: "Incident summary",           parameters: {task: SL-T-2}}
+    - {step_id: k1, type: ticket,         label: "Create Jira ticket",         parameters: {operation: create}}
+    - {step_id: n1, type: notification,   label: "Notify NOC, owner, informed", parameters: {recipients: [owner_team, informed_parties, named_teams], named_teams: [noc-l1]}}
+    - {step_id: e1, type: escalation,     label: "Wait for acknowledgement",   parameters: {mode: wait_for_acknowledgement, timer: 600}}
+    - {step_id: s1, type: ai_task,        label: "Find similar incidents",     parameters: {task: SL-T-3}}
+    - {step_id: p1, type: approval,       label: "DB Ops approval",            parameters: {eligible_teams: [db-ops], expiry: 900}}
+    - {step_id: x1, type: action,         label: "Run proposed fix",           parameters: {}}
+    - {step_id: r1, type: recovery_check, label: "Verify recovery",            parameters: {max_wait: 300}}
+    - {step_id: k2, type: ticket,         label: "Resolve Jira ticket",        parameters: {operation: resolve}}
+    - {step_id: e2, type: escalation,     label: "Escalate with evidence",     parameters: {mode: escalate_now}}
+    # otherwise branch (SL-F-3 and every non-P1 incident)
+    - {step_id: a3, type: ai_task,        label: "Incident summary",           parameters: {task: SL-T-2}}
+    - {step_id: k3, type: ticket,         label: "Create Jira ticket",         parameters: {operation: create}}
+  connections:          # [from_step_id, from_output, to_step_id]; outputs with no connection end the run
+    - [t1, next, c1]
+    - [c1, P1, d1]
+    - [c1, otherwise, a3]
+    - [d1, done, a1]
+    - [d1, failed, a1]
+    - [a1, done, a2]
+    - [a1, unavailable, a2]
+    - [a2, done, k1]
+    - [a2, unavailable, k1]
+    - [k1, done, n1]
+    - [k1, failed, n1]
+    - [n1, sent, e1]
+    - [n1, failed, e1]
+    - [e1, next, s1]
+    - [s1, done, p1]
+    - [s1, unavailable, p1]
+    - [p1, approved, x1]
+    - [p1, rejected, e2]
+    - [p1, expired, e2]
+    - [x1, succeeded, r1]
+    - [x1, failed, r1]
+    - [r1, recovered, k2]
+    - [r1, not_recovered, e2]
+    - [a3, done, k3]
+    - [a3, unavailable, k3]
+  # Ends: k2 (done, failed), e2 (next), k3 (done, failed).
+
+# SL-A2-06: changes the admin makes in the editor (complete list), then publishes as version 2.
+# Structured so that tools/check_data.py applies them (DD-K-07).
+draft_changes_for_version_2:
+  add_steps:
+    - {step_id: p2, type: approval, label: "DB Ops second approval", parameters: {eligible_teams: [db-ops], expiry: 900}}
+  delete_connections:
+    - [p1, approved, x1]
+  add_connections:
+    - [p1, approved, p2]
+    - [p2, approved, x1]
+    - [p2, rejected, e2]
+    - [p2, expired, e2]
+  parameter_changes:
+    - {step_id: e1, parameter: timer, from: 600, to: 60}
+# Expected version 2 change list (SL-WE-09): p2 added; p1 changed (outgoing connection); e1 changed (timer).
+# Rollback in SL-A2-06 creates version 3 with the content of version 1.

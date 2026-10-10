@@ -1,0 +1,56 @@
+# DD-F-05  Routing rule set revision 1 and escalation policy revision 1 (seed part 11).
+# Resolves SL-O-07, SL-O-05 (severity and owner of the SL-F-3 incident), SL-O-14 (levels), SL-O-21.
+
+routing_rule_set_revision_1:          # DM-E-41; evaluated top to bottom, first match wins
+  - rule_key: p1-critical-infra
+    name: "Critical service, infrastructure or database cause"
+    conditions:
+      - {field: highest_service_criticality, operator: at_least, value: critical}
+      - {field: hypothesis_component_kind,   operator: in,       value: [server, database]}
+    severity: P1
+    owner_mode: hypothesis_component_owner
+    owner_team_key: noc-l1
+    informed_team_keys: []
+    inform_affected_service_owners: true
+  - rule_key: p2-critical-app
+    name: "Critical service, application cause"
+    conditions:
+      - {field: highest_service_criticality, operator: at_least, value: critical}
+    severity: P2
+    owner_mode: hypothesis_component_owner
+    owner_team_key: noc-l1
+    informed_team_keys: []
+    inform_affected_service_owners: true
+  - rule_key: p3-high
+    name: "High-criticality service"
+    conditions:
+      - {field: highest_service_criticality, operator: at_least, value: high}
+    severity: P3
+    owner_mode: hypothesis_component_owner
+    owner_team_key: noc-l1
+    informed_team_keys: []
+    inform_affected_service_owners: false
+  - rule_key: p4-default
+    name: "Default"
+    conditions: []
+    severity: P4
+    owner_mode: hypothesis_component_owner
+    owner_team_key: noc-l1
+    informed_team_keys: []
+    inform_affected_service_owners: false
+
+# Expected results (DD-K-05):
+#   storm incident  -> rule p1-critical-infra -> P1, owner db-ops (owner of db-core-01), informed [vas-service-owners]
+#   SL-F-3 incident -> rule p4-default        -> P4, owner it-infra (owner of reporting-app), informed []
+#                      (svc-reporting has no criticality, so every criticality comparison is false, DM-R-26)
+
+routing_change_in_SL-A2-06:           # SL-O-21; saved by admin in SL-A4-08 as revision 2
+  rule_key: p1-critical-infra
+  change: "informed_team_keys: [] -> [customer-care]"
+  effect_on_storm_incident: "severity P1 and owner db-ops unchanged; informed parties become [customer-care, vas-service-owners]"
+
+escalation_policy_revision_1:         # DM-E-42; resolves SL-O-14 (levels)
+  levels:
+    - {level: 1, team_keys: [noc-management]}
+    - {level: 2, team_keys: [it-ops-head]}
+# Timer values are Escalation step parameters (DD-F-06): 600 s in workflow version 1, 60 s after SL-A2-06.

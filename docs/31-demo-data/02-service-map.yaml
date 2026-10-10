@@ -1,70 +1,52 @@
-# DD-F-02  Service map, generation 1 (seed part 5; structure DM-R-54; format decided in Round 5)
-# Invented, Jazz-flavoured. Every name is fictional (SL-DR-01). Identity key names
-# (tag.component, host, label.component, label.instance) are assumed connector key names,
-# confirmed in Round 5 (DM-O-04, DD-ASM-01). Round 5 MUST keep this order of precedence (SB-V-26).
+# DD-F-02  Service map, generation 1 (seed part 5, DM-R-54 structure; file format SL-O-11 is Round 5).
+# Resolves PM-O-02 (values). Every name and host is invented (SL-DR-01); services are named by function (SB-D-06).
+# "A depends on B" means A needs B to work (DM-E-28). A component with runs_on depends on that server (DM-E28-R2).
 
-services:
-  - {service_key: svc-balance-check,   name: "Balance Check (USSD)", criticality: critical, owner_team_key: vas-service-owners,
-     component_keys: [ussd-gateway, balance-api, subscriber-db, ussd-synthetic]}
-  - {service_key: svc-bundle-purchase, name: "Bundle Purchase",      criticality: critical, owner_team_key: vas-service-owners,
-     component_keys: [ussd-gateway, bundle-api, subscriber-db]}
-  - {service_key: svc-sms-notify,      name: "SMS Notifications",    criticality: high,     owner_team_key: vas-service-owners,
-     component_keys: [sms-queue, sms-dispatcher]}
-  - {service_key: svc-recharge,        name: "Recharge",             criticality: critical, owner_team_key: it-apps,
-     component_keys: [recharge-api, billing-db]}
-  - {service_key: svc-self-care,       name: "Self-care Portal",     criticality: medium,   owner_team_key: it-apps,
-     component_keys: [self-care-portal]}
-  - {service_key: svc-reporting,       name: "Internal Reporting",   criticality: null,     owner_team_key: it-infra,   # readiness gap (DD-K-12)
-     component_keys: [reporting-app]}
+services:                             # DM-E-25 (complete list, 4)
+  - {service_key: svc-balance-check,     name: "Balance Check (USSD)", criticality: critical, owner_team_key: vas-service-owners, component_keys: [ussd-gw, api-balance, db-subscriber]}
+  - {service_key: svc-bundle-purchase,   name: "Bundle Purchase",      criticality: critical, owner_team_key: vas-service-owners, component_keys: [ussd-gw, api-bundle, db-subscriber]}
+  - {service_key: svc-sms-notifications, name: "SMS Notifications",    criticality: high,     owner_team_key: vas-service-owners, component_keys: [sms-queue]}
+  - {service_key: svc-mgmt-reports,      name: "Management Reports",                          owner_team_key: it-apps,            component_keys: [report-export]}   # no criticality: readiness gap (SL-A2-01)
 
-components:
+components:                           # DM-E-26 (complete list, 12)
   # servers
-  - {component_key: db-core-01,   name: "Subscriber DB server",    kind: server, criticality: critical, owner_team_key: db-ops,   target_key: lab-db-01}
-  - {component_key: vas-app-01,   name: "VAS application server",  kind: server, criticality: high,     owner_team_key: vas-ops}
-  - {component_key: api-app-01,   name: "API application server",  kind: server, criticality: high,     owner_team_key: it-apps}
-  - {component_key: billing-db-01, name: "Billing DB server",      kind: server, criticality: high,     owner_team_key: db-ops}
-  - {component_key: rpt-srv-01,   name: "Reporting server",        kind: server, criticality: low,      owner_team_key: it-infra}
-  - {component_key: bkp-srv-01,   name: "Backup server",           kind: server, criticality: low,      owner_team_key: null}      # readiness gap (DD-K-12)
-  # databases
-  - {component_key: subscriber-db, name: "Subscriber database",    kind: database, criticality: critical, owner_team_key: db-ops, runs_on_key: db-core-01}
-  - {component_key: billing-db,    name: "Billing database",       kind: database, criticality: high,     owner_team_key: db-ops, runs_on_key: billing-db-01}
-  # applications
-  - {component_key: ussd-gateway,     name: "USSD gateway",            kind: application, criticality: critical, owner_team_key: vas-ops, runs_on_key: vas-app-01}
-  - {component_key: balance-api,      name: "Balance-check API",       kind: application, criticality: critical, owner_team_key: it-apps, runs_on_key: api-app-01}
-  - {component_key: bundle-api,       name: "Bundle-purchase API",     kind: application, criticality: critical, owner_team_key: it-apps, runs_on_key: api-app-01}
-  - {component_key: recharge-api,     name: "Recharge API",            kind: application, criticality: high,     owner_team_key: it-apps, runs_on_key: api-app-01}
-  - {component_key: sms-dispatcher,   name: "SMS dispatcher",          kind: application, criticality: high,     owner_team_key: vas-ops, runs_on_key: vas-app-01}
-  - {component_key: self-care-portal, name: "Self-care portal",        kind: application, criticality: medium,   owner_team_key: it-apps, runs_on_key: api-app-01}
-  - {component_key: reporting-app,    name: "Reporting application",   kind: application, criticality: low,      owner_team_key: it-infra, runs_on_key: rpt-srv-01}
-  - {component_key: backup-agent,     name: "Backup agent",            kind: application, criticality: low,      owner_team_key: it-infra, runs_on_key: bkp-srv-01}
-  # queue and check
-  - {component_key: sms-queue,      name: "SMS queue",               kind: queue, criticality: high,     owner_team_key: vas-ops, runs_on_key: vas-app-01}
-  - {component_key: ussd-synthetic, name: "Synthetic USSD session check", kind: check, criticality: critical, owner_team_key: vas-ops}
+  - {component_key: srv-db-01,    name: "Subscriber DB server",   kind: server, criticality: critical, owner_team_key: db-ops,   target_key: lab-db-01}
+  - {component_key: srv-api-01,   name: "Charging API server",    kind: server, criticality: high,     owner_team_key: it-infra}
+  - {component_key: srv-vas-01,   name: "VAS platform server",    kind: server, criticality: high,     owner_team_key: it-infra}
+  - {component_key: srv-probe-01, name: "Synthetic probe server", kind: server, criticality: medium,   owner_team_key: it-infra}
+  - {component_key: srv-rpt-01,   name: "Reporting server",       kind: server, criticality: low}                                   # no owner: readiness gap (SL-A2-01)
+  # applications, database, queue, check
+  - {component_key: db-subscriber, name: "Subscriber database",     kind: database,    criticality: critical, owner_team_key: db-ops,  runs_on_key: srv-db-01}
+  - {component_key: api-balance,   name: "Balance-check API",       kind: application, criticality: critical, owner_team_key: it-apps, runs_on_key: srv-api-01}
+  - {component_key: api-bundle,    name: "Bundle-purchase API",     kind: application, criticality: critical, owner_team_key: it-apps, runs_on_key: srv-api-01}
+  - {component_key: ussd-gw,       name: "USSD gateway",            kind: application, criticality: critical, owner_team_key: vas-ops, runs_on_key: srv-vas-01}
+  - {component_key: sms-queue,     name: "SMS queue",               kind: queue,       criticality: high,     owner_team_key: vas-ops, runs_on_key: srv-vas-01}
+  - {component_key: ussd-probe,    name: "Synthetic USSD sessions", kind: check,       criticality: medium,   owner_team_key: noc-l1,  runs_on_key: srv-probe-01}
+  - {component_key: report-export, name: "Report export job",       kind: application, criticality: low,      owner_team_key: it-apps, runs_on_key: srv-rpt-01}
 
-identity_keys:      # (component_key, source_kind, name, value); precedence per connector: tag.component then host (Zabbix); label.component then label.instance (Alertmanager)
-  - [db-core-01,     zabbix,       host,            lab-db-01]
-  - [vas-app-01,     zabbix,       host,            lab-vas-01]
-  - [api-app-01,     zabbix,       host,            lab-api-01]
-  - [rpt-srv-01,     zabbix,       host,            lab-rpt-01]
-  - [subscriber-db,  zabbix,       tag.component,   subscriber-db]
-  - [sms-queue,      zabbix,       tag.component,   sms-queue]
-  - [reporting-app,  zabbix,       tag.component,   reporting-app]
-  - [ussd-gateway,   alertmanager, label.component, ussd-gateway]
-  - [balance-api,    alertmanager, label.component, balance-api]
-  - [bundle-api,     alertmanager, label.component, bundle-api]
-  - [ussd-synthetic, alertmanager, label.component, ussd-synthetic]
-  - [subscriber-db,  alertmanager, label.component, subscriber-db]
+identity_keys:                        # DM-E-27 (complete list, 15). Key names: DD-ASM-01 (connector fact check, DM-O-04).
+  # Zabbix: precedence [component, host]. "component" is the value of the Zabbix event tag "component".
+  - {component_key: srv-db-01,     source_kind: zabbix, name: component, value: srv-db-01}
+  - {component_key: db-subscriber, source_kind: zabbix, name: component, value: db-subscriber}
+  - {component_key: sms-queue,     source_kind: zabbix, name: component, value: sms-queue}
+  - {component_key: report-export, source_kind: zabbix, name: component, value: report-export}
+  - {component_key: srv-db-01,     source_kind: zabbix, name: host,      value: lab-db-01}
+  - {component_key: srv-api-01,    source_kind: zabbix, name: host,      value: lab-api-01}
+  - {component_key: srv-vas-01,    source_kind: zabbix, name: host,      value: lab-vas-01}
+  - {component_key: srv-probe-01,  source_kind: zabbix, name: host,      value: lab-probe-01}
+  - {component_key: srv-rpt-01,    source_kind: zabbix, name: host,      value: lab-rpt-01}
+  # Alertmanager: precedence [component, instance]. "component" is the alert label "component".
+  - {component_key: srv-db-01,     source_kind: alertmanager, name: component, value: srv-db-01}
+  - {component_key: api-balance,   source_kind: alertmanager, name: component, value: api-balance}
+  - {component_key: api-bundle,    source_kind: alertmanager, name: component, value: api-bundle}
+  - {component_key: ussd-gw,       source_kind: alertmanager, name: component, value: ussd-gw}
+  - {component_key: ussd-probe,    source_kind: alertmanager, name: component, value: ussd-probe}
+  - {component_key: srv-db-01,     source_kind: alertmanager, name: instance,  value: "lab-db-01:9100"}
 
-dependencies:       # (from_component_key depends on to_component_key); runs_on adds server dependencies (DM-E28-R2)
-  - [ussd-gateway,     balance-api]
-  - [ussd-gateway,     bundle-api]
-  - [balance-api,      subscriber-db]
-  - [bundle-api,       subscriber-db]
-  - [bundle-api,       sms-queue]
-  - [sms-dispatcher,   sms-queue]
-  - [sms-dispatcher,   subscriber-db]
-  - [recharge-api,     billing-db]
-  - [self-care-portal, balance-api]
-  - [self-care-portal, recharge-api]
-  - [reporting-app,    billing-db]
-  - [ussd-synthetic,   ussd-gateway]
+dependencies:                         # DM-E-28 (complete list, 6; runs_on dependencies are implied, DM-E28-R2)
+  - {from_component_key: api-balance, to_component_key: db-subscriber}
+  - {from_component_key: api-bundle,  to_component_key: db-subscriber}
+  - {from_component_key: sms-queue,   to_component_key: db-subscriber}
+  - {from_component_key: ussd-gw,     to_component_key: api-balance}
+  - {from_component_key: ussd-gw,     to_component_key: api-bundle}
+  - {from_component_key: ussd-probe,  to_component_key: ussd-gw}

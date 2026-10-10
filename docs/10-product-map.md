@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 10-product-map (ID prefix `PM-`) |
-| Version | 1.3 |
+| Version | 1.1 |
 | Date | 9 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Amended by Round 2 (Section 19), Round 3 (PM-DC-01, PM-DC-04) and Round 4 (Section 20). |
+| Status | Baseline (owner reviewed). Amended by Round 2 (Section 19). |
 
 ## 1. Purpose
 
@@ -828,10 +828,10 @@ These are not part of Vigil (CTX-C-03). They MUST be kept in a separate part of 
 
 | ID | Working name | Job | Talks to | Trace |
 | --- | --- | --- | --- | --- |
-| PM-DC-01 | `demo-lab` | Mock Jazz services (complete list): USSD gateway; balance-check API; bundle-purchase API; database server; SMS queue; synthetic USSD session check. Clarification (v1.2, SB-A-03): the mock SMS dispatcher is part of the SMS queue mock, and the mock report export job on the reporting server exists only for fault SL-F-3. | Monitored by PM-DC-02; the database server is reached by `vigil-runner` as a target | SL-A3-01 |
+| PM-DC-01 | `demo-lab` | Mock Jazz services (complete list): USSD gateway; balance-check API; bundle-purchase API; database server; SMS queue; synthetic USSD session check. | Monitored by PM-DC-02; the database server is reached by `vigil-runner` as a target | SL-A3-01 |
 | PM-DC-02 | `demo-monitoring` | Configuration of the real Zabbix, Prometheus and Alertmanager that monitor the lab and send webhooks to Vigil. | `demo-lab`; `vigil-api` (webhooks) | SL-A3-01, SL-A1-01 |
 | PM-DC-03 | `demo-faults` | Triggers faults SL-F-1 to SL-F-4 and the storm re-run. | `demo-lab`; blocking of outbound traffic to cloud AI providers for SL-F-4 (PM-ASM-04) | SL-A3-02 |
-| PM-DC-04 | `demo-control` | Demo control panel application (screen SL-A4-12), with its own presenter login: triggers faults, starts a storm re-run, resets to the starting state in 60 seconds or less. | `demo-faults`; `vigil-api` only (reset); read-only queries to the Zabbix problem API and the Alertmanager alerts API, only to know when "Clear all faults" is complete (v1.2, SB-A-02) | SL-A3-03, SL-A4-12 |
+| PM-DC-04 | `demo-control` | Demo control panel application (screen SL-A4-12), with its own presenter login: triggers faults, starts a storm re-run, resets to the starting state in 60 seconds or less. | `demo-faults`; `vigil-api` only (reset) | SL-A3-03, SL-A4-12 |
 | PM-DC-05 | `demo-data` | The invented Jazz data set and seed bundle (`31-demo-data/`), loaded through `vigil-setup` (PM-M22-03). It is content, not code. | `vigil-api` (through `demo-control` at reset) | SL-DR-01 to SL-DR-04 |
 | PM-DC-06 | Backup video | Recording of the full demo. Not software. | None | SL-A3-08 |
 
@@ -1131,8 +1131,6 @@ Record fields, relationships and lifecycle states (Round 2); demo values and the
 | 0.3 | 8 Oct 2026 | Resolved review pass 2 findings (Section 17). |
 | 1.0 | 9 Oct 2026 | Owner review recorded; Round 1 closed. |
 | 1.1 | 9 Oct 2026 | Amendments DM-A-01 to DM-A-28 from Round 2 added as Section 19 (CTX-D-014). |
-| 1.2 | 9 Oct 2026 | PM-DC-01 clarified and PM-DC-04 "Talks to" extended (`30-jazz-storyboard` SB-A-02, SB-A-03; CTX-D-017). |
-| 1.3 | 9 Oct 2026 | Amendment DC-A-03 from Round 4 added as Section 20 (CTX-D-020). |
 
 ## 19. Amendments from Round 2 (complete list)
 
@@ -1168,11 +1166,3 @@ These amendments were made by `docs/20-domain-model.md` v1.0 (decision DM-D-18, 
 | DM-A-26 | PM-M22 `vigil-setup`, Sends requests to | Adds `vigil-identity` outside import: readiness gap `server_without_owner` checks that the owner team is active (DM-E-81). | DM-E-81. |
 | DM-A-27 | PM-M11 `vigil-workflows`, Sends requests to | Adds `vigil-diagnostics` (check that diagnostic keys in Diagnostic step parameters are active definitions, `parameter_valid`). | DM-S-03. |
 | DM-A-28 | PM-M18-03, PM-M16-03 | PM-M18-03 applies to SL-T-1 and SL-T-2 only, with the fallback triggers of DM-R-69; for SL-T-3 `vigil-knowledge` names its provider and there is no fallback (DM-E72-R2, DM-D-21). | DM-D-21. |
-
-## 20. Amendments from Round 4 (complete list)
-
-Made by `docs/40-demo-cut.md` v1.0 (adopted as CTX-D-020). Where Section 20 and an earlier item differ, Section 20 wins.
-
-| ID | Product map item | Amendment | Reason |
-| --- | --- | --- | --- |
-| DC-A-03 | PM-M14-09 | Clarification: `vigil-actions` adds an evidence entry when an approval request reaches a final state other than `cancelled`, and when an action execution reaches a final state (`40-demo-cut` DC-D-09, DC-W-05, DC-W-06). | Makes "for the approval and each execution" exact (SB-O-01). |
