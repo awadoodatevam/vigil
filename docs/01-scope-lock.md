@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 01-scope-lock (ID prefix `SL-`) |
-| Version | 1.7 |
-| Date | 9 October 2026 |
+| Version | 1.8 |
+| Date | 10 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Locked (owner review recorded in Section 13). Changes only through Section 8. |
 
@@ -60,7 +60,7 @@ Anything not in list A or list B is not built. Rounds 1–6 add detail to the it
 
 | ID | Deep dive | Requirement | Trace |
 | --- | --- | --- | --- |
-| SL-A2-01 | Guided setup | An admin MUST be able to connect Zabbix and Alertmanager, test each connection, and see each source's health as healthy, stale or disconnected (thresholds SL-O-12). The admin MUST be able to import the service map (services, servers, owners, criticality, dependencies) from a file (format SL-O-11). Vigil MUST list readiness gaps (complete list of gap types: server with no owner; service with no criticality; source not healthy). | BSD-BR-001 (without discovery, see SL-C-12), BSD-BR-004, BSD-BR-005 |
+| SL-A2-01 | Guided setup | An admin MUST be able to connect Zabbix and Alertmanager, test each connection, and see each source's health as healthy, stale or disconnected (thresholds SL-O-12). The admin MUST be able to import the service map (services, servers, owners, criticality, dependencies) from a file (format SL-O-11). Vigil MUST list readiness gaps (complete list of gap types: server with no owner; service with no criticality; source not healthy). Clarification (CTX-D-023): connecting is shown by editing the address of, testing, and seeing the health of the monitoring sources loaded with the starting state; adding a source is Later (`40-demo-cut` DC-L-01). | BSD-BR-001 (without discovery, see SL-C-12), BSD-BR-004, BSD-BR-005 |
 | SL-A2-02 | AI settings | An admin MUST be able to choose, for each AI task in Section 5.5, one provider from that task's allowed providers. The admin MUST be able to set the fallback order and which data categories (SL-O-13) may be sent to which provider. Vigil MUST show AI usage and cost per provider and per task. | BSD-BR-019 (without evaluation, see SL-C-16), BSD-BR-020 |
 | SL-A2-03 | Nobody acknowledges | If no acknowledgement arrives before the configured timer expires, Vigil MUST escalate to the next fixed escalation level (levels and timers SL-O-14) and record the escalation on the incident and in the Jira ticket. | BSD-BR-009 |
 | SL-A2-04 | The fix does not work | When fault SL-F-2 is active, the service stays down after the approved action. The incident MUST stay open and MUST escalate with the evidence. Vigil MUST NOT make more action attempts than the configured limit (SL-O-15). | BSD-BR-012, BSD-BR-014; BSD RULE-07 |
@@ -275,3 +275,4 @@ Project-wide open items CTX-O-01 to CTX-O-05 are listed in `00-context.md` Secti
 | 1.5 | 9 Oct 2026 | SL-A3-07 clarified: admin may re-run AI investigation (CTX-D-013, from Round 1). No item added to list A. |
 | 1.6 | 9 Oct 2026 | SL-A1-07 and SL-A2-05 clarified (CTX-D-015, CTX-D-016, from Round 2). No item added to list A. |
 | 1.7 | 10 Oct 2026 | SL-A3-01, SL-A3-03 and SL-A3-07 clarified (CTX-D-020, from Round 3); SL-ASM-02 and SL-ASM-03 verification status updated after the Round 3 fact check. No item added to list A. |
+| 1.8 | 10 Oct 2026 | SL-A2-01 clarified (CTX-D-023, from Round 4, `40-demo-cut` DC-A-11). No item added to list A. |

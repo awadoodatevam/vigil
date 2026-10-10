@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 31-demo-data (ID prefix `DD-`) |
-| Version | 1.0 |
+| Version | 1.1 |
 | Date | 10 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 3 closed. |
+| Status | Baseline (owner reviewed). Round 3 closed. Amended by Round 4 (`40-demo-cut` DC-A-04, DC-A-05, DC-A-09, DC-A-17). |
 
 ## 1. Purpose
 
@@ -109,3 +109,4 @@ See `30-jazz-storyboard` Section 17 (one review covers both outputs of Round 3).
 | 0.2 | 10 Oct 2026 | Resolved independent review and readiness test findings (`30-jazz-storyboard` Section 17): lab DB sizes, schema writers, SL-F-3 keeps failing, last injected file back-dated, SL-F-4 mechanism, reset and clear timing, command robustness, best-match key, PM-WV-04 on both branches, stronger checks. |
 | 0.3 | 10 Oct 2026 | Resolved verification pass 2: clear settle 12 s, SL-F-3 wording, DD-ASM-03 40 s, parser and comment fixes. |
 | 1.0 | 10 Oct 2026 | Owner review recorded (CTX-D-018); Round 3 closed. |
+| 1.1 | 10 Oct 2026 | Round 4 amendments (CTX-D-022, CTX-D-024): DD-F-01 `product_display_name` "Techfinity" and admin display name "Platform Administrator"; DD-F-07 demo Team "Techfinity Demo"; DD-F-06 comment on added step IDs; DD-F-10 Alertmanager `summary` annotations. |

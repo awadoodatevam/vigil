@@ -6,6 +6,7 @@ tenant_settings:                      # DM-E-02
   customer_name: "Jazz"               # subject to CTX-O-05
   customer_logo: null                 # set only after CTX-O-05 is confirmed; customer_name is shown until then
   environment_label: "Demo environment — fictional data"   # SL-A3-06, SL-DR-03
+  product_display_name: "Techfinity"  # DM-E-02; CTX-D-024 (40-demo-cut DC-A-09)
 
 teams:                                # DM-E-04 (complete list, 9 teams)
   - {team_key: noc-l1,             name: "NOC L1"}
@@ -23,7 +24,7 @@ users:                                # DM-E-03 (complete list, SL-A3-07); displ
   - {username: noc-l1,         display_name: "Hira Baig (NOC L1)"}
   - {username: dbops-engineer, display_name: "Usman Tariq (DB Ops)"}
   - {username: dbops-lead,     display_name: "Farah Naqvi (DB Ops Lead)"}
-  - {username: admin,          display_name: "Vigil Administrator"}
+  - {username: admin,          display_name: "Platform Administrator"}
 
 memberships:                          # DM-E-05 (complete list). Teams not listed here have no members (configuration data only).
   - {team_key: noc-l1, username: noc-l1}

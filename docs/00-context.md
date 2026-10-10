@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 00-context (ID prefix `CTX-`) |
-| Version | 1.7 |
+| Version | 1.8 |
 | Date | 10 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed) |
@@ -74,7 +74,7 @@ Each round is one conversation in the Claude project and produces the files list
 | R1 | Product map: every module of the full product, its job, what it owns, what it talks to; working module names; AI task list confirmation | `10-product-map.md` | Closed, 9 Oct 2026 |
 | R2 | Core domain model: entities, relationships, lifecycles and state machines | `20-domain-model.md` | Closed, 9 Oct 2026 |
 | R3 | Jazz storyboard and demo data: scene-by-scene script with Real/Simplified/Staged tags; the invented Jazz data set; exact demo values | `30-jazz-storyboard.md`, `31-demo-data/` | Closed, 10 Oct 2026 (restarted from scratch on 10 Oct 2026; the first run, made without web access, is in `docs/_superseded/`) |
-| R4 | Demo cut: per module, keep / simplify / stage / later, keeping product shape; screen-by-screen content | `40-demo-cut.md` | Not started |
+| R4 | Demo cut: per module, keep / simplify / stage / later, keeping product shape; screen-by-screen content | `40-demo-cut.md` | Closed, 10 Oct 2026 |
 | R5 | Architecture: applications, stack, integrations, AI layer, hosting, final module names | `50-architecture.md` | Not started |
 | R6 | Build plan: packages sized for Claude Code, each with spec, done-check and tests; repository conventions | `60-build-plan.md`, `CLAUDE.md` | Not started |
 | Build | One package at a time; checkpoints reviewed in the Claude project | `docs/packages/P-##.md`, code | Not started |
@@ -138,6 +138,9 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | CTX-D-019 | 10 Oct 2026 | Demo setup (resolves CTX-O-03): Microsoft Teams meeting; the senior manager narrates and Abdul operates every screen; mobile pages in a phone-size browser window; attendees do not join a demo Teams channel (`30-jazz-storyboard` SB-D-01). No public Jazz fact is used (SB-D-06). | Owner answers in the Round 3 conversation. |
 | CTX-D-020 | 10 Oct 2026 | Scope-lock clarifications from Round 3 (no item added to list A): SL-A3-01 — the SMS queue mock includes its dispatcher, and a lab Reporting server runs a mock report export job only to produce SL-F-3; SL-A3-03 — triggering faults includes clearing them ("Clear all faults"), and a reset clears the lab in parallel with the Vigil reset; SL-A3-07 — teams without members are configuration data. `01-scope-lock` v1.7. | SL-F-3 needs a component unrelated to the storm (DM-R-14); a storm re-run needs every lab alert resolved (DM-R-24); routing needs owner teams. Agreed by owner in the Round 3 review. |
 | CTX-D-021 | 10 Oct 2026 | Teams messages are posted through Microsoft Workflows webhooks, not Office 365 connectors (fact check, `30-jazz-storyboard` Section 13); how a delivery address holds the per-channel webhook address is decided in Round 5 (DD-O-04, PM-O-10). | Microsoft disabled Office 365 connectors in Teams between 18 and 22 May 2026. |
+| CTX-D-022 | 10 Oct 2026 | Demo cut `40-demo-cut` v1.0 adopted: 23 modules Keep, `vigil-setup` Simplified, 4 Later-only modules Later, nothing Staged; screens DC-S01 to DC-S12, product wording DC-TX-00 to DC-TX-11, outbound content DC-OUT-00 to DC-OUT-07, decisions DC-D-01 to DC-D-17. Amendments DC-A-01 to DC-A-19 written: `01-scope-lock` v1.8, `10-product-map` v1.2, `20-domain-model` v1.2, `30-jazz-storyboard` v1.1, `31-demo-data` v1.1. | Round 4 output; owner agreed the seven review items (DC-D-01 with DC-D-03, DC-D-02, DC-D-04, DC-D-05, DC-D-07 with DC-D-08, DC-D-11, DC-D-13). |
+| CTX-D-023 | 10 Oct 2026 | SL-A2-01 clarified: "connect Zabbix and Alertmanager" is shown by editing the address of, testing, and seeing the health of the monitoring sources loaded with the starting state (SB-D01); adding a source is Later (`40-demo-cut` DC-L-01). No item added to list A. | Adding a source needs a runtime secret-writing path for something no scene shows (DC-D-03). |
+| CTX-D-024 | 10 Oct 2026 | The product display name shown to the audience, on screens and in outbound content, is "Techfinity", held as a tenant setting (`40-demo-cut` DC-U-02, DC-A-09). The working name Vigil stays in documents and code (CTX-D-001). | Owner direction that the demo is branded "Techfinity"; Vigil is not a brand (Section 3). |
 
 ## 14. Open items
 
@@ -169,3 +172,4 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | 1.5 | 9 Oct 2026 | Round 1 closed; decisions CTX-D-012 and CTX-D-013 added. |
 | 1.6 | 9 Oct 2026 | Round 2 closed; decisions CTX-D-014 to CTX-D-016 added. |
 | 1.7 | 10 Oct 2026 | Round 3 restarted (CTX-D-017) and closed; decisions CTX-D-017 to CTX-D-021 added; CTX-O-03 closed. |
+| 1.8 | 10 Oct 2026 | Round 4 closed; decisions CTX-D-022 to CTX-D-024 added. |

@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 30-jazz-storyboard (ID prefix `SB-`) |
-| Version | 1.0 |
+| Version | 1.1 |
 | Date | 10 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 3 closed (restarted 10 October 2026). |
+| Status | Baseline (owner reviewed). Round 3 closed (restarted 10 October 2026). Amended by Round 4 (`40-demo-cut` DC-A-04). |
 
 ## 1. Purpose
 
@@ -51,7 +51,7 @@ Terms defined in earlier documents keep their meaning. The terms below are added
 | SB-SET-03 | Shared screen (complete list of windows) | (1) Vigil in the browser profile "Presenter", logged in as `presenter` (left, two thirds of the width). (2) The phone window (right), browser profile "Phone". (3) The Teams desktop client showing the demo Team "Vigil Demo". (4) A browser tab with the Jira project board. (5) A web mail client showing the mailbox of NOC L1 (`noc-l1@<demo-domain>`). (6) The demo control panel (SL-A4-12) in its own browser window. Windows 3 to 6 are brought to the front only when the script says so. | SL-A4-04, SL-A4-05, SL-A3-03 |
 | SB-SET-04 | Links into the phone window | Links in Teams messages and emails are copied (right-click, copy link) and pasted into the phone window, never opened by clicking, so they open in the phone window and not in the default browser. The operator logs in on the phone window as the user named by the scene and logs out at the end of the scene. | SL-B-13 |
 | SB-SET-05 | Attendees | Attendees do not join any demo Teams channel; every message is shown on the shared screen (decides SL-X-16). | SL-X-16; CTX-O-03 |
-| SB-SET-06 | Teams and email destinations | One demo Team "Vigil Demo" with one channel per team that has a delivery address (complete list: NOC L1, Database Operations, VAS Service Owners, IT Applications, NOC Shift Lead, NOC Management, Customer Care) and one approvals channel per approver ("Approvals — Usman", "Approvals — Farah"); one mailbox per team and approver with an address (DD-F-07). The operator shows the channels the script names and the NOC L1 mailbox. | SL-A1-05, SL-A1-06 |
+| SB-SET-06 | Teams and email destinations | One demo Team "Techfinity Demo" with one channel per team that has a delivery address (complete list: NOC L1, Database Operations, VAS Service Owners, IT Applications, NOC Shift Lead, NOC Management, Customer Care) and one approvals channel per approver ("Approvals — Usman", "Approvals — Farah"); one mailbox per team and approver with an address (DD-F-07). The operator shows the channels the script names and the NOC L1 mailbox. | SL-A1-05, SL-A1-06 |
 | SB-SET-07 | Before each presentation | Reset (SL-A3-03); open every window of SB-SET-03; log in as `presenter`; check that the incident list is empty, both sources are healthy and the dashboard shows the seeded values of SB-V-38. | SL-A3-03, SL-A3-04 |
 | SB-SET-08 | Backup | If the live session fails, the operator plays the backup video (SL-A3-08) from the scene where the failure happened. | SL-A3-08 |
 
@@ -63,7 +63,7 @@ Terms defined in earlier documents keep their meaning. The terms below are added
 | `noc-l1` | Hira Baig (NOC L1) | NOC L1 | SB-S05 (acknowledges), SB-D07 |
 | `dbops-engineer` | Usman Tariq (DB Ops) | Database Operations | SB-S06 (approves), SB-D02 (first approver), SB-D07 |
 | `dbops-lead` | Farah Naqvi (DB Ops Lead) | Database Operations | SB-D02 (second approver) |
-| `admin` | Vigil Administrator | — | Main Vigil window in SB-D01 to SB-D06 |
+| `admin` | Platform Administrator | — | Main Vigil window in SB-D01 to SB-D06 |
 
 The names are invented (SL-DR-01). Teams without members (complete list: IT Applications, IT Infrastructure, VAS Operations, VAS Service Owners, NOC Shift Lead, NOC Management, Customer Care) are configuration data: component and service owners, informed parties and escalation levels (DD-F-01, DD-F-02, DD-F-05). Nobody acknowledges or approves as a member of these teams.
 
@@ -121,8 +121,8 @@ The total is 14:00, within the 15-minute limit; the 60 s left is margin. The sto
 
 | Part | Content |
 | --- | --- |
-| Screen | Vigil incident list, empty. The banner reads "Demo environment — fictional data". The customer name is Jazz. |
-| Narrator | "This is Vigil, connected to a lab built like an IT and service NOC: USSD, the balance-check and bundle-purchase APIs, SMS, and a subscriber database, monitored by Zabbix and Prometheus, two tools common in IT NOCs. Everything you will see happens live. All data is fictional." |
+| Screen | The incident list, empty (`40-demo-cut` DC-S02). The banner reads "Demo environment — fictional data". The customer name is Jazz. |
+| Narrator | "This is Techfinity, connected to a lab built like an IT and service NOC: USSD, the balance-check and bundle-purchase APIs, SMS, and a subscriber database, monitored by Zabbix and Prometheus, two tools common in IT NOCs. Everything you will see happens live. All data is fictional." |
 | Operator | Nothing. |
 
 #### SB-S01 Alert storm (01:00–03:00) — SL-A1-01, Real
@@ -131,7 +131,7 @@ The total is 14:00, within the 15-minute limit; the 60 s left is margin. The sto
 | --- | --- |
 | Operator | At 01:00 brings the control panel to the front and presses "Storm: SL-F-1 + SL-F-3", then returns to the incident list. |
 | Narrator | Tells the SL-F-1 story (Section 6). "Watch what reaches the NOC in the next two minutes." |
-| Screen | Alerts arrive and are grouped while the storm builds. Incidents still forming are shown without numbers and are never shown as several numbered storm incidents (DM-E32-R3); how they are shown is decided in Round 4. |
+| Screen | Alerts arrive and are grouped while the storm builds. Incidents still forming are shown without numbers and are never shown as several numbered storm incidents (DM-E32-R3); they are shown only in the incoming alerts strip (`40-demo-cut` DC-S02-02). |
 | Exact values | 126 storm alerts (31 from Zabbix, 95 from Alertmanager) plus 1 SL-F-3 alert, all by webhook, all within 120 s (SB-TL-01). The 7 storm alert types (DD-F-03): Disk full; Database write errors; USSD gateway timeouts; Balance-check API errors; Bundle-purchase API errors; SMS queue growth; Synthetic USSD session failed. |
 | Narrator | "That is 127 alerts. In most NOCs that is 127 lines on a screen and a long first hour." |
 
@@ -142,7 +142,7 @@ The total is 14:00, within the 15-minute limit; the 60 s left is margin. The sto
 | Screen | The incident list shows two numbered incidents once both leave `forming` (by 03:45, SB-TL-02): the storm incident and the report incident. The operator opens the storm incident workspace. |
 | Exact values | Title "Subscriber DB server: Disk full — 3 services affected". Alerts: 126. Root cause, labelled "Hypothesis": Subscriber DB server (`srv-db-01`), the component on which the most other affected components depend (6 of 6). Customer impact: Balance Check (USSD), Bundle Purchase, SMS Notifications. |
 | Grouping reasons | The operator expands three alerts (a Balance-check API alert, a Synthetic USSD session alert and an SMS queue alert) and the narrator reads each reason from the screen. Each reason is the final reason of DM-R-58: the related alert is the earliest-fired related member, usually a disk or database alert, so a typical path is "Balance-check API → Subscriber database → Subscriber DB server". Varies: the related alert, path and seconds depend on the alerts' fire times, not on arrival order. Acceptance (complete list): every member alert has a reason; each reason is `same_component`, a dependency path that exists in the service map (DM-E28-R2 included), or `only_alert`; every time difference is 300 s or less. |
-| Narrator | Points at the report incident in the list: "This report job failed at the same moment, but it has nothing to do with the database, so Vigil keeps it apart." |
+| Narrator | Points at the report incident in the list: "This report job failed at the same moment, but it has nothing to do with the database, so Techfinity keeps it apart." |
 | Report incident (resolves SL-O-05) | Title "Report export job: Report export job failed — 1 service affected"; severity P4; owner IT Applications; no informed teams; its workflow takes the not-P1 branch: an AI summary, a Jira ticket and a message to IT Applications only, no diagnostics, no approval, no action, no escalation; it stays open until its fault is cleared (SB-D02 step 5, or a reset). It is not opened during the primary demo. |
 
 #### SB-S03 Diagnostics (04:30–05:15) — SL-A1-03, Real
@@ -151,7 +151,7 @@ The total is 14:00, within the 15-minute limit; the 60 s left is margin. The sto
 | --- | --- |
 | Screen | The evidence section of the storm incident: three diagnostic results from the Subscriber DB server (`lab-db-01`), each with source "lab-db-01 via runner" and its collection time. |
 | Exact values (resolves SL-O-06) | Diagnostics (complete list, DD-F-04): "Disk usage of /data" — "/data is 100% full (<used> of <size> GiB used, 0.1 GiB free)"; "Largest folders under /data" — "Largest folder under /data: /data/txlog_archive (<size> GiB)"; "Data written under /data, last 15 minutes" — "<gib> GiB written to <files> files under /data in the last 15 minutes". Values in angle brackets are measured (SB-O-03). |
-| Narrator | "Vigil did not wait for anyone to log in to the server. It ran three approved read-only checks and attached the results. It holds read-only access and change access separately." |
+| Narrator | "Techfinity did not wait for anyone to log in to the server. It ran three approved read-only checks and attached the results. It holds read-only access and change access separately." |
 
 #### SB-S04 AI investigation and routing (05:15–06:15) — SL-A1-04, Real
 
@@ -171,7 +171,7 @@ The total is 14:00, within the 15-minute limit; the 60 s left is margin. The sto
 | Screen 3 (mail client) | The same message in the NOC L1 mailbox. |
 | Operator | Copies the Acknowledge link from the Teams message into the phone window, logs in as `noc-l1`, and presses Acknowledge between 07:15 and 07:45 (SB-TL-06). Logs out. |
 | Exact values | The Acknowledge page shows the incident title, severity P1, owner Database Operations and the AI summary; after acknowledging it shows "Acknowledged by Hira Baig (NOC L1)" with the time. The incident timeline shows the acknowledgement with user and time. |
-| Narrator | "The link carries no authority by itself: Hira had to log in. Vigil records who acknowledged and when." |
+| Narrator | "The link carries no authority by itself: Hira had to log in. Techfinity records who acknowledged and when." |
 
 #### SB-S06 Approved fix (08:00–09:45) — SL-A1-06, Real
 
@@ -182,7 +182,7 @@ The total is 14:00, within the 15-minute limit; the 60 s left is margin. The sto
 | Operator | Copies the Approval link into the phone window, logs in as `dbops-engineer`, reads out the page, presses Approve by 09:30 at the latest (SB-TL-08). Logs out. |
 | Approval page (exact values, SL-A1-06 complete list) | Action name: Purge archived transaction logs. Exact parameters: `path` = /data/txlog_archive; `older_than_minutes` = 1440; `max_bytes` = 12884901888. Target server: Subscriber DB server (lab-db-01). Limits (resolves SL-O-09): deletes only *.arc files directly under /data/txlog_archive; deletes only files last modified more than 24 hours ago; deletes at most 12 GiB, oldest files first; runs only on the Subscriber DB server (lab-db-01); attempt 1 of 1. Expiry: 900 s after the request was created. Evidence the proposal is based on: the three diagnostic results, the AI investigation and the similarity match. Recovery checks that will be used: "Subscriber DB services recovered" — every alert of the incident resolved at its source, and no alert of Synthetic USSD sessions firing — held for 60 s. |
 | After Approve | Vigil rechecks (complete list, SL-A1-06): approval not expired; action, parameters and target unchanged; incident still open; precondition "/data used percentage ≥ 90" true (value 100). Then it runs the action on `lab-db-01`. The action result is added as evidence: every injected file removed (count and GiB measured, SB-O-03). |
-| Narrator | "The engineer approved this exact command, with these parameters, on this server, until this time. Vigil checked again before running it." |
+| Narrator | "The engineer approved this exact command, with these parameters, on this server, until this time. Techfinity checked again before running it." |
 
 #### SB-S07 Recovery check (09:45–12:00) — SL-A1-07, Real
 
@@ -192,7 +192,7 @@ The total is 14:00, within the 15-minute limit; the 60 s left is margin. The sto
 | Narrator | "The command succeeded, but that is not why this incident will close." |
 | Exact values (resolves SL-O-01) | Observation window 60 s. The recovery evidence shows both conditions holding and both monitoring sources healthy. The incident becomes Resolved by 11:50 (SB-TL-10). |
 | Screen 2 (Jira tab) | The ticket status is resolved and its last comment holds the recovery evidence. |
-| Narrator | "Vigil closes an incident only when monitoring confirms recovery, including a real test USSD session." |
+| Narrator | "Techfinity closes an incident only when monitoring confirms recovery, including a real test USSD session." |
 
 #### SB-S08 Workflow glimpse (12:00–12:30) — SL-A1-08, Real
 
@@ -236,13 +236,13 @@ Precondition: the storm incident of the primary demo has been resolved for at le
 
 1. **Edit the workflow.** In the workflow editor the admin starts a draft from version 1, drags an Approval step from the palette onto the canvas between "DB Ops approval" and "Run approved fix", connects it (approved → Run approved fix; rejected and expired → Escalate with evidence; the first approval's approved output now leads to the new step), sets its eligible team to Database Operations and its expiry to 900 s, and labels it "DB Ops second approval". While doing so the admin also shows (complete list): zoom and pan to the approval area, then "Fit to screen" (SL-WE-06); selecting the new step and moving it, then "Auto layout" (SL-WE-03, SL-WE-06); deleting a connection by mistake and pressing Undo, then Redo and Undo again so the connection is back (SL-WE-03, SL-WE-05). The admin then opens "Wait for acknowledgement" and changes its timer from 600 s to 120 s. The draft is saved; version 1 stays active (DD-F-06 `draft_changes_for_version_2`).
 2. **Change a routing rule (resolves SL-O-21).** On the routing-rules screen the admin adds Customer Care to the informed teams of the rule "Critical service affected" and saves. The storm incident's severity and owner team are unchanged by this rule change (DD-K-05).
-3. **Test before publishing.** The admin runs a test replay of the primary demo's storm incident against the draft. The result is labelled "Test". Exact values: the path takes the P1 branch; the Notification step's note lists the teams `customer-care`, `db-ops`, `noc-l1` and `vas-service-owners` (DM-R-49; display wording Round 4); both Approval steps show "Simulated approval", the second with the rule that its approver must differ from the first; the routing dry run uses the routing rules saved in step 2. Varies: the Escalation step shows one or two simulated escalations (NOC Shift Lead, then NOC Management), because the storm incident was acknowledged between 135 s and 365 s after its wait started (the simulated clock reaches the Escalation step no later than the real wait start, because Ticket and Notification steps add 0 s, DM-R-47, so the simulated gap is at least as long); acceptance: at least one simulated escalation, to NOC Shift Lead. No ticket, message, AI call or command happens (`01-scope-lock` Section 3).
+3. **Test before publishing.** The admin runs a test replay of the primary demo's storm incident against the draft. The result is labelled "Test". Exact values: the path takes the P1 branch; the Notification step's note lists the teams `customer-care`, `db-ops`, `noc-l1` and `vas-service-owners` (DM-R-49; wording `40-demo-cut` DC-TX-09); both Approval steps show "Simulated approval", the second with the rule that its approver must differ from the first; the routing dry run uses the routing rules saved in step 2. Varies: the Escalation step shows one or two simulated escalations (NOC Shift Lead, then NOC Management), because the storm incident was acknowledged between 135 s and 365 s after its wait started (the simulated clock reaches the Escalation step no later than the real wait start, because Ticket and Notification steps add 0 s, DM-R-47, so the simulated gap is at least as long); acceptance: at least one simulated escalation, to NOC Shift Lead. No ticket, message, AI call or command happens (`01-scope-lock` Section 3).
 4. **Publish.** The admin publishes the draft as version 2.
 5. **Clear the report fault.** The operator presses "Clear all faults" in the control panel and waits until it is complete. The report incident resolves (its recovery check passes) and its Jira ticket is resolved.
 6. **Storm re-run.** The operator presses "Storm re-run: SL-F-1". A new storm incident opens and follows version 2. Its Notification step also informs Customer Care (Teams channel "Customer Care").
 7. **Nobody acknowledges (SL-A2-03, resolves SL-O-14).** Nobody acknowledges. 120 s after its wait started, the incident escalates to level 1, NOC Shift Lead: a message with the evidence summary in the channel "NOC Shift Lead", the escalation on the incident and a comment in the Jira ticket. 120 s later it escalates to level 2, NOC Management, in the same way. Level 2 is the last level, so the step then continues to the similar-incident search.
 8. **Two approvers.** The approval request reaches Usman and Farah. The operator approves as `dbops-engineer` in the phone window; the operator gives the second approval within 10 minutes of the first request, so the first approval is still valid at execution (DM-R-32); the second approval request then reaches Farah only, because the second approver must differ; the operator approves as `dbops-lead`. The action runs, the alerts resolve and the incident is resolved as in the primary demo.
-9. **Version history and rollback.** Version history shows version 1 (seed) and version 2 published by Vigil Administrator with its time and change list: added "DB Ops second approval"; changed "DB Ops approval" (outgoing connections); changed "Wait for acknowledgement" (timer 600 s → 120 s). The admin rolls back to version 1 in one step, which creates and activates version 3 with the content of version 1 (SL-B-03).
+9. **Version history and rollback.** Version history shows version 1 (seed) and version 2 published by Platform Administrator with its time and change list, in this order (`40-demo-cut` DC-TX-08): added "DB Ops second approval"; changed "Wait for acknowledgement" (timer 600 s → 120 s); changed "DB Ops approval" (outgoing connections). The admin rolls back to version 1 in one step, which creates and activates version 3 with the content of version 1 (SL-B-03).
 
 ### SB-D03 Cloud AI unavailable — SL-A2-05, Simplified (budget 4:00 plus the local model's answer time)
 
@@ -435,7 +435,7 @@ The data assumptions are DD-ASM-01 to DD-ASM-05 (`31-demo-data` README). This do
 | ID | Item | Owner | Resolved in |
 | --- | --- | --- | --- |
 | SB-O-01 | Confirmation of the SL-T-1 and SL-T-2 provider order (SB-V-31). | Claude, reviewed by Abdul | R5 (SL-O-20) |
-| SB-O-02 | Display wording of the evidence summaries of the AI investigation, the similarity match, the approval, the action execution and the recovery verification (the values they show are fixed here). | Claude | R4 |
+| SB-O-02 | Closed by `40-demo-cut` DC-TX-03, 10 Oct 2026 (was: display wording of the evidence summaries). | Claude | R4 |
 | SB-O-03 | Measured lab values (DD-F-10, DD-O-03) shown in SB-S03 and SB-S06. | Abdul | Lab spike SB-T-01, before the first rehearsal |
 
 Open items resolved by this round are listed in Section 10. Carried open items still open: CTX-O-01, CTX-O-02, CTX-O-04, CTX-O-05; SL-O-11 (format), SL-O-17, SL-O-19, SL-O-20; PM-O-01, PM-O-09 (connector capability), PM-O-10 (with DD-O-04), PM-O-11, PM-O-17; DM-O-04 (field names), DM-O-05, DM-O-06, DM-O-08, DM-O-11, DM-O-12, DM-O-13; DD-O-01 to DD-O-04.
@@ -462,3 +462,4 @@ Open items resolved by this round are listed in Section 10. Carried open items s
 | 0.2 | 10 Oct 2026 | Resolved independent review pass 1 and readiness test pass 1 (Section 17). |
 | 0.3 | 10 Oct 2026 | Resolved verification pass 2 and readiness test pass 2 (Section 17). Draft for owner review. |
 | 1.0 | 10 Oct 2026 | Owner review recorded (CTX-D-018 to CTX-D-021); amendments SB-A-01 to SB-A-08 written; Round 3 closed. |
+| 1.1 | 10 Oct 2026 | Round 4 amendments (`40-demo-cut` DC-A-04, CTX-D-022, CTX-D-024): narrator lines say "Techfinity"; admin display name "Platform Administrator"; demo Team "Techfinity Demo"; SB-S01 forming display, SB-D02 step 3 wording and step 9 order; SB-O-02 closed. |

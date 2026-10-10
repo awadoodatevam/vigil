@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 10-product-map (ID prefix `PM-`) |
-| Version | 1.1 |
-| Date | 9 October 2026 |
+| Version | 1.2 |
+| Date | 10 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Amended by Round 2 (Section 19). |
+| Status | Baseline (owner reviewed). Amended by Round 2 (Section 19) and Round 4 (Section 20). |
 
 ## 1. Purpose
 
@@ -148,7 +148,7 @@ Solid arrows are requests. Dotted arrows are events.
 
 ## 6. Module cards
 
-Section 19 lists the amendments made by Round 2 (`20-domain-model`). Where Section 19 and an item in Sections 4 to 14 differ, Section 19 wins.
+Section 19 lists the amendments made by Round 2 (`20-domain-model`) and Section 20 those made by Round 4 (`40-demo-cut`). Where Section 19 or 20 and an item in Sections 4 to 14 differ, Section 19 or 20 wins; where Sections 19 and 20 differ, Section 20 wins.
 
 Each card lists: job; records owned (complete list); requests it sends; events it publishes; events it reacts to; responsibilities. Responsibility IDs are `PM-Mnn-nn` (built) and `PM-Mnn-Ln` (Later, not built). Record names are working names; Round 2 defines them.
 
@@ -1131,6 +1131,7 @@ Record fields, relationships and lifecycle states (Round 2); demo values and the
 | 0.3 | 8 Oct 2026 | Resolved review pass 2 findings (Section 17). |
 | 1.0 | 9 Oct 2026 | Owner review recorded; Round 1 closed. |
 | 1.1 | 9 Oct 2026 | Amendments DM-A-01 to DM-A-28 from Round 2 added as Section 19 (CTX-D-014). |
+| 1.2 | 10 Oct 2026 | Amendments from Round 4 (`40-demo-cut` DC-A-01, DC-A-02, DC-A-08 to DC-A-12, DC-A-18) added as Section 20 (CTX-D-022). |
 
 ## 19. Amendments from Round 2 (complete list)
 
@@ -1166,3 +1167,19 @@ These amendments were made by `docs/20-domain-model.md` v1.0 (decision DM-D-18, 
 | DM-A-26 | PM-M22 `vigil-setup`, Sends requests to | Adds `vigil-identity` outside import: readiness gap `server_without_owner` checks that the owner team is active (DM-E-81). | DM-E-81. |
 | DM-A-27 | PM-M11 `vigil-workflows`, Sends requests to | Adds `vigil-diagnostics` (check that diagnostic keys in Diagnostic step parameters are active definitions, `parameter_valid`). | DM-S-03. |
 | DM-A-28 | PM-M18-03, PM-M16-03 | PM-M18-03 applies to SL-T-1 and SL-T-2 only, with the fallback triggers of DM-R-69; for SL-T-3 `vigil-knowledge` names its provider and there is no fallback (DM-E72-R2, DM-D-21). | DM-D-21. |
+
+## 20. Amendments from Round 4 (complete list)
+
+These amendments were made by `docs/40-demo-cut.md` v1.0 (adopted as CTX-D-022). Each row names the product map item it changes. New IDs defined here: rule PM-R-10, responsibility PM-M06-07, request PM-I-46. None adds an item to list A or list B of `01-scope-lock`.
+
+| ID | Product map item | Amendment | Reason |
+| --- | --- | --- | --- |
+| DC-A-01 | Section 5; PM-I-04 | New module rule PM-R-10: "Every module listed in PM-I-04 MUST return its own records to `vigil-api` for display, filtered by incident, run, key or time range, ordered, paged, counted or summed as the screens of `40-demo-cut` state; these are reads only and write no audit event (`40-demo-cut` DC-R-08)." PM-I-04's complete list adds `vigil-correlation`, `vigil-recovery` and `vigil-diagnostics`. | Screens show hypothesis counts, recovery progress and diagnostic definitions (`40-demo-cut` DC-D-11). |
+| DC-A-02 | PM-M12 card, "Sends requests to"; PM-I-45 | Adds `vigil-identity` (team display names for test-mode notes, `20-domain-model` DM-R-48). | Test replay notes name teams (`40-demo-cut` DC-TX-09). |
+| DC-A-08 | PM-M24-05 | The complete list of labels becomes the kind tags of `40-demo-cut` DC-U-10: the four existing labels plus "Observation", "AI analysis", "History match", "Proposed action", "Approval", "Execution result", "Verified outcome" and "Not recovered". | BSD §11.1: the interface distinguishes observation, hypothesis, proposed action, execution result and verified outcome. |
+| DC-A-09 | PM-M01 card, Owns; PM-M01-02 | Tenant settings add the product display name (`20-domain-model` DM-E-02 `product_display_name`); PM-M01-02 returns it. | `40-demo-cut` DC-U-02, CTX-D-024. |
+| DC-A-10 | PM-I-11; PM-I-14 | PM-I-11's purpose adds: "passes the matched rule's name with each assignment, and the timer with each escalation, for the texts `vigil-incidents` writes". PM-I-14's purpose adds: "passes the escalation cause and timer with each escalation message and Jira record". | Timeline, audit and outbound texts name the rule and the timer (`40-demo-cut` DC-TX-01, DC-TX-04). |
+| DC-A-11 | PM-M22-01 | Becomes: "MUST let an admin change the address of each monitoring source loaded by seed import and see each source's health and test result; the test itself is run by `vigil-intake` (PM-M06-07); adding a source is Later (`40-demo-cut` DC-L-01)." | CTX-D-023 (SL-A2-01 clarification). |
+| DC-A-12 | PM-M15 card, "Sends requests to"; Section 9.1 | `vigil-recovery` adds `vigil-servicemap`. New request PM-I-46: `vigil-recovery` → `vigil-servicemap`, read component names for the recovery condition texts (`40-demo-cut` DC-TX-03); allowed by PM-R-03. | Condition texts name components. |
+| DC-A-18 | PM-M06 | New responsibility PM-M06-07: "MUST run a connection test for a monitoring source on request through `vigil-api` and record it and recompute health exactly as for a periodic test (`20-domain-model` DM-R-39, DM-R-40)." Built; trace SL-A2-01. | `40-demo-cut` DC-S07-02 "Test connection". |
+

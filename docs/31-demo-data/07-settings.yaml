@@ -20,7 +20,7 @@ connector_instances:                  # DM-E-10 (complete list, 11)
   - {handle: alertmanager-lab, name: "Alertmanager — Jazz lab",      kind: alertmanager,    address: "https://alertmanager.<demo-domain>", settings: R5, credential_ref: cred-alertmanager-api}
   - {handle: linux-lab-db-01,  name: "Subscriber DB server (lab)",   kind: linux_server,    address: "lab-db-01.<demo-domain>",            settings: R5, credential_ref: null}   # credentials per grant (DD-F-04)
   - {handle: jira-demo,        name: "Jira Cloud — demo project",    kind: jira_cloud,      address: R5, settings: R5, credential_ref: cred-jira}
-  - {handle: teams-demo,       name: "Microsoft Teams — Vigil Demo", kind: ms_teams,        address: R5, settings: R5, credential_ref: null}   # secret per channel: see DD-O-04
+  - {handle: teams-demo,       name: "Microsoft Teams — Techfinity Demo", kind: ms_teams,        address: R5, settings: R5, credential_ref: null}   # secret per channel: see DD-O-04
   - {handle: email-demo,       name: "Email — demo domain",          kind: email,           address: R5, settings: R5, credential_ref: cred-smtp}
   - {handle: claude-api,       name: "Claude API",                   kind: claude,          address: R5, settings: R5, credential_ref: cred-claude}
   - {handle: openai-api,       name: "OpenAI API",                   kind: openai,          address: R5, settings: R5, credential_ref: cred-openai}
@@ -70,25 +70,25 @@ correlation_settings:                 # DM-E-31; resolves SL-O-04 and DM-O-01
   max_forming_s: 300                  # longer than the storm (120 s) plus the settle period
   stability_check_interval_s: 5
 
-delivery_addresses:                   # DM-E-77 (complete list). Teams: one channel per team in the demo Team "Vigil Demo";
+delivery_addresses:                   # DM-E-77 (complete list). Teams: one channel per team in the demo Team "Techfinity Demo";
                                       # the address form is decided in Round 5 (PM-O-10, DD-O-04).
-  - {subject_kind: team, subject_key: noc-l1,             channel: teams, address: "Vigil Demo / NOC L1"}
+  - {subject_kind: team, subject_key: noc-l1,             channel: teams, address: "Techfinity Demo / NOC L1"}
   - {subject_kind: team, subject_key: noc-l1,             channel: email, address: "noc-l1@<demo-domain>"}
-  - {subject_kind: team, subject_key: db-ops,             channel: teams, address: "Vigil Demo / Database Operations"}
+  - {subject_kind: team, subject_key: db-ops,             channel: teams, address: "Techfinity Demo / Database Operations"}
   - {subject_kind: team, subject_key: db-ops,             channel: email, address: "db-ops@<demo-domain>"}
-  - {subject_kind: team, subject_key: vas-service-owners, channel: teams, address: "Vigil Demo / VAS Service Owners"}
+  - {subject_kind: team, subject_key: vas-service-owners, channel: teams, address: "Techfinity Demo / VAS Service Owners"}
   - {subject_kind: team, subject_key: vas-service-owners, channel: email, address: "vas-service-owners@<demo-domain>"}
-  - {subject_kind: team, subject_key: it-apps,            channel: teams, address: "Vigil Demo / IT Applications"}
+  - {subject_kind: team, subject_key: it-apps,            channel: teams, address: "Techfinity Demo / IT Applications"}
   - {subject_kind: team, subject_key: it-apps,            channel: email, address: "it-apps@<demo-domain>"}
-  - {subject_kind: team, subject_key: noc-shift-lead,     channel: teams, address: "Vigil Demo / NOC Shift Lead"}
+  - {subject_kind: team, subject_key: noc-shift-lead,     channel: teams, address: "Techfinity Demo / NOC Shift Lead"}
   - {subject_kind: team, subject_key: noc-shift-lead,     channel: email, address: "noc-shift-lead@<demo-domain>"}
-  - {subject_kind: team, subject_key: noc-management,     channel: teams, address: "Vigil Demo / NOC Management"}
+  - {subject_kind: team, subject_key: noc-management,     channel: teams, address: "Techfinity Demo / NOC Management"}
   - {subject_kind: team, subject_key: noc-management,     channel: email, address: "noc-management@<demo-domain>"}
-  - {subject_kind: team, subject_key: customer-care,      channel: teams, address: "Vigil Demo / Customer Care"}
+  - {subject_kind: team, subject_key: customer-care,      channel: teams, address: "Techfinity Demo / Customer Care"}
   - {subject_kind: team, subject_key: customer-care,      channel: email, address: "customer-care@<demo-domain>"}
-  - {subject_kind: user, subject_key: dbops-engineer,     channel: teams, address: "Vigil Demo / Approvals — Usman"}
+  - {subject_kind: user, subject_key: dbops-engineer,     channel: teams, address: "Techfinity Demo / Approvals — Usman"}
   - {subject_kind: user, subject_key: dbops-engineer,     channel: email, address: "dbops-engineer@<demo-domain>"}
-  - {subject_kind: user, subject_key: dbops-lead,         channel: teams, address: "Vigil Demo / Approvals — Farah"}
+  - {subject_kind: user, subject_key: dbops-lead,         channel: teams, address: "Techfinity Demo / Approvals — Farah"}
   - {subject_kind: user, subject_key: dbops-lead,         channel: email, address: "dbops-lead@<demo-domain>"}
 # Teams it-infra and vas-ops have no address: no workflow path or escalation level notifies them in the demo.
 

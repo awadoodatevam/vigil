@@ -74,6 +74,8 @@ workflow:
 # SL-A2-06: the draft changes the admin makes in the editor, applied in this order to a copy of version 1.
 # Publishing the result creates version 2 (DD-K-07 checks it). Rolling back to version 1 then creates version 3.
 draft_changes_for_version_2:
+# The editor assigns the step_id of an added step and appends the step at the end of steps (40-demo-cut DC-S06-04);
+# s-approve-2 is the value used by tools/check_data.py.
   - change: add_step
     step: {step_id: s-approve-2, type: approval, label: "DB Ops second approval", position: {x: 2090, y: 0}, parameters: {eligible_teams: [db-ops], expiry_s: 900}}
   - change: remove_connection

@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 20-domain-model (ID prefix `DM-`) |
-| Version | 1.1 |
-| Date | 9 October 2026 |
+| Version | 1.2 |
+| Date | 10 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 2 closed. Amended by Round 3 (`30-jazz-storyboard` SB-A-01, SB-A-06, SB-A-07, SB-A-08). |
+| Status | Baseline (owner reviewed). Round 2 closed. Amended by Round 3 (`30-jazz-storyboard` SB-A-01, SB-A-06, SB-A-07, SB-A-08) and Round 4 (`40-demo-cut` Section 14.2). |
 
 ## 1. Purpose
 
@@ -78,7 +78,7 @@ Terms defined in `01-scope-lock` Section 3 and `10-product-map` Section 3 keep t
 | DM-V-09 | Routing result | `severity: Enum{P1, P2, P3, P4}`; `owner_team_key: Key`; `informed_team_keys: Set<Key>`. | DM-E-32, DM-E-43 |
 | DM-V-10 | Affected service copy | `service_key: Key`; `name: Text(100)`; `criticality: Enum{critical, high, medium, low} or none`; `via_component_keys: Set<Key>` (the affected components that are members of the service). | DM-E-32 |
 | DM-V-11 | Configuration area | `Enum{tenant_settings, users_and_teams, sources, service_map, routing_rules, escalation_levels, workflows, ai_settings, registered_actions, seed_import}` — the complete list of PM-R-06. | DM-E-08 |
-| DM-V-12 | Approval snapshot | The content of the Approval page, one part per item of the SL-A1-06 complete list: action name — `action_key`, `action_name`; exact parameters — `parameters`; target server — `target_key`, `target_name`; limits — `limits: List<Text(200)>` plus `attempt_number` and `attempt_limit` (the attempt limit is one of the action's limits); expiry time — `expires_at`; the evidence the proposal is based on — `evidence: List<{evidence_entry_id, kind, summary, collected_at}>`, holding every evidence entry of the incident of kind `diagnostic_result`, `ai_investigation` or `similarity_match` existing when the request is created, in `collected_at` order, plus `based_on: {past_incident_key, past_incident_title, score, success_count}` (the similarity match itself); the recovery checks — `recovery_checks: {recovery_check_key, name, conditions (DM-V-07 rendered as text), observation_window}`. `snapshot_hash` is a hash of the canonical form of the whole snapshot (hash function and canonical form decided in Round 5, DM-O-08). | DM-E-58 |
+| DM-V-12 | Approval snapshot | The content of the Approval page, one part per item of the SL-A1-06 complete list: action name — `action_key`, `action_name`; exact parameters — `parameters`; target server — `target_key`, `target_name` (the name of the `server` component whose `target_key` is the target, DM-E26-R1; `40-demo-cut` DC-A-16); limits — `limits: List<Text(200)>` plus `attempt_number` and `attempt_limit` (the attempt limit is one of the action's limits); expiry time — `expires_at`; the evidence the proposal is based on — `evidence: List<{evidence_entry_id, kind, summary, collected_at}>`, holding every evidence entry of the incident of kind `diagnostic_result`, `ai_investigation` or `similarity_match` existing when the request is created, in `collected_at` order, plus `based_on: {past_incident_key, past_incident_title, record_label, score, success_count}` (the similarity match itself); the recovery checks — `recovery_checks: {recovery_check_key, name, conditions (DM-V-07 rendered as text), observation_window}`. `snapshot_hash` is a hash of the canonical form of the whole snapshot (hash function and canonical form decided in Round 5, DM-O-08). | DM-E-58 |
 
 ## 6. Entity overview
 
@@ -261,6 +261,7 @@ Owner `vigil-tenancy` · Configuration (area `tenant_settings`) · Trace: SL-A3-
 | `customer_logo` | Bytes | N | PNG or SVG image, at most 512 KB. |
 | `customer_logo_media_type` | Enum{image/png, image/svg+xml} | N | Required when `customer_logo` is set. |
 | `environment_label` | Text(100) | N | When not empty: shown as a banner on every screen and prefixed to every ticket title and message (`01-scope-lock` Section 3). |
+| `product_display_name` | Text(60) | Y | The product name shown on screens and in outbound content (`40-demo-cut` DC-U-02; DC-A-09). Demo value "Techfinity" (CTX-D-024). |
 | `updated_by` | Actor | Y | |
 
 - **DM-E02-R1** Exactly one tenant settings record exists per tenant in state `ready`.
@@ -544,7 +545,7 @@ Owner `vigil-intake` · Immutable · Trace: PM-M06-04, PM-M06-05.
 | `reported_status` | Enum{firing, resolved} | N | Required when `normalised`. |
 | `alert_type` | Key | N | Required when `normalised` (DM-E17-R1). |
 | `identity_pairs` | List<Identity pair> | N | In the connector's fixed precedence order (Section 8.2). |
-| `title` | Text(300) | N | Alert name or summary as given by the source. |
+| `title` | Text(300) | N | Alert name or summary as given by the source: for Alertmanager, the alert's `summary` annotation, or the `alertname` label when there is none; for Zabbix, the event name (`40-demo-cut` DC-A-17, DC-A-19; field names Round 5, DM-O-04). |
 | `source_time` | Timestamp | N | Start time (firing) or end time (resolved) stated by the source. |
 | `source_severity` | Text(50) | N | Severity as stated by the source; informational only, never used for routing. |
 | `applied_to_alert_id` | Ref<Alert> | N | The alert this entry created or changed (DM-E21-R1); empty for a failed entry or an orphan resolved entry. |
@@ -730,7 +731,7 @@ Owner `vigil-incidents` · Stateful (DM-SM-05) · Trace: SL-A1-02, SL-A1-04, SL-
 | Field | Type | Req | Meaning |
 | --- | --- | --- | --- |
 | `sequence` | Integer | Y | 1, 2, 3, … per tenant, in creation order. Internal: used for ordering (DM-R-10, DM-R-21); never shown. |
-| `number` | Integer | N | The incident number shown to users: 1, 2, 3, … per tenant, assigned at `forming` → `open` in the order incidents leave `forming`; set once. Empty while `forming`; never set for a `merged` incident. Display format decided in Round 4 (DM-O-11). |
+| `number` | Integer | N | The incident number shown to users: 1, 2, 3, … per tenant, assigned at `forming` → `open` in the order incidents leave `forming`; set once. Empty while `forming`; never set for a `merged` incident. Display format `40-demo-cut` DC-TX-01 (`INC-0001`). |
 | `title` | Text(200) | Y | Section 8.5. |
 | `state` | Enum{forming, open, resolved, closed, merged} | Y | DM-SM-05. |
 | `state_changed_at` | Timestamp | Y | |
@@ -754,6 +755,8 @@ Owner `vigil-incidents` · Stateful (DM-SM-05) · Trace: SL-A1-02, SL-A1-04, SL-
 | `acknowledged_by` | Ref<User> | N | Copy; cleared at reopen. |
 | `ai_status` | Enum{not_run, available, unavailable} | Y | Set on request of `vigil-investigation` (PM-M09-07). |
 | `ai_unavailable_reason` | Enum{no_provider_reachable, no_provider_allowed, output_failed_checks} | N | Required when `ai_status = unavailable`. `ai_status` reflects SL-T-1 attempts only (workflow step and re-run); SL-T-2 and SL-T-3 outcomes do not change it. `no_provider_allowed`: data routing allowed no provider in the order. |
+| `ai_status_changed_at` | Timestamp | N | Set whenever `ai_status` changes (`40-demo-cut` DC-A-13). |
+| `ai_last_request_group_id` | Id | N | Set by `vigil-investigation` at every SL-T-1 attempt (workflow step or re-run) to that attempt's request group (DC-A-13). |
 | `resolved_at` | Timestamp | N | Set at each `open` → `resolved`; cleared at reopen. |
 | `resolved_by_verification_id` | Ref<Recovery verification> | N | Same rule (PM-M09-06). |
 | `closed_at` | Timestamp | N | |
@@ -761,8 +764,8 @@ Owner `vigil-incidents` · Stateful (DM-SM-05) · Trace: SL-A1-02, SL-A1-04, SL-
 | `reopen_count` | Integer | Y | Number of reopenings. The current episode of the incident is `reopen_count + 1`. |
 
 - **DM-E32-R1** Fields described as "set only on request of" a module MUST be refused when requested by any other module (PM-M09-03, PM-M09-06).
-- **DM-E32-R2** Every change to an incident MUST create a timeline entry (DM-E-39) and publish "incident changed" (PM-EV-09); every state change MUST also create a state transition (DM-E-33) and publish "incident state changed" (PM-EV-08).
-- **DM-E32-R3** A `merged` incident MUST NOT appear in the incident list (SL-A4-02), in any incident count or in any metric. A `forming` incident has no number; how incidents still forming are shown is decided in Round 4, and MUST NOT present them as separate numbered incidents.
+- **DM-E32-R2** Every change to an incident MUST create a timeline entry (DM-E-39) and publish "incident changed" (PM-EV-09), except that a change of only `ai_status_changed_at` and `ai_last_request_group_id` publishes "incident changed" without a timeline entry (`40-demo-cut` DC-A-13); every state change MUST also create a state transition (DM-E-33) and publish "incident state changed" (PM-EV-08).
+- **DM-E32-R3** A `merged` incident MUST NOT appear in the incident list (SL-A4-02), in any incident count or in any metric. A `forming` incident has no number; how incidents still forming are shown is decided in `40-demo-cut` (DC-S02-02, DC-S02-03: only in the incoming alerts strip), and MUST NOT present them as separate numbered incidents.
 
 #### DM-E-33 Incident state transition
 
@@ -819,6 +822,7 @@ Owner `vigil-incidents` · Immutable · Trace: SL-A2-03, SL-A2-04, PM-M09-08.
 | `level` | Integer | Y | The level reached (1 = first escalation level). |
 | `team_keys` | Set<Key> | Y | Teams of that level (copy from the escalation policy revision). |
 | `cause` | Enum{acknowledgement_timeout, escalate_now} | Y | |
+| `timer` | Duration | N | The Escalation step's timer, set for cause `acknowledgement_timeout`; passed by `vigil-routing` (`40-demo-cut` DC-A-10). |
 | `policy_revision` | Integer | Y | |
 | `at` | Timestamp | Y | |
 
@@ -888,7 +892,7 @@ Owner `vigil-routing` · Revisioned (area `routing_rules`) · Trace: SL-A1-04, S
 | `rules` | List<Routing rule> | Y | Evaluated in list order. |
 | `saved_by` | Actor | Y | |
 | `saved_at` | Timestamp | Y | |
-| `change_summary` | Text(300) | Y | Generated list of rules added, removed or changed compared with the previous revision. |
+| `change_summary` | Text(300) | Y | Generated list of rules added, removed or changed compared with the previous revision, worded as `40-demo-cut` DC-TX-10 (DC-A-19). |
 
 A Routing rule is (complete list of parts):
 
@@ -982,7 +986,7 @@ Owner `vigil-workflows` · Immutable · Trace: SL-B-03, SL-WE-09, SL-A2-06, PM-M
 | `origin_ref` | Id | N | The draft (for `draft`) or the earlier version whose content was copied (for `rollback`). |
 | `published_by` | Actor | Y | |
 | `published_at` | Timestamp | Y | |
-| `change_list` | List<{step_id, change: Enum{added, removed, changed}, details: Text(300)}> | Y | Compared with the previous version by `step_id` (SL-WE-09). A step is `changed` when its type, label, parameters or outgoing connections differ; position changes alone are not listed. Empty for version 1. |
+| `change_list` | List<{step_id, change: Enum{added, removed, changed}, details: Text(300)}> | Y | Compared with the previous version by `step_id` (SL-WE-09). A step is `changed` when its type, label, parameters or outgoing connections differ; position changes alone are not listed. Empty for version 1. Ordered: added steps in the order of the new version's `steps`, then changed steps in the same order, then removed steps in the order of the previous version's `steps`; `details` worded as `40-demo-cut` DC-TX-08 (DC-A-14). |
 
 #### DM-E-48 Validation result
 
@@ -1017,8 +1021,10 @@ Owner `vigil-workflows` · Stateful (running → completed or failed) · Trace: 
 | `started_by` | Actor | Y | |
 | `started_at` | Timestamp | Y | |
 | `finished_at` | Timestamp | N | |
+| `failure_reason` | Text(300) | N | Required when `state = failed`; texts of `40-demo-cut` DC-TX-11 (DC-A-15). |
 
 - **DM-E49-R1** Every screen and export that shows a test replay result MUST label it "Test" (`01-scope-lock` Section 3).
+- **DM-E49-R2** A replay of a draft with violations creates a result in state `failed` with its `validation_result_id` and `failure_reason` (`40-demo-cut` DC-A-15).
 
 ### 7.12 `vigil-engine`
 
@@ -1260,7 +1266,7 @@ Owner `vigil-recovery` · Stateful (DM-SM-13) · Trace: SL-A1-07, SL-A2-04, BSD 
 | `started_at` | Timestamp | Y | |
 | `max_wait_until` | Timestamp | Y | `started_at` plus the step's `max_wait` parameter. |
 | `window_started_at` | Timestamp | N | Start of the current period in which all conditions hold; empty when they do not hold. |
-| `last_evaluation` | Json | Y | `{at, conditions: [{condition, held, detail}], sources_healthy}`. |
+| `last_evaluation` | Json | Y | `{at, conditions: [{condition, held, detail, firing_count}], sources_healthy, unhealthy_source_ids}`. `detail` is the condition text of `40-demo-cut` DC-TX-03 for its state; `firing_count` the number of firing alerts the condition counted (DC-A-12). The verification's evidence entry carries in its `content` the definition snapshot, `window_started_at`, `decided_at` and this last evaluation. |
 | `decided_at` | Timestamp | N | |
 
 ### 7.16 `vigil-knowledge`
@@ -1368,6 +1374,7 @@ Owner `vigil-investigation` · Immutable · Trace: SL-A1-04, SL-A2-07, BSD-BR-01
 | `verdict` | Enum{confirms, disputes} | N | Relation to the hypothesis. |
 | `evidence_entry_ids` | List<Ref<Evidence entry>> | Y | |
 | `uncertainty` | Text(2000) | N | |
+| `runbooks_supplied` | List<{runbook_key, version}> | Y | The runbooks given to SL-T-1 by DM-R-50, in the order given (`40-demo-cut` DC-A-03). |
 | `runbook_refs` | List<{runbook_key, version}> | Y | |
 | `raw_output` | Text(20000) | Y | Provider output as received; `raw_output_truncated` per DM-C-11. |
 | `validation` | Enum{accepted, rejected} | Y | PM-M17-03. |
@@ -1712,8 +1719,8 @@ These rules resolve the Round 2 open items. Each rule has an ID `DM-R-nn`. Where
 | --- | --- | --- |
 | DM-R-46 | A test replay does not re-run grouping: it uses the source incident's current members, hypothesis and impact. It re-runs routing as a dry run (DM-R-28). Condition steps read the source incident's fields with severity, owner team and informed parties replaced by the dry-run result, `acknowledged` true exactly when the simulated clock is equal to or later than the source incident's `acknowledged_at`, and `escalation_level` equal to the simulated level (starting at 0). | SL-A2-06; PM-O-07 |
 | DM-R-47 | The simulated clock starts at the source incident's `stable_at` and never moves backwards. Only Diagnostic, AI task, Action and Recovery check steps use stored results (DM-R-48); each such step that uses one advances the clock by that stored step execution's real duration (`finished_at − started_at`). Escalation and Wait/timer advance it as DM-R-49 states. Every other step, and a step without a stored result, advances it by 0. Nothing waits in real time. A test run that reaches 1,000 step executions is stopped as `failed` (`end_reason = step_limit_reached`). | SL-A2-06 |
-| DM-R-48 | "Stored result" means a step execution of the source incident's first live run with the same step type (and, for AI task, the same `task`). Each stored result is used at most once per test run, in the order it was recorded. `vigil-engine` computes every test-mode output itself from its own stored step executions and from read-only requests (complete list): `vigil-incidents` (fields and acknowledgement time), `vigil-knowledge` (latest similarity search result), `vigil-routing` (escalation policy levels), `vigil-actions` (whether a registered action is active), `vigil-servicemap` (target of a component). No other module is asked to run a test-mode step (DM-C-09). | PM-M12-09 |
-| DM-R-49 | Test-mode behaviour per step type (complete list): **Trigger** — `next`. **Condition** — evaluated as DM-R-46. **Diagnostic** — the next unused stored Diagnostic result: its output; none: `failed`, note "no stored result". **AI task** — the next unused stored AI task result for the same `task`: its output; none: `unavailable` for SL-T-1 and SL-T-3, `done` for SL-T-2 (template), note "no stored result". **Approval** — the test run has a simulated proposal exactly when DM-R-29 would create one from the source incident's latest similarity search result; without one: `rejected`, note "no proposal"; with one: `approved`, note "Simulated approval" with the eligible teams and, for a later Approval step, the rule "approver must differ from the approvers of the earlier Approval steps" (no user names). **Action** — the engine guard DM-R-31 applies, using the simulated proposal and simulated approvals; then the next unused stored Action result: its output; none: `failed`, note "no stored result". **Recovery check** — the next unused stored Recovery check result: its output; none: `not recovered`, note "no stored result". **Escalation** — `escalate now`: simulated escalation by DM-S-08, `next`. `wait for acknowledgement`: let T be the simulated time at step start; if the source incident's `acknowledged_at` is equal to or earlier than T, leave by `next` at T; otherwise, for each remaining level in turn, if `acknowledged_at` is equal to or earlier than T + `timer`, advance the clock to `acknowledged_at` and leave by `next`; otherwise advance the clock by `timer` (T becomes T + `timer`), record a simulated escalation to the next level and continue; after the last level, `next`. A source incident with no acknowledgement escalates through every level. **Notification** — `sent`, note listing the team keys that would be notified. **Ticket create/update** — `done`, note "Simulated". **Wait/timer** — duration mode: advance the clock by the duration, `timed out`; event mode: if `acknowledged_at` is equal to or earlier than the current simulated time, leave by `event received` at once; if it is within the timeout, advance to it and leave by `event received`; otherwise advance by the timeout and leave by `timed out`. | SL-A2-06, PM-M12-09; PM-O-07 |
+| DM-R-48 | "Stored result" means a step execution of the source incident's first live run with the same step type (and, for AI task, the same `task`). Each stored result is used at most once per test run, in the order it was recorded. `vigil-engine` computes every test-mode output itself from its own stored step executions and from read-only requests (complete list): `vigil-incidents` (fields and acknowledgement time), `vigil-knowledge` (latest similarity search result), `vigil-routing` (escalation policy levels), `vigil-actions` (whether a registered action is active), `vigil-servicemap` (target of a component), `vigil-identity` (team display names, `40-demo-cut` DC-A-02). No other module is asked to run a test-mode step (DM-C-09). | PM-M12-09 |
+| DM-R-49 | Test-mode behaviour per step type (complete list): **Trigger** — `next`. **Condition** — evaluated as DM-R-46. **Diagnostic** — the next unused stored Diagnostic result: its output; none: `failed`, note "no stored result". **AI task** — the next unused stored AI task result for the same `task`: its output; none: `unavailable` for SL-T-1 and SL-T-3, `done` for SL-T-2 (template), note "no stored result". **Approval** — the test run has a simulated proposal exactly when DM-R-29 would create one from the source incident's latest similarity search result; without one: `rejected`, note "no proposal"; with one: `approved`, note "Simulated approval" with the eligible teams and, for a later Approval step, the rule "approver must differ from the approvers of the earlier Approval steps" (no user names). **Action** — the engine guard DM-R-31 applies, using the simulated proposal and simulated approvals; then the next unused stored Action result: its output; none: `failed`, note "no stored result". **Recovery check** — the next unused stored Recovery check result: its output; none: `not recovered`, note "no stored result". **Escalation** — `escalate now`: simulated escalation by DM-S-08, `next`. `wait for acknowledgement`: let T be the simulated time at step start; if the source incident's `acknowledged_at` is equal to or earlier than T, leave by `next` at T; otherwise, for each remaining level in turn, if `acknowledged_at` is equal to or earlier than T + `timer`, advance the clock to `acknowledged_at` and leave by `next`; otherwise advance the clock by `timer` (T becomes T + `timer`), record a simulated escalation to the next level and continue; after the last level, `next`. A source incident with no acknowledgement escalates through every level. **Notification** — `sent`, note listing the team keys that would be notified. **Ticket create/update** — `done`, note "Simulated". **Wait/timer** — duration mode: advance the clock by the duration, `timed out`; event mode: if `acknowledged_at` is equal to or earlier than the current simulated time, leave by `event received` at once; if it is within the timeout, advance to it and leave by `event received`; otherwise advance by the timeout and leave by `timed out`. Notes are worded as `40-demo-cut` DC-TX-09 (DC-A-02). | SL-A2-06, PM-M12-09; PM-O-07 |
 
 | DM-R-68 | **Which incidents can be replayed.** A test replay MUST be refused (test replay result `failed`, reason stated) unless the source incident is `open`, `resolved` or `closed` and has at least one live run. Before a test replay or publish, `vigil-workflows` MUST validate the current draft revision itself (DM-E-48); there is no separate validation step for the user. | SL-A2-06, SL-WE-08 |
 | DM-R-59 | **Test events.** Step changes of a test-mode run are published with `mode = test` and the test replay ID. `vigil-api` MUST push them only to the test replay view and MUST NOT show them on the live incident's workflow graph (SL-A1-08, SL-WE-10). | SL-A2-06, SL-A1-08 |
@@ -2198,7 +2205,7 @@ Status "Agreed by owner" means Abdul agreed the decision under CTX-Q-7 on 9 Octo
 | DM-O-08 | Identifier format, hash function and canonical form, physical types. | Claude | R5 |
 | DM-O-09 | Value of `runbook_limit`. | Claude | R3 |
 | DM-O-10 | Default data routing rules per category (DM-E-73). | Claude, reviewed by Abdul | R3 (with SL-O-20) |
-| DM-O-11 | Display format of incident numbers. | Claude | R4 |
+| DM-O-11 | Closed by `40-demo-cut` DC-TX-01, 10 Oct 2026 (was: display format of incident numbers). | Claude | R4 |
 | DM-O-12 | Settings schema per connector kind (DM-E-09), including the Jira project, resolved transition and reopen transition. | Claude | R5 |
 | DM-O-13 | AI provider model names and prices per million units (DM-E-70), used for the cost shown in SL-A2-02. | Claude; running costs approved by Muzaffar (CTX-O-02) | R5 |
 | DM-O-14 | Content of the default recovery check definition (DM-E61-R1). | Claude, reviewed by Abdul | R3 |
@@ -2229,4 +2236,5 @@ Open items carried from earlier documents and still open after this round: SL-O-
 | 0.5 | 9 Oct 2026 | Answered readiness test pass 2 questions (Section 17). Draft for owner review. |
 | 1.0 | 9 Oct 2026 | Owner review recorded; Round 2 closed. |
 | 1.1 | 10 Oct 2026 | Round 3 amendments (`30-jazz-storyboard` Section 15.2, CTX-D-018): DM-E-04 demo teams (SB-A-06); DM-E-16 demo alert type set (SB-A-01); DM-V-06 path prefix meaning (SB-A-07); DM-R-24 (d) limited to faults that produce lab alerts (SB-A-08). |
+| 1.2 | 10 Oct 2026 | Round 4 amendments (`40-demo-cut` Section 14.2, CTX-D-022): DM-E-02 `product_display_name` (DC-A-09); DM-E-20 title rule (DC-A-19); DM-E-32 AI attempt fields and DM-E32-R2 exception, DM-E32-R3 and number format (DC-A-13, DC-A-06); DM-E-36 `timer` (DC-A-10); DM-E-41 `change_summary` wording (DC-A-19); DM-E-47 change list order (DC-A-14); DM-E-49 `failure_reason`, DM-E49-R2 (DC-A-15); DM-E-62 last evaluation (DC-A-12); DM-E-68 `runbooks_supplied` (DC-A-03); DM-V-12 (DC-A-16); DM-R-48 and DM-R-49 (DC-A-02); DM-O-11 closed. |
 
