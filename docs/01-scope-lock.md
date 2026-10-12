@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 01-scope-lock (ID prefix `SL-`) |
-| Version | 1.8 |
-| Date | 10 October 2026 |
+| Version | 1.9 |
+| Date | 12 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Locked (owner review recorded in Section 13). Changes only through Section 8. |
 
@@ -220,10 +220,10 @@ BSD requirements not covered by this demo (complete list): BSD-BR-018 (industry 
 
 | ID | Assumption | Verified by |
 | --- | --- | --- |
-| SL-ASM-01 | Prometheus Alertmanager's grouping and timing settings can be configured to deliver 100 to 200 individual alerts to a webhook within 120 seconds. By default it batches alerts and waits before sending. | Fact check in R5; early build spike |
-| SL-ASM-02 | A Microsoft-supported mechanism exists to post Teams messages containing links into a channel or chat without building a bot. Microsoft is retiring the older Office 365 connector webhooks; the replacement route must be confirmed. | Route identified in Round 3 (`30-jazz-storyboard` Section 13, CTX-D-021): Office 365 connectors were disabled in May 2026; Microsoft's replacement is Workflows webhooks. Still to be proved by build test SB-T-06 and the Round 5 design (DD-O-04). |
+| SL-ASM-01 | Prometheus Alertmanager's grouping and timing settings can be configured to deliver 100 to 200 individual alerts to a webhook within 120 seconds. By default it batches alerts and waits before sending. | Configuration confirmed in Round 3; proved by SB-T-01. |
+| SL-ASM-02 | A Microsoft-supported mechanism exists to post Teams messages containing links into a channel or chat without building a bot. Microsoft is retiring the older Office 365 connector webhooks; the replacement route must be confirmed. | Route identified in Round 3 (`30-jazz-storyboard` Section 13, CTX-D-021): Office 365 connectors were disabled in May 2026; Microsoft's replacement is Workflows webhooks. Route designed in Round 5 (`50-architecture` AR-K-17, AR-K-18); proved by SB-T-06. |
 | SL-ASM-03 | Anthropic offers no embeddings API, so Claude is not listed for SL-T-3. This does not affect the demo default (CTX-D-011). | Confirmed in Round 3 (`30-jazz-storyboard` Section 13). |
-| SL-ASM-04 | The selected local embedding model returns the same vector for the same input text on the same server. | Fact check in R5; early build spike |
+| SL-ASM-04 | The selected local embedding model returns the same vector for the same input text on the same server. | Fact check in R5: not stated by the runtime's documentation; proved by SB-T-03. |
 
 ## 12. Open items (complete list)
 
@@ -239,16 +239,16 @@ BSD requirements not covered by this demo (complete list): BSD-BR-018 (industry 
 | SL-O-08 | Past-incident best match, similarity score display, success count, proposed action and its parameters (SL-A1-06) | Claude, reviewed by Abdul | R3 |
 | SL-O-09 | Approval expiry time and action limits (SL-A1-06) | Claude, reviewed by Abdul | R3 |
 | SL-O-10 | Dashboard data source: current demo run plus seeded history (SL-A1-09) | Claude, reviewed by Abdul | R3 |
-| SL-O-11 | Service map file format (SL-A2-01) | Claude | R2 (structure), R5 (format) |
+| SL-O-11 | Service map file format (SL-A2-01) | Claude | R2 (structure), R5 (format; closed by `50-architecture` AR-B-06) |
 | SL-O-12 | Source health thresholds for stale and disconnected (SL-A2-01) | Claude, reviewed by Abdul | R3 |
 | SL-O-13 | Data categories used in AI data routing (SL-A2-02) | Claude | R2 |
 | SL-O-14 | Escalation levels and timer values (SL-A2-03, SL-A2-06) | Claude, reviewed by Abdul | R3 |
 | SL-O-15 | Action attempt limit (SL-A2-04) | Claude, reviewed by Abdul | R3 |
 | SL-O-16 | Which cloud AI providers fault SL-F-4 makes unreachable | Claude, reviewed by Abdul | R3 |
-| SL-O-17 | Reset mechanism that keeps earlier runs intact (recommended: a new tenant per demo run, seeded from the starting state). Must also define: how Zabbix and Alertmanager webhooks and logged-in users reach the current run; how seeding, including SL-T-3 embeddings, fits within the 60-second reset. | Claude | R5 |
+| SL-O-17 | Reset mechanism that keeps earlier runs intact (recommended: a new tenant per demo run, seeded from the starting state). Must also define: how Zabbix and Alertmanager webhooks and logged-in users reach the current run; how seeding, including SL-T-3 embeddings, fits within the 60-second reset. | Claude | R5 (closed by `50-architecture` AR-B-01 to AR-B-04, AR-B-09, AR-R-19) |
 | SL-O-18 | Display names of demo users | Claude, reviewed by Abdul | R3 |
 | SL-O-19 | Screens included in checkpoint SL-CP-1 | Claude | R6 |
-| SL-O-20 | Default AI settings for SL-T-1 and SL-T-2: provider and fallback order (SL-T-3 default fixed by CTX-D-011) | Claude, reviewed by Abdul | R5 |
+| SL-O-20 | Default AI settings for SL-T-1 and SL-T-2: provider and fallback order (SL-T-3 default fixed by CTX-D-011) | Claude, reviewed by Abdul | R5 (closed by `50-architecture` Section 13.2, agreed by owner) |
 | SL-O-21 | The routing rule changed in SL-A2-06. The change MUST NOT alter the storm incident's severity or owner team. | Claude, reviewed by Abdul | R3 |
 | SL-O-22 | Definition of workflow version 1, step by step. It MUST include a severity Condition step with a P1 branch. | Claude, reviewed by Abdul | R3 |
 | SL-O-23 | Complete list of fields and operators usable in Condition steps | Claude | R2 |
@@ -276,3 +276,4 @@ Project-wide open items CTX-O-01 to CTX-O-05 are listed in `00-context.md` Secti
 | 1.6 | 9 Oct 2026 | SL-A1-07 and SL-A2-05 clarified (CTX-D-015, CTX-D-016, from Round 2). No item added to list A. |
 | 1.7 | 10 Oct 2026 | SL-A3-01, SL-A3-03 and SL-A3-07 clarified (CTX-D-020, from Round 3); SL-ASM-02 and SL-ASM-03 verification status updated after the Round 3 fact check. No item added to list A. |
 | 1.8 | 10 Oct 2026 | SL-A2-01 clarified (CTX-D-023, from Round 4, `40-demo-cut` DC-A-11). No item added to list A. |
+| 1.9 | 12 Oct 2026 | Round 5 amendments (`50-architecture` AR-A-16, CTX-D-025): "Verified by" of SL-ASM-01, SL-ASM-02 and SL-ASM-04 updated; SL-O-11, SL-O-17 and SL-O-20 closed. No item added to list A or list B. |

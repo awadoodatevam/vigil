@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""DD-F-12: runs checks DD-K-01 to DD-K-15 over the demo data folder (31-demo-data README Section 5).
+"""DD-F-12: runs checks DD-K-01 to DD-K-16 over the demo data folder (31-demo-data README Section 5).
 
 Usage (from the repository root; needs Python 3 and PyYAML):
     python3 docs/31-demo-data/tools/check_data.py docs/31-demo-data
@@ -702,6 +702,67 @@ def main(folder):
     # DD-K-15 identity
     check("DD-K-15", users == {"presenter", "noc-l1", "dbops-engineer", "dbops-lead", "admin"} and len(teams) == 9,
           "demo users exactly SL-A3-07; 9 teams")
+
+    # DD-K-16 Round 5 values (50-architecture AR-A-12, AR-A-13): no R5 marker left; only the AR-B-07 placeholders;
+    # secret locators; source keys; Teams addresses with their own webhook credential; connector settings of Section 12.2
+    errs16 = []
+    def walk(v):
+        if isinstance(v, dict):
+            for x in v.values():
+                yield from walk(x)
+        elif isinstance(v, list):
+            for x in v:
+                yield from walk(x)
+        else:
+            yield v
+    for part in ("ident", "smap", "mon", "ops", "rout", "wf", "set", "lab"):
+        if any(v == "R5" for v in walk(d[part])):
+            errs16.append("R5 marker left in " + part)
+    allowed_ph = {"demo_domain", "jira_site", "gpu_host_ip", "lab_db_host_key_sha256"} | {"mailbox." + k for k in (
+        "noc-l1", "db-ops", "vas-service-owners", "it-apps", "noc-shift-lead", "noc-management", "customer-care",
+        "dbops-engineer", "dbops-lead")}
+    for name in sorted(os.listdir(folder)):
+        if name.endswith((".yaml", ".md", ".csv")) and name != "README.md":
+            text = open(os.path.join(folder, name), encoding="utf-8").read()
+            for ph in re.findall(r"\$\{([^}]*)\}", text):
+                if ph not in allowed_ph:
+                    errs16.append("placeholder ${%s} in %s" % (ph, name))
+            if "<demo-domain>" in text:
+                errs16.append("<demo-domain> in " + name)
+    creds16 = {c["handle"]: c for c in d["set"]["credential_references"]}
+    for c in creds16.values():
+        if not re.fullmatch(r"secret:[a-z0-9-]{1,64}", str(c["locator"])):
+            errs16.append("locator " + c["handle"])
+    if len({c["locator"] for c in creds16.values()}) != len(creds16):
+        errs16.append("two credential references share a locator")
+    keys16 = [s_.get("source_key") for s_ in d["mon"]["monitoring_sources"]]
+    if any(not isinstance(k, str) or not re.fullmatch(r"[A-Za-z0-9._-]{1,64}", k) for k in keys16) or len(set(keys16)) != len(keys16):
+        errs16.append("monitoring source keys %s" % keys16)
+    used_webhook = []
+    for a in d["set"]["delivery_addresses"]:
+        ref = a.get("credential_ref")
+        if a["channel"] == "teams":
+            if not ref or creds16.get(ref, {}).get("purpose") != "webhook_url":
+                errs16.append("Teams address without webhook_url credential: " + a["subject_key"])
+            used_webhook.append(ref)
+        elif ref:
+            errs16.append("email address with a credential: " + a["subject_key"])
+    if len(set(used_webhook)) != len(used_webhook) or set(used_webhook) != {h for h, c in creds16.items() if c["purpose"] == "webhook_url"}:
+        errs16.append("each webhook_url credential belongs to exactly one Teams address")
+    settings_keys = {"zabbix": {"api_path"}, "alertmanager": {"username"}, "linux_server": {"port", "host_key_sha256"},
+                     "jira_cloud": {"project_key", "issue_type", "resolved_status", "reopened_status", "label_prefix"},
+                     "ms_teams": set(), "email": {"from_address", "starttls"}, "claude": {"anthropic_version"},
+                     "openai": set(), "local_model": {"keep_alive", "num_ctx"}, "local_embedding": {"keep_alive"}}
+    for c in d["set"]["connector_instances"]:
+        if not isinstance(c["settings"], dict) or set(c["settings"]) != settings_keys.get(c["kind"]):
+            errs16.append("settings keys of " + c["handle"])
+        if not isinstance(c["address"], str) or not c["address"]:
+            errs16.append("address of " + c["handle"])
+    for p_ in d["set"]["ai_provider_configurations"]:
+        if not isinstance(p_["price_input_per_million"], (int, float)) or not isinstance(p_["price_output_per_million"], (int, float)):
+            errs16.append("prices of " + p_["provider_key"])
+    check("DD-K-16", not errs16, "Round 5 values: %d credential references, %d Teams webhooks, source keys %s%s" % (
+        len(creds16), len(used_webhook), keys16, "" if not errs16 else ": %s" % errs16))
 
     for cid, ok_, detail in RESULTS:
         print("%s %s  %s" % ("PASS" if ok_ else "FAIL", cid, detail))

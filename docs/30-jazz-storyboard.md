@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 30-jazz-storyboard (ID prefix `SB-`) |
-| Version | 1.1 |
-| Date | 10 October 2026 |
+| Version | 1.2 |
+| Date | 12 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 3 closed (restarted 10 October 2026). Amended by Round 4 (`40-demo-cut` DC-A-04). |
+| Status | Baseline (owner reviewed). Round 3 closed (restarted 10 October 2026). Amended by Round 4 (`40-demo-cut` DC-A-04) and Round 5 (`50-architecture` AR-A-14). |
 
 ## 1. Purpose
 
@@ -48,11 +48,11 @@ Terms defined in earlier documents keep their meaning. The terms below are added
 | --- | --- | --- | --- |
 | SB-SET-01 | Meeting tool | A Microsoft Teams meeting; the operator shares one screen. | CTX-O-03; SB-D-01 |
 | SB-SET-02 | Roles | The narrator talks. The operator drives every screen and says only the operator lines in the script. | CTX-O-03; SB-D-01 |
-| SB-SET-03 | Shared screen (complete list of windows) | (1) Vigil in the browser profile "Presenter", logged in as `presenter` (left, two thirds of the width). (2) The phone window (right), browser profile "Phone". (3) The Teams desktop client showing the demo Team "Vigil Demo". (4) A browser tab with the Jira project board. (5) A web mail client showing the mailbox of NOC L1 (`noc-l1@<demo-domain>`). (6) The demo control panel (SL-A4-12) in its own browser window. Windows 3 to 6 are brought to the front only when the script says so. | SL-A4-04, SL-A4-05, SL-A3-03 |
+| SB-SET-03 | Shared screen (complete list of windows) | (1) Vigil in the browser profile "Presenter", logged in as `presenter` (left, two thirds of the width). (2) The phone window (right), browser profile "Phone". (3) The Teams desktop client showing the demo Team "Techfinity Demo". (4) A browser tab for Jira, in which the operator opens the current incident's ticket from its link (DC-S02-04), so tickets of earlier runs are not shown (`50-architecture` AR-B-04). (5) A web mail client showing the mailbox of NOC L1 (`${mailbox.noc-l1}`). (6) The demo control panel (SL-A4-12) in its own browser window. Windows 3 to 6 are brought to the front only when the script says so. | SL-A4-04, SL-A4-05, SL-A3-03 |
 | SB-SET-04 | Links into the phone window | Links in Teams messages and emails are copied (right-click, copy link) and pasted into the phone window, never opened by clicking, so they open in the phone window and not in the default browser. The operator logs in on the phone window as the user named by the scene and logs out at the end of the scene. | SL-B-13 |
 | SB-SET-05 | Attendees | Attendees do not join any demo Teams channel; every message is shown on the shared screen (decides SL-X-16). | SL-X-16; CTX-O-03 |
 | SB-SET-06 | Teams and email destinations | One demo Team "Techfinity Demo" with one channel per team that has a delivery address (complete list: NOC L1, Database Operations, VAS Service Owners, IT Applications, NOC Shift Lead, NOC Management, Customer Care) and one approvals channel per approver ("Approvals — Usman", "Approvals — Farah"); one mailbox per team and approver with an address (DD-F-07). The operator shows the channels the script names and the NOC L1 mailbox. | SL-A1-05, SL-A1-06 |
-| SB-SET-07 | Before each presentation | Reset (SL-A3-03); open every window of SB-SET-03; log in as `presenter`; check that the incident list is empty, both sources are healthy and the dashboard shows the seeded values of SB-V-38. | SL-A3-03, SL-A3-04 |
+| SB-SET-07 | Before each presentation | Reset (SL-A3-03); open every window of SB-SET-03; log in as `presenter`; check that the incident list is empty, both sources are healthy and the dashboard shows the seeded values of SB-V-38; the GPU host is started and the local model answers (`50-architecture` AR-G-31). | SL-A3-03, SL-A3-04 |
 | SB-SET-08 | Backup | If the live session fails, the operator plays the backup video (SL-A3-08) from the scene where the failure happened. | SL-A3-08 |
 
 ## 5. Cast: users, teams and display names (resolves SL-O-18)
@@ -275,7 +275,7 @@ The audit trail holds every event of DM-E08-R1; the narrator points out a select
 
 ### SB-D07 The fix does not work — SL-A2-04, Real (budget 12:00; always last)
 
-1. The operator presses "Reset" and waits until it is complete (60 s or less); the main window and the phone window log in again if the reset requires it (Round 5, SL-O-17).
+1. The operator presses "Reset" and waits until it is complete (60 s or less); the main window and the phone window log in again (after every reset the earlier run's sessions are refused, `50-architecture` AR-B-02).
 2. The operator presses "Storm with read-only DB: SL-F-1 + SL-F-2". The storm incident opens as in the primary demo.
 3. The operator acknowledges as `noc-l1` and approves as `dbops-engineer`. The action runs and frees the space: the 2 disk_full alerts resolve, the other 124 keep firing.
 4. "Verify recovery" waits up to its maximum of 300 s (resolves PM-O-08), then leaves by "not recovered". The narrator: "The command worked. The service did not recover, so the incident stays open."
@@ -426,7 +426,7 @@ The data assumptions are DD-ASM-01 to DD-ASM-05 (`31-demo-data` README). This do
 
 | ID | Assumption | Verified by |
 | --- | --- | --- |
-| SB-ASM-01 | The operator can show the Teams client, the Jira board and a mail client in one shared screen during a Teams meeting without showing anything other than the demo accounts. | Rehearsal SB-T-08 |
+| SB-ASM-01 | The operator can show the Teams client, the Jira ticket of the current incident and a mail client in one shared screen during a Teams meeting without showing anything other than the demo accounts. | Rehearsal SB-T-08 |
 | SB-ASM-02 | Claude as the SL-T-1 and SL-T-2 provider answers within the time of SB-T-04, so SB-TL-04 holds. | SB-T-04 |
 | SB-ASM-03 | The SL-F-4 mechanism of DD-F-10 makes every cloud AI call fail within the AI gateway's connect timeout (5 s, Round 5) for as long as SL-F-4 is active, and affects no other traffic. | SB-T-09 |
 
@@ -434,7 +434,7 @@ The data assumptions are DD-ASM-01 to DD-ASM-05 (`31-demo-data` README). This do
 
 | ID | Item | Owner | Resolved in |
 | --- | --- | --- | --- |
-| SB-O-01 | Confirmation of the SL-T-1 and SL-T-2 provider order (SB-V-31). | Claude, reviewed by Abdul | R5 (SL-O-20) |
+| SB-O-01 | Closed by `50-architecture` AR-D-13 (agreed by owner), 12 Oct 2026 (was: confirmation of the SL-T-1 and SL-T-2 provider order, SB-V-31). | Claude, reviewed by Abdul | R5 (SL-O-20) |
 | SB-O-02 | Closed by `40-demo-cut` DC-TX-03, 10 Oct 2026 (was: display wording of the evidence summaries). | Claude | R4 |
 | SB-O-03 | Measured lab values (DD-F-10, DD-O-03) shown in SB-S03 and SB-S06. | Abdul | Lab spike SB-T-01, before the first rehearsal |
 
@@ -463,3 +463,4 @@ Open items resolved by this round are listed in Section 10. Carried open items s
 | 0.3 | 10 Oct 2026 | Resolved verification pass 2 and readiness test pass 2 (Section 17). Draft for owner review. |
 | 1.0 | 10 Oct 2026 | Owner review recorded (CTX-D-018 to CTX-D-021); amendments SB-A-01 to SB-A-08 written; Round 3 closed. |
 | 1.1 | 10 Oct 2026 | Round 4 amendments (`40-demo-cut` DC-A-04, CTX-D-022, CTX-D-024): narrator lines say "Techfinity"; admin display name "Platform Administrator"; demo Team "Techfinity Demo"; SB-S01 forming display, SB-D02 step 3 wording and step 9 order; SB-O-02 closed. |
+| 1.2 | 12 Oct 2026 | Round 5 amendments (`50-architecture` AR-A-14, CTX-D-025): SB-SET-03 items (3) to (5); SB-SET-07 GPU host check; SB-D07 step 1 log-in wording; SB-ASM-01 wording; SB-O-01 closed. |

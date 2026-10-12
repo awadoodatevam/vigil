@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 10-product-map (ID prefix `PM-`) |
-| Version | 1.2 |
-| Date | 10 October 2026 |
+| Version | 1.3 |
+| Date | 12 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Amended by Round 2 (Section 19) and Round 4 (Section 20). |
+| Status | Baseline (owner reviewed). Amended by Round 2 (Section 19), Round 4 (Section 20) and Round 5 (Section 21). |
 
 ## 1. Purpose
 
@@ -148,7 +148,7 @@ Solid arrows are requests. Dotted arrows are events.
 
 ## 6. Module cards
 
-Section 19 lists the amendments made by Round 2 (`20-domain-model`) and Section 20 those made by Round 4 (`40-demo-cut`). Where Section 19 or 20 and an item in Sections 4 to 14 differ, Section 19 or 20 wins; where Sections 19 and 20 differ, Section 20 wins.
+Section 19 lists the amendments made by Round 2 (`20-domain-model`), Section 20 those made by Round 4 (`40-demo-cut`) and Section 21 those made by Round 5 (`50-architecture`). Where an amendment section and an item in Sections 4 to 14 differ, the amendment section wins; where amendment sections differ, the later section wins.
 
 Each card lists: job; records owned (complete list); requests it sends; events it publishes; events it reacts to; responsibilities. Responsibility IDs are `PM-Mnn-nn` (built) and `PM-Mnn-Ln` (Later, not built). Record names are working names; Round 2 defines them.
 
@@ -1132,6 +1132,7 @@ Record fields, relationships and lifecycle states (Round 2); demo values and the
 | 1.0 | 9 Oct 2026 | Owner review recorded; Round 1 closed. |
 | 1.1 | 9 Oct 2026 | Amendments DM-A-01 to DM-A-28 from Round 2 added as Section 19 (CTX-D-014). |
 | 1.2 | 10 Oct 2026 | Amendments from Round 4 (`40-demo-cut` DC-A-01, DC-A-02, DC-A-08 to DC-A-12, DC-A-18) added as Section 20 (CTX-D-022). |
+| 1.3 | 12 Oct 2026 | Amendments from Round 5 (`50-architecture` AR-A-01 to AR-A-08, AR-A-21, AR-A-22, AR-A-24) added as Section 21 (CTX-D-025); working module names are final; PM-O-01, PM-O-09, PM-O-10, PM-O-11, PM-O-17 closed. |
 
 ## 19. Amendments from Round 2 (complete list)
 
@@ -1182,4 +1183,22 @@ These amendments were made by `docs/40-demo-cut.md` v1.0 (adopted as CTX-D-022).
 | DC-A-11 | PM-M22-01 | Becomes: "MUST let an admin change the address of each monitoring source loaded by seed import and see each source's health and test result; the test itself is run by `vigil-intake` (PM-M06-07); adding a source is Later (`40-demo-cut` DC-L-01)." | CTX-D-023 (SL-A2-01 clarification). |
 | DC-A-12 | PM-M15 card, "Sends requests to"; Section 9.1 | `vigil-recovery` adds `vigil-servicemap`. New request PM-I-46: `vigil-recovery` → `vigil-servicemap`, read component names for the recovery condition texts (`40-demo-cut` DC-TX-03); allowed by PM-R-03. | Condition texts name components. |
 | DC-A-18 | PM-M06 | New responsibility PM-M06-07: "MUST run a connection test for a monitoring source on request through `vigil-api` and record it and recompute health exactly as for a periodic test (`20-domain-model` DM-R-39, DM-R-40)." Built; trace SL-A2-01. | `40-demo-cut` DC-S07-02 "Test connection". |
+
+## 21. Amendments from Round 5 (complete list)
+
+These amendments were made by `docs/50-architecture.md` v1.0 (adopted as CTX-D-025). Each row names the product map item it changes. New IDs defined here: rule PM-R-11, responsibilities PM-M01-04, PM-M22-05, PM-M23-06, requests PM-I-47 to PM-I-49, event PM-EV-15. None adds an item to list A or list B of `01-scope-lock`. Reasons refer to `50-architecture`.
+
+| ID | Product map item | Amendment | Reason |
+| --- | --- | --- | --- |
+| AR-A-01 | PM-M01 card | Owns adds "tenant alias (DM-E-83)". New responsibility PM-M01-04, Built, trace SL-A3-03, SL-O-17: "MUST keep tenant aliases as installation-level revisioned records; resolve a host name to the tenant its alias points to; set an alias to a `ready` tenant on an installation operation; return a tenant's public base address (the host name of its latest alias revision)." | Reset by a new tenant per run with an alias (`50-architecture` AR-B-01 to AR-B-03, AR-D-06). |
+| AR-A-02 | PM-M05 card; Section 9.1 | "Sends requests to" adds `vigil-connectors`. New request PM-I-47: `vigil-runner` → `vigil-connectors`, "read a grant's credential secret through the secret store; implement the target connector type" (allowed by PM-R-03). | The runner reads its grants' credentials through the secret store (`50-architecture` AR-S-04). |
+| AR-A-03 | PM-M23 card | "Reacts to events" adds PM-EV-01, PM-EV-02, PM-EV-03 and PM-EV-10 (live update notices only, `50-architecture` AR-I-04). PM-M23-05 becomes "MUST be reachable from outside the host only over HTTPS (`50-architecture` AR-S-09, AR-D-18)." New responsibility PM-M23-06, Built, trace SL-A3-03, PM-O-17: "MUST accept the installation operations (`50-architecture` AR-I-95 to AR-I-98) only with the installation token, which grants nothing else." PM-O-17 closed. | Live update notices for the strip and lists; HTTPS ends at the load balancer; installation token (`50-architecture` AR-I-04, AR-D-18, AR-S-07). |
+| AR-A-04 | PM-I-07 | Purpose adds "read the alerts created after a given alert sequence number, in sequence order (`50-architecture` AR-R-17)". | Correlation reads the intake log in sequence order (`50-architecture` AR-R-17). |
+| AR-A-05 | PM-I-37, PM-I-38 | Purposes add "read the tenant's public base address for links (`50-architecture` Section 10.3)". | Links into Vigil use the host of the tenant's alias (`50-architecture` Section 10.3). |
+| AR-A-06 | PM-M22 card | "Sends requests to" adds `vigil-tenancy` (alias). New responsibility PM-M22-05, Built, trace SL-A3-03, SL-O-17: "MUST carry out the installation operations of seed import and alias setting used by reset (`50-architecture` AR-B-03), and pass the seeded users' passwords, read from the secret store through `vigil-connectors`, to `vigil-identity`'s import (AR-S-06)." | Reset protocol (`50-architecture` AR-B-03, AR-S-06). |
+| AR-A-07 | Section 5 | New module rule PM-R-11: "Scheduled work runs only for active tenants, that is, tenants that a tenant alias points to (`50-architecture` AR-R-19, AR-R-23)." | Earlier demo runs stay unchanged (SL-A3-03; `50-architecture` AR-R-19). |
+| AR-A-08 | Section 4.1 and `00-context` Section 3 | The working module names are final (`50-architecture` AR-D-12). | `50-architecture` AR-D-12. |
+| AR-A-21 | Section 9.2 and cards PM-M02, PM-M05, PM-M06, PM-M08, PM-M09, PM-M11, PM-M12, PM-M16 | New event PM-EV-15 "Tenant alias changed" (installation-level), published by `vigil-tenancy`, reacted to by `vigil-identity`, `vigil-intake`, `vigil-incidents`, `vigil-correlation`, `vigil-knowledge` and `vigil-engine` (start and stop scheduled work, `50-architecture` AR-E-14). "Sends requests to" of `vigil-runner`, `vigil-intake`, `vigil-incidents`, `vigil-correlation`, `vigil-knowledge`, `vigil-engine` and `vigil-workflows` adds `vigil-tenancy` (read the active tenants), new request PM-I-49; `vigil-engine`'s adds `vigil-intake` (event types), allowed by PM-R-03. | Modules start and stop per-tenant scheduled work when the alias moves (`50-architecture` AR-R-19, AR-E-14). |
+| AR-A-22 | PM-M19 card; Section 9.1 | "Sends requests to" adds `vigil-intake`; new request PM-I-48: `vigil-ticketing` → `vigil-intake`, "read the reopening alert's title, source kind and receive time for DC-OUT-04". | DC-OUT-04 names the reopening alert (`50-architecture` Section 7.1). |
+| AR-A-24 | Section 16; PM-M01-03 | PM-O-01, PM-O-09, PM-O-10, PM-O-11 and PM-O-17 closed by `50-architecture` (Section 21.1). PM-M01-03 is kept: the reset creates a new tenant (AR-D-06), so its condition "if Round 5 chooses another mechanism" does not apply. | `50-architecture` Section 21.1. |
 

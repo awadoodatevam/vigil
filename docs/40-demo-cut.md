@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 40-demo-cut (ID prefix `DC-`) |
-| Version | 1.0 |
-| Date | 10 October 2026 |
+| Version | 1.1 |
+| Date | 12 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 4 closed. |
+| Status | Baseline (owner reviewed). Round 4 closed. Amended by Round 5 (`50-architecture` AR-A-17). |
 
 ## 1. Purpose
 
@@ -716,16 +716,16 @@ Every ID in `01-scope-lock` is listed (140 IDs, excluding the group headings SL-
 | SL-O-08 | DC-S03-10; DC-S05-03 |
 | SL-O-09 | DC-S05-03 |
 | SL-O-10 | DC-S10-03 |
-| SL-O-11 | DC-S07-03 (format stays Round 5) |
+| SL-O-11 | DC-S07-03 (format: `50-architecture` AR-B-06) |
 | SL-O-12 | DC-S07-02 |
 | SL-O-13 | DC-S09-03; DC-TX-01 (data categories) |
 | SL-O-14 | DC-TX-05 (Escalation note); DC-S03-02 |
 | SL-O-15 | DC-S05-03 ("Attempt 1 of 1"); DC-S03-10 |
 | SL-O-16 | DC-S12-02 |
-| SL-O-17 | DC-S12-02 ("Reset"); DC-M-22 (still open, Round 5) |
+| SL-O-17 | DC-S12-02 ("Reset"); DC-M-22 (mechanism: `50-architecture` AR-B-01 to AR-B-04) |
 | SL-O-18 | DC-U-06 |
 | SL-O-19 | Not this round (Round 6) |
-| SL-O-20 | DC-S09-02 (still open, Round 5) |
+| SL-O-20 | DC-S09-02 (defaults: `50-architecture` Section 13.2) |
 | SL-O-21 | DC-S08-04 |
 | SL-O-22 | DC-S06-02 |
 | SL-O-23 | DC-TX-06 |
@@ -820,7 +820,7 @@ Written on 10 October 2026 when the owner closed this round (CTX-D-022). None ad
 | ID | Assumption | Verified by |
 | --- | --- | --- |
 | DC-ASM-01 | A run canvas in follow mode at 80% zoom in a 240 px band of a 1280 px window shows step labels so that they can be read through a Teams screen share. | Rehearsal SB-T-08 |
-| DC-ASM-02 | A canvas library is available for the chosen stack that gives zoom, pan, fit, selection of several steps, connection handles and a layered left-to-right layout, so DC-S06 needs no custom canvas engine. | Round 5 stack choice |
+| DC-ASM-02 | A canvas library is available for the chosen stack that gives zoom, pan, fit, selection of several steps, connection handles and a layered left-to-right layout, so DC-S06 needs no custom canvas engine. | Resolved in R5: `@xyflow/react` with elkjs (`50-architecture` AR-T-09; Section 20 item 15). |
 | DC-ASM-03 | The shared screen of SB-SET-03 is 1920 px wide, so the main window is 1280 px wide. | Rehearsal SB-T-08 |
 | DC-ASM-04 | The operator's browser runs in Pakistan time (UTC+05:00), so screen times match the audience's clock. | Rehearsal SB-T-08 |
 
@@ -829,9 +829,9 @@ Written on 10 October 2026 when the owner closed this round (CTX-D-022). None ad
 | ID | Item | Owner | Resolved in |
 | --- | --- | --- | --- |
 | DC-O-01 | Closed by CTX-D-024, 10 Oct 2026 (was: final value of the product display name). | Abdul | R4 |
-| DC-O-02 | Address formats of the Acknowledge, Approval and incident links (DC-U-13). | Claude | R5 |
-| DC-O-03 | Encoding of outbound lines for Jira (document format of the Jira Cloud REST API), Teams (card or text, with DD-O-04 and SB-T-06) and email (DC-OUT-00), and whether Alertmanager webhook alerts carry `annotations.summary` (DC-A-17), checked against current official documentation (CTX-Q-6). | Claude | R5 |
-| DC-O-04 | Which tenant's product display name and customer name the login screen and its tab title show before anyone logs in (DC-U-02), decided with the reset mechanism. | Claude | R5 (with SL-O-17) |
+| DC-O-02 | Closed by `50-architecture` Section 10.3, 12 Oct 2026 (was: address formats of the Acknowledge, Approval and incident links). | Claude | R5 |
+| DC-O-03 | Closed by `50-architecture` AR-K-15, AR-K-18, AR-K-20 and Section 20 item 5, 12 Oct 2026 (was: encoding of outbound lines for Jira, Teams and email, and whether Alertmanager webhook alerts carry `annotations.summary`). | Claude | R5 |
+| DC-O-04 | Closed by `50-architecture` AR-B-10, 12 Oct 2026 (was: which tenant's product display name and customer name the login screen shows before anyone logs in): the tenant that the request's host alias points to. | Claude | R5 |
 
 Carried open items still open: CTX-O-01, CTX-O-02, CTX-O-04, CTX-O-05; SL-O-11 (format), SL-O-17, SL-O-19, SL-O-20; PM-O-01, PM-O-09 (connector capability), PM-O-10, PM-O-11, PM-O-17; DM-O-04 (field names), DM-O-05, DM-O-06, DM-O-08, DM-O-12, DM-O-13; DD-O-01 to DD-O-04; SB-O-01, SB-O-03.
 
@@ -856,3 +856,4 @@ Carried open items still open: CTX-O-01, CTX-O-02, CTX-O-04, CTX-O-05; SL-O-11 (
 | 0.2 | 10 Oct 2026 | Resolved the independent review findings and the readiness test questions (Section 16). |
 | 0.3 | 10 Oct 2026 | Resolved verification pass 2 and readiness test pass 2 (Section 16). Draft for owner review. |
 | 1.0 | 10 Oct 2026 | Owner review recorded (CTX-D-022 to CTX-D-024); amendments DC-A-01 to DC-A-19 written; Round 4 closed. |
+| 1.1 | 12 Oct 2026 | Round 5 amendments (`50-architecture` AR-A-17, CTX-D-025): DC-O-02, DC-O-03 and DC-O-04 closed; DC-ASM-02 resolved; traceability notes for SL-O-11, SL-O-17 and SL-O-20 updated. |

@@ -1,11 +1,12 @@
 # DD-F-03  Monitoring sources, alert types, alert type mappings (seed part 6), and the lab alert catalogue (demo-only).
 # Resolves SL-O-12 (health thresholds) and DM-O-03 (health check interval).
-# Field names used in mappings ("event_name", "label.alertname") are working names; Round 5 fixes the connectors'
-# normalisable field names (DM-O-04) and MUST keep the meaning given here (DD-ASM-01).
+# Field names used in mappings ("event_name", "label.alertname") are the connectors' normalisable field names fixed by
+# 50-architecture Sections 12.3 and 12.4 (DM-O-04, DD-ASM-01). source_key is the last path segment of each source's
+# webhook address (50-architecture AR-I-90).
 
 monitoring_sources:                   # DM-E-15 (complete list, 2)
-  - {name: "Zabbix — Jazz lab",       source_kind: zabbix,       connector_instance: zabbix-lab,       webhook_token_ref: cred-webhook-zabbix,       health_check_interval_s: 30, stale_after_s: 120, disconnected_after_s: 300}
-  - {name: "Alertmanager — Jazz lab", source_kind: alertmanager, connector_instance: alertmanager-lab, webhook_token_ref: cred-webhook-alertmanager, health_check_interval_s: 30, stale_after_s: 120, disconnected_after_s: 300}
+  - {name: "Zabbix — Jazz lab",       source_key: zabbix-lab,       source_kind: zabbix,       connector_instance: zabbix-lab,       webhook_token_ref: cred-webhook-zabbix,       health_check_interval_s: 30, stale_after_s: 120, disconnected_after_s: 300}
+  - {name: "Alertmanager — Jazz lab", source_key: alertmanager-lab, source_kind: alertmanager, connector_instance: alertmanager-lab, webhook_token_ref: cred-webhook-alertmanager, health_check_interval_s: 30, stale_after_s: 120, disconnected_after_s: 300}
 
 alert_types:                          # DM-E-16 (complete list, 18; "unclassified" is reserved and always exists)
   # the seven storm types of SL-A1-01

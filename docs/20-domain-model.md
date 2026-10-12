@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 20-domain-model (ID prefix `DM-`) |
-| Version | 1.2 |
-| Date | 10 October 2026 |
+| Version | 1.3 |
+| Date | 12 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 2 closed. Amended by Round 3 (`30-jazz-storyboard` SB-A-01, SB-A-06, SB-A-07, SB-A-08) and Round 4 (`40-demo-cut` Section 14.2). |
+| Status | Baseline (owner reviewed). Round 2 closed. Amended by Round 3 (`30-jazz-storyboard` SB-A-01, SB-A-06, SB-A-07, SB-A-08), Round 4 (`40-demo-cut` Section 14.2) and Round 5 (`50-architecture` Section 23.2). |
 
 ## 1. Purpose
 
@@ -45,18 +45,20 @@ Terms defined in `01-scope-lock` Section 3 and `10-product-map` Section 3 keep t
 | Simulated clock | The clock of a test-mode run. It starts at the source incident's `stable_at` and jumps forward instead of waiting (Section 8.13). |
 | Incident episode | The period of an incident from its creation, or from a reopening, to its next resolution. Episode 1 starts at creation; each reopening starts the next episode (DM-R-21). Not to be confused with an alert, which is one firing episode of an alert. |
 | Dry run | A routing evaluation whose result is returned and recorded but not applied to the incident (DM-E-43). |
+| Active tenant | A tenant that some tenant alias (DM-E-83) points to. Scheduled work, event processing and the restart procedure run only for active tenants (DM-R-70; `50-architecture` AR-R-19). |
+| Dormant tenant | A tenant in state `ready` that no tenant alias points to. From the moment its alias moves away it gets no new work: its records stay as they were, its open incidents and runs stay where they were, and no screen, webhook or login reaches it (`50-architecture` Section 3). |
 
 ## 4. Modelling conventions (complete list)
 
 | ID | Convention | Trace |
 | --- | --- | --- |
 | DM-C-01 | **Field types (complete list).** `Id`: an opaque identifier, unique within the Vigil installation (format decided in Round 5, DM-O-08). `Key`: a stable identifier written in configuration or seed data; 1 to 64 characters from `A–Z a–z 0–9 . _ -`; case-sensitive; unique within its entity type and tenant (and, for generational entities, within its generation). "Alphabetical order" of keys or texts in this document means ascending order of Unicode code points. `Text(n)`: UTF-8 text of at most n characters. `Integer`: 64-bit signed integer. `Decimal(p,s)`: exact decimal with p digits, s of them after the point. `Boolean`. `Timestamp`: a UTC instant with millisecond precision. `Duration`: a whole number of seconds, 0 or more. `Enum{…}`: one value from the listed complete set. `List<T>`: ordered list. `Set<T>`: unordered, no duplicates; when shown or compared it is sorted alphabetically. `Ref<E>`: the `Id` of a record of entity E. `Json`: a structured value whose structure is given where the field is defined. `Bytes`: exact octets as received. `Vector`: list of 32-bit floating-point numbers. | CTX-W-08 |
-| DM-C-02 | **Common fields.** Every entity except DM-E-01 (Tenant) and code catalogues has `id: Id`, `tenant_id: Ref<Tenant>` and `created_at: Timestamp`. Entities that can change after creation also have `updated_at: Timestamp`. These fields are not repeated in the entity tables. | SL-B-01, PM-R-05 |
+| DM-C-02 | **Common fields.** Every entity except DM-E-01 (Tenant), DM-E-83 (Tenant alias, installation-level) and code catalogues has `id: Id`, `tenant_id: Ref<Tenant>` and `created_at: Timestamp`. Entities that can change after creation also have `updated_at: Timestamp`. These fields are not repeated in the entity tables. | SL-B-01, PM-R-05 |
 | DM-C-03 | **Actor.** Every field of type `Actor` (DM-V-01) records who caused a change: a named user, or a module acting on its own (Example: on a timer). A user action MUST record the user (PM-R-09). | SL-B-13 |
 | DM-C-04 | **No deletion.** No operation of the built product deletes a stored record. Records that stop being used are marked: `active = false` (configuration entities), a terminal state (stateful entities), a newer revision or generation (revisioned and generational entities). This keeps every reference resolvable and supports the reset rule of SL-A3-03. | SL-B-02, SL-B-06; SL-A3-03 |
 | DM-C-05 | **Mutability classes (complete list).** Each entity in Section 7 is one of: **Immutable** — written once, never changed; **Stateful** — changes only through the transitions of its state machine (Section 10), each recorded; **Configuration** — see DM-C-07; **Revisioned** — never changed; a change creates a new record with the next revision number; **Code** — a code catalogue (Section 3). Fields marked "set once" in an entity table MAY be written once after creation and never changed again. | SL-B-02, SL-B-06, SL-B-09 |
 | DM-C-06 | **Cross-module references.** A field that refers to a record owned by another module holds only that record's `Id` or `Key`. Storage MUST NOT join across module boundaries. A module that needs the content of another module's record MUST request it from the owner (PM-R-02) or keep a copy given to it in a request; copies are named `*_snapshot` or listed as copies in the field meaning. Configuration and seed data refer to other modules' records by `Key` (team key, component key, alert type, action key, recovery check key) so a seed bundle is portable between tenants. | PM-R-01, PM-R-02 |
-| DM-C-07 | **Configuration changes.** Every change to a configuration entity, every new revision of a revisioned configuration entity, and every seed import MUST produce one audit event of type `configuration_changed` (DM-E-08) with the configuration area (DM-V-11), the acting user or module, and the before and after values. In the build, configuration entities that have no screen (SL-A4) change only through seed import (DM-E-82). | PM-R-06; SL-B-06, SL-B-09 |
+| DM-C-07 | **Configuration changes.** Every change to a configuration entity, every new revision of a revisioned configuration entity, and every seed import MUST produce one audit event of type `configuration_changed` (DM-E-08) with the configuration area (DM-V-11), the acting user or module, and the before and after values. In the build, configuration entities that have no screen (SL-A4) change only through seed import (DM-E-82). A new tenant alias revision (DM-E-83) is installation-level and writes no tenant audit event; it is logged by `vigil-api` (`50-architecture` AR-S-07). | PM-R-06; SL-B-06, SL-B-09 |
 | DM-C-08 | **Time.** All `Timestamp` fields are taken from the Vigil server clock in UTC, except fields whose name starts with `source_`, which hold the time stated by the external system. | SL-B-02 |
 | DM-C-09 | **Test-mode isolation.** Records of a test-mode run (PM-M12-09) are stored only by `vigil-engine` (DM-E-50, DM-E-51, DM-E-52, all with `mode = test`) and `vigil-workflows` (DM-E-49), and by `vigil-routing` as dry-run evaluations (DM-E-43, `applied = false`). No other entity is created or changed by a test-mode run. | SL-A2-06 (test replay definition), PM-M12-09 |
 | DM-C-10 | **Tenant scope.** Every uniqueness rule in this document applies within one tenant. A request or event MUST NOT read or change records of another tenant (PM-R-05). | SL-B-01 |
@@ -170,6 +172,7 @@ Class abbreviations (DM-C-05): Imm = Immutable, Sta = Stateful, Cfg = Configurat
 | DM-E-80 | Baseline value | `vigil-reporting` | Cfg | Baseline value |
 | DM-E-81 | Readiness gap rule | `vigil-setup` | Code | Readiness gap rule |
 | DM-E-82 | Seed import record | `vigil-setup` | Sta | Seed bundle import record |
+| DM-E-83 | Tenant alias | `vigil-tenancy` | Rev | new (Round 5, `50-architecture` AR-A-09) |
 
 `vigil-api` and `vigil-web` own no entities (PM-M23, PM-M24). The public interface definition owned by `vigil-api` is defined in Round 5.
 
@@ -266,6 +269,20 @@ Owner `vigil-tenancy` · Configuration (area `tenant_settings`) · Trace: SL-A3-
 
 - **DM-E02-R1** Exactly one tenant settings record exists per tenant in state `ready`.
 - **DM-E02-R2** The prefix is applied (complete list): to the Jira ticket title; to the email subject and the first line of the email body; to the first line of the Teams message. The prefix is `environment_label` followed by the three characters space, hyphen, space (` - `), then the original text. When `environment_label` is empty, no prefix is applied.
+
+#### DM-E-83 Tenant alias
+
+Owner `vigil-tenancy` · Revisioned, installation-level (no `tenant_id`, DM-C-02) · Trace: SL-A3-03, SL-O-17, PM-M01-04. Added by Round 5 (`50-architecture` AR-B-01, AR-A-09).
+
+| Field | Type | Req | Meaning |
+| --- | --- | --- | --- |
+| `host_name` | Text(253) | Y | Lower case; the public host name (demo `demo.${demo_domain}`). |
+| `revision` | Integer | Y | 1, 2, 3, … per host name. |
+| `tenant_id` | Ref<Tenant> | Y | The tenant the host name points to; MUST be in state `ready`. |
+| `set_at` | Timestamp | Y | |
+| `set_by` | Text(40) | Y | "installation token". |
+
+- **DM-E83-R1** Setting an alias creates the next revision for the host name; earlier revisions are kept. The alias of a host name is its highest revision. A request, login, webhook or link reaches the tenant that the alias of its host name points to.
 
 ### 7.2 `vigil-identity`
 
@@ -398,8 +415,8 @@ Owner `vigil-connectors` · Configuration (area of the record that uses it) · T
 
 | Field | Type | Req | Meaning |
 | --- | --- | --- | --- |
-| `purpose` | Enum{webhook_token, external_api, target_diagnostic, target_action, smtp} | Y | |
-| `locator` | Text(500) | Y | Where the secret value is kept in the secret store (mechanism PM-O-11, Round 5). The secret value itself MUST NOT be stored in any entity. |
+| `purpose` | Enum{webhook_token, external_api, target_diagnostic, target_action, smtp, webhook_url} | Y | `webhook_url`: the secret is the address of a Teams Workflows webhook (`50-architecture` AR-K-17). |
+| `locator` | Text(500) | Y | Where the secret value is kept in the secret store: `secret:{name}` (`50-architecture` AR-S-04). The secret value itself MUST NOT be stored in any entity. |
 
 ### 7.5 `vigil-runner`
 
@@ -468,6 +485,7 @@ Owner `vigil-intake` · Configuration (area `sources`); health fields Stateful (
 | `name` | Text(100) | Y | |
 | `source_kind` | Enum{zabbix, alertmanager} | Y | Connector kind used for parsing and tests. |
 | `connector_instance_id` | Ref<Connector instance> | Y | |
+| `source_key` | Key | Y | Unique per tenant; the last path segment of the source's webhook address (`50-architecture` AR-I-90). |
 | `webhook_token_ref_id` | Ref<Credential reference> | Y | Purpose `webhook_token`; one per source (SL-B-14). |
 | `health_check_interval` | Duration | Y | Interval of the periodic connection test (Section 8.11). Value DM-O-03. |
 | `stale_after` | Duration | Y | SL-O-12. |
@@ -569,6 +587,7 @@ Owner `vigil-intake` · Stateful (DM-SM-04) · Trace: SL-A1-01, SL-A1-02, SL-A1-
 | `resolved_at` | Timestamp | N | `source_time` of the resolved entry, or its `received_at` when the source gave none. |
 | `resolve_received_at` | Timestamp | N | |
 | `entry_count` | Integer | Y | Number of entries applied to this alert (first firing, repeats, resolve). |
+| `sequence` | Integer | Y | 1, 2, 3, … per tenant in creation order, with no gap; the order in which correlation decides alerts (DM-R-09; `50-architecture` AR-R-16, AR-R-17). |
 
 - **DM-E21-R1** Applying a normalised entry (complete list of cases): (a) `firing` and no alert with the same source and `alert_key` has status `firing` → create a new alert (`created_alert`) and publish "alert received" (PM-EV-01) and "alert state changed" (PM-EV-02); (b) `firing` and such a firing alert exists → `repeat_firing`: increment `entry_count`, nothing else changes, no event; (c) `resolved` and such a firing alert exists → set `resolved` (`resolved_alert`) and publish "alert state changed"; (d) `resolved` and no firing alert exists → `orphan_resolved`, no change, no event.
 - **DM-E21-R2** At most one alert per (source, `alert_key`) has status `firing` at any time.
@@ -1044,6 +1063,8 @@ Owner `vigil-engine` · Stateful (DM-SM-07) · Trace: SL-B-03, SL-B-11, SL-A1-08
 | `test_replay_id` | Ref<Test replay result> | N | For test mode. |
 | `state` | Enum{running, waiting, finished, cancelled, failed} | Y | DM-SM-07. |
 | `wait_reason` | Enum{incident_forming, step_waiting} | N | Required when `waiting`. |
+| `wake_pending` | Boolean | Y | False at creation. A wake recorded for the run and not yet evaluated (`50-architecture` AR-R-20). |
+| `wake_reason` | Text(60) | N | The last wake recorded; used for logging only. |
 | `current_step_execution_id` | Ref<Step execution> | N | The step running or waiting. |
 | `next_step_id` | Key | N | The run checkpoint: the step to start next after the current one completes (PM record "run checkpoint"). |
 | `simulated_now` | Timestamp | N | Test mode only: the simulated clock (Section 8.13). |
@@ -1075,6 +1096,8 @@ Owner `vigil-engine` · Stateful (DM-SM-08) · Trace: SL-B-03, SL-B-11, PM-M12-0
 | `evaluation_count` | Integer | Y | Number of times the implementing module was asked. The engine MUST store the increased value before each request to the module, so a request repeated after a restart carries a new value. |
 | `refusal_reason` | Text(300) | N | Set when the engine refused an Action step (PM-M12-06); the step then completes with `failed`. |
 | `test_note` | Text(300) | N | Test mode: the note of Section 8.13. |
+| `failed_attempts` | Integer | Y | 0 at creation. Failed calls of the current attempt series (`50-architecture` AR-R-22). |
+| `retry_due_at` | Timestamp | N | When the next retry of a failed call is due (`50-architecture` AR-R-22). |
 
 #### DM-E-52 Durable timer
 
@@ -1514,7 +1537,8 @@ Owner `vigil-notifications` · Configuration (seed import only) · Trace: SL-A1-
 | `subject_kind` | Enum{team, user} | Y | |
 | `subject_key` | Key | Y | Team key or username. |
 | `channel` | Enum{teams, email} | Y | |
-| `address` | Text(500) | Y | Email address, or the Teams destination (form PM-O-10, Round 5). |
+| `address` | Text(500) | Y | Email address; for Teams, the readable channel name (demo "Techfinity Demo / NOC L1"; `50-architecture` AR-K-17). |
+| `credential_ref_id` | Ref<Credential reference> | N | Required for channel `teams` (purpose `webhook_url`); empty for `email`. |
 | `active` | Boolean | Y | |
 
 - **DM-E77-R1** Messages to a team use the team's addresses. Approval requests go to users (PM-M14-04) and use the user's addresses.
@@ -1750,7 +1774,7 @@ These rules resolve the Round 2 open items. Each rule has an ID `DM-R-nn`. Where
 
 | ID | Rule | Trace |
 | --- | --- | --- |
-| DM-R-56 | A seed bundle has one part per owning module, imported in this order (complete list): (1) `vigil-tenancy` — tenant settings; (2) `vigil-identity` — teams, users (without passwords; passwords from deployment secrets, PM-M02-02), memberships, permission grants; (3) `vigil-connectors` — connector instances and credential references (locators only); (4) `vigil-runner` — operations and target access grants; (5) `vigil-servicemap` — the service map file (generation 1); (6) `vigil-intake` — monitoring sources, alert type definitions, alert type mappings; (7) `vigil-ai-gateway` — provider configurations, allowed providers, task assignments, data routing rules; (8) `vigil-knowledge` — runbooks, past incidents, knowledge settings, and the past-incident embeddings for the SL-T-3 provider (computed during import or supplied in the bundle, decided with SL-O-17 in Round 5); (9) `vigil-incidents` — incident settings; (10) `vigil-correlation` — correlation settings; (11) `vigil-routing` — routing rule set revision 1 and escalation policy revision 1; (12) `vigil-diagnostics` — diagnostic definitions; (13) `vigil-recovery` — recovery check definitions; (14) `vigil-actions` — registered actions and action policies; (15) `vigil-notifications` — delivery addresses; (16) `vigil-workflows` — the workflow and version 1 (`origin = seed`); (17) `vigil-reporting` — baseline values. | SL-A3-03, SL-DR-04; PM-M22-03, PM-D-09 |
+| DM-R-56 | A seed bundle has one part per owning module, imported in this order (complete list): (1) `vigil-tenancy` — tenant settings; (2) `vigil-identity` — teams, users (without passwords; passwords from deployment secrets, PM-M02-02), memberships, permission grants; (3) `vigil-connectors` — connector instances and credential references (locators only); (4) `vigil-runner` — operations and target access grants; (5) `vigil-servicemap` — the service map file (generation 1); (6) `vigil-intake` — monitoring sources, alert type definitions, alert type mappings; (7) `vigil-ai-gateway` — provider configurations, allowed providers, task assignments, data routing rules; (8) `vigil-knowledge` — runbooks, past incidents, knowledge settings, and the past-incident embeddings for the SL-T-3 provider (computed during import, `50-architecture` AR-B-09); (9) `vigil-incidents` — incident settings; (10) `vigil-correlation` — correlation settings; (11) `vigil-routing` — routing rule set revision 1 and escalation policy revision 1; (12) `vigil-diagnostics` — diagnostic definitions; (13) `vigil-recovery` — recovery check definitions; (14) `vigil-actions` — registered actions and action policies; (15) `vigil-notifications` — delivery addresses; (16) `vigil-workflows` — the workflow and version 1 (`origin = seed`); (17) `vigil-reporting` — baseline values. | SL-A3-03, SL-DR-04; PM-M22-03, PM-D-09 |
 | DM-R-57 | Each module's import interface MUST check its part against the rules of its entities in Section 7 and refuse the part as a whole when any rule fails. | PM-D-09 |
 | DM-R-60 | After the last part, `vigil-setup` MUST check every cross-module key reference of the bundle (complete list: team keys in service map, routing, escalation, notification addresses, Approval and Notification step parameters; alert types in runbooks, past incidents and recovery conditions; component keys in recovery conditions and past incidents; service keys in action policies and past incidents; action keys in past incidents; operation keys in diagnostic definitions, registered actions and state checks; recovery check keys in registered actions; diagnostic keys in workflow version 1; target keys in the service map against runner grants; provider keys in task assignments, data routing rules and knowledge settings; usernames in user delivery addresses; team, service and component keys used as comparison values in routing rules and Condition steps) and fail the import when any key does not exist. | PM-D-09, SL-A3-03 |
 
@@ -1764,7 +1788,8 @@ These rules resolve the Round 2 open items. Each rule has an ID `DM-R-nn`. Where
 | DM-R-64 | **One record per step execution.** For one step execution, at most one approval request, one action execution, one recovery verification, one ticket sync record per operation and one diagnostic result per diagnostic definition MUST exist. When a step is evaluated again (after a wake or a restart), the implementing module MUST continue with the existing record instead of creating a new one. | SL-B-11, PM-S-14 |
 | DM-R-65 | **No duplicate messages.** Before sending, `vigil-notifications` MUST check for a notification record with the same origin, recipient and channel in status `sent`, and MUST NOT send again when one exists; a `failed` record does not prevent a later attempt. Evidence entries are unique per (producer module, producer record). | SL-B-11 |
 | DM-R-66 | **Durable events.** Every event (`10-product-map` Section 9.2) MUST be delivered to each reacting module at least once, including when Vigil stops after the change and before delivery (mechanism PM-O-01, Round 5). Every reacting module MUST give the same result when it receives the same event twice. After a restart, `vigil-engine` MUST evaluate every `waiting` step execution once, so a wake event lost before the stop cannot leave a step asleep. | SL-B-11; PM-O-01 |
-| DM-R-67 | **One evaluation at a time.** `vigil-engine` MUST evaluate the steps of one run one at a time. A wake event or timer for a step execution that is no longer `waiting` MUST be ignored. | SL-B-11, PM-S-13 |
+| DM-R-67 | **One evaluation at a time.** `vigil-engine` MUST evaluate the steps of one run one at a time. A wake event or timer for a run that is no longer `running` or `waiting`, or for a step execution that is no longer current, MUST be ignored. A wake that arrives while the run's step is being evaluated MUST lead to one more evaluation after the answer is stored, and a run waiting while its incident is forming MUST be woken when the incident leaves `forming` (`50-architecture` AR-R-20). | SL-B-11, PM-S-13 |
+| DM-R-70 | **Active tenants only.** Only active tenants (`50-architecture` AR-R-19) get scheduled work, event processing and the restart procedure. DM-R-15, DM-R-23, DM-R-39, DM-R-40, DM-R-66 (restart evaluation), DM-E52-R1 and DM-SM02-T3 apply to active tenants only. After a tenant stops being active and the work already running for it has finished, none of its records changes. | SL-A3-03; DM-C-04 |
 
 ## 9. Step type catalogue (complete list)
 
@@ -2178,7 +2203,7 @@ Status "Agreed by owner" means Abdul agreed the decision under CTX-Q-7 on 9 Octo
 | DM-ASM-03 | A connection test against Zabbix and Alertmanager (PM-ASM-02) can run every `health_check_interval` without load or rate-limit problems. | Fact check in R5 |
 | DM-ASM-04 | A source can reuse the same alert key when the same problem recurs (Alertmanager derives the fingerprint from the alert's labels). DM-D-01 handles both reuse and new keys. | Fact check in R5 |
 | DM-ASM-05 | The lab's Zabbix and Alertmanager can be configured so that no alert is re-notified as firing within the 120-second storm (DM-R-02); for Alertmanager this depends on its grouping and repeat settings (SL-ASM-01). | Fact check in R5; early build spike |
-| DM-ASM-06 | Every AI provider, including the local model runtimes, reports input and output units (tokens) per call. When a runtime does not, the usage record stores 0 units and cost 0, and the usage view shows "not reported". | Fact check in R5 |
+| DM-ASM-06 | Every AI provider, including the local model runtimes, reports input and output units (tokens) per call. When a runtime does not, the usage record stores 0 units and cost 0, and the usage view shows "not reported". | Confirmed in R5 (`50-architecture` Section 20); the local runtime reports units (`prompt_eval_count`, `eval_count`). |
 | DM-ASM-07 | The Jira Cloud project can be set up so that Vigil can move a resolved ticket back to an open status through the Jira API (with PM-ASM-03). | Fact check in R5; early build spike |
 | DM-ASM-08 | After the lab faults are cleared, Zabbix and Alertmanager send every resolve notification quickly enough for DM-R-24 (d) to complete within the 60-second reset. | Early build spike (with SL-O-17) |
 | DM-ASM-09 | Jira Cloud issues can carry a label set by Vigil and can be searched by that label through the API, so a ticket created before a restart can be found (DM-E76-R2). | Fact check in R5 |
@@ -2198,19 +2223,19 @@ Status "Agreed by owner" means Abdul agreed the decision under CTX-Q-7 on 9 Octo
 | DM-O-01 | Values of `settle_period`, `max_forming` and `stability_check_interval` (5 seconds or less), chosen with SL-O-04 so every storm alert arrives while the storm incident is forming (DM-R-13). | Claude, reviewed by Abdul | R3 |
 | DM-O-02 | Values of `reopen_window` (meeting DM-R-24) and `closure_check_interval` (60 seconds or less). | Claude, reviewed by Abdul | R3 |
 | DM-O-03 | Value of `health_check_interval` per source (below `stale_after`, DM-R-41). | Claude, reviewed by Abdul | R3 |
-| DM-O-04 | Identity key names extracted by each monitoring connector, their order, and the fields usable in alert type mappings. | Claude | R5 (connector fact check); values R3 |
-| DM-O-05 | Password hash algorithm, session lifetime and idle limit. | Claude | R5 |
-| DM-O-06 | Retry limits and intervals: engine requests to step-implementing modules; reconciliation state checks. | Claude | R5 |
+| DM-O-04 | Closed by `50-architecture` Sections 12.3 and 12.4, 12 Oct 2026 (was: identity key names extracted by each monitoring connector, their order, and the fields usable in alert type mappings). | Claude | R5 |
+| DM-O-05 | Closed by `50-architecture` AR-S-01 and AR-TM-03, 12 Oct 2026 (was: password hash algorithm, session lifetime and idle limit). | Claude | R5 |
+| DM-O-06 | Closed by `50-architecture` AR-TM-05 and Section 18, 12 Oct 2026 (was: retry limits and intervals). | Claude | R5 |
 | DM-O-07 | Runner operations, their command templates, timeouts and output parsers for the demo diagnostics, action, precondition and reconciliation. | Claude, reviewed by Abdul | R3 |
-| DM-O-08 | Identifier format, hash function and canonical form, physical types. | Claude | R5 |
+| DM-O-08 | Closed by `50-architecture` AR-P-01 and AR-P-03, 12 Oct 2026 (was: identifier format, hash function and canonical form, physical types). | Claude | R5 |
 | DM-O-09 | Value of `runbook_limit`. | Claude | R3 |
 | DM-O-10 | Default data routing rules per category (DM-E-73). | Claude, reviewed by Abdul | R3 (with SL-O-20) |
 | DM-O-11 | Closed by `40-demo-cut` DC-TX-01, 10 Oct 2026 (was: display format of incident numbers). | Claude | R4 |
-| DM-O-12 | Settings schema per connector kind (DM-E-09), including the Jira project, resolved transition and reopen transition. | Claude | R5 |
-| DM-O-13 | AI provider model names and prices per million units (DM-E-70), used for the cost shown in SL-A2-02. | Claude; running costs approved by Muzaffar (CTX-O-02) | R5 |
+| DM-O-12 | Closed by `50-architecture` Section 12.2, 12 Oct 2026 (was: settings schema per connector kind). | Claude | R5 |
+| DM-O-13 | Closed by `50-architecture` Section 13.1, 12 Oct 2026 (was: AI provider model names and prices per million units). | Claude; running costs approved by Muzaffar (CTX-O-02) | R5 |
 | DM-O-14 | Content of the default recovery check definition (DM-E61-R1). | Claude, reviewed by Abdul | R3 |
 
-Open items carried from earlier documents and still open after this round: SL-O-01 to SL-O-10, SL-O-12, SL-O-14 to SL-O-22 (values and scripts, Rounds 3 to 6); SL-O-11 (format, R5); PM-O-01, PM-O-10, PM-O-11, PM-O-16, PM-O-17; PM-O-02, PM-O-08, PM-O-12, PM-O-14 (values, R3); PM-O-09 (connector capability, R5).
+Open items carried from earlier documents and still open after Round 2 (`50-architecture` Section 21.1 lists those that Round 5 resolved): SL-O-01 to SL-O-10, SL-O-12, SL-O-14 to SL-O-22 (values and scripts, Rounds 3 to 6); SL-O-11 (format, R5); PM-O-01, PM-O-10, PM-O-11, PM-O-16, PM-O-17; PM-O-02, PM-O-08, PM-O-12, PM-O-14 (values, R3); PM-O-09 (connector capability, R5).
 
 ## 17. Quality-check results
 
@@ -2237,4 +2262,5 @@ Open items carried from earlier documents and still open after this round: SL-O-
 | 1.0 | 9 Oct 2026 | Owner review recorded; Round 2 closed. |
 | 1.1 | 10 Oct 2026 | Round 3 amendments (`30-jazz-storyboard` Section 15.2, CTX-D-018): DM-E-04 demo teams (SB-A-06); DM-E-16 demo alert type set (SB-A-01); DM-V-06 path prefix meaning (SB-A-07); DM-R-24 (d) limited to faults that produce lab alerts (SB-A-08). |
 | 1.2 | 10 Oct 2026 | Round 4 amendments (`40-demo-cut` Section 14.2, CTX-D-022): DM-E-02 `product_display_name` (DC-A-09); DM-E-20 title rule (DC-A-19); DM-E-32 AI attempt fields and DM-E32-R2 exception, DM-E32-R3 and number format (DC-A-13, DC-A-06); DM-E-36 `timer` (DC-A-10); DM-E-41 `change_summary` wording (DC-A-19); DM-E-47 change list order (DC-A-14); DM-E-49 `failure_reason`, DM-E49-R2 (DC-A-15); DM-E-62 last evaluation (DC-A-12); DM-E-68 `runbooks_supplied` (DC-A-03); DM-V-12 (DC-A-16); DM-R-48 and DM-R-49 (DC-A-02); DM-O-11 closed. |
+| 1.3 | 12 Oct 2026 | Round 5 amendments (`50-architecture` Section 23.2, CTX-D-025): new entity DM-E-83 Tenant alias, terms Active and Dormant tenant, DM-C-02 and DM-C-07 (AR-A-09); DM-E-15 `source_key`, DM-E-21 `sequence` (AR-A-10); DM-E-11 purpose `webhook_url` and locator form, DM-E-77 `credential_ref_id` and Teams `address` (AR-A-11); DM-E-50 `wake_pending`, `wake_reason`, DM-E-51 `failed_attempts`, `retry_due_at`, DM-R-67 (AR-A-20); new rule DM-R-70 (AR-A-23); DM-R-56 (8), DM-O-04, DM-O-05, DM-O-06, DM-O-08, DM-O-12, DM-O-13 closed, DM-ASM-06 confirmed (AR-A-18). |
 

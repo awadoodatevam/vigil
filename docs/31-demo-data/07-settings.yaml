@@ -1,46 +1,57 @@
 # DD-F-07  Connectors and credentials (seed part 3), AI gateway settings (part 7), knowledge settings (part 8),
 # incident settings (part 9), correlation settings (part 10), delivery addresses (part 15), baselines (part 17).
 # Resolves SL-O-04, DM-O-01, DM-O-02, DM-O-09, DM-O-10, PM-O-16, and the dashboard baselines.
-# "<demo-domain>" is the demo domain (CTX-O-02). "R5" marks a value fixed in Round 5 (DD-O-02).
+# Values such as "${demo_domain}" are deployment placeholders, replaced when the seed bundle is built (50-architecture AR-B-07, DD-R-05).
 
-credential_references:                # DM-E-11 (complete list, 10); locators only, never secret values (SL-B-14)
-  - {handle: cred-webhook-zabbix,       purpose: webhook_token,     locator: R5}
-  - {handle: cred-webhook-alertmanager, purpose: webhook_token,     locator: R5}
-  - {handle: cred-zabbix-api,           purpose: external_api,      locator: R5}
-  - {handle: cred-alertmanager-api,     purpose: external_api,      locator: R5}
-  - {handle: cred-lab-db-01-diag,       purpose: target_diagnostic, locator: R5}
-  - {handle: cred-lab-db-01-action,     purpose: target_action,     locator: R5}
-  - {handle: cred-jira,                 purpose: external_api,      locator: R5}
-  - {handle: cred-smtp,                 purpose: smtp,              locator: R5}
-  - {handle: cred-claude,               purpose: external_api,      locator: R5}
-  - {handle: cred-openai,               purpose: external_api,      locator: R5}
+credential_references:                # DM-E-11 (complete list, 19); locators only, never secret values (SL-B-14).
+                                      # Locator form secret:{name} (50-architecture AR-S-04); names are the secrets of AR-S-13.
+  - {handle: cred-webhook-zabbix,       purpose: webhook_token,     locator: "secret:webhook-zabbix"}
+  - {handle: cred-webhook-alertmanager, purpose: webhook_token,     locator: "secret:webhook-alertmanager"}
+  - {handle: cred-zabbix-api,           purpose: external_api,      locator: "secret:zabbix-api"}
+  - {handle: cred-alertmanager-api,     purpose: external_api,      locator: "secret:alertmanager-password"}
+  - {handle: cred-lab-db-01-diag,       purpose: target_diagnostic, locator: "secret:lab-db-01-diag"}
+  - {handle: cred-lab-db-01-action,     purpose: target_action,     locator: "secret:lab-db-01-action"}
+  - {handle: cred-jira,                 purpose: external_api,      locator: "secret:jira"}
+  - {handle: cred-smtp,                 purpose: smtp,              locator: "secret:smtp"}
+  - {handle: cred-claude,               purpose: external_api,      locator: "secret:claude"}
+  - {handle: cred-openai,               purpose: external_api,      locator: "secret:openai"}
+  # Teams: one Workflows webhook address per channel (50-architecture AR-K-17; resolves PM-O-10, DD-O-04)
+  - {handle: cred-teams-noc-l1,             purpose: webhook_url, locator: "secret:teams-team-noc-l1"}
+  - {handle: cred-teams-db-ops,             purpose: webhook_url, locator: "secret:teams-team-db-ops"}
+  - {handle: cred-teams-vas-service-owners, purpose: webhook_url, locator: "secret:teams-team-vas-service-owners"}
+  - {handle: cred-teams-it-apps,            purpose: webhook_url, locator: "secret:teams-team-it-apps"}
+  - {handle: cred-teams-noc-shift-lead,     purpose: webhook_url, locator: "secret:teams-team-noc-shift-lead"}
+  - {handle: cred-teams-noc-management,     purpose: webhook_url, locator: "secret:teams-team-noc-management"}
+  - {handle: cred-teams-customer-care,      purpose: webhook_url, locator: "secret:teams-team-customer-care"}
+  - {handle: cred-teams-dbops-engineer,     purpose: webhook_url, locator: "secret:teams-user-dbops-engineer"}
+  - {handle: cred-teams-dbops-lead,         purpose: webhook_url, locator: "secret:teams-user-dbops-lead"}
 
-connector_instances:                  # DM-E-10 (complete list, 11)
-  - {handle: zabbix-lab,       name: "Zabbix — Jazz lab",            kind: zabbix,          address: "https://zabbix.<demo-domain>",       settings: R5, credential_ref: cred-zabbix-api}
-  - {handle: alertmanager-lab, name: "Alertmanager — Jazz lab",      kind: alertmanager,    address: "https://alertmanager.<demo-domain>", settings: R5, credential_ref: cred-alertmanager-api}
-  - {handle: linux-lab-db-01,  name: "Subscriber DB server (lab)",   kind: linux_server,    address: "lab-db-01.<demo-domain>",            settings: R5, credential_ref: null}   # credentials per grant (DD-F-04)
-  - {handle: jira-demo,        name: "Jira Cloud — demo project",    kind: jira_cloud,      address: R5, settings: R5, credential_ref: cred-jira}
-  - {handle: teams-demo,       name: "Microsoft Teams — Techfinity Demo", kind: ms_teams,        address: R5, settings: R5, credential_ref: null}   # secret per channel: see DD-O-04
-  - {handle: email-demo,       name: "Email — demo domain",          kind: email,           address: R5, settings: R5, credential_ref: cred-smtp}
-  - {handle: claude-api,       name: "Claude API",                   kind: claude,          address: R5, settings: R5, credential_ref: cred-claude}
-  - {handle: openai-api,       name: "OpenAI API",                   kind: openai,          address: R5, settings: R5, credential_ref: cred-openai}
-  - {handle: local-llm,        name: "Local model",                  kind: local_model,     address: R5, settings: R5, credential_ref: null}
-  - {handle: local-embed,      name: "Local embedding model",        kind: local_embedding, address: R5, settings: R5, credential_ref: null}
-  - {handle: openai-embed-api, name: "OpenAI API — embeddings",      kind: openai,          address: R5, settings: R5, credential_ref: cred-openai}
+connector_instances:                  # DM-E-10 (complete list, 11); addresses and settings: 50-architecture Section 12.2
+  - {handle: zabbix-lab,       name: "Zabbix — Jazz lab",            kind: zabbix,          address: "http://lab-zabbix-web:8080", settings: {api_path: /api_jsonrpc.php}, credential_ref: cred-zabbix-api}
+  - {handle: alertmanager-lab, name: "Alertmanager — Jazz lab",      kind: alertmanager,    address: "http://lab-alertmanager:9093", settings: {username: vigil}, credential_ref: cred-alertmanager-api}
+  - {handle: linux-lab-db-01,  name: "Subscriber DB server (lab)",   kind: linux_server,    address: "lab-db-01", settings: {port: 22, host_key_sha256: "${lab_db_host_key_sha256}"}, credential_ref: null}   # credentials per grant (DD-F-04)
+  - {handle: jira-demo,        name: "Jira Cloud — demo project",    kind: jira_cloud,      address: "https://${jira_site}.atlassian.net", settings: {project_key: NOC, issue_type: Task, resolved_status: Done, reopened_status: "To Do", label_prefix: "vigil-"}, credential_ref: cred-jira}
+  - {handle: teams-demo,       name: "Microsoft Teams — Techfinity Demo", kind: ms_teams,   address: "https://teams.microsoft.com", settings: {}, credential_ref: null}   # secret per channel: on each Teams delivery address
+  - {handle: email-demo,       name: "Email — demo domain",          kind: email,           address: "smtp://email-smtp.us-east-1.amazonaws.com:587", settings: {from_address: "techfinity-demo@${demo_domain}", starttls: true}, credential_ref: cred-smtp}
+  - {handle: claude-api,       name: "Claude API",                   kind: claude,          address: "https://api.anthropic.com", settings: {anthropic_version: "2023-06-01"}, credential_ref: cred-claude}
+  - {handle: openai-api,       name: "OpenAI API",                   kind: openai,          address: "https://api.openai.com", settings: {}, credential_ref: cred-openai}
+  - {handle: local-llm,        name: "Local model",                  kind: local_model,     address: "http://${gpu_host_ip}:11434", settings: {keep_alive: -1, num_ctx: 16384}, credential_ref: null}
+  - {handle: local-embed,      name: "Local embedding model",        kind: local_embedding, address: "http://vigil-embed:11434", settings: {keep_alive: -1}, credential_ref: null}
+  - {handle: openai-embed-api, name: "OpenAI API — embeddings",      kind: openai,          address: "https://api.openai.com", settings: {}, credential_ref: cred-openai}
 
-ai_provider_configurations:           # DM-E-70 (complete list, 5); model names and prices DM-O-13 (Round 5)
-  - {provider_key: claude,       provider_kind: claude,          connector_instance: claude-api,       location: external, model_name: R5, price_input_per_million: R5, price_output_per_million: R5}
-  - {provider_key: openai,       provider_kind: openai,          connector_instance: openai-api,       location: external, model_name: R5, price_input_per_million: R5, price_output_per_million: R5}
-  - {provider_key: openai-embed, provider_kind: openai,          connector_instance: openai-embed-api, location: external, model_name: R5, price_input_per_million: R5, price_output_per_million: 0}
-  - {provider_key: local-llm,    provider_kind: local_model,     connector_instance: local-llm,        location: in_house, model_name: R5, price_input_per_million: 0,  price_output_per_million: 0}
-  - {provider_key: local-embed,  provider_kind: local_embedding, connector_instance: local-embed,      location: in_house, model_name: R5, price_input_per_million: 0,  price_output_per_million: 0}
+ai_provider_configurations:           # DM-E-70 (complete list, 5); model names and prices: 50-architecture Section 13.1 (prices of 10 Oct 2026, USD)
+  - {provider_key: claude,       provider_kind: claude,          connector_instance: claude-api,       location: external, model_name: claude-sonnet-5-5,      price_input_per_million: 2.00, price_output_per_million: 10.00}
+  - {provider_key: openai,       provider_kind: openai,          connector_instance: openai-api,       location: external, model_name: gpt-6.1-sol,            price_input_per_million: 2.00, price_output_per_million: 10.00}
+  - {provider_key: openai-embed, provider_kind: openai,          connector_instance: openai-embed-api, location: external, model_name: text-embedding-3-small, price_input_per_million: 0.02, price_output_per_million: 0}
+  - {provider_key: local-llm,    provider_kind: local_model,     connector_instance: local-llm,        location: in_house, model_name: "gemma4:12b",           price_input_per_million: 0,    price_output_per_million: 0}
+  - {provider_key: local-embed,  provider_kind: local_embedding, connector_instance: local-embed,      location: in_house, model_name: embeddinggemma,         price_input_per_million: 0,    price_output_per_million: 0}
 
 allowed_providers:                    # DM-E-71, exactly DM-E71-R1
   SL-T-1: [claude, openai, local_model]
   SL-T-2: [claude, openai, local_model]
   SL-T-3: [local_embedding, openai]
 
-task_assignments:                     # DM-E-72; default AI settings. SL-T-1/SL-T-2 order is the Round 3 proposal for SL-O-20 (SB-O-01).
+task_assignments:                     # DM-E-72; default AI settings (SL-O-20, confirmed by 50-architecture Section 13.2).
   SL-T-1: [claude, openai, local-llm]
   SL-T-2: [claude, openai, local-llm]
   SL-T-3: [local-embed]               # exactly one provider (DM-E72-R2); CTX-D-011
@@ -71,25 +82,26 @@ correlation_settings:                 # DM-E-31; resolves SL-O-04 and DM-O-01
   stability_check_interval_s: 5
 
 delivery_addresses:                   # DM-E-77 (complete list). Teams: one channel per team in the demo Team "Techfinity Demo";
-                                      # the address form is decided in Round 5 (PM-O-10, DD-O-04).
-  - {subject_kind: team, subject_key: noc-l1,             channel: teams, address: "Techfinity Demo / NOC L1"}
-  - {subject_kind: team, subject_key: noc-l1,             channel: email, address: "noc-l1@<demo-domain>"}
-  - {subject_kind: team, subject_key: db-ops,             channel: teams, address: "Techfinity Demo / Database Operations"}
-  - {subject_kind: team, subject_key: db-ops,             channel: email, address: "db-ops@<demo-domain>"}
-  - {subject_kind: team, subject_key: vas-service-owners, channel: teams, address: "Techfinity Demo / VAS Service Owners"}
-  - {subject_kind: team, subject_key: vas-service-owners, channel: email, address: "vas-service-owners@<demo-domain>"}
-  - {subject_kind: team, subject_key: it-apps,            channel: teams, address: "Techfinity Demo / IT Applications"}
-  - {subject_kind: team, subject_key: it-apps,            channel: email, address: "it-apps@<demo-domain>"}
-  - {subject_kind: team, subject_key: noc-shift-lead,     channel: teams, address: "Techfinity Demo / NOC Shift Lead"}
-  - {subject_kind: team, subject_key: noc-shift-lead,     channel: email, address: "noc-shift-lead@<demo-domain>"}
-  - {subject_kind: team, subject_key: noc-management,     channel: teams, address: "Techfinity Demo / NOC Management"}
-  - {subject_kind: team, subject_key: noc-management,     channel: email, address: "noc-management@<demo-domain>"}
-  - {subject_kind: team, subject_key: customer-care,      channel: teams, address: "Techfinity Demo / Customer Care"}
-  - {subject_kind: team, subject_key: customer-care,      channel: email, address: "customer-care@<demo-domain>"}
-  - {subject_kind: user, subject_key: dbops-engineer,     channel: teams, address: "Techfinity Demo / Approvals — Usman"}
-  - {subject_kind: user, subject_key: dbops-engineer,     channel: email, address: "dbops-engineer@<demo-domain>"}
-  - {subject_kind: user, subject_key: dbops-lead,         channel: teams, address: "Techfinity Demo / Approvals — Farah"}
-  - {subject_kind: user, subject_key: dbops-lead,         channel: email, address: "dbops-lead@<demo-domain>"}
+                                      # address = readable channel name; credential_ref = the channel's Workflows webhook
+                                      # (50-architecture AR-K-17). Email: Techfinity shared mailboxes (deployment values, AR-K-21).
+  - {subject_kind: team, subject_key: noc-l1,             channel: teams, address: "Techfinity Demo / NOC L1", credential_ref: cred-teams-noc-l1}
+  - {subject_kind: team, subject_key: noc-l1,             channel: email, address: "${mailbox.noc-l1}"}
+  - {subject_kind: team, subject_key: db-ops,             channel: teams, address: "Techfinity Demo / Database Operations", credential_ref: cred-teams-db-ops}
+  - {subject_kind: team, subject_key: db-ops,             channel: email, address: "${mailbox.db-ops}"}
+  - {subject_kind: team, subject_key: vas-service-owners, channel: teams, address: "Techfinity Demo / VAS Service Owners", credential_ref: cred-teams-vas-service-owners}
+  - {subject_kind: team, subject_key: vas-service-owners, channel: email, address: "${mailbox.vas-service-owners}"}
+  - {subject_kind: team, subject_key: it-apps,            channel: teams, address: "Techfinity Demo / IT Applications", credential_ref: cred-teams-it-apps}
+  - {subject_kind: team, subject_key: it-apps,            channel: email, address: "${mailbox.it-apps}"}
+  - {subject_kind: team, subject_key: noc-shift-lead,     channel: teams, address: "Techfinity Demo / NOC Shift Lead", credential_ref: cred-teams-noc-shift-lead}
+  - {subject_kind: team, subject_key: noc-shift-lead,     channel: email, address: "${mailbox.noc-shift-lead}"}
+  - {subject_kind: team, subject_key: noc-management,     channel: teams, address: "Techfinity Demo / NOC Management", credential_ref: cred-teams-noc-management}
+  - {subject_kind: team, subject_key: noc-management,     channel: email, address: "${mailbox.noc-management}"}
+  - {subject_kind: team, subject_key: customer-care,      channel: teams, address: "Techfinity Demo / Customer Care", credential_ref: cred-teams-customer-care}
+  - {subject_kind: team, subject_key: customer-care,      channel: email, address: "${mailbox.customer-care}"}
+  - {subject_kind: user, subject_key: dbops-engineer,     channel: teams, address: "Techfinity Demo / Approvals — Usman", credential_ref: cred-teams-dbops-engineer}
+  - {subject_kind: user, subject_key: dbops-engineer,     channel: email, address: "${mailbox.dbops-engineer}"}
+  - {subject_kind: user, subject_key: dbops-lead,         channel: teams, address: "Techfinity Demo / Approvals — Farah", credential_ref: cred-teams-dbops-lead}
+  - {subject_kind: user, subject_key: dbops-lead,         channel: email, address: "${mailbox.dbops-lead}"}
 # Teams it-infra and vas-ops have no address: no workflow path or escalation level notifies them in the demo.
 
 baseline_values:                      # DM-E-80 (complete list). Invented values, labelled "Illustrative baseline" (SL-A1-09).

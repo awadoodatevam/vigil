@@ -1,4 +1,4 @@
-# DD-F-02  Service map, generation 1 (seed part 5, DM-R-54 structure; file format SL-O-11 is Round 5).
+# DD-F-02  Service map, generation 1 (seed part 5, DM-R-54 structure; file format SL-O-11: 50-architecture AR-B-06).
 # Resolves PM-O-02 (values). Every name and host is invented (SL-DR-01); services are named by function (SB-D-06).
 # "A depends on B" means A needs B to work (DM-E-28). A component with runs_on depends on that server (DM-E28-R2).
 

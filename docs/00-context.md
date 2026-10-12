@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 00-context (ID prefix `CTX-`) |
-| Version | 1.8 |
-| Date | 10 October 2026 |
+| Version | 1.9 |
+| Date | 12 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed) |
 
@@ -22,7 +22,7 @@ Read this file first in every Claude conversation in the "Noc Automation" projec
 
 - **Vigil** is the working name for the whole product idea. It is used only by Abdul Wadood, Muzaffar Hussain and Claude. It is not a brand.
 - The two source documents call the product "Continuum". Continuum and Vigil are the same product. All new documents and all code use Vigil only.
-- **The repository** means the git repository in the folder `noc automation` on Abdul's computer. Code packages and modules inside it use the lowercase prefix `vigil`. Round 1 assigns working module names; Round 5 makes them final.
+- **The repository** means the git repository in the folder `noc automation` on Abdul's computer. Code packages and modules inside it use the lowercase prefix `vigil`. Round 1 assigns working module names; Round 5 made them final without change (CTX-D-025, `50-architecture` AR-D-12).
 
 ## 4. What Vigil is
 
@@ -75,7 +75,7 @@ Each round is one conversation in the Claude project and produces the files list
 | R2 | Core domain model: entities, relationships, lifecycles and state machines | `20-domain-model.md` | Closed, 9 Oct 2026 |
 | R3 | Jazz storyboard and demo data: scene-by-scene script with Real/Simplified/Staged tags; the invented Jazz data set; exact demo values | `30-jazz-storyboard.md`, `31-demo-data/` | Closed, 10 Oct 2026 (restarted from scratch on 10 Oct 2026; the first run, made without web access, is in `docs/_superseded/`) |
 | R4 | Demo cut: per module, keep / simplify / stage / later, keeping product shape; screen-by-screen content | `40-demo-cut.md` | Closed, 10 Oct 2026 |
-| R5 | Architecture: applications, stack, integrations, AI layer, hosting, final module names | `50-architecture.md` | Not started |
+| R5 | Architecture: applications, stack, integrations, AI layer, hosting, final module names | `50-architecture.md` | Closed, 12 Oct 2026 |
 | R6 | Build plan: packages sized for Claude Code, each with spec, done-check and tests; repository conventions | `60-build-plan.md`, `CLAUDE.md` | Not started |
 | Build | One package at a time; checkpoints reviewed in the Claude project | `docs/packages/P-##.md`, code | Not started |
 
@@ -141,15 +141,19 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | CTX-D-022 | 10 Oct 2026 | Demo cut `40-demo-cut` v1.0 adopted: 23 modules Keep, `vigil-setup` Simplified, 4 Later-only modules Later, nothing Staged; screens DC-S01 to DC-S12, product wording DC-TX-00 to DC-TX-11, outbound content DC-OUT-00 to DC-OUT-07, decisions DC-D-01 to DC-D-17. Amendments DC-A-01 to DC-A-19 written: `01-scope-lock` v1.8, `10-product-map` v1.2, `20-domain-model` v1.2, `30-jazz-storyboard` v1.1, `31-demo-data` v1.1. | Round 4 output; owner agreed the seven review items (DC-D-01 with DC-D-03, DC-D-02, DC-D-04, DC-D-05, DC-D-07 with DC-D-08, DC-D-11, DC-D-13). |
 | CTX-D-023 | 10 Oct 2026 | SL-A2-01 clarified: "connect Zabbix and Alertmanager" is shown by editing the address of, testing, and seeing the health of the monitoring sources loaded with the starting state (SB-D01); adding a source is Later (`40-demo-cut` DC-L-01). No item added to list A. | Adding a source needs a runtime secret-writing path for something no scene shows (DC-D-03). |
 | CTX-D-024 | 10 Oct 2026 | The product display name shown to the audience, on screens and in outbound content, is "Techfinity", held as a tenant setting (`40-demo-cut` DC-U-02, DC-A-09). The working name Vigil stays in documents and code (CTX-D-001). | Owner direction that the demo is branded "Techfinity"; Vigil is not a brand (Section 3). |
+| CTX-D-025 | 12 Oct 2026 | Architecture `50-architecture` v1.0 adopted: one Java 25 / Spring Boot 4.1 application as a modular monolith (Spring Modulith; 23 Java modules, each module that owns records with its own database schema) with a React and TypeScript web application and PostgreSQL 17 with pgvector; final module names equal the working names; reset by a new tenant per demo run behind a tenant alias, earlier runs dormant and unchanged; Teams through one Workflows webhook per channel and email through Amazon SES to shared mailboxes, both in Techfinity's Microsoft 365 tenant; AI defaults Claude Sonnet 5.5, then GPT-6.1 Sol, then the local model for SL-T-1 and SL-T-2, local embeddings for SL-T-3. Amendments AR-A-01 to AR-A-24 written: `01-scope-lock` v1.9, `10-product-map` v1.3, `20-domain-model` v1.3, `30-jazz-storyboard` v1.2, `31-demo-data` v1.2, `40-demo-cut` v1.1. | Round 5 output; owner answers of 10 and 12 Oct 2026; owner agreed review items 2 to 5 and changed items 1 and 6 (CTX-D-026, CTX-D-028). |
+| CTX-D-026 | 12 Oct 2026 | Hosting is AWS only, in region `us-east-1`: an always-on main host, a GPU host started on demand, an Application Load Balancer with an AWS Certificate Manager certificate, and Amazon Route 53 for a subdomain of the owner's domain, delegated by `NS` records in the owner's existing DNS zone at Cloudflare (`50-architecture` AR-D-03, AR-H-01 to AR-H-13). | Owner direction: no AWS and Cloudflare combination; AWS's default region rather than Mumbai. `us-east-1` has every service needed (the Gulf regions lack SES SMTP endpoints); pages respond about 200 to 250 ms slower from Pakistan than from Mumbai. |
+| CTX-D-027 | 12 Oct 2026 | The local model runs on a GPU host started on demand (`gemma4:12b` on Ollama, `g6.xlarge`); a local SL-T-1 answer within 45 s is acceptable; the local embedding model runs on the main host's CPU (`50-architecture` AR-D-05). Closes CTX-O-04. | Owner answer of 10 Oct 2026 and review item 2. |
+| CTX-D-028 | 12 Oct 2026 | The running costs are approved. Recorded as Abdul's statement of 12 Oct 2026; the estimate for the chosen design is about 234 USD a month (`50-architecture` Section 17.1, AR-D-17). Closes CTX-O-02. | Owner answer to review item 6. |
 
 ## 14. Open items
 
 | ID | Item | Owner | Resolved in |
 | --- | --- | --- | --- |
 | CTX-O-01 | Target demo date | Abdul with the senior manager | Before R6 closes |
-| CTX-O-02 | Hosting: cloud account, domain name, approval of running costs (server, domain, AI usage, Jira) | Muzaffar | Before R5 closes |
+| CTX-O-02 | Closed by CTX-D-026 and CTX-D-028, 12 Oct 2026 (was: hosting: cloud account, domain name, approval of running costs). | Muzaffar | R5 |
 | CTX-O-03 | Closed by CTX-D-019, 10 Oct 2026 (was: meeting tool, presenter, who shares the phone screen, and whether attendees join a demo Teams channel to receive messages themselves). | Abdul | R3 |
-| CTX-O-04 | Availability of a GPU server for the local AI model, and the acceptable local-model answer time | Abdul | R5 |
+| CTX-O-04 | Closed by CTX-D-027, 12 Oct 2026 (was: availability of a GPU server for the local AI model, and the acceptable local-model answer time). | Abdul | R5 |
 | CTX-O-05 | Confirmation from the senior manager that the Jazz name and logo may be shown in the demo | Abdul | Before the branding build package |
 
 ## 15. Quality-check results
@@ -173,3 +177,4 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | 1.6 | 9 Oct 2026 | Round 2 closed; decisions CTX-D-014 to CTX-D-016 added. |
 | 1.7 | 10 Oct 2026 | Round 3 restarted (CTX-D-017) and closed; decisions CTX-D-017 to CTX-D-021 added; CTX-O-03 closed. |
 | 1.8 | 10 Oct 2026 | Round 4 closed; decisions CTX-D-022 to CTX-D-024 added. |
+| 1.9 | 12 Oct 2026 | Round 5 closed; decisions CTX-D-025 to CTX-D-028 added; CTX-O-02 and CTX-O-04 closed; module names final. |
