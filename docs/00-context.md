@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 00-context (ID prefix `CTX-`) |
-| Version | 1.9 |
+| Version | 1.10 |
 | Date | 12 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed) |
@@ -66,7 +66,7 @@ Order of authority, highest first:
 
 ## 9. Working method: rounds
 
-Each round is one conversation in the Claude project and produces the files listed. A round starts by reading all earlier files. The master copy of every file is in the `docs/` folder of the repository; the Claude project holds a mirror updated at the end of each round. If the two differ, the repository copy wins.
+Each round is one conversation in the Claude project and produces the files listed. A round starts by reading all earlier files. The master copy of every file is in the `docs/` folder of the repository; the Claude project holds a mirror updated at the end of each round. If the two differ, the repository copy wins. Once the repository is pushed to its private GitHub repository (`60-build-plan` BP-OT-01), the `main` branch there is the master copy (CTX-D-030).
 
 | Round | Topic | Output files | Status |
 | --- | --- | --- | --- |
@@ -76,8 +76,8 @@ Each round is one conversation in the Claude project and produces the files list
 | R3 | Jazz storyboard and demo data: scene-by-scene script with Real/Simplified/Staged tags; the invented Jazz data set; exact demo values | `30-jazz-storyboard.md`, `31-demo-data/` | Closed, 10 Oct 2026 (restarted from scratch on 10 Oct 2026; the first run, made without web access, is in `docs/_superseded/`) |
 | R4 | Demo cut: per module, keep / simplify / stage / later, keeping product shape; screen-by-screen content | `40-demo-cut.md` | Closed, 10 Oct 2026 |
 | R5 | Architecture: applications, stack, integrations, AI layer, hosting, final module names | `50-architecture.md` | Closed, 12 Oct 2026 |
-| R6 | Build plan: packages sized for Claude Code, each with spec, done-check and tests; repository conventions | `60-build-plan.md`, `CLAUDE.md` | Not started |
-| Build | One package at a time; checkpoints reviewed in the Claude project | `docs/packages/P-##.md`, code | Not started |
+| R6 | Build plan: packages sized for Claude Code, each with spec, done-check and tests; repository conventions | `60-build-plan.md`, `CLAUDE.md` | Closed, 12 Oct 2026 |
+| Build | One package at a time, by the protocol of `60-build-plan` Section 6; checkpoints SL-CP-1 to SL-CP-3 reviewed in the Claude project (`60-build-plan` Section 8.3) | `docs/packages/P-##.md`, `docs/packages/P-##-report.md`, code | Not started |
 
 ## 10. Writing rules for all project documents
 
@@ -145,16 +145,19 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | CTX-D-026 | 12 Oct 2026 | Hosting is AWS only, in region `us-east-1`: an always-on main host, a GPU host started on demand, an Application Load Balancer with an AWS Certificate Manager certificate, and Amazon Route 53 for a subdomain of the owner's domain, delegated by `NS` records in the owner's existing DNS zone at Cloudflare (`50-architecture` AR-D-03, AR-H-01 to AR-H-13). | Owner direction: no AWS and Cloudflare combination; AWS's default region rather than Mumbai. `us-east-1` has every service needed (the Gulf regions lack SES SMTP endpoints); pages respond about 200 to 250 ms slower from Pakistan than from Mumbai. |
 | CTX-D-027 | 12 Oct 2026 | The local model runs on a GPU host started on demand (`gemma4:12b` on Ollama, `g6.xlarge`); a local SL-T-1 answer within 45 s is acceptable; the local embedding model runs on the main host's CPU (`50-architecture` AR-D-05). Closes CTX-O-04. | Owner answer of 10 Oct 2026 and review item 2. |
 | CTX-D-028 | 12 Oct 2026 | The running costs are approved. Recorded as Abdul's statement of 12 Oct 2026; the estimate for the chosen design is about 234 USD a month (`50-architecture` Section 17.1, AR-D-17). Closes CTX-O-02. | Owner answer to review item 6. |
+| CTX-D-029 | 12 Oct 2026 | Build plan `60-build-plan` v1.0 and `CLAUDE.md` adopted: 40 build packages P-01 to P-40 in five phases, risk first (lab and storm timing, AWS edge and live updates, Jira, Teams, email and AI providers proved in Phase A); SL-CP-1 is the storm to a resolved incident and resolved Jira ticket on the demo installation with screens DC-S01 to DC-S05 and DC-S12 (closes SL-O-19); building in Claude Code cloud sessions (cloud environment `vigil`, Java 25 from its setup script) with GitHub Actions as the merge gate; one local installation with dev fakes on the owner's Mac, in CI and in cloud sessions; demo images built by GitHub Actions and pushed to Amazon ECR, deployed by the owner's scripts; the package protocol of `60-build-plan` Section 6. Amendments BP-A-01 to BP-A-16 written: `01-scope-lock` v1.10, `30-jazz-storyboard` v1.3, `31-demo-data` v1.3, `40-demo-cut` v1.2, `50-architecture` v1.1. | Round 6 output; owner agreed review items 1 to 5 and 7 and changed item 6 (CTX-D-030). |
+| CTX-D-030 | 12 Oct 2026 | The repository is a private GitHub repository on GitHub Free with GitHub Actions. `main` is not protected; only Abdul merges, and only after the `ci.yml` job `gate` passes (`60-build-plan` BP-D-13, BP-R-07). Once pushed, the GitHub `main` branch is the master copy of the documents (refines CTX-D-009). | Owner answers of 12 Oct 2026: private GitHub with Actions; no paid plan for branch protection. |
+| CTX-D-031 | 12 Oct 2026 | SL-B-14 clarified (no item added to list A or list B): "HTTPS only" applies to every installation reachable from outside its own host; a local installation reachable only from its own machine (`60-build-plan` Section 11) serves plain HTTP. `01-scope-lock` v1.10. | The owner runs the software on his Mac (owner answer of 12 Oct 2026); certificates for a machine-local name add work and no protection. |
 
 ## 14. Open items
 
 | ID | Item | Owner | Resolved in |
 | --- | --- | --- | --- |
-| CTX-O-01 | Target demo date | Abdul with the senior manager | Before R6 closes |
+| CTX-O-01 | Target demo date | Abdul with the senior manager | When the senior manager sets a demo date; no build package depends on it (owner answer of 12 Oct 2026, `60-build-plan` BP-A-14) |
 | CTX-O-02 | Closed by CTX-D-026 and CTX-D-028, 12 Oct 2026 (was: hosting: cloud account, domain name, approval of running costs). | Muzaffar | R5 |
 | CTX-O-03 | Closed by CTX-D-019, 10 Oct 2026 (was: meeting tool, presenter, who shares the phone screen, and whether attendees join a demo Teams channel to receive messages themselves). | Abdul | R3 |
 | CTX-O-04 | Closed by CTX-D-027, 12 Oct 2026 (was: availability of a GPU server for the local AI model, and the acceptable local-model answer time). | Abdul | R5 |
-| CTX-O-05 | Confirmation from the senior manager that the Jazz name and logo may be shown in the demo | Abdul | Before the branding build package |
+| CTX-O-05 | Confirmation from the senior manager that the Jazz name and logo may be shown in the demo | Abdul | Before P-32, the first deployment of the public demo installation (`60-build-plan` BP-D-11, BP-OT-11) |
 
 ## 15. Quality-check results
 
@@ -178,3 +181,4 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | 1.7 | 10 Oct 2026 | Round 3 restarted (CTX-D-017) and closed; decisions CTX-D-017 to CTX-D-021 added; CTX-O-03 closed. |
 | 1.8 | 10 Oct 2026 | Round 4 closed; decisions CTX-D-022 to CTX-D-024 added. |
 | 1.9 | 12 Oct 2026 | Round 5 closed; decisions CTX-D-025 to CTX-D-028 added; CTX-O-02 and CTX-O-04 closed; module names final. |
+| 1.10 | 12 Oct 2026 | Round 6 closed; decisions CTX-D-029 to CTX-D-031 added; GitHub `main` is the master copy once pushed; CTX-O-01 and CTX-O-05 "Resolved in" updated; Build row refers to the protocol of `60-build-plan` Section 6. |

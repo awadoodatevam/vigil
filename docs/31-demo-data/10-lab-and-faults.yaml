@@ -21,7 +21,13 @@ mock_behaviour:                       # what each mock does (complete list); all
   every_writer_rate: "Each of the 6 schemas receives at least one write per second from the mocks above, so while writes fail every schema reports write errors (LA-02: 6 alerts)."
 
 lab_db_server:
+  # Sizes below are the demo size profile. 60-build-plan BP-R-30 (amendment BP-A-05): profile test is used in cloud sessions, CI and app tests;
+  # values that depend on sizes are compared exactly only in profile demo.
   data_filesystem: {mount: /data, type: xfs, device_size_gib: 16}
+  filesystem_setup: "lab-db-01 runs as a privileged container that, at every start, creates its XFS image file on a named volume when it does not exist and loop-mounts it at /data (60-build-plan BP-A-05)"
+  size_profiles:
+    demo: {device_size_gib: 16, /data/db: 6, /data/export: 1}
+    test: {device_size_gib: 4, /data/db: 0.8, /data/export: 0.1}
   baseline_content: {/data/db: "6 GiB (database files)", /data/export: "1 GiB (export files)", /data/txlog_archive: "empty"}
   baseline_used_gib: 7
   baseline_used_pct: measured           # expected 43 to 45
@@ -68,7 +74,8 @@ monitoring_configuration:             # PM-DC-02 (complete list of settings that
   zabbix_items: "update interval 10 s for every lab item: /data free bytes; database write error count per schema; SMS queue depth per route; last report export result"
   zabbix_triggers: "LA-01: /data free space below 1 GiB (last value). LA-02: write errors in the last 20 s above 0. LA-03: queue depth higher than 20 s ago and above 20 messages. LA-09: last report export result is failure. Each trigger carries the tags component (DD-F-02) and vigil=lab."
   zabbix_action: "one trigger action limited to problems tagged vigil=lab; operation: send to the Vigil webhook media type at step 1 only (steps 1-1, so no repeat); recovery operation: send the recovery to the same media type; no update operations"
-  zabbix_media_type: "a webhook media type whose script posts one JSON message per problem or recovery to https://demo.${demo_domain}/api/v1/webhooks/zabbix-lab with the source's token as a Bearer Authorization header and header User-Agent zabbix-webhook; the message is exactly the JSON object of 50-architecture Section 12.3. Parameters (complete list): event_id {EVENT.ID} (the alert key, the same for the problem and its recovery); event_value {EVENT.VALUE} (1 problem, 0 recovery); event_name {EVENT.NAME}; host {HOST.HOST}; tags {EVENT.TAGSJSON}; event_date {EVENT.DATE}; event_time {EVENT.TIME}; recovery_date {EVENT.RECOVERY.DATE}; recovery_time {EVENT.RECOVERY.TIME}; severity {EVENT.SEVERITY}"
+  webhook_base_url: "lab value from deploy/values/{installation}.yaml, not part of the seed bundle; demo installation https://demo.${demo_domain}; local installation http://demo.vigil.test:8080 (60-build-plan BP-A-04)"
+  zabbix_media_type: "a webhook media type whose script posts one JSON message per problem or recovery to ${webhook_base_url}/api/v1/webhooks/zabbix-lab with the source's token as a Bearer Authorization header and header User-Agent zabbix-webhook; the message is exactly the JSON object of 50-architecture Section 12.3. Parameters (complete list): event_id {EVENT.ID} (the alert key, the same for the problem and its recovery); event_value {EVENT.VALUE} (1 problem, 0 recovery); event_name {EVENT.NAME}; host {HOST.HOST}; tags {EVENT.TAGSJSON}; event_date {EVENT.DATE}; event_time {EVENT.TIME}; recovery_date {EVENT.RECOVERY.DATE}; recovery_time {EVENT.RECOVERY.TIME}; severity {EVENT.SEVERITY}"
 
 timing_targets:                       # verified by SB-T-01 and SB-T-05
   storm_arrival: "every one of the 126 storm alerts reaches Vigil as exactly one firing entry within 120 s of injection; no gap longer than 25 s between consecutive storm alert arrivals; no repeated firing entry for any storm alert during the storm"

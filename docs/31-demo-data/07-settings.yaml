@@ -26,18 +26,25 @@ credential_references:                # DM-E-11 (complete list, 19); locators on
   - {handle: cred-teams-dbops-engineer,     purpose: webhook_url, locator: "secret:teams-user-dbops-engineer"}
   - {handle: cred-teams-dbops-lead,         purpose: webhook_url, locator: "secret:teams-user-dbops-lead"}
 
-connector_instances:                  # DM-E-10 (complete list, 11); addresses and settings: 50-architecture Section 12.2
+connector_instances:                  # DM-E-10 (complete list, 11); addresses and settings: 50-architecture Section 12.2; external addresses are placeholders (60-build-plan BP-A-01)
   - {handle: zabbix-lab,       name: "Zabbix — Jazz lab",            kind: zabbix,          address: "http://lab-zabbix-web:8080", settings: {api_path: /api_jsonrpc.php}, credential_ref: cred-zabbix-api}
   - {handle: alertmanager-lab, name: "Alertmanager — Jazz lab",      kind: alertmanager,    address: "http://lab-alertmanager:9093", settings: {username: vigil}, credential_ref: cred-alertmanager-api}
   - {handle: linux-lab-db-01,  name: "Subscriber DB server (lab)",   kind: linux_server,    address: "lab-db-01", settings: {port: 22, host_key_sha256: "${lab_db_host_key_sha256}"}, credential_ref: null}   # credentials per grant (DD-F-04)
-  - {handle: jira-demo,        name: "Jira Cloud — demo project",    kind: jira_cloud,      address: "https://${jira_site}.atlassian.net", settings: {project_key: NOC, issue_type: Task, resolved_status: Done, reopened_status: "To Do", label_prefix: "vigil-"}, credential_ref: cred-jira}
+  - {handle: jira-demo,        name: "Jira Cloud — demo project",    kind: jira_cloud,      address: "${endpoint.jira}", settings: {project_key: NOC, issue_type: Task, resolved_status: Done, reopened_status: "To Do", label_prefix: "vigil-"}, credential_ref: cred-jira}
   - {handle: teams-demo,       name: "Microsoft Teams — Techfinity Demo", kind: ms_teams,   address: "https://teams.microsoft.com", settings: {}, credential_ref: null}   # secret per channel: on each Teams delivery address
-  - {handle: email-demo,       name: "Email — demo domain",          kind: email,           address: "smtp://email-smtp.us-east-1.amazonaws.com:587", settings: {from_address: "techfinity-demo@${demo_domain}", starttls: true}, credential_ref: cred-smtp}
-  - {handle: claude-api,       name: "Claude API",                   kind: claude,          address: "https://api.anthropic.com", settings: {anthropic_version: "2023-06-01"}, credential_ref: cred-claude}
-  - {handle: openai-api,       name: "OpenAI API",                   kind: openai,          address: "https://api.openai.com", settings: {}, credential_ref: cred-openai}
+  - handle: email-demo                # block style: ${smtp_starttls} becomes a boolean after the values merge (60-build-plan BP-A-01)
+    name: "Email — demo domain"
+    kind: email
+    address: "${endpoint.smtp}"
+    settings:
+      from_address: "techfinity-demo@${demo_domain}"
+      starttls: ${smtp_starttls}
+    credential_ref: cred-smtp
+  - {handle: claude-api,       name: "Claude API",                   kind: claude,          address: "${endpoint.claude}", settings: {anthropic_version: "2023-06-01"}, credential_ref: cred-claude}
+  - {handle: openai-api,       name: "OpenAI API",                   kind: openai,          address: "${endpoint.openai}", settings: {}, credential_ref: cred-openai}
   - {handle: local-llm,        name: "Local model",                  kind: local_model,     address: "http://${gpu_host_ip}:11434", settings: {keep_alive: -1, num_ctx: 16384}, credential_ref: null}
-  - {handle: local-embed,      name: "Local embedding model",        kind: local_embedding, address: "http://vigil-embed:11434", settings: {keep_alive: -1}, credential_ref: null}
-  - {handle: openai-embed-api, name: "OpenAI API — embeddings",      kind: openai,          address: "https://api.openai.com", settings: {}, credential_ref: cred-openai}
+  - {handle: local-embed,      name: "Local embedding model",        kind: local_embedding, address: "${endpoint.local_embedding}", settings: {keep_alive: -1}, credential_ref: null}
+  - {handle: openai-embed-api, name: "OpenAI API — embeddings",      kind: openai,          address: "${endpoint.openai}", settings: {}, credential_ref: cred-openai}
 
 ai_provider_configurations:           # DM-E-70 (complete list, 5); model names and prices: 50-architecture Section 13.1 (prices of 10 Oct 2026, USD)
   - {provider_key: claude,       provider_kind: claude,          connector_instance: claude-api,       location: external, model_name: claude-sonnet-5-5,      price_input_per_million: 2.00, price_output_per_million: 10.00}

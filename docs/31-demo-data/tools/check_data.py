@@ -693,6 +693,17 @@ def main(folder):
     inj = db["data_filesystem"]["device_size_gib"] - db["baseline_used_gib"] - 0.25   # XFS overhead and free space allowance
     check("DD-K-14", sum(folders.values()) == db["baseline_used_gib"] and max(folders.values()) + 1 <= inj <= 12,
           "injected archive about %.2f GiB: larger than the largest baseline folder + 1 GiB and at most the 12 GiB action limit" % inj)
+    # 60-build-plan BP-R-30 (amendment BP-A-05): the demo size profile equals the values above; the test profile keeps the same rules
+    prof = db.get("size_profiles", {})
+    demo_p, test_p = prof.get("demo", {}), prof.get("test", {})
+    prof_ok = demo_p == {"device_size_gib": db["data_filesystem"]["device_size_gib"], "/data/db": folders["db"],
+                         "/data/export": folders["export"]} and set(test_p) == set(demo_p)
+    if prof_ok:
+        t_used = test_p["/data/db"] + test_p["/data/export"]
+        t_inj = test_p["device_size_gib"] - t_used - 0.25
+        prof_ok = max(test_p["/data/db"], test_p["/data/export"]) + 1 <= t_inj <= 12
+    check("DD-K-14", prof_ok, "size profiles: demo equals the values above; test injected archive about %.2f GiB within the same limits" % (
+        (test_p.get("device_size_gib", 0) - test_p.get("/data/db", 0) - test_p.get("/data/export", 0) - 0.25)))
     mb = d["lab"]["mock_behaviour"]
     lab_schemas = [row for row in d["mon"]["lab_alert_catalogue"] if row["id"] == "LA-02"][0]["dimensions"]["schema"]
     writers = mb["api_instances"] + mb["ussd_gateway"] + mb["sms_queue"]
@@ -718,14 +729,15 @@ def main(folder):
     for part in ("ident", "smap", "mon", "ops", "rout", "wf", "set", "lab"):
         if any(v == "R5" for v in walk(d[part])):
             errs16.append("R5 marker left in " + part)
-    allowed_ph = {"demo_domain", "jira_site", "gpu_host_ip", "lab_db_host_key_sha256"} | {"mailbox." + k for k in (
+    allowed_ph = {"demo_domain", "gpu_host_ip", "lab_db_host_key_sha256", "endpoint.jira", "endpoint.smtp",
+                  "smtp_starttls", "endpoint.claude", "endpoint.openai", "endpoint.local_embedding"} | {"mailbox." + k for k in (
         "noc-l1", "db-ops", "vas-service-owners", "it-apps", "noc-shift-lead", "noc-management", "customer-care",
         "dbops-engineer", "dbops-lead")}
     for name in sorted(os.listdir(folder)):
         if name.endswith((".yaml", ".md", ".csv")) and name != "README.md":
             text = open(os.path.join(folder, name), encoding="utf-8").read()
             for ph in re.findall(r"\$\{([^}]*)\}", text):
-                if ph not in allowed_ph:
+                if ph not in allowed_ph and not (name == "10-lab-and-faults.yaml" and ph == "webhook_base_url"):
                     errs16.append("placeholder ${%s} in %s" % (ph, name))
             if "<demo-domain>" in text:
                 errs16.append("<demo-domain> in " + name)

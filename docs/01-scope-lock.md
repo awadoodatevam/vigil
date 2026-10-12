@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 01-scope-lock (ID prefix `SL-`) |
-| Version | 1.9 |
+| Version | 1.10 |
 | Date | 12 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Locked (owner review recorded in Section 13). Changes only through Section 8. |
@@ -147,7 +147,7 @@ Built from the first build package onward.
 | SL-B-11 | Workflow runs MUST be durable. State MUST be saved after each step. After a restart, a run MUST resume from its last completed step. If an action's result is unknown, Vigil MUST check the target's actual state before any retry, so no action runs twice unintentionally. | BSD-BR-013 |
 | SL-B-12 | Incidents MUST follow explicit lifecycle states, including reopening. The states are defined in Round 2. | BSD-BR-008 |
 | SL-B-13 | Every user action MUST be performed and recorded as a named user. Permissions MUST be data. The Acknowledge and Approval pages MUST require login; a link alone grants no authority. | BSD-BR-024, BSD-BR-025; BSD RULE-05 |
-| SL-B-14 | Minimum security (complete list): HTTPS only; secrets MUST NOT be stored in the repository; each webhook source MUST authenticate with its own token; the demo login MUST NOT use a default password. | BSD-BR-024 |
+| SL-B-14 | Minimum security (complete list): HTTPS only, for every installation reachable from outside its own host (a local installation reachable only from its own machine, `60-build-plan` Section 11, serves plain HTTP; CTX-D-031); secrets MUST NOT be stored in the repository; each webhook source MUST authenticate with its own token; the demo login MUST NOT use a default password. | BSD-BR-024 |
 
 ## 7. Demo data rules
 
@@ -161,7 +161,7 @@ Built from the first build package onward.
 - **SL-CR-01** After this document is locked, every new idea goes to list C by default.
 - **SL-CR-02** A new item MAY enter list A only if one or more items with an estimated build effort equal to or greater than the new item leave list A. Abdul decides; Claude estimates both. Each change MUST be recorded in the decision log of `00-context.md` and in this document's change history.
 - **SL-CR-03** The scope is reopened only at these checkpoints (complete list):
-  - **SL-CP-1:** the first end-to-end slice works: alert storm to resolved incident. The exact screens included are defined in `60-build-plan` (SL-O-19).
+  - **SL-CP-1:** the first end-to-end slice works: alert storm to resolved incident. The exact screens included are defined in `60-build-plan` Section 8.2: DC-S01 to DC-S05 and DC-S12 (SL-O-19, closed).
   - **SL-CP-2:** the 15-minute primary demo (SL-A1) is complete.
   - **SL-CP-3:** the full demo (SL-A1 and SL-A2) is complete.
 
@@ -247,7 +247,7 @@ BSD requirements not covered by this demo (complete list): BSD-BR-018 (industry 
 | SL-O-16 | Which cloud AI providers fault SL-F-4 makes unreachable | Claude, reviewed by Abdul | R3 |
 | SL-O-17 | Reset mechanism that keeps earlier runs intact (recommended: a new tenant per demo run, seeded from the starting state). Must also define: how Zabbix and Alertmanager webhooks and logged-in users reach the current run; how seeding, including SL-T-3 embeddings, fits within the 60-second reset. | Claude | R5 (closed by `50-architecture` AR-B-01 to AR-B-04, AR-B-09, AR-R-19) |
 | SL-O-18 | Display names of demo users | Claude, reviewed by Abdul | R3 |
-| SL-O-19 | Screens included in checkpoint SL-CP-1 | Claude | R6 |
+| SL-O-19 | Closed by `60-build-plan` Section 8.2 (CTX-D-029), 12 Oct 2026 (was: screens included in checkpoint SL-CP-1). | Claude | R6 |
 | SL-O-20 | Default AI settings for SL-T-1 and SL-T-2: provider and fallback order (SL-T-3 default fixed by CTX-D-011) | Claude, reviewed by Abdul | R5 (closed by `50-architecture` Section 13.2, agreed by owner) |
 | SL-O-21 | The routing rule changed in SL-A2-06. The change MUST NOT alter the storm incident's severity or owner team. | Claude, reviewed by Abdul | R3 |
 | SL-O-22 | Definition of workflow version 1, step by step. It MUST include a severity Condition step with a P1 branch. | Claude, reviewed by Abdul | R3 |
@@ -277,3 +277,4 @@ Project-wide open items CTX-O-01 to CTX-O-05 are listed in `00-context.md` Secti
 | 1.7 | 10 Oct 2026 | SL-A3-01, SL-A3-03 and SL-A3-07 clarified (CTX-D-020, from Round 3); SL-ASM-02 and SL-ASM-03 verification status updated after the Round 3 fact check. No item added to list A. |
 | 1.8 | 10 Oct 2026 | SL-A2-01 clarified (CTX-D-023, from Round 4, `40-demo-cut` DC-A-11). No item added to list A. |
 | 1.9 | 12 Oct 2026 | Round 5 amendments (`50-architecture` AR-A-16, CTX-D-025): "Verified by" of SL-ASM-01, SL-ASM-02 and SL-ASM-04 updated; SL-O-11, SL-O-17 and SL-O-20 closed. No item added to list A or list B. |
+| 1.10 | 12 Oct 2026 | Round 6 amendments (`60-build-plan` BP-A-13, CTX-D-029, CTX-D-031): SL-O-19 closed and SL-CP-1 screens named; SL-B-14 clarified (HTTPS only for installations reachable from outside their own host). No item added to list A or list B. |
