@@ -6,7 +6,7 @@
 | Branch | `p-01-repo-toolchain-ci` |
 | Pin date (BP-R-08) | 14 October 2026 |
 | Built by | Claude Code, cloud session in the default environment |
-| State | Built; gate command passes in this session; `ci.yml` run and the owner-run steps are listed below |
+| State | Built; gate command passes in this session and `ci.yml` job `gate` passes on the pull request; the owner-run steps are listed below |
 
 ## 1. What was built
 
@@ -45,6 +45,7 @@ The expected dependency table in `ModuleStructureTest` is a literal copy of the 
 | 4 | `ConnectorLibraryRuleTest` and `SeparationTest` use JUnit `@Test` methods that call `ArchRule.check(...)` with a `ClassFileImporter`, not `@AnalyzeClasses` and `@ArchTest` fields. | `@DisplayName` cannot annotate a field and the ArchUnit engine ignores it, and `tools/trace.py` reads literal `@DisplayName` strings (BP-R-10). |
 | 5 | `vite.config.ts` imports `defineConfig` from `vitest/config`. | So that the `test` key (`environment: "node"`) type checks; the spec asks for both settings in this file. |
 | 6 | `ModuleMarker` and `ApiMarker` (spec 6.3 fallbacks) were **not needed**. | `ApplicationModules.of(VigilApplication.class)` detects all 24 modules and the `api` named interfaces with only `package-info.java` in the packages. A throw-away experiment (a class in `audit` using a `tenancy.api` type, a class in `tenancy` using an internal `audit` type, a class in `tenancy` using an `audit.api` type) showed that `verify()` reports the first two and the cycle and accepts the third. The experiment files were removed. |
+| 7 | `ci.yml` has `java-version: "25.0.4+101.0.LTS"`, not `25.0.4.1+1`. | `actions/setup-java` rejects `25.0.4.1+1` as invalid SemVer and finds no match for `25.0.4+1.1`. Its list of available versions shows 25.0.4.1+1 as `25.0.4+101.0.LTS` (and 25.0.4+7 as `25.0.4+7.0.LTS`). The JDK in `tools/cloud-setup.sh` is the same release, `jdk-25.0.4.1+1`. The first two runs of `gate` failed at this step only. |
 
 Not deviations, recorded for completeness: the versions of the Maven plugins that `app` and `demo-control` use (Failsafe, Surefire, Resources, Compiler, Jar, Spring Boot plugin) come from the managed versions of `spring-boot-starter-parent` 4.1.1 and are exact; no `pluginManagement` was added.
 
@@ -86,7 +87,7 @@ None.
 | actions/setup-node | v7.1.0 `949feb2413d6458794dcd2491c4babbbce0c15c1` |
 | actions/upload-artifact | v7.0.2 `cf430e030ddbb5b0abf93d22962f4752f3646cd9` |
 
-The `ci.yml` input `java-version: "25.0.4.1+1"` (four-part Temurin version) could not be checked against `actions/setup-java` in this session, because `api.adoptium.net` is not reachable from it. See section 8.
+`ci.yml` writes the Temurin version as `java-version: "25.0.4+101.0.LTS"`, which is how `actions/setup-java` lists Temurin 25.0.4.1+1 (see deviation 7).
 
 ## 7. Values recorded under `docs/`
 
@@ -102,7 +103,7 @@ None other than this report (spec Section 9).
 
 | Step | Who | Result |
 | --- | --- | --- |
-| P01-DC-02 `ci.yml` job `gate` passes on the pull request | GitHub Actions | See the pull request; the first run also shows whether `java-version: "25.0.4.1+1"` is accepted by `actions/setup-java` |
+| P01-DC-02 `ci.yml` job `gate` passes on the pull request | GitHub Actions | Passes on commit 79b9747 (run 38527683061, 73 seconds). The two earlier runs failed only at the Java setup step (deviation 7). |
 | BP-OT-02: create the cloud environment `vigil` from `tools/cloud-setup.sh` (setup version 1), Trusted network access, variables `BASH_DEFAULT_TIMEOUT_MS=600000`, `BASH_MAX_TIMEOUT_MS=1800000`, `JAVA_HOME=/opt/temurin-25` | Owner | To do |
 | P01-DC-03 session "Verify P-01" on this branch | Owner starts, Claude Code runs | To do; writes `tests/acceptance/results/P-01-verify.txt` |
 | Session "Record the owner-run results of P-01" | Owner starts, Claude Code runs | To do; copies the run time into section 7 and answers BP-ASM-01 |
