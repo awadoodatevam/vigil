@@ -97,16 +97,16 @@ None other than this report (spec Section 9).
 | --- | --- |
 | Setup script run time in the default environment (P01-DC-01) | **39 seconds** (`/etc/vigil-cloud-setup.seconds` after `bash tools/cloud-setup.sh` as root in this session; exit 0; `java -version` then shows Temurin 25.0.4.1) |
 | `ModuleMarker` / `ApiMarker` fallback needed | No (deviation 6) |
-| BP-ASM-01 (setup script within 5 minutes) | Filled by the session "Record the owner-run results of P-01" |
+| BP-ASM-01 (setup script within 5 minutes) | **Holds.** The setup script of the environment `vigil` finished in **32 seconds** (`/etc/vigil-cloud-setup.seconds` in the verify session, limit 300; `tests/acceptance/results/P-01-verify.txt`). |
 
 ## 8. Owner-run results and what the owner runs
 
 | Step | Who | Result |
 | --- | --- | --- |
 | P01-DC-02 `ci.yml` job `gate` passes on the pull request | GitHub Actions | Passes on commit 79b9747 (run 38527683061, 73 seconds). The two earlier runs failed only at the Java setup step (deviation 7). |
-| BP-OT-02: create the cloud environment `vigil` from `tools/cloud-setup.sh` (setup version 1), Trusted network access, variables `BASH_DEFAULT_TIMEOUT_MS=600000`, `BASH_MAX_TIMEOUT_MS=1800000`, `JAVA_HOME=/opt/temurin-25` | Owner | To do |
-| P01-DC-03 session "Verify P-01" on this branch | Owner starts, Claude Code runs | To do; writes `tests/acceptance/results/P-01-verify.txt` |
-| Session "Record the owner-run results of P-01" | Owner starts, Claude Code runs | To do; copies the run time into section 7 and answers BP-ASM-01 |
+| BP-OT-02: create the cloud environment `vigil` from `tools/cloud-setup.sh` (setup version 1), Trusted network access, variables `BASH_DEFAULT_TIMEOUT_MS=600000`, `BASH_MAX_TIMEOUT_MS=1800000`, `JAVA_HOME=/opt/temurin-25` | Owner | Done, as far as the verify session shows: `java -version` showed Temurin 25.0.4.1+1 without running the setup script, and `/etc/vigil-cloud-setup.version` was 1. The variables and the network setting were not checked by that session. |
+| P01-DC-03 session "Verify P-01" on this branch | Owner starts, Claude Code runs | Done (commit 11442dc, `tests/acceptance/results/P-01-verify.txt`): `java -version` Temurin 25.0.4.1+1; setup version 1; setup seconds 32; `tools/check-all.sh` last line `== all checks passed`. The first gate run failed in step 2 because the Maven wrapper could not download Maven 3.9.16 (a one-off proxy failure; the same download worked a minute later); the second run passed. |
+| Session "Record the owner-run results of P-01" | Owner starts, Claude Code runs | Done: the run time of the environment `vigil` (32 seconds) is in section 7 and BP-ASM-01 is answered there. |
 
 ## 9. Lines of production code added and changed (P01-DC-04)
 
