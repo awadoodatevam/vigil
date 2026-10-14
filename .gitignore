@@ -1,2 +1,12 @@
 
 **/.DS_Store
+target/
+node_modules/
+web/dist/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.idea/
+*.iml
+.vscode/

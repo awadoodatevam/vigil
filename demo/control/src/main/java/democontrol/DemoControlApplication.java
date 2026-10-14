@@ -1,0 +1,12 @@
+package democontrol;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class DemoControlApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(DemoControlApplication.class, args);
+  }
+}
