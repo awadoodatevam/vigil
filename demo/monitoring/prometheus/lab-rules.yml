@@ -1,0 +1,40 @@
+# The alerting rules of the lab (LA-04 to LA-08 of DD-F-03; DD-F-10 monitoring_configuration.prometheus; the summaries
+# of 40-demo-cut DC-A-17; P-04 spec Section 6.2.5).
+groups:
+  - name: lab
+    rules:
+      - alert: NodeFilesystemFull
+        expr: node_filesystem_avail_bytes{job="lab-db-node",mountpoint="/data"} < 1073741824
+        for: 10s
+        labels:
+          component: srv-db-01
+        annotations:
+          summary: Disk full on lab-db-01 /data
+      - alert: BalanceApiErrors
+        expr: rate(lab_api_errors_total{api="balance",job="lab-api"}[20s]) > 0.2
+        for: 10s
+        labels:
+          component: api-balance
+        annotations:
+          summary: Balance-check API errors on {{ $labels.instance }} {{ $labels.endpoint }}
+      - alert: BundleApiErrors
+        expr: rate(lab_api_errors_total{api="bundle",job="lab-api"}[20s]) > 0.2
+        for: 10s
+        labels:
+          component: api-bundle
+        annotations:
+          summary: Bundle-purchase API errors on {{ $labels.instance }} {{ $labels.endpoint }}
+      - alert: UssdGatewayTimeouts
+        expr: rate(lab_ussd_timeouts_total{job="lab-vas"}[20s]) > 0.2
+        for: 10s
+        labels:
+          component: ussd-gw
+        annotations:
+          summary: USSD gateway timeouts on {{ $labels.node }}, menu {{ $labels.menu }}
+      - alert: SyntheticUssdSessionFailed
+        expr: lab_probe_last_result{job="lab-probe"} == 0
+        for: 10s
+        labels:
+          component: ussd-probe
+        annotations:
+          summary: "Synthetic USSD session failed: {{ $labels.city }}, {{ $labels.journey }}"

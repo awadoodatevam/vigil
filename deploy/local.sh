@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# The local installation (docs/60-build-plan.md Section 11). This package: the lab only.
+# The local installation (docs/60-build-plan.md Section 11). So far: the lab only, with monitoring, demo-faults and
+# the webhook recorder (P-03, P-04).
 #   deploy/local.sh up --lab-only [--profile test|demo] [--project NAME]
 #   deploy/local.sh down [--volumes] [--project NAME]
 # Runs with macOS's bash 3.2: no empty arrays under set -u.
@@ -10,6 +11,25 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 COMPOSE_FILE=deploy/local/compose.yaml
 LAB_HOSTS=(lab-db-01 lab-api-01 lab-vas-01 lab-probe-01 lab-rpt-01)
 IMAGE=vigil/demo-lab:local
+PROVISION_IMAGE=vigil/lab-zabbix-provision:local
+LOCAL_IMAGES=("$IMAGE" vigil/demo-faults:local "$PROVISION_IMAGE" vigil/recorder:local vigil/storm-spike:local)
+# Every fixed container name of the compose file (other-project check).
+CONTAINERS=("${LAB_HOSTS[@]}" lab-zabbix-db lab-zabbix-server lab-zabbix-web lab-zabbix-provision lab-prometheus
+  lab-alertmanager demo-faults dev-recorder storm-spike)
+# Started by up --lab-only (step 6) and waited for until healthy (step 7).
+STARTED=("${LAB_HOSTS[@]}" lab-zabbix-db lab-zabbix-server lab-zabbix-web lab-prometheus lab-alertmanager demo-faults
+  dev-recorder)
+HEALTHY=("${LAB_HOSTS[@]}" lab-zabbix-db demo-faults dev-recorder)
+# The monitoring and fault secrets (AR-S-13, P-04 spec Section 6.7): name, make_secret.py kind, unit folders in order.
+SECRET_TABLE="webhook-zabbix token vigil-app lab-zabbix-provision
+webhook-alertmanager token vigil-app lab-alertmanager
+alertmanager-password password vigil-app demo-control lab-prometheus
+alertmanager-web-config web-config lab-alertmanager
+zabbix-admin-password password lab-zabbix-provision
+zabbix-db-password password lab-zabbix-db lab-zabbix-server lab-zabbix-web
+faults-token token demo-control demo-faults"
+UNITS=(lab-db-01 vigil-app lab-zabbix-provision lab-alertmanager demo-control lab-prometheus lab-zabbix-db
+  lab-zabbix-server lab-zabbix-web demo-faults)
 
 usage() {
   echo "Usage: deploy/local.sh up --lab-only [--profile test|demo] [--project NAME] | deploy/local.sh down [--volumes] [--project NAME]"
@@ -24,13 +44,102 @@ in_lab_image() {
     -c "$commands && chown -R $(id -u):$(id -g) /work"
 }
 
-# Adds one secret file (0444) to a unit folder (0555), making the folder writable only while it adds the file.
+# Adds one secret file (0444) to a unit folder (0555), making the folder writable only while it adds the file;
+# an existing file of that name is replaced.
 add_secret() {
   local folder=$1 name=$2 source=$3
   chmod 0755 "$folder"
+  rm -f "$folder/$name"
   cp "$source" "$folder/$name"
   chmod 0444 "$folder/$name"
   chmod 0555 "$folder"
+}
+
+# Prints the image names of the compose file that are pinned by digest (the third-party images).
+third_party_images() {
+  awk '$1 == "image:" && $2 ~ /@sha256:/ { print $2 }' "$COMPOSE_FILE"
+}
+
+# The monitoring and fault secrets (step 3 of up --lab-only); arguments: secrets folder, work folder, project.
+monitoring_secrets() {
+  local secrets=$1 work=$2 project=$3
+  local name kind folders folder holder make="" args="" made_password=no
+  while read -r name kind folders; do
+    holder=""
+    for folder in $folders; do
+      if [ -e "$secrets/$folder/$name" ]; then
+        holder="$secrets/$folder/$name"
+        break
+      fi
+    done
+    if [ -z "$holder" ] || { [ "$name" = alertmanager-web-config ] && [ "$made_password" = yes ]; }; then
+      make="$make $name"
+      case "$kind" in
+        web-config)
+          if [ "$made_password" = no ]; then
+            for folder in vigil-app demo-control lab-prometheus; do
+              if [ -e "$secrets/$folder/alertmanager-password" ]; then
+                cp "$secrets/$folder/alertmanager-password" "$work/alertmanager-password"
+                break
+              fi
+            done
+          fi
+          args="$args web-config:/work/$name:/work/alertmanager-password"
+          ;;
+        *) args="$args $kind:/work/$name" ;;
+      esac
+      if [ "$name" = alertmanager-password ]; then
+        made_password=yes
+      fi
+    fi
+  done <<< "$SECRET_TABLE"
+
+  case " $make " in
+    *" zabbix-db-password "*)
+      if docker volume inspect "${project}_lab-zabbix-db-data" > /dev/null 2>&1; then
+        echo "zabbix-db-password is new but the Zabbix database was kept: run deploy/local.sh down --volumes --project $project"
+        exit 1
+      fi
+      ;;
+  esac
+  if [ -n "$args" ]; then
+    # shellcheck disable=SC2086 # one word per argument
+    docker run --rm --user "$(id -u):$(id -g)" -v "$work":/work --entrypoint /opt/venv/bin/python \
+      "$PROVISION_IMAGE" /opt/provision/make_secret.py $args
+  fi
+
+  while read -r name kind folders; do
+    holder=""
+    case " $make " in
+      *" $name "*) holder="$work/$name" ;;
+    esac
+    if [ -z "$holder" ]; then
+      for folder in $folders; do
+        if [ -e "$secrets/$folder/$name" ]; then
+          holder="$secrets/$folder/$name"
+          break
+        fi
+      done
+    fi
+    for folder in $folders; do
+      if [ "$holder" = "$work/$name" ] || [ ! -e "$secrets/$folder/$name" ]; then
+        add_secret "$secrets/$folder" "$name" "$holder"
+      fi
+    done
+  done <<< "$SECRET_TABLE"
+}
+
+# Prints the state, and the last 50 log lines, of the services that up --lab-only waits for.
+diagnostics() {
+  local service
+  compose ps -a
+  for service in "${HEALTHY[@]}"; do
+    compose logs --tail 50 "$service"
+  done
+}
+
+compose() {
+  docker compose -f "$COMPOSE_FILE" -p "$PROJECT" "$@"
 }
 
 # Prints the content of an OpenSSH private key file as the JSON secret of AR-S-13, without a trailing newline.
@@ -49,15 +158,21 @@ lab_up() {
   fi
   local name owner host
   while read -r name owner; do
-    for host in "${LAB_HOSTS[@]}"; do
+    for host in "${CONTAINERS[@]}"; do
       if [ "$name" = "$host" ] && [ "$owner" != "$project" ]; then
         echo "Lab containers of project $owner exist: run deploy/local.sh down --project $owner first."
         exit 1
       fi
     done
-  done < <(docker ps -a --filter name=^lab- --format '{{.Names}} {{.Label "com.docker.compose.project"}}')
+  done < <(docker ps -a --format '{{.Names}} {{.Label "com.docker.compose.project"}}')
 
-  if ! docker image inspect "$IMAGE" > /dev/null 2>&1; then
+  local image missing=no
+  for image in "${LOCAL_IMAGES[@]}" $(third_party_images); do
+    if ! docker image inspect "$image" > /dev/null 2>&1; then
+      missing=yes
+    fi
+  done
+  if [ "$missing" = yes ]; then
     deploy/images.sh --test
   fi
 
@@ -68,9 +183,9 @@ lab_up() {
       mkdir -m 0700 "$folder"
     fi
   done
-  for folder in "$secrets/lab-db-01" "$secrets/vigil-app"; do
-    if [ ! -d "$folder" ]; then
-      mkdir -m 0555 "$folder"
+  for folder in "${UNITS[@]}"; do
+    if [ ! -d "$secrets/$folder" ]; then
+      mkdir -m 0555 "$secrets/$folder"
     fi
   done
   local k private public generate=""
@@ -115,6 +230,7 @@ lab_up() {
     printf '%s' "$(cat "$work/host")" > "$work/host-line"
     add_secret "$secrets/lab-db-01" lab-db-01-host-key "$work/host-line"
   fi
+  monitoring_secrets "$secrets" "$work" "$project"
 
   # Derived value lab_db_host_key_sha256 (AR-B-07), every time.
   if [ ! -d "$values" ]; then
@@ -126,36 +242,76 @@ lab_up() {
   printf 'lab_db_host_key_sha256: "%s"\n' "$(cat "$work/fingerprint")" > "$values/derived.yaml"
   chmod 0644 "$values/derived.yaml"
 
-  VIGIL_LOCAL_SECRETS="$secrets" VIGIL_LAB_PROFILE="$profile" \
-    docker compose -f "$COMPOSE_FILE" -p "$project" up -d "${LAB_HOSTS[@]}"
+  # Folders and configuration (step 5).
+  local generated="$base/$project/generated" config="$base/$project/config" recordings="$base/$project/recordings"
+  if [ ! -d "$generated" ]; then
+    mkdir -m 0700 "$generated"
+  fi
+  for folder in "$config" "$recordings"; do
+    if [ ! -d "$folder" ]; then
+      mkdir -m 0755 "$folder"
+    fi
+  done
+  local url
+  url=$(sed -n 's/^webhook_base_url: *//p' deploy/values/local.yaml)
+  awk -v url="$url" '{
+    out = ""; rest = $0
+    while ((i = index(rest, "${webhook_base_url}")) > 0) { out = out substr(rest, 1, i - 1) url; rest = substr(rest, i + 19) }
+    print out rest
+  }' demo/monitoring/alertmanager/alertmanager.yml > "$config/alertmanager.yml"
+  chmod 0644 "$config/alertmanager.yml"
 
-  local waited=0 healthy
+  # Start (step 6); every later compose command uses the same environment.
+  VIGIL_LOCAL_UID=$(id -u)
+  VIGIL_LOCAL_GID=$(id -g)
+  export VIGIL_LOCAL_SECRETS="$secrets" VIGIL_LAB_PROFILE="$profile" VIGIL_LOCAL_UID VIGIL_LOCAL_GID
+  export VIGIL_LOCAL_GENERATED="$generated" VIGIL_LOCAL_CONFIG="$config" VIGIL_LOCAL_RECORDINGS="$recordings"
+  export VIGIL_WEBHOOK_BASE_URL="$url"
+  PROJECT=$project
+  if ! compose up -d "${STARTED[@]}"; then
+    diagnostics
+    exit 1
+  fi
+
+  # Wait (step 7).
+  local waited=0 healthy service
   while true; do
     healthy=0
-    for host in "${LAB_HOSTS[@]}"; do
-      if [ "$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$host" 2> /dev/null)" = healthy ]; then
+    for service in "${HEALTHY[@]}"; do
+      if [ "$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$service" 2> /dev/null)" = healthy ]; then
         healthy=$((healthy + 1))
       fi
     done
-    if [ "$healthy" -eq "${#LAB_HOSTS[@]}" ]; then
+    if [ "$healthy" -eq "${#HEALTHY[@]}" ]; then
       break
     fi
     if [ "$waited" -ge 180 ]; then
-      docker compose -f "$COMPOSE_FILE" -p "$project" ps
-      for host in "${LAB_HOSTS[@]}"; do
-        docker compose -f "$COMPOSE_FILE" -p "$project" logs --tail 50 "$host"
-      done
+      diagnostics
       exit 1
     fi
     sleep 2
     waited=$((waited + 2))
+  done
+
+  # Provision (step 8): docker wait prints the exit code also when the container has already stopped.
+  compose up -d lab-zabbix-provision
+  local code
+  code=$(docker wait lab-zabbix-provision)
+  if [ "$code" != 0 ]; then
+    docker logs lab-zabbix-provision
+    exit 1
+  fi
+  for folder in vigil-app demo-control; do
+    if ! cmp -s "$generated/zabbix-api" "$secrets/$folder/zabbix-api"; then
+      add_secret "$secrets/$folder" zabbix-api "$generated/zabbix-api"
+    fi
   done
   echo "Lab is up (profile $profile, project $project)."
 }
 
 lab_down() {
   local project=$1 volumes=$2
-  local args=(down)
+  local args=(--profile lab-only --profile spike down --remove-orphans)
   if [ "$volumes" = yes ]; then
     args+=(--volumes)
   fi

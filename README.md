@@ -8,7 +8,7 @@ Vigil is a NOC automation product (working name; the audience sees "Techfinity")
 tools/check-all.sh
 ```
 
-It runs every check a package MUST pass, in this order, and stops at the first failure: in a cloud session, step (0) starts the Docker daemon when it is not running (`tools/start-docker.sh`); the cloud setup version check (only in a cloud session); the build of the images that tests use (`deploy/images.sh --test`); `./mvnw -B verify` (Spotless, Java tests, and the web application's `npm ci`, lint, Prettier, type check, Vitest and build), `ruff` and `pytest`, `shellcheck`, the demo data checks, Docker Compose validation, and `tools/trace.py --check`. The GitHub Actions job `gate` in `.github/workflows/ci.yml` runs the same command on every pull request to `main`.
+It runs every check a package MUST pass, in this order, and stops at the first failure: in a cloud session, step (0) starts the Docker daemon when it is not running (`tools/start-docker.sh`); the cloud setup version check (only in a cloud session); the build of the images that tests use (`deploy/images.sh --test`); `./mvnw -B verify` (Spotless, Java tests, and the web application's `npm ci`, lint, Prettier, type check, Vitest and build), `ruff` and `pytest` (the Python tests of `tools/`, `demo/`, `dev/`, `deploy/local/`, `spikes/` and `tests/acceptance/`; the tests marked `lab`, which start the lab with its monitoring and run one storm, only when the branch changes a file under `demo/`, `deploy/`, `dev/`, `spikes/`, `tools/` or `docs/31-demo-data/`), `shellcheck`, the demo data checks, Docker Compose validation, and `tools/trace.py --check`. The GitHub Actions job `gate` in `.github/workflows/ci.yml` runs the same command on every pull request to `main`.
 
 Other commands: `./mvnw -B verify` (Java and web build and tests only), `tools/loc.sh origin/main HEAD` (lines of production code added and changed), `tools/trace.py` (requirement IDs without tests).
 
@@ -41,11 +41,21 @@ Migrations are Flyway SQL files in `app/src/main/resources/db/migration/{schema}
 
 ## Local installation
 
-`deploy/images.sh --test` builds the images that tests use: in this state of the repository `vigil/demo-lab:local`, the image of the five lab hosts (`demo/lab/`; its interfaces are in `demo/lab/README.md`). It is the only way to build local images: it passes the proxy variables and the CA bundle the build needs.
+`deploy/images.sh --test` builds the images that tests use, after pulling the pinned third-party images of `deploy/local/compose.yaml` (with retries): `vigil/demo-lab:local` (the five lab hosts, `demo/lab/`), `vigil/demo-faults:local` (`demo/faults/`), `vigil/lab-zabbix-provision:local` (`demo/monitoring/provision/`), `vigil/recorder:local` (`dev/recorder/`) and `vigil/storm-spike:local` (`spikes/storm-timing/`). It is the only way to build local images: it passes the proxy variables and the CA bundle the build needs.
 
 ```bash
-deploy/local.sh up --lab-only [--profile test|demo] [--project NAME]   # starts the five lab hosts
-deploy/local.sh down [--volumes] [--project NAME]                      # stops them; --volumes also removes /data
+deploy/local.sh up --lab-only [--profile test|demo] [--project NAME]   # starts the lab with its monitoring
+deploy/local.sh down [--volumes] [--project NAME]                      # stops it; --volumes also removes /data, the Zabbix database and the fault state
 ```
 
-The default project is `vigil-local` and the default profile is `lab_profile` of `deploy/values/local.yaml` (`test`: a 4 GiB `/data`; `demo`: 16 GiB). `up` generates the lab's secrets under `~/.vigil-local/{project}/secrets/` (files 0444 in folders 0555) and the derived value `lab_db_host_key_sha256` in `~/.vigil-local/{project}/values/derived.yaml`; secrets never enter the repository, and existing secrets are kept (delete `~/.vigil-local/{project}` to start from new keys). One local installation runs per Docker host, because its subnets and container names are fixed. Monitoring and faults arrive in package P-04, Vigil and the rest of the local installation in P-26.
+`up --lab-only` starts the five lab hosts (in dependency order), Zabbix (`lab-zabbix-db`, `lab-zabbix-server`, `lab-zabbix-web`, then the one-shot `lab-zabbix-provision`), Prometheus, Alertmanager, `demo-faults` (on the host network at `http://172.31.0.1:8091`) and the webhook recorder, which answers at `http://demo.vigil.test:8080` on `lab-net` in place of Vigil (`webhook_base_url` of `deploy/values/local.yaml`). No port is published. The default project is `vigil-local` and the default profile is `lab_profile` of `deploy/values/local.yaml` (`test`: a 4 GiB `/data`; `demo`: 16 GiB).
+
+`up` generates the secrets under `~/.vigil-local/{project}/secrets/{unit}/` (files 0444 in folders 0555): the `lab-db-01` key pairs and host key, and the monitoring and fault secrets `webhook-zabbix`, `webhook-alertmanager`, `alertmanager-password`, `alertmanager-web-config`, `zabbix-admin-password`, `zabbix-db-password` and `faults-token`; it copies the Zabbix API token that `lab-zabbix-provision` writes to `~/.vigil-local/{project}/generated/zabbix-api` into `secrets/vigil-app/` and `secrets/demo-control/`. It also writes `values/derived.yaml` (`lab_db_host_key_sha256`), `config/alertmanager.yml` (the Alertmanager configuration with `webhook_base_url`) and keeps the recorder's calls in `recordings/`. Secrets never enter the repository, and existing secrets are kept (delete `~/.vigil-local/{project}` and run `down --volumes` to start from new ones). One local installation runs per Docker host, because its subnets and container names are fixed.
+
+The storm timing spike (SB-T-01, development run) runs against the lab that is up:
+
+```bash
+spikes/storm-timing/run.sh [--storms N] [--extra LIST] [--save-recordings] [--foreground] [--project NAME]
+```
+
+It writes `spikes/results/storm-timing-{UTC time}.json` (see `spikes/storm-timing/README.md`). Vigil and the rest of the local installation arrive in P-26.

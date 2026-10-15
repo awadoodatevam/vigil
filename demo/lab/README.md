@@ -24,7 +24,7 @@ No port is published; everything is reached on `lab-net` (172.31.0.0/24). A host
 | `labctl` | every host | Bash (`demo/lab/labctl.sh`, installed as `/usr/local/bin/labctl`). It works under `${LABCTL_ROOT:-/var/lib/lab}` (`LABCTL_ROOT` is set only by tests) and decides its host from `LAB_ROLE`: `db …` only on `lab-db-01`, `report …` only on `lab-rpt-01`. Any other command, or a command for another host, prints a usage line and exits 2. Called by `docker compose exec {service} labctl …` or `docker exec {container} labctl …` (P-04's `demo-faults`, AR-X-03). |
 | Metrics | `lab-api-01:9200/metrics`, `lab-vas-01:9200/metrics`, `lab-probe-01:9200/metrics` | Prometheus text format from `prometheus_client`. `lab-api-01`: counters `lab_api_requests_total` and `lab_api_errors_total` with labels `api` (`balance`, `bundle`), `instance` (`api-balance-1` …) and `endpoint` (`/v1/balance` …). `lab-vas-01`: counters `lab_ussd_sessions_total` and `lab_ussd_timeouts_total` with labels `node` and `menu`. `lab-probe-01`: gauge `lab_probe_last_result` with labels `city` and `journey` (1 success, 0 failure). Every series exists from the start (counters at 0, the gauge at 1). The label `instance` is part of the metric; P-04's scrape configuration keeps it (`honor_labels: true`). |
 | Node exporter | `lab-db-01:9100/metrics` | Ubuntu's `prometheus-node-exporter` with its default collectors; `node_filesystem_avail_bytes` and `node_filesystem_size_bytes` with `mountpoint="/data"` are present. |
-| Zabbix agent 2 | `lab-db-01`, `lab-vas-01`, `lab-rpt-01`, port 10050 | Passive checks from `lab-net` (`Server=172.31.0.0/24`, `Hostname` = the host name); `vfs.fs.size[/data,free]` (on `lab-db-01`) and `vfs.file.contents[{status file}]` give the values above. The entrypoint writes `/etc/zabbix/zabbix_agent2.conf` at every start (P-04 MAY change it in `demo/lab/entrypoint.sh`). |
+| Zabbix agent 2 | `lab-db-01`, `lab-vas-01`, `lab-rpt-01`, port 10050 | Passive checks from `lab-net` (`Server=172.31.0.0/24,127.0.0.1`, `Hostname` = the host name); `vfs.fs.size[/data,free]` (on `lab-db-01`) and `vfs.file.contents[{status file}]` give the values above. The entrypoint writes `/etc/zabbix/zabbix_agent2.conf` at every start (P-04 MAY change it in `demo/lab/entrypoint.sh`). |
 
 ## What the mocks do
 
@@ -33,6 +33,10 @@ The behaviour is DD-F-10 `mock_behaviour` as made exact by P-03 spec Section 6.2
 ## Users and `/data` on `lab-db-01`
 
 `vigil-diag` (UID 2001) and `vigil-action` (UID 2002, also in group `vigil-diag`) log in only with their own keys, which come with the host key from the secret files in `/run/secrets/vigil` at every start. `/data`, `/data/db` and `/data/export` are `root:vigil-diag` 0750; `/data/txlog_archive` is `vigil-action:vigil-diag` 0750. So `vigil-diag` reads everything and writes nothing, and `vigil-action` can create and delete files only in `/data/txlog_archive`.
+
+## Monitoring and faults (P-04)
+
+Zabbix, Prometheus and Alertmanager monitor these hosts (`demo/monitoring/README.md`), and `demo-faults` injects and clears SL-F-1 to SL-F-3 through `docker exec` and `labctl` (`demo/faults/README.md`). The agent configuration accepts passive checks from `172.31.0.0/24` and from `127.0.0.1` (the ready check's own connects). The lab hosts start in dependency order: `lab-api-01` after `lab-db-01`, `lab-vas-01` after both, `lab-probe-01` after `lab-vas-01` (each `service_healthy`), so no mock calls a service that is not yet listening. The API mocks make every write of a request (a request fails when any write fails), and the USSD gateway writes `ussd_sessions` also after a failed API call (CTX-D-035).
 
 ## Tests
 

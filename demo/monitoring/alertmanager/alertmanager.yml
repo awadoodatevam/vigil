@@ -1,0 +1,23 @@
+# Alertmanager of the lab (AR-U-10, AR-X-02, AR §12.4; DD-F-10 monitoring_configuration.alertmanager; P-04 spec
+# Section 6.2.6). A template: deploy/local.sh replaces ${webhook_base_url} before Alertmanager reads it.
+route:
+  receiver: discard
+  routes:
+    - matchers: ['alertname=~"NodeFilesystemFull|BalanceApiErrors|BundleApiErrors|UssdGatewayTimeouts|SyntheticUssdSessionFailed"']
+      receiver: vigil
+      group_by: ['...']
+      group_wait: 5s
+      group_interval: 10s
+      repeat_interval: 12h
+
+receivers:
+  - name: discard
+  - name: vigil
+    webhook_configs:
+      - url: ${webhook_base_url}/api/v1/webhooks/alertmanager-lab
+        send_resolved: true
+        max_alerts: 0
+        http_config:
+          authorization:
+            type: Bearer
+            credentials_file: /run/secrets/vigil/webhook-alertmanager

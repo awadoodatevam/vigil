@@ -44,12 +44,21 @@ step 3 "python checks and tests"
 "$PY" -m ruff check .
 "$PY" -m ruff format --check .
 test_dirs=()
-for dir in tools demo dev deploy/local tests/acceptance; do
+for dir in tools demo dev deploy/local spikes tests/acceptance; do
   if [ -d "$dir" ]; then
     test_dirs+=("$dir")
   fi
 done
-"$PY" -m pytest -m "not installation" "${test_dirs[@]}"
+# The lab tests run only when the branch changes the lab (CTX-D-036).
+markers="not installation"
+if git rev-parse --verify --quiet origin/main > /dev/null; then
+  changed=$({ git diff --name-only origin/main; git ls-files --others --exclude-standard; } | sort -u)
+  if ! echo "$changed" | grep -qE '^(demo/|deploy/|dev/|spikes/|tools/|docs/31-demo-data/)'; then
+    markers="not installation and not lab"
+    echo "lab tests skipped: no change under demo/, deploy/, dev/, spikes/, tools/, docs/31-demo-data/"
+  fi
+fi
+"$PY" -m pytest -m "$markers" "${test_dirs[@]}"
 
 step 4 "shellcheck"
 git ls-files '*.sh' | xargs shellcheck
