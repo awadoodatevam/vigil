@@ -1,0 +1,2 @@
+# Deployment values of the local installation (docs/60-build-plan.md Section 11.4).
+lab_profile: test
