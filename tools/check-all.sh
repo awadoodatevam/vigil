@@ -15,6 +15,11 @@ step() {
 }
 
 if [ "${CLAUDE_CODE_REMOTE:-}" = "true" ]; then
+  step 0 "docker daemon"
+  tools/start-docker.sh
+fi
+
+if [ "${CLAUDE_CODE_REMOTE:-}" = "true" ]; then
   step 1 "setup version"
   expected=$(sed -n '2s/^# VIGIL_SETUP_VERSION=\([0-9][0-9]*\)$/\1/p' tools/cloud-setup.sh)
   installed=""

@@ -1,0 +1,532 @@
+arm64
+29.8.2
+docker.io/zabbix/zabbix-agent2@sha256:4a84f14b76fdc317dccfad1d92a8e09b650127adc79e3c7d40d4ca802dda3a1f: Pulling from zabbix/zabbix-agent2
+76fd055477b6: Pulling fs layer
+22907fe728f8: Pulling fs layer
+1f6f7babd3bc: Pulling fs layer
+19f936efb64d: Pulling fs layer
+72b6b8640a34: Pulling fs layer
+7f646160ce6e: Pulling fs layer
+62d7418608fc: Pulling fs layer
+4f4fb700ef54: Pulling fs layer
+af44ac214207: Pulling fs layer
+7f646160ce6e: Waiting
+62d7418608fc: Waiting
+4f4fb700ef54: Waiting
+af44ac214207: Waiting
+19f936efb64d: Waiting
+72b6b8640a34: Waiting
+22907fe728f8: Verifying Checksum
+22907fe728f8: Download complete
+76fd055477b6: Verifying Checksum
+76fd055477b6: Download complete
+19f936efb64d: Verifying Checksum
+19f936efb64d: Download complete
+76fd055477b6: Pull complete
+22907fe728f8: Pull complete
+72b6b8640a34: Verifying Checksum
+72b6b8640a34: Download complete
+7f646160ce6e: Verifying Checksum
+7f646160ce6e: Download complete
+4f4fb700ef54: Download complete
+af44ac214207: Verifying Checksum
+af44ac214207: Download complete
+1f6f7babd3bc: Verifying Checksum
+1f6f7babd3bc: Download complete
+1f6f7babd3bc: Pull complete
+19f936efb64d: Pull complete
+62d7418608fc: Verifying Checksum
+62d7418608fc: Download complete
+72b6b8640a34: Pull complete
+7f646160ce6e: Pull complete
+62d7418608fc: Pull complete
+4f4fb700ef54: Pull complete
+af44ac214207: Pull complete
+Digest: sha256:4a84f14b76fdc317dccfad1d92a8e09b650127adc79e3c7d40d4ca802dda3a1f
+Status: Downloaded newer image for zabbix/zabbix-agent2@sha256:4a84f14b76fdc317dccfad1d92a8e09b650127adc79e3c7d40d4ca802dda3a1f
+docker.io/zabbix/zabbix-agent2:ubuntu-7.0.25@sha256:4a84f14b76fdc317dccfad1d92a8e09b650127adc79e3c7d40d4ca802dda3a1f
+docker.io/library/ubuntu@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55: Pulling from library/ubuntu
+90812e242c93: Pulling fs layer
+90812e242c93: Verifying Checksum
+90812e242c93: Download complete
+90812e242c93: Pull complete
+Digest: sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+Status: Downloaded newer image for ubuntu@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.89kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/zabbix/zabbix-agent2:ubuntu-7.0.25@sha256:4a84f14b76fdc317dccfad1d92a8e09b650127adc79e3c7d40d4ca802dda3a1f
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [stage-1  1/12] FROM docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 35.68kB done
+#6 DONE 0.0s
+
+#7 [agent 1/1] FROM docker.io/zabbix/zabbix-agent2:ubuntu-7.0.25@sha256:4a84f14b76fdc317dccfad1d92a8e09b650127adc79e3c7d40d4ca802dda3a1f
+#7 DONE 0.0s
+
+#8 [stage-1  2/12] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444     set -eu;     if [ -f /run/secrets/ca_bundle ]; then       echo 'Acquire::https::CAInfo "/run/secrets/ca_bundle";' > /etc/apt/apt.conf.d/99vigil-build-ca;       sed -i 's|http://|https://|g' /etc/apt/sources.list.d/ubuntu.sources;     fi;     apt-get update;     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends       python3 python3-venv openssh-server openssh-client prometheus-node-exporter libcurl4t64       xfsprogs util-linux iproute2 procps ca-certificates tzdata;     rm -f /etc/apt/apt.conf.d/99vigil-build-ca;     sed -i 's|https://|http://|g' /etc/apt/sources.list.d/ubuntu.sources;     rm -rf /var/lib/apt/lists/*
+#8 0.623 Get:1 http://ports.ubuntu.com/ubuntu-ports noble InRelease [256 kB]
+#8 1.988 Get:2 http://ports.ubuntu.com/ubuntu-ports noble-updates InRelease [126 kB]
+#8 2.185 Get:3 http://ports.ubuntu.com/ubuntu-ports noble-backports InRelease [126 kB]
+#8 2.449 Get:4 http://ports.ubuntu.com/ubuntu-ports noble-security InRelease [126 kB]
+#8 3.954 Get:5 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 Packages [1776 kB]
+#8 6.754 Get:6 http://ports.ubuntu.com/ubuntu-ports noble/multiverse arm64 Packages [274 kB]
+#8 7.044 Get:7 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 Packages [19.0 MB]
+#8 18.37 Get:8 http://ports.ubuntu.com/ubuntu-ports noble/restricted arm64 Packages [113 kB]
+#8 18.37 Get:9 http://ports.ubuntu.com/ubuntu-ports noble-updates/restricted arm64 Packages [3251 kB]
+#8 19.44 Get:10 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 Packages [1786 kB]
+#8 19.68 Get:11 http://ports.ubuntu.com/ubuntu-ports noble-updates/multiverse arm64 Packages [104 kB]
+#8 19.68 Get:12 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 Packages [2212 kB]
+#8 20.13 Get:13 http://ports.ubuntu.com/ubuntu-ports noble-backports/main arm64 Packages [49.0 kB]
+#8 20.14 Get:14 http://ports.ubuntu.com/ubuntu-ports noble-backports/universe arm64 Packages [36.3 kB]
+#8 20.15 Get:15 http://ports.ubuntu.com/ubuntu-ports noble-backports/multiverse arm64 Packages [669 B]
+#8 20.15 Get:16 http://ports.ubuntu.com/ubuntu-ports noble-security/main arm64 Packages [1475 kB]
+#8 20.76 Get:17 http://ports.ubuntu.com/ubuntu-ports noble-security/universe arm64 Packages [1636 kB]
+#8 20.98 Get:18 http://ports.ubuntu.com/ubuntu-ports noble-security/restricted arm64 Packages [3129 kB]
+#8 21.84 Get:19 http://ports.ubuntu.com/ubuntu-ports noble-security/multiverse arm64 Packages [99.1 kB]
+#8 21.97 Fetched 35.6 MB in 22s (1624 kB/s)
+#8 21.97 Reading package lists...
+#8 22.77 Reading package lists...
+#8 23.53 Building dependency tree...
+#8 23.67 Reading state information...
+#8 23.85 util-linux is already the newest version (2.39.3-9ubuntu6.6).
+#8 23.85 procps is already the newest version (2:4.0.4-4ubuntu3.3).
+#8 23.85 The following additional packages will be installed:
+#8 23.85   adduser libbpf1 libbrotli1 libbsd0 libcap2-bin libcbor0.10
+#8 23.85   libdevmapper1.02.1 libedit2 libelf1t64 libexpat1 libfido2-1 libgssapi-krb5-2
+#8 23.85   libicu74 libinih1 libk5crypto3 libkeyutils1 libkrb5-3 libkrb5support0
+#8 23.85   libldap2 libmnl0 libnghttp2-14 libpsl5t64 libpython3-stdlib
+#8 23.85   libpython3.12-minimal libpython3.12-stdlib libreadline8t64 librtmp1
+#8 23.85   libsasl2-2 libsasl2-modules-db libsqlite3-0 libssh-4 libssl3t64 liburcu8t64
+#8 23.85   libwrap0 libxtables12 media-types netbase openssh-sftp-server openssl
+#8 23.85   python3-minimal python3-pip-whl python3-setuptools-whl python3.12
+#8 23.85   python3.12-minimal python3.12-venv readline-common ucf
+#8 23.85 Suggested packages:
+#8 23.85   liblocale-gettext-perl perl cron quota ecryptfs-utils iproute2-doc krb5-doc
+#8 23.85   krb5-user keychain libpam-ssh monkeysphere ssh-askpass molly-guard ufw
+#8 23.85   python3-doc python3-tk python3.12-doc binutils binfmt-support readline-doc
+#8 23.85   xfsdump acl attr
+#8 23.85 Recommended packages:
+#8 23.85   libatm1t64 libpam-cap dmsetup krb5-locales libldap-common publicsuffix
+#8 23.85   libsasl2-modules xauth default-logind | logind | libpam-systemd ncurses-term
+#8 23.85   ssh-import-id dbus prometheus-node-exporter-collectors
+#8 23.96 The following NEW packages will be installed:
+#8 23.96   adduser ca-certificates iproute2 libbpf1 libbrotli1 libbsd0 libcap2-bin
+#8 23.96   libcbor0.10 libcurl4t64 libdevmapper1.02.1 libedit2 libelf1t64 libexpat1
+#8 23.96   libfido2-1 libgssapi-krb5-2 libicu74 libinih1 libk5crypto3 libkeyutils1
+#8 23.96   libkrb5-3 libkrb5support0 libldap2 libmnl0 libnghttp2-14 libpsl5t64
+#8 23.96   libpython3-stdlib libpython3.12-minimal libpython3.12-stdlib libreadline8t64
+#8 23.96   librtmp1 libsasl2-2 libsasl2-modules-db libsqlite3-0 libssh-4 liburcu8t64
+#8 23.96   libwrap0 libxtables12 media-types netbase openssh-client openssh-server
+#8 23.96   openssh-sftp-server openssl prometheus-node-exporter python3 python3-minimal
+#8 23.96   python3-pip-whl python3-setuptools-whl python3-venv python3.12
+#8 23.96   python3.12-minimal python3.12-venv readline-common tzdata ucf xfsprogs
+#8 23.96 The following packages will be upgraded:
+#8 23.96   libssl3t64
+#8 24.56 1 upgraded, 56 newly installed, 0 to remove and 4 not upgraded.
+#8 24.56 Need to get 33.8 MB of archives.
+#8 24.56 After this operation, 108 MB of additional disk space will be used.
+#8 24.56 Get:1 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libssl3t64 arm64 3.0.13-0ubuntu3.16 [1838 kB]
+#8 27.48 Get:2 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libpython3.12-minimal arm64 3.12.3-1ubuntu0.17 [835 kB]
+#8 28.20 Get:3 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libexpat1 arm64 2.6.1-2ubuntu0.6 [89.8 kB]
+#8 28.51 Get:4 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3.12-minimal arm64 3.12.3-1ubuntu0.17 [2253 kB]
+#8 28.64 Get:5 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3-minimal arm64 3.12.3-0ubuntu2.1 [27.4 kB]
+#8 28.64 Get:6 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 media-types all 10.1.0 [27.5 kB]
+#8 28.64 Get:7 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 netbase all 6.4 [13.1 kB]
+#8 28.64 Get:8 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 tzdata all 2026e-0ubuntu0.24.04.1 [282 kB]
+#8 28.64 Get:9 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 readline-common all 8.2-4build1 [56.5 kB]
+#8 28.64 Get:10 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libreadline8t64 arm64 8.2-4build1 [153 kB]
+#8 28.64 Get:11 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libsqlite3-0 arm64 3.45.1-1ubuntu2.8 [691 kB]
+#8 29.08 Get:12 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libpython3.12-stdlib arm64 3.12.3-1ubuntu0.17 [2039 kB]
+#8 30.15 Get:13 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3.12 arm64 3.12.3-1ubuntu0.17 [651 kB]
+#8 30.15 Get:14 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libpython3-stdlib arm64 3.12.3-0ubuntu2.1 [10.1 kB]
+#8 30.15 Get:15 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3 arm64 3.12.3-0ubuntu2.1 [23.0 kB]
+#8 30.15 Get:16 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 adduser all 3.137ubuntu1 [101 kB]
+#8 30.15 Get:17 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libbsd0 arm64 0.12.1-1build1.1 [41.0 kB]
+#8 30.15 Get:18 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libedit2 arm64 3.1-20230828-1build1 [97.5 kB]
+#8 30.16 Get:19 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libcbor0.10 arm64 0.10.2-1.2ubuntu2 [26.0 kB]
+#8 30.16 Get:20 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libfido2-1 arm64 1.14.0-1build3 [82.5 kB]
+#8 30.16 Get:21 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libkrb5support0 arm64 1.20.1-6ubuntu2.10 [35.4 kB]
+#8 30.42 Get:22 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libk5crypto3 arm64 1.20.1-6ubuntu2.10 [85.8 kB]
+#8 30.44 Get:23 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libkeyutils1 arm64 1.6.3-3build1 [9654 B]
+#8 30.44 Get:24 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libkrb5-3 arm64 1.20.1-6ubuntu2.10 [350 kB]
+#8 30.91 Get:25 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libgssapi-krb5-2 arm64 1.20.1-6ubuntu2.10 [142 kB]
+#8 30.91 Get:26 http://ports.ubuntu.com/ubuntu-ports noble-security/main arm64 openssh-client arm64 1:9.6p1-3ubuntu13.20 [891 kB]
+#8 30.96 Get:27 http://ports.ubuntu.com/ubuntu-ports noble-security/main arm64 openssh-sftp-server arm64 1:9.6p1-3ubuntu13.20 [36.8 kB]
+#8 30.96 Get:28 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 ucf all 3.0043+nmu1 [56.5 kB]
+#8 30.96 Get:29 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libwrap0 arm64 7.6.q-33 [48.5 kB]
+#8 30.96 Get:30 http://ports.ubuntu.com/ubuntu-ports noble-security/main arm64 openssh-server arm64 1:9.6p1-3ubuntu13.20 [502 kB]
+#8 30.97 Get:31 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 prometheus-node-exporter arm64 1.7.0-1ubuntu0.3 [4086 kB]
+#8 33.03 Get:32 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 openssl arm64 3.0.13-0ubuntu3.16 [985 kB]
+#8 33.04 Get:33 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 ca-certificates all 20260601~24.04.1 [139 kB]
+#8 33.04 Get:34 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libelf1t64 arm64 0.190-1.1ubuntu0.1 [58.4 kB]
+#8 33.04 Get:35 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libbpf1 arm64 1:1.3.0-2build2 [168 kB]
+#8 33.04 Get:36 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libmnl0 arm64 1.0.5-2build1 [12.4 kB]
+#8 33.04 Get:37 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libxtables12 arm64 1.8.10-3ubuntu2 [35.9 kB]
+#8 33.04 Get:38 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libcap2-bin arm64 1:2.66-5ubuntu2.4 [33.5 kB]
+#8 33.04 Get:39 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 iproute2 arm64 6.1.0-1ubuntu6.4 [1126 kB]
+#8 33.06 Get:40 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libdevmapper1.02.1 arm64 2:1.02.185-3ubuntu3.2 [128 kB]
+#8 33.30 Get:41 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libicu74 arm64 74.2-1ubuntu3.1 [10.8 MB]
+#8 36.14 Get:42 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libnghttp2-14 arm64 1.59.0-1ubuntu0.4 [74.8 kB]
+#8 36.28 Get:43 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libpsl5t64 arm64 0.21.2-1.1build1 [57.4 kB]
+#8 36.28 Get:44 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libbrotli1 arm64 1.1.0-2build2 [339 kB]
+#8 36.42 Get:45 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libsasl2-modules-db arm64 2.1.28+dfsg1-5ubuntu3.1 [21.6 kB]
+#8 36.45 Get:46 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libsasl2-2 arm64 2.1.28+dfsg1-5ubuntu3.1 [54.7 kB]
+#8 36.45 Get:47 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libldap2 arm64 2.6.10+dfsg-0ubuntu0.24.04.1 [196 kB]
+#8 36.50 Get:48 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 librtmp1 arm64 2.4+20151223.gitfa8646d.1-2build7 [57.8 kB]
+#8 36.50 Get:49 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libssh-4 arm64 0.10.6-2ubuntu0.5 [192 kB]
+#8 36.51 Get:50 http://ports.ubuntu.com/ubuntu-ports noble-security/main arm64 libcurl4t64 arm64 8.5.0-2ubuntu10.16 [337 kB]
+#8 36.51 Get:51 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libinih1 arm64 55-1ubuntu2 [7216 B]
+#8 36.55 Get:52 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 liburcu8t64 arm64 0.14.0-3.1build1 [63.1 kB]
+#8 36.56 Get:53 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 python3-pip-whl all 24.0+dfsg-1ubuntu1.3 [1707 kB]
+#8 38.75 Get:54 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 python3-setuptools-whl all 68.1.2-2ubuntu1.2 [716 kB]
+#8 38.78 Get:55 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 python3.12-venv arm64 3.12.3-1ubuntu0.17 [5684 B]
+#8 38.78 Get:56 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 python3-venv arm64 3.12.3-0ubuntu2.1 [1032 B]
+#8 38.78 Get:57 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 xfsprogs arm64 6.6.0-1ubuntu2.1 [889 kB]
+#8 38.93 debconf: delaying package configuration, since apt-utils is not installed
+#8 38.96 Fetched 33.8 MB in 15s (2277 kB/s)
+#8 38.98 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4376 files and directories currently installed.)
+#8 38.98 Preparing to unpack .../libssl3t64_3.0.13-0ubuntu3.16_arm64.deb ...
+#8 38.99 Unpacking libssl3t64:arm64 (3.0.13-0ubuntu3.16) over (3.0.13-0ubuntu3.15) ...
+#8 39.05 Setting up libssl3t64:arm64 (3.0.13-0ubuntu3.16) ...
+#8 39.07 Selecting previously unselected package libpython3.12-minimal:arm64.
+#8 39.07 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4376 files and directories currently installed.)
+#8 39.07 Preparing to unpack .../libpython3.12-minimal_3.12.3-1ubuntu0.17_arm64.deb ...
+#8 39.08 Unpacking libpython3.12-minimal:arm64 (3.12.3-1ubuntu0.17) ...
+#8 39.12 Selecting previously unselected package libexpat1:arm64.
+#8 39.12 Preparing to unpack .../libexpat1_2.6.1-2ubuntu0.6_arm64.deb ...
+#8 39.13 Unpacking libexpat1:arm64 (2.6.1-2ubuntu0.6) ...
+#8 39.14 Selecting previously unselected package python3.12-minimal.
+#8 39.14 Preparing to unpack .../python3.12-minimal_3.12.3-1ubuntu0.17_arm64.deb ...
+#8 39.14 Unpacking python3.12-minimal (3.12.3-1ubuntu0.17) ...
+#8 39.18 Setting up libpython3.12-minimal:arm64 (3.12.3-1ubuntu0.17) ...
+#8 39.19 Setting up libexpat1:arm64 (2.6.1-2ubuntu0.6) ...
+#8 39.19 Setting up python3.12-minimal (3.12.3-1ubuntu0.17) ...
+#8 39.72 Selecting previously unselected package python3-minimal.
+#8 39.72 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4695 files and directories currently installed.)
+#8 39.73 Preparing to unpack .../0-python3-minimal_3.12.3-0ubuntu2.1_arm64.deb ...
+#8 39.73 Unpacking python3-minimal (3.12.3-0ubuntu2.1) ...
+#8 39.74 Selecting previously unselected package media-types.
+#8 39.74 Preparing to unpack .../1-media-types_10.1.0_all.deb ...
+#8 39.74 Unpacking media-types (10.1.0) ...
+#8 39.75 Selecting previously unselected package netbase.
+#8 39.75 Preparing to unpack .../2-netbase_6.4_all.deb ...
+#8 39.75 Unpacking netbase (6.4) ...
+#8 39.77 Selecting previously unselected package tzdata.
+#8 39.77 Preparing to unpack .../3-tzdata_2026e-0ubuntu0.24.04.1_all.deb ...
+#8 39.77 Unpacking tzdata (2026e-0ubuntu0.24.04.1) ...
+#8 39.81 Selecting previously unselected package readline-common.
+#8 39.81 Preparing to unpack .../4-readline-common_8.2-4build1_all.deb ...
+#8 39.81 Unpacking readline-common (8.2-4build1) ...
+#8 39.82 Selecting previously unselected package libreadline8t64:arm64.
+#8 39.82 Preparing to unpack .../5-libreadline8t64_8.2-4build1_arm64.deb ...
+#8 39.82 Adding 'diversion of /lib/aarch64-linux-gnu/libhistory.so.8 to /lib/aarch64-linux-gnu/libhistory.so.8.usr-is-merged by libreadline8t64'
+#8 39.83 Adding 'diversion of /lib/aarch64-linux-gnu/libhistory.so.8.2 to /lib/aarch64-linux-gnu/libhistory.so.8.2.usr-is-merged by libreadline8t64'
+#8 39.83 Adding 'diversion of /lib/aarch64-linux-gnu/libreadline.so.8 to /lib/aarch64-linux-gnu/libreadline.so.8.usr-is-merged by libreadline8t64'
+#8 39.83 Adding 'diversion of /lib/aarch64-linux-gnu/libreadline.so.8.2 to /lib/aarch64-linux-gnu/libreadline.so.8.2.usr-is-merged by libreadline8t64'
+#8 39.83 Unpacking libreadline8t64:arm64 (8.2-4build1) ...
+#8 39.85 Selecting previously unselected package libsqlite3-0:arm64.
+#8 39.85 Preparing to unpack .../6-libsqlite3-0_3.45.1-1ubuntu2.8_arm64.deb ...
+#8 39.85 Unpacking libsqlite3-0:arm64 (3.45.1-1ubuntu2.8) ...
+#8 39.86 Selecting previously unselected package libpython3.12-stdlib:arm64.
+#8 39.86 Preparing to unpack .../7-libpython3.12-stdlib_3.12.3-1ubuntu0.17_arm64.deb ...
+#8 39.86 Unpacking libpython3.12-stdlib:arm64 (3.12.3-1ubuntu0.17) ...
+#8 39.92 Selecting previously unselected package python3.12.
+#8 39.93 Preparing to unpack .../8-python3.12_3.12.3-1ubuntu0.17_arm64.deb ...
+#8 39.93 Unpacking python3.12 (3.12.3-1ubuntu0.17) ...
+#8 39.94 Selecting previously unselected package libpython3-stdlib:arm64.
+#8 39.94 Preparing to unpack .../9-libpython3-stdlib_3.12.3-0ubuntu2.1_arm64.deb ...
+#8 39.94 Unpacking libpython3-stdlib:arm64 (3.12.3-0ubuntu2.1) ...
+#8 39.95 Setting up python3-minimal (3.12.3-0ubuntu2.1) ...
+#8 40.03 Selecting previously unselected package python3.
+#8 40.03 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 5701 files and directories currently installed.)
+#8 40.04 Preparing to unpack .../python3_3.12.3-0ubuntu2.1_arm64.deb ...
+#8 40.04 Unpacking python3 (3.12.3-0ubuntu2.1) ...
+#8 40.09 Selecting previously unselected package adduser.
+#8 40.09 Preparing to unpack .../adduser_3.137ubuntu1_all.deb ...
+#8 40.09 Unpacking adduser (3.137ubuntu1) ...
+#8 40.11 Setting up adduser (3.137ubuntu1) ...
+#8 40.13 Selecting previously unselected package libbsd0:arm64.
+#8 40.13 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 5770 files and directories currently installed.)
+#8 40.13 Preparing to unpack .../00-libbsd0_0.12.1-1build1.1_arm64.deb ...
+#8 40.13 Unpacking libbsd0:arm64 (0.12.1-1build1.1) ...
+#8 40.14 Selecting previously unselected package libedit2:arm64.
+#8 40.14 Preparing to unpack .../01-libedit2_3.1-20230828-1build1_arm64.deb ...
+#8 40.15 Unpacking libedit2:arm64 (3.1-20230828-1build1) ...
+#8 40.16 Selecting previously unselected package libcbor0.10:arm64.
+#8 40.16 Preparing to unpack .../02-libcbor0.10_0.10.2-1.2ubuntu2_arm64.deb ...
+#8 40.16 Unpacking libcbor0.10:arm64 (0.10.2-1.2ubuntu2) ...
+#8 40.17 Selecting previously unselected package libfido2-1:arm64.
+#8 40.17 Preparing to unpack .../03-libfido2-1_1.14.0-1build3_arm64.deb ...
+#8 40.17 Unpacking libfido2-1:arm64 (1.14.0-1build3) ...
+#8 40.19 Selecting previously unselected package libkrb5support0:arm64.
+#8 40.19 Preparing to unpack .../04-libkrb5support0_1.20.1-6ubuntu2.10_arm64.deb ...
+#8 40.19 Unpacking libkrb5support0:arm64 (1.20.1-6ubuntu2.10) ...
+#8 40.20 Selecting previously unselected package libk5crypto3:arm64.
+#8 40.20 Preparing to unpack .../05-libk5crypto3_1.20.1-6ubuntu2.10_arm64.deb ...
+#8 40.20 Unpacking libk5crypto3:arm64 (1.20.1-6ubuntu2.10) ...
+#8 40.22 Selecting previously unselected package libkeyutils1:arm64.
+#8 40.22 Preparing to unpack .../06-libkeyutils1_1.6.3-3build1_arm64.deb ...
+#8 40.22 Unpacking libkeyutils1:arm64 (1.6.3-3build1) ...
+#8 40.23 Selecting previously unselected package libkrb5-3:arm64.
+#8 40.23 Preparing to unpack .../07-libkrb5-3_1.20.1-6ubuntu2.10_arm64.deb ...
+#8 40.23 Unpacking libkrb5-3:arm64 (1.20.1-6ubuntu2.10) ...
+#8 40.25 Selecting previously unselected package libgssapi-krb5-2:arm64.
+#8 40.25 Preparing to unpack .../08-libgssapi-krb5-2_1.20.1-6ubuntu2.10_arm64.deb ...
+#8 40.25 Unpacking libgssapi-krb5-2:arm64 (1.20.1-6ubuntu2.10) ...
+#8 40.27 Selecting previously unselected package openssh-client.
+#8 40.27 Preparing to unpack .../09-openssh-client_1%3a9.6p1-3ubuntu13.20_arm64.deb ...
+#8 40.27 Unpacking openssh-client (1:9.6p1-3ubuntu13.20) ...
+#8 40.29 Selecting previously unselected package openssh-sftp-server.
+#8 40.29 Preparing to unpack .../10-openssh-sftp-server_1%3a9.6p1-3ubuntu13.20_arm64.deb ...
+#8 40.30 Unpacking openssh-sftp-server (1:9.6p1-3ubuntu13.20) ...
+#8 40.31 Selecting previously unselected package ucf.
+#8 40.31 Preparing to unpack .../11-ucf_3.0043+nmu1_all.deb ...
+#8 40.31 Moving old data out of the way
+#8 40.31 Unpacking ucf (3.0043+nmu1) ...
+#8 40.32 Selecting previously unselected package libwrap0:arm64.
+#8 40.32 Preparing to unpack .../12-libwrap0_7.6.q-33_arm64.deb ...
+#8 40.32 Unpacking libwrap0:arm64 (7.6.q-33) ...
+#8 40.33 Selecting previously unselected package openssh-server.
+#8 40.33 Preparing to unpack .../13-openssh-server_1%3a9.6p1-3ubuntu13.20_arm64.deb ...
+#8 40.34 Unpacking openssh-server (1:9.6p1-3ubuntu13.20) ...
+#8 40.36 Selecting previously unselected package prometheus-node-exporter.
+#8 40.36 Preparing to unpack .../14-prometheus-node-exporter_1.7.0-1ubuntu0.3_arm64.deb ...
+#8 40.36 Unpacking prometheus-node-exporter (1.7.0-1ubuntu0.3) ...
+#8 40.42 Selecting previously unselected package openssl.
+#8 40.42 Preparing to unpack .../15-openssl_3.0.13-0ubuntu3.16_arm64.deb ...
+#8 40.42 Unpacking openssl (3.0.13-0ubuntu3.16) ...
+#8 40.44 Selecting previously unselected package ca-certificates.
+#8 40.44 Preparing to unpack .../16-ca-certificates_20260601~24.04.1_all.deb ...
+#8 40.45 Unpacking ca-certificates (20260601~24.04.1) ...
+#8 40.46 Selecting previously unselected package libelf1t64:arm64.
+#8 40.46 Preparing to unpack .../17-libelf1t64_0.190-1.1ubuntu0.1_arm64.deb ...
+#8 40.46 Unpacking libelf1t64:arm64 (0.190-1.1ubuntu0.1) ...
+#8 40.48 Selecting previously unselected package libbpf1:arm64.
+#8 40.48 Preparing to unpack .../18-libbpf1_1%3a1.3.0-2build2_arm64.deb ...
+#8 40.48 Unpacking libbpf1:arm64 (1:1.3.0-2build2) ...
+#8 40.49 Selecting previously unselected package libmnl0:arm64.
+#8 40.49 Preparing to unpack .../19-libmnl0_1.0.5-2build1_arm64.deb ...
+#8 40.49 Unpacking libmnl0:arm64 (1.0.5-2build1) ...
+#8 40.50 Selecting previously unselected package libxtables12:arm64.
+#8 40.50 Preparing to unpack .../20-libxtables12_1.8.10-3ubuntu2_arm64.deb ...
+#8 40.51 Unpacking libxtables12:arm64 (1.8.10-3ubuntu2) ...
+#8 40.51 Selecting previously unselected package libcap2-bin.
+#8 40.51 Preparing to unpack .../21-libcap2-bin_1%3a2.66-5ubuntu2.4_arm64.deb ...
+#8 40.51 Unpacking libcap2-bin (1:2.66-5ubuntu2.4) ...
+#8 40.53 Selecting previously unselected package iproute2.
+#8 40.53 Preparing to unpack .../22-iproute2_6.1.0-1ubuntu6.4_arm64.deb ...
+#8 40.53 Unpacking iproute2 (6.1.0-1ubuntu6.4) ...
+#8 40.56 Selecting previously unselected package libdevmapper1.02.1:arm64.
+#8 40.56 Preparing to unpack .../23-libdevmapper1.02.1_2%3a1.02.185-3ubuntu3.2_arm64.deb ...
+#8 40.56 Unpacking libdevmapper1.02.1:arm64 (2:1.02.185-3ubuntu3.2) ...
+#8 40.57 Selecting previously unselected package libicu74:arm64.
+#8 40.57 Preparing to unpack .../24-libicu74_74.2-1ubuntu3.1_arm64.deb ...
+#8 40.57 Unpacking libicu74:arm64 (74.2-1ubuntu3.1) ...
+#8 40.72 Selecting previously unselected package libnghttp2-14:arm64.
+#8 40.73 Preparing to unpack .../25-libnghttp2-14_1.59.0-1ubuntu0.4_arm64.deb ...
+#8 40.73 Unpacking libnghttp2-14:arm64 (1.59.0-1ubuntu0.4) ...
+#8 40.74 Selecting previously unselected package libpsl5t64:arm64.
+#8 40.74 Preparing to unpack .../26-libpsl5t64_0.21.2-1.1build1_arm64.deb ...
+#8 40.74 Unpacking libpsl5t64:arm64 (0.21.2-1.1build1) ...
+#8 40.75 Selecting previously unselected package libbrotli1:arm64.
+#8 40.75 Preparing to unpack .../27-libbrotli1_1.1.0-2build2_arm64.deb ...
+#8 40.75 Unpacking libbrotli1:arm64 (1.1.0-2build2) ...
+#8 40.77 Selecting previously unselected package libsasl2-modules-db:arm64.
+#8 40.77 Preparing to unpack .../28-libsasl2-modules-db_2.1.28+dfsg1-5ubuntu3.1_arm64.deb ...
+#8 40.77 Unpacking libsasl2-modules-db:arm64 (2.1.28+dfsg1-5ubuntu3.1) ...
+#8 40.78 Selecting previously unselected package libsasl2-2:arm64.
+#8 40.78 Preparing to unpack .../29-libsasl2-2_2.1.28+dfsg1-5ubuntu3.1_arm64.deb ...
+#8 40.78 Unpacking libsasl2-2:arm64 (2.1.28+dfsg1-5ubuntu3.1) ...
+#8 40.79 Selecting previously unselected package libldap2:arm64.
+#8 40.79 Preparing to unpack .../30-libldap2_2.6.10+dfsg-0ubuntu0.24.04.1_arm64.deb ...
+#8 40.80 Unpacking libldap2:arm64 (2.6.10+dfsg-0ubuntu0.24.04.1) ...
+#8 40.81 Selecting previously unselected package librtmp1:arm64.
+#8 40.81 Preparing to unpack .../31-librtmp1_2.4+20151223.gitfa8646d.1-2build7_arm64.deb ...
+#8 40.81 Unpacking librtmp1:arm64 (2.4+20151223.gitfa8646d.1-2build7) ...
+#8 40.82 Selecting previously unselected package libssh-4:arm64.
+#8 40.82 Preparing to unpack .../32-libssh-4_0.10.6-2ubuntu0.5_arm64.deb ...
+#8 40.82 Unpacking libssh-4:arm64 (0.10.6-2ubuntu0.5) ...
+#8 40.83 Selecting previously unselected package libcurl4t64:arm64.
+#8 40.83 Preparing to unpack .../33-libcurl4t64_8.5.0-2ubuntu10.16_arm64.deb ...
+#8 40.83 Unpacking libcurl4t64:arm64 (8.5.0-2ubuntu10.16) ...
+#8 40.84 Selecting previously unselected package libinih1:arm64.
+#8 40.85 Preparing to unpack .../34-libinih1_55-1ubuntu2_arm64.deb ...
+#8 40.85 Unpacking libinih1:arm64 (55-1ubuntu2) ...
+#8 40.86 Selecting previously unselected package liburcu8t64:arm64.
+#8 40.86 Preparing to unpack .../35-liburcu8t64_0.14.0-3.1build1_arm64.deb ...
+#8 40.86 Unpacking liburcu8t64:arm64 (0.14.0-3.1build1) ...
+#8 40.87 Selecting previously unselected package python3-pip-whl.
+#8 40.87 Preparing to unpack .../36-python3-pip-whl_24.0+dfsg-1ubuntu1.3_all.deb ...
+#8 40.87 Unpacking python3-pip-whl (24.0+dfsg-1ubuntu1.3) ...
+#8 40.88 Selecting previously unselected package python3-setuptools-whl.
+#8 40.88 Preparing to unpack .../37-python3-setuptools-whl_68.1.2-2ubuntu1.2_all.deb ...
+#8 40.88 Unpacking python3-setuptools-whl (68.1.2-2ubuntu1.2) ...
+#8 40.90 Selecting previously unselected package python3.12-venv.
+#8 40.90 Preparing to unpack .../38-python3.12-venv_3.12.3-1ubuntu0.17_arm64.deb ...
+#8 40.90 Unpacking python3.12-venv (3.12.3-1ubuntu0.17) ...
+#8 40.90 Selecting previously unselected package python3-venv.
+#8 40.90 Preparing to unpack .../39-python3-venv_3.12.3-0ubuntu2.1_arm64.deb ...
+#8 40.91 Unpacking python3-venv (3.12.3-0ubuntu2.1) ...
+#8 40.91 Selecting previously unselected package xfsprogs.
+#8 40.92 Preparing to unpack .../40-xfsprogs_6.6.0-1ubuntu2.1_arm64.deb ...
+#8 40.92 Unpacking xfsprogs (6.6.0-1ubuntu2.1) ...
+#8 40.94 Setting up media-types (10.1.0) ...
+#8 40.95 Setting up liburcu8t64:arm64 (0.14.0-3.1build1) ...
+#8 40.95 Setting up python3-setuptools-whl (68.1.2-2ubuntu1.2) ...
+#8 40.95 Setting up libkeyutils1:arm64 (1.6.3-3build1) ...
+#8 40.96 Setting up libcbor0.10:arm64 (0.10.2-1.2ubuntu2) ...
+#8 40.96 Setting up libinih1:arm64 (55-1ubuntu2) ...
+#8 40.96 Setting up libbrotli1:arm64 (1.1.0-2build2) ...
+#8 40.96 Setting up libsqlite3-0:arm64 (3.45.1-1ubuntu2.8) ...
+#8 40.97 Setting up libpsl5t64:arm64 (0.21.2-1.1build1) ...
+#8 40.97 Setting up libnghttp2-14:arm64 (1.59.0-1ubuntu0.4) ...
+#8 40.97 Setting up libelf1t64:arm64 (0.190-1.1ubuntu0.1) ...
+#8 40.97 Setting up prometheus-node-exporter (1.7.0-1ubuntu0.3) ...
+#8 41.42 invoke-rc.d: could not determine current runlevel
+#8 41.42 invoke-rc.d: policy-rc.d denied execution of start.
+#8 41.47 Setting up libkrb5support0:arm64 (1.20.1-6ubuntu2.10) ...
+#8 41.48 Setting up libsasl2-modules-db:arm64 (2.1.28+dfsg1-5ubuntu3.1) ...
+#8 41.48 Setting up tzdata (2026e-0ubuntu0.24.04.1) ...
+#8 41.52 
+#8 41.52 Current default time zone: 'Etc/UTC'
+#8 41.52 Local time is now:      Thu Oct 15 12:54:37 UTC 2026.
+#8 41.52 Universal Time is now:  Thu Oct 15 12:54:37 UTC 2026.
+#8 41.52 Run 'dpkg-reconfigure tzdata' if you wish to change it.
+#8 41.52 
+#8 41.53 Setting up libcap2-bin (1:2.66-5ubuntu2.4) ...
+#8 41.53 Setting up libwrap0:arm64 (7.6.q-33) ...
+#8 41.54 Setting up librtmp1:arm64 (2.4+20151223.gitfa8646d.1-2build7) ...
+#8 41.54 Setting up libmnl0:arm64 (1.0.5-2build1) ...
+#8 41.54 Setting up ucf (3.0043+nmu1) ...
+#8 41.58 Setting up libk5crypto3:arm64 (1.20.1-6ubuntu2.10) ...
+#8 41.59 Setting up libxtables12:arm64 (1.8.10-3ubuntu2) ...
+#8 41.59 Setting up libsasl2-2:arm64 (2.1.28+dfsg1-5ubuntu3.1) ...
+#8 41.59 Setting up libicu74:arm64 (74.2-1ubuntu3.1) ...
+#8 41.59 Setting up libdevmapper1.02.1:arm64 (2:1.02.185-3ubuntu3.2) ...
+#8 41.60 Setting up netbase (6.4) ...
+#8 41.60 Setting up libkrb5-3:arm64 (1.20.1-6ubuntu2.10) ...
+#8 41.61 Setting up libfido2-1:arm64 (1.14.0-1build3) ...
+#8 41.61 Setting up openssl (3.0.13-0ubuntu3.16) ...
+#8 41.61 Setting up libbsd0:arm64 (0.12.1-1build1.1) ...
+#8 41.61 Setting up readline-common (8.2-4build1) ...
+#8 41.62 Setting up libldap2:arm64 (2.6.10+dfsg-0ubuntu0.24.04.1) ...
+#8 41.62 Setting up libbpf1:arm64 (1:1.3.0-2build2) ...
+#8 41.62 Setting up iproute2 (6.1.0-1ubuntu6.4) ...
+#8 41.67 Setting up libedit2:arm64 (3.1-20230828-1build1) ...
+#8 41.67 Setting up ca-certificates (20260601~24.04.1) ...
+#8 41.86 Updating certificates in /etc/ssl/certs...
+#8 42.07 121 added, 0 removed; done.
+#8 42.08 Setting up libgssapi-krb5-2:arm64 (1.20.1-6ubuntu2.10) ...
+#8 42.09 Setting up libssh-4:arm64 (0.10.6-2ubuntu0.5) ...
+#8 42.09 Setting up libreadline8t64:arm64 (8.2-4build1) ...
+#8 42.09 Setting up libpython3.12-stdlib:arm64 (3.12.3-1ubuntu0.17) ...
+#8 42.09 Setting up libcurl4t64:arm64 (8.5.0-2ubuntu10.16) ...
+#8 42.10 Setting up python3-pip-whl (24.0+dfsg-1ubuntu1.3) ...
+#8 42.10 Setting up openssh-client (1:9.6p1-3ubuntu13.20) ...
+#8 42.13 Setting up python3.12 (3.12.3-1ubuntu0.17) ...
+#8 42.68 Setting up libpython3-stdlib:arm64 (3.12.3-0ubuntu2.1) ...
+#8 42.69 Setting up openssh-sftp-server (1:9.6p1-3ubuntu13.20) ...
+#8 42.69 Setting up openssh-server (1:9.6p1-3ubuntu13.20) ...
+#8 42.75 
+#8 42.75 Creating config file /etc/ssh/sshd_config with new version
+#8 42.76 Creating SSH2 RSA key; this may take some time ...
+#8 42.96 3072 SHA256:BfAfLe/yWheNiX1+vSccZwvgQhTHWTKlcWIlp5r3St4 root@buildkitsandbox (RSA)
+#8 42.96 Creating SSH2 ECDSA key; this may take some time ...
+#8 42.96 256 SHA256:772Vp/bi4dsU8t+h5l7C9gygXMJdrb7T6NTXmFIGl8Y root@buildkitsandbox (ECDSA)
+#8 42.96 Creating SSH2 ED25519 key; this may take some time ...
+#8 42.97 256 SHA256:WZL+aCB0w7GFlOm7saQ5BtcZfnDHy0NVwUs/44wStek root@buildkitsandbox (ED25519)
+#8 43.00 invoke-rc.d: could not determine current runlevel
+#8 43.00 invoke-rc.d: policy-rc.d denied execution of start.
+#8 43.10 Setting up python3.12-venv (3.12.3-1ubuntu0.17) ...
+#8 43.13 Setting up python3 (3.12.3-0ubuntu2.1) ...
+#8 43.18 Setting up python3-venv (3.12.3-0ubuntu2.1) ...
+#8 43.19 Setting up xfsprogs (6.6.0-1ubuntu2.1) ...
+#8 43.22 Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+#8 43.23 Processing triggers for ca-certificates (20260601~24.04.1) ...
+#8 43.23 Updating certificates in /etc/ssl/certs...
+#8 43.40 0 added, 0 removed; done.
+#8 43.40 Running hooks in /etc/ca-certificates/update.d...
+#8 43.40 done.
+#8 DONE 43.5s
+
+#9 [stage-1  3/12] COPY --from=agent /usr/sbin/zabbix_agent2 /usr/sbin/zabbix_agent2
+#9 DONE 0.0s
+
+#10 [stage-1  4/12] RUN if ldd /usr/sbin/zabbix_agent2 | grep 'not found'; then       echo 'zabbix_agent2 needs libraries this image does not have'; exit 1;     fi
+#10 DONE 0.0s
+
+#11 [stage-1  5/12] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444     --mount=type=bind,source=requirements.txt,target=/tmp/requirements.txt     set -eu;     python3 -m venv /opt/venv;     if [ -f /run/secrets/ca_bundle ]; then       /opt/venv/bin/pip install --no-cache-dir --cert /run/secrets/ca_bundle -r /tmp/requirements.txt;     else       /opt/venv/bin/pip install --no-cache-dir -r /tmp/requirements.txt;     fi
+#11 2.630 Collecting prometheus-client==0.26.0 (from -r /tmp/requirements.txt (line 1))
+#11 3.452   Downloading prometheus_client-0.26.0-py3-none-any.whl.metadata (2.1 kB)
+#11 3.634 Downloading prometheus_client-0.26.0-py3-none-any.whl (64 kB)
+#11 3.855    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 64.5/64.5 kB 296.2 kB/s eta 0:00:00
+#11 3.870 Installing collected packages: prometheus-client
+#11 3.920 Successfully installed prometheus-client-0.26.0
+#11 DONE 4.0s
+
+#12 [stage-1  6/12] RUN rm -f /etc/ssh/ssh_host_*
+#12 DONE 0.0s
+
+#13 [stage-1  7/12] RUN set -eu;     groupadd -g 1997 zabbix;     useradd -u 1997 -g zabbix -M -d /var/lib/zabbix -s /usr/sbin/nologin zabbix;     groupadd -g 2001 vigil-diag;     useradd -u 2001 -g vigil-diag -m -d /home/vigil-diag -s /bin/bash -p '*' vigil-diag;     groupadd -g 2002 vigil-action;     useradd -u 2002 -g vigil-action -G vigil-diag -m -d /home/vigil-action -s /bin/bash -p '*' vigil-action
+#13 DONE 0.1s
+
+#14 [stage-1  8/12] COPY labmocks/ /opt/labmocks/labmocks/
+#14 DONE 0.0s
+
+#15 [stage-1  9/12] COPY --chmod=0755 labctl.sh /usr/local/bin/labctl
+#15 DONE 0.0s
+
+#16 [stage-1 10/12] COPY --chmod=0755 entrypoint.sh /usr/local/bin/lab-entrypoint
+#16 DONE 0.0s
+
+#17 [stage-1 11/12] COPY sshd_config /etc/ssh/sshd_config.d/10-vigil.conf
+#17 DONE 0.0s
+
+#18 [stage-1 12/12] WORKDIR /opt/labmocks
+#18 DONE 0.0s
+
+#19 exporting to image
+#19 exporting layers
+#19 exporting layers 0.3s done
+#19 writing image sha256:7645f48321a8622ff286850eeccf9ffad27dafb29a345e5e1942413d723b4d08 done
+#19 naming to docker.io/vigil/demo-lab:local done
+#19 DONE 0.3s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/z9eby1vqktgdxmjcptsfm85gh
+============================= test session starts ==============================
+platform darwin -- Python 3.12.3, pytest-9.1.1, pluggy-1.7.0 -- /Users/awadood/.vigil-tools/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/awadood/workspace/anthropic/noc automation
+configfile: pytest.ini
+collecting ... collected 25 items / 21 deselected / 4 selected
+
+demo/lab/test_lab.py::test_image_and_data lab-db-01 profile demo, df -B1 /data:
+Filesystem       1B-blocks       Used  Available Use% Mounted on
+/dev/loop0     17112760320 7877840896 9234919424  47% /data
+du -B1 --max-depth=1 /data:
+6442450944	/data/db
+1073741824	/data/export
+0	/data/txlog_archive
+7516192768	/data
+PASSED                         [ 25%]
+demo/lab/test_lab.py::test_size_profile PASSED                           [ 50%]
+demo/lab/test_lab.py::test_permissions PASSED                            [ 75%]
+demo/lab/test_lab.py::test_command_templates PASSED                      [100%]
+
+====================== 4 passed, 21 deselected in 20.05s =======================

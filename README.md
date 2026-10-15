@@ -8,7 +8,7 @@ Vigil is a NOC automation product (working name; the audience sees "Techfinity")
 tools/check-all.sh
 ```
 
-It runs every check a package MUST pass, in this order, and stops at the first failure: the cloud setup version check (only in a cloud session), `./mvnw -B verify` (Spotless, Java tests, and the web application's `npm ci`, lint, Prettier, type check, Vitest and build), `ruff` and `pytest`, `shellcheck`, the demo data checks, Docker Compose validation, and `tools/trace.py --check`. The GitHub Actions job `gate` in `.github/workflows/ci.yml` runs the same command on every pull request to `main`.
+It runs every check a package MUST pass, in this order, and stops at the first failure: in a cloud session, step (0) starts the Docker daemon when it is not running (`tools/start-docker.sh`); the cloud setup version check (only in a cloud session); the build of the images that tests use (`deploy/images.sh --test`); `./mvnw -B verify` (Spotless, Java tests, and the web application's `npm ci`, lint, Prettier, type check, Vitest and build), `ruff` and `pytest`, `shellcheck`, the demo data checks, Docker Compose validation, and `tools/trace.py --check`. The GitHub Actions job `gate` in `.github/workflows/ci.yml` runs the same command on every pull request to `main`.
 
 Other commands: `./mvnw -B verify` (Java and web build and tests only), `tools/loc.sh origin/main HEAD` (lines of production code added and changed), `tools/trace.py` (requirement IDs without tests).
 
@@ -41,4 +41,11 @@ Migrations are Flyway SQL files in `app/src/main/resources/db/migration/{schema}
 
 ## Local installation
 
-The local installation (`deploy/local.sh`) arrives in package P-26.
+`deploy/images.sh --test` builds the images that tests use: in this state of the repository `vigil/demo-lab:local`, the image of the five lab hosts (`demo/lab/`; its interfaces are in `demo/lab/README.md`). It is the only way to build local images: it passes the proxy variables and the CA bundle the build needs.
+
+```bash
+deploy/local.sh up --lab-only [--profile test|demo] [--project NAME]   # starts the five lab hosts
+deploy/local.sh down [--volumes] [--project NAME]                      # stops them; --volumes also removes /data
+```
+
+The default project is `vigil-local` and the default profile is `lab_profile` of `deploy/values/local.yaml` (`test`: a 4 GiB `/data`; `demo`: 16 GiB). `up` generates the lab's secrets under `~/.vigil-local/{project}/secrets/` (files 0444 in folders 0555) and the derived value `lab_db_host_key_sha256` in `~/.vigil-local/{project}/values/derived.yaml`; secrets never enter the repository, and existing secrets are kept (delete `~/.vigil-local/{project}` to start from new keys). One local installation runs per Docker host, because its subnets and container names are fixed. Monitoring and faults arrive in package P-04, Vigil and the rest of the local installation in P-26.

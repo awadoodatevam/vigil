@@ -1,0 +1,84 @@
+# The local installation (docs/60-build-plan.md Section 11), started by deploy/local.sh. This package: the lab hosts.
+# Subnets and container names are fixed, so one local installation runs per Docker host.
+
+networks:
+  vigil-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+          gateway: 172.30.0.1
+  lab-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.0.0/24
+          gateway: 172.31.0.1
+
+volumes:
+  lab-db-01-data:
+
+services:
+  lab-db-01:
+    image: vigil/demo-lab:local
+    container_name: lab-db-01
+    hostname: lab-db-01
+    environment:
+      LAB_ROLE: lab-db-01
+      LAB_PROFILE: ${VIGIL_LAB_PROFILE:-test}
+    privileged: true
+    networks: [lab-net]
+    volumes:
+      - lab-db-01-data:/var/lib/lab-data
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/lab-db-01
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: "no"
+    healthcheck: &lab-health
+      test: ["CMD", "test", "-f", "/run/lab/ready"]
+      interval: 2s
+      timeout: 2s
+      retries: 60
+
+  lab-api-01:
+    image: vigil/demo-lab:local
+    container_name: lab-api-01
+    hostname: lab-api-01
+    environment:
+      LAB_ROLE: lab-api-01
+    networks: [lab-net]
+    restart: "no"
+    healthcheck: *lab-health
+
+  lab-vas-01:
+    image: vigil/demo-lab:local
+    container_name: lab-vas-01
+    hostname: lab-vas-01
+    environment:
+      LAB_ROLE: lab-vas-01
+    networks: [lab-net]
+    restart: "no"
+    healthcheck: *lab-health
+
+  lab-probe-01:
+    image: vigil/demo-lab:local
+    container_name: lab-probe-01
+    hostname: lab-probe-01
+    environment:
+      LAB_ROLE: lab-probe-01
+    networks: [lab-net]
+    restart: "no"
+    healthcheck: *lab-health
+
+  lab-rpt-01:
+    image: vigil/demo-lab:local
+    container_name: lab-rpt-01
+    hostname: lab-rpt-01
+    environment:
+      LAB_ROLE: lab-rpt-01
+    networks: [lab-net]
+    restart: "no"
+    healthcheck: *lab-health
