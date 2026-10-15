@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 00-context (ID prefix `CTX-`) |
-| Version | 1.10 |
-| Date | 12 October 2026 |
+| Version | 1.11 |
+| Date | 15 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed) |
 
@@ -77,7 +77,7 @@ Each round is one conversation in the Claude project and produces the files list
 | R4 | Demo cut: per module, keep / simplify / stage / later, keeping product shape; screen-by-screen content | `40-demo-cut.md` | Closed, 10 Oct 2026 |
 | R5 | Architecture: applications, stack, integrations, AI layer, hosting, final module names | `50-architecture.md` | Closed, 12 Oct 2026 |
 | R6 | Build plan: packages sized for Claude Code, each with spec, done-check and tests; repository conventions | `60-build-plan.md`, `CLAUDE.md` | Closed, 12 Oct 2026 |
-| Build | One package at a time, by the protocol of `60-build-plan` Section 6; checkpoints SL-CP-1 to SL-CP-3 reviewed in the Claude project (`60-build-plan` Section 8.3) | `docs/packages/P-##.md`, `docs/packages/P-##-report.md`, code | Not started |
+| Build | One package at a time, by the protocol of `60-build-plan` Section 6; checkpoints SL-CP-1 to SL-CP-3 reviewed in the Claude project (`60-build-plan` Section 8.3) | `docs/packages/P-##.md`, `docs/packages/P-##-report.md`, code | In progress: P-01 merged 14 Oct 2026, P-02 merged 15 Oct 2026 |
 
 ## 10. Writing rules for all project documents
 
@@ -148,6 +148,9 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | CTX-D-029 | 12 Oct 2026 | Build plan `60-build-plan` v1.0 and `CLAUDE.md` adopted: 40 build packages P-01 to P-40 in five phases, risk first (lab and storm timing, AWS edge and live updates, Jira, Teams, email and AI providers proved in Phase A); SL-CP-1 is the storm to a resolved incident and resolved Jira ticket on the demo installation with screens DC-S01 to DC-S05 and DC-S12 (closes SL-O-19); building in Claude Code cloud sessions (cloud environment `vigil`, Java 25 from its setup script) with GitHub Actions as the merge gate; one local installation with dev fakes on the owner's Mac, in CI and in cloud sessions; demo images built by GitHub Actions and pushed to Amazon ECR, deployed by the owner's scripts; the package protocol of `60-build-plan` Section 6. Amendments BP-A-01 to BP-A-16 written: `01-scope-lock` v1.10, `30-jazz-storyboard` v1.3, `31-demo-data` v1.3, `40-demo-cut` v1.2, `50-architecture` v1.1. | Round 6 output; owner agreed review items 1 to 5 and 7 and changed item 6 (CTX-D-030). |
 | CTX-D-030 | 12 Oct 2026 | The repository is a private GitHub repository on GitHub Free with GitHub Actions. `main` is not protected; only Abdul merges, and only after the `ci.yml` job `gate` passes (`60-build-plan` BP-D-13, BP-R-07). Once pushed, the GitHub `main` branch is the master copy of the documents (refines CTX-D-009). | Owner answers of 12 Oct 2026: private GitHub with Actions; no paid plan for branch protection. |
 | CTX-D-031 | 12 Oct 2026 | SL-B-14 clarified (no item added to list A or list B): "HTTPS only" applies to every installation reachable from outside its own host; a local installation reachable only from its own machine (`60-build-plan` Section 11) serves plain HTTP. `01-scope-lock` v1.10. | The owner runs the software on his Mac (owner answer of 12 Oct 2026); certificates for a machine-local name add work and no protection. |
+| CTX-D-032 | 15 Oct 2026 | From the P-02 report: in a cloud session the gate command starts the Docker daemon when it is not running (`60-build-plan` v1.3 BP-R-12 step (0), `tools/start-docker.sh`, built by P-03), and `CLAUDE.md` says so; Docker Hub rate limits are handled by retried base-image pulls in `deploy/images.sh`, with pre-pulling in the setup script kept as open item BP-O-04. | The P-02 session found the daemon stopped and started it by hand; one Docker Hub request was refused once. Changing the setup script now would need an environment update for a single occurrence. |
+| CTX-D-033 | 15 Oct 2026 | The GitHub repository is `awadoodatevam/vigil` (private, GitHub Free, Claude GitHub App installed, `main` the default branch); its `main` is the master copy of the documents (CTX-D-030). `awadood/vigil`, which holds P-01's pull request, is no longer pushed to. | The owner moved the work to the account connected to his current Claude account on 15 Oct 2026. |
+| CTX-D-034 | 15 Oct 2026 | The lab image takes Zabbix agent 2 of the 7.0 LTS line from the official `zabbix/zabbix-agent2` image (the newest tag built on Ubuntu 24.04), pinned by tag and digest, instead of Ubuntu's archive (`60-build-plan` BP-A-17; `50-architecture` AR-X-01 v1.2). | Ubuntu 24.04's archive has no Zabbix package (found by the P-03 readiness test); `repo.zabbix.com` is not reachable from cloud sessions. Keeps a real agent on the lab hosts, on the same LTS line as the lab's Zabbix server (Zabbix supports an older agent patch with a newer server). Decided by owner, 15 Oct 2026. |
 
 ## 14. Open items
 
@@ -182,3 +185,4 @@ Demo content (see `01-scope-lock`), module design (R1), data model (R2), technol
 | 1.8 | 10 Oct 2026 | Round 4 closed; decisions CTX-D-022 to CTX-D-024 added. |
 | 1.9 | 12 Oct 2026 | Round 5 closed; decisions CTX-D-025 to CTX-D-028 added; CTX-O-02 and CTX-O-04 closed; module names final. |
 | 1.10 | 12 Oct 2026 | Round 6 closed; decisions CTX-D-029 to CTX-D-031 added; GitHub `main` is the master copy once pushed; CTX-O-01 and CTX-O-05 "Resolved in" updated; Build row refers to the protocol of `60-build-plan` Section 6. |
+| 1.11 | 15 Oct 2026 | Build status updated (P-01 and P-02 merged); decisions CTX-D-032 (Docker daemon in cloud sessions), CTX-D-033 (repository `awadoodatevam/vigil`) and CTX-D-034 (Zabbix agent 2 from the official image). |

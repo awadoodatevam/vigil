@@ -47,7 +47,7 @@ Under `docs/` you MAY change only: your package report; the values your spec nam
 | Data checks | `/opt/vigil-tools/bin/python docs/31-demo-data/tools/check_data.py docs/31-demo-data` |
 | Lines of production code added and changed | `tools/loc.sh origin/main HEAD` |
 | Requirement IDs with and without tests | `tools/trace.py` |
-| Lab only (from P-03) | `deploy/local.sh up --lab-only [--profile test|demo]`, `deploy/local.sh down` |
+| Lab only (from P-03) | `deploy/local.sh up --lab-only [--profile test|demo] [--project NAME]`, `deploy/local.sh down [--volumes] [--project NAME]` |
 | Local installation: Vigil, lab, dev fakes (from P-26) | `deploy/local.sh up`, `deploy/local.sh down`, `deploy/local.sh reset`, `deploy/local.sh logs` |
 | Build the local images that tests use (from P-03) | `deploy/images.sh --test` (the gate command runs it) |
 | Storm driver (from P-27) | `docker compose -f deploy/local/compose.yaml --profile acceptance run --rm storm-driver --mode immediate` |
@@ -59,7 +59,7 @@ Builds with Testcontainers take longer than 2 minutes: run them with a longer ti
 
 - Java 25 (Temurin) is installed by the setup script `tools/cloud-setup.sh` of the cloud environment `vigil`. If `java -version` shows 21: in package P-01, run `sudo bash tools/cloud-setup.sh` and go on; in any other package, say that the session was not started in the environment `vigil` and stop.
 - If `tools/check-all.sh` says the cloud environment is out of date, say so and stop: the owner updates the environment's setup script.
-- Docker and `docker compose` are available. Testcontainers needs them. Build local images only with `deploy/images.sh`, never with a plain `docker build` (it passes the proxy settings and CA bundle the build needs). Tests use those images by their local tags.
+- Docker and `docker compose` are available. Testcontainers needs them. The Docker daemon may not be running when a session starts: `tools/check-all.sh` starts it in its step (0) (from P-03); to start it before that, run `tools/start-docker.sh` (or, before P-03 is merged, `sudo dockerd > /tmp/dockerd.log 2>&1 &` and wait until `docker info` succeeds). Build local images only with `deploy/images.sh`, never with a plain `docker build` (it passes the proxy settings and CA bundle the build needs). Tests use those images by their local tags.
 - Python tools (`ruff`, `pytest`, `PyYAML`) are in the virtual environment `/opt/vigil-tools`; Ubuntu's system Python refuses `pip install`. Run Python checks with `/opt/vigil-tools/bin/python`. Python images install their packages into `/opt/venv`.
 - Reachable: GitHub (including release downloads), Maven Central, npm, PyPI, Docker Hub, `ghcr.io`, `mcr.microsoft.com`, `public.ecr.aws`, `nodejs.org`, Ubuntu package mirrors, `api.anthropic.com`.
 - Not reachable: Debian package mirrors, `repo.zabbix.com`, Jira (Atlassian), Microsoft Teams, SMTP servers, `api.openai.com`, the Ollama model registry, Playwright's browser download hosts (use the `mcr.microsoft.com/playwright` image). Tests never call real external systems: use WireMock in Java tests and the dev fakes (`dev/fakes/`) in the local installation. Spikes against real systems are owner-run steps (`spikes/`).
