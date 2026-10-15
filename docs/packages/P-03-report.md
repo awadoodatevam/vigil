@@ -6,7 +6,7 @@
 | Branch | `p-03-lab-hosts-and-mocks` |
 | Pin date (BP-R-08) | 15 October 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (setup version 1, Temurin 25.0.4.1+1, Docker 29.8.2, Compose 2.40.3, buildx 0.37.1) |
-| State | Built; the gate command passes in this session; the owner-run step (Section 6.10) is open; deviation 1 and document feedback 1 need the owner's confirmation |
+| State | Built; the gate command passes in this session and the `ci.yml` job `gate` passes on the pull request; the owner-run step (Section 6.10) is open; deviation 1 and document feedback 1 need the owner's confirmation |
 
 ## 1. What was built
 
@@ -76,7 +76,8 @@ BP-R-12 is "checked by review" (spec part 4). `tools/trace.py --check` passes.
 2. **SL-F-1 "df shows 100%" in the `test` profile** (deviation 2): DD-F-10 SL-F-1 step (2) says that with 64 MiB free `df` shows 100 %; that holds for the 16 GiB `demo` profile only. In `test` (4 GiB) `df` shows 99 %. BP-R-30 MAY say that `df`'s percentage after SL-F-1 is a size-dependent value. The precondition (≥ 90) and the Zabbix and Prometheus thresholds are not affected.
 3. **BP-R-04 build CA**: the CA bundle secret MUST be readable by apt's sandbox user `_apt` (`mode=0444` on the secret mount, or `APT::Sandbox::User "root"`).
 4. **BP-ASM-02 detail**: in this cloud session only `HTTPS_PROXY`/`https_proxy` and `NO_PROXY` are set (no `HTTP_PROXY`), so the switch of the Ubuntu sources to `https://` is what makes apt work; `pypi.org` and `files.pythonhosted.org` are in `NO_PROXY` and are reached directly.
-5. **Ready check noise**: the entrypoint's TCP connects to port 10050 and 22 from 127.0.0.1 are logged by the agent ("connection from 127.0.0.1 rejected, allowed hosts: 172.31.0.0/24") and by `sshd` ("Connection closed by 127.0.0.1"), a few lines at each start. Harmless; P-04 MAY add 127.0.0.1 to `Server` if it wants quiet logs.
+5. **Error counts at lab start (for P-04)**: the five lab containers start together (spec 6.6 has no start order), and the API, USSD and SMS mocks start their streams at once, while the database mock on `lab-db-01` starts only after the `/data` set-up and the key installation. Until it listens on port 7000 (in this session 1 to 2 s on a new `test` volume), every request, session and delivery fails with a connection error, so `lab_api_errors_total`, `lab_ussd_timeouts_total` and the SMS queue depths grow and the mocks log "failing" then "recovered". In the `demo` profile the first start also formats 16 GiB and allocates 7 GiB of baseline files, so the window is longer. Nothing monitors the lab in P-03, so nothing fails now; with P-04's Prometheus rules (error rate over 20 s above 0.2 per second, `for: 10s`) a lab start while Prometheus already runs could fire API and USSD alerts. Proposed for P-04: start `lab-api-01`, `lab-vas-01` and `lab-probe-01` after `lab-db-01` is healthy (`depends_on` with `condition: service_healthy` in `deploy/local/compose.yaml`), or start Prometheus after the lab is healthy. Not built here because spec 6.6 gives the complete list of service settings.
+6. **Ready check noise**: the entrypoint's TCP connects to port 10050 and 22 from 127.0.0.1 are logged by the agent ("connection from 127.0.0.1 rejected, allowed hosts: 172.31.0.0/24") and by `sshd` ("Connection closed by 127.0.0.1"), a few lines at each start. Harmless; P-04 MAY add 127.0.0.1 to `Server` if it wants quiet logs.
 
 ## 5. Blocking questions
 
@@ -111,9 +112,9 @@ Results of this session (spec Section 9):
 | Item | Result |
 | --- | --- |
 | BP-ASM-02 (lab part) | Proved in the cloud session: `deploy/images.sh --test` pulled both base images from Docker Hub, reached `archive.ubuntu.com` and `security.ubuntu.com` over HTTPS through the proxy with the CA bundle, and PyPI. Build time: 45 s from an empty cache, base-image pulls included (35 s with the base images present). No pull was refused (BP-O-04). |
-| BP-ASM-06 | Cloud session: proved (privileged `lab-db-01`, loop device, XFS mount of a 4 GiB image on the named volume, restart with unmount and remount). GitHub runner: shown by the `ci.yml` job `gate` on the pull request (the gate builds the image and runs the lab tests on the runner). Mac: owner-run step. |
+| BP-ASM-06 | Cloud session: proved (privileged `lab-db-01`, loop device, XFS mount of a 4 GiB image on the named volume, restart with unmount and remount). GitHub runner: proved by the `ci.yml` job `gate` on pull request awadoodatevam/vigil#2 (run 38734391944, head `b359e54`, 15 Oct 2026 12:24:30 to 12:29:08 UTC, conclusion `success`): the runner built `vigil/demo-lab:local` and ran all 16 lab tests in the `test` profile (step 3: 40 passed in 83 s), so privileged containers, loop devices and XFS work on GitHub-hosted `ubuntu-24.04` runners. Mac: owner-run step. |
 | BP-ASM-09 (P-03 part) | Proved: the copied `zabbix_agent2` 7.0.25 passes the `ldd` check, runs as user `zabbix` in `lab-db-01`, `lab-vas-01`, `lab-rpt-01`, listens on 10050 and answers `vfs.fs.size[/data,free]` and `vfs.file.contents[…]` (`test_interfaces`). |
-| Docker started by step (0) | Yes: at the start of this session the Docker daemon was not running; `tools/start-docker.sh` started it (as root, about 2 s). |
+| Docker started by step (0) | Yes: at the start of this session the Docker daemon was not running (`docker info` failed). `tools/start-docker.sh`, the script of gate step (0), started it as root in about 2 s; it was run directly before the first image build. In the gate run that followed, step (0) found the daemon running and did nothing. No other Docker problem occurred apart from the build CA read error of deviation 3. |
 | `demo`-profile `df` and `du` lines | Owner-run step; information for P-04 (DD-F-10 `baseline_used_pct` is measured there). For comparison, `test` profile in this session: `df -B1 /data` size 4,227,858,432, used 1,081,274,368, available 3,146,584,064 (26 %); `du -B1`: `/data/db` 858,980,352, `/data/export` 107,364,352, `/data/txlog_archive` 0, `/data` 966,344,704. |
 
 ## 9. Lines of production code added and changed (P03-DC-02)
@@ -122,9 +123,11 @@ Results of this session (spec Section 9):
 
 ## 10. Gate command result
 
-`tools/check-all.sh` in this session (`CLAUDE_CODE_REMOTE=true`, setup version 1): steps 0 to 7 pass, last line `== all checks passed`. Step 0 found the daemon running (started earlier in the session by the same script); step 1a built `vigil/demo-lab:local` from cache; step 2: `vigil-app` 49 unit tests and 28 `*IT`, `demo-control` 1 unit test and 2 `*IT` (no Java change, P-01 and P-02 tests pass); step 3: 40 Python tests in 91 s (15 earlier tests, 9 mock unit tests, 16 lab tests in the `test` profile); step 4: `shellcheck` on every `*.sh`; step 5: 49 data checks, 0 failed; step 6: `deploy/local/compose.yaml` valid with no variable set; step 7: `trace.py --check` exits 0.
+GitHub: the `ci.yml` job `gate` passes on pull request awadoodatevam/vigil#2 (run 38734391944, head `b359e54`, 4 min 38 s, conclusion `success`; step 3: 40 Python tests passed in 83 s, among them the 16 lab tests).
 
-Done-check: BP-DC-01 to BP-DC-07 hold in this session, except that BP-DC-02's `ci.yml` run and BP-DC-07's owner-run result file follow on the pull request and the Mac; P03-DC-01 holds in the session (the CI part on the pull request); P03-DC-02 holds (1,337); P03-DC-03 is the owner-run step; P03-DC-04 holds (`demo/lab/README.md`, `README.md`).
+Cloud session: `tools/check-all.sh` (`CLAUDE_CODE_REMOTE=true`, setup version 1): steps 0 to 7 pass, last line `== all checks passed`. Step 0 found the daemon running (started earlier in the session by the same script); step 1a built `vigil/demo-lab:local` from cache; step 2: `vigil-app` 49 unit tests and 28 `*IT`, `demo-control` 1 unit test and 2 `*IT` (no Java change, P-01 and P-02 tests pass); step 3: 40 Python tests in 91 s (15 earlier tests, 9 mock unit tests, 16 lab tests in the `test` profile); step 4: `shellcheck` on every `*.sh`; step 5: 49 data checks, 0 failed; step 6: `deploy/local/compose.yaml` valid with no variable set; step 7: `trace.py --check` exits 0.
+
+Done-check: BP-DC-01 to BP-DC-07 hold, except BP-DC-07's owner-run result file (the Mac step); BP-DC-02 holds in the session and on the pull request; P03-DC-01 holds (lab tests in the session and the `gate` job on the runner); P03-DC-02 holds (1,337); P03-DC-03 is the owner-run step; P03-DC-04 holds (`demo/lab/README.md`, `README.md`).
 
 ## 11. Follow-up items for later packages
 
@@ -133,3 +136,4 @@ Done-check: BP-DC-01 to BP-DC-07 hold in this session, except that BP-DC-02's `c
 3. P-02 follow-up 6 (build of `app/Dockerfile`) stays with P-05 / P-26; `deploy/images.sh` builds only `vigil/demo-lab:local` so far.
 4. The lab tests add about 1.5 minutes to the gate (one lab start, a `lab-db-01` restart, the storm and recovery).
 5. Document feedback 1 and 2 are for the Claude project (BP-L-8).
+6. P-04: the start-order point of document feedback 5 (error counts at lab start), before Prometheus rules run against the lab.
