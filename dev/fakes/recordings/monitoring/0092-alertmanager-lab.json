@@ -1,0 +1,17 @@
+{
+  "seq": 92,
+  "received_at": "2026-10-15T19:01:11.940Z",
+  "source_key": "alertmanager-lab",
+  "method": "POST",
+  "path": "/api/v1/webhooks/alertmanager-lab",
+  "status": 200,
+  "authorized": true,
+  "headers": {
+    "Host": "demo.vigil.test:8080",
+    "User-Agent": "Alertmanager/0.34.1",
+    "Content-Length": "1439",
+    "Authorization": "Bearer <redacted>",
+    "Content-Type": "application/json"
+  },
+  "body": "{\"receiver\":\"vigil\",\"status\":\"firing\",\"alerts\":[{\"status\":\"firing\",\"labels\":{\"alertname\":\"SyntheticUssdSessionFailed\",\"city\":\"peshawar\",\"component\":\"ussd-probe\",\"instance\":\"lab-probe-01:9200\",\"job\":\"lab-probe\",\"journey\":\"bundle-purchase\"},\"annotations\":{\"summary\":\"Synthetic USSD session failed: peshawar, bundle-purchase\"},\"startsAt\":\"2026-10-15T19:01:06.865Z\",\"endsAt\":\"0001-01-01T00:00:00Z\",\"generatorURL\":\"http://ad01a72e3b3f:9090/graph?g0.expr=lab_probe_last_result%7Bjob%3D%22lab-probe%22%7D+%3D%3D+0\\u0026g0.tab=1\",\"fingerprint\":\"1a52693d933b6ccb\"}],\"notification_reason\":\"first notification\",\"groupLabels\":{\"alertname\":\"SyntheticUssdSessionFailed\",\"city\":\"peshawar\",\"component\":\"ussd-probe\",\"instance\":\"lab-probe-01:9200\",\"job\":\"lab-probe\",\"journey\":\"bundle-purchase\"},\"commonLabels\":{\"alertname\":\"SyntheticUssdSessionFailed\",\"city\":\"peshawar\",\"component\":\"ussd-probe\",\"instance\":\"lab-probe-01:9200\",\"job\":\"lab-probe\",\"journey\":\"bundle-purchase\"},\"commonAnnotations\":{\"summary\":\"Synthetic USSD session failed: peshawar, bundle-purchase\"},\"routeLabels\":{},\"externalURL\":\"http://35dcf781ebea:9093\",\"version\":\"4\",\"groupKey\":\"{}/{alertname=~\\\"NodeFilesystemFull|BalanceApiErrors|BundleApiErrors|UssdGatewayTimeouts|SyntheticUssdSessionFailed\\\"}:{alertname=\\\"SyntheticUssdSessionFailed\\\", city=\\\"peshawar\\\", component=\\\"ussd-probe\\\", instance=\\\"lab-probe-01:9200\\\", job=\\\"lab-probe\\\", journey=\\\"bundle-purchase\\\"}\",\"truncatedAlerts\":0}\n"
+}

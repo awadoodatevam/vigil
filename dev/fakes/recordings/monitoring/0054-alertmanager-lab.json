@@ -1,0 +1,17 @@
+{
+  "seq": 54,
+  "received_at": "2026-10-15T19:01:06.967Z",
+  "source_key": "alertmanager-lab",
+  "method": "POST",
+  "path": "/api/v1/webhooks/alertmanager-lab",
+  "status": 200,
+  "authorized": true,
+  "headers": {
+    "Host": "demo.vigil.test:8080",
+    "User-Agent": "Alertmanager/0.34.1",
+    "Content-Length": "1420",
+    "Authorization": "Bearer <redacted>",
+    "Content-Type": "application/json"
+  },
+  "body": "{\"receiver\":\"vigil\",\"status\":\"firing\",\"alerts\":[{\"status\":\"firing\",\"labels\":{\"alertname\":\"BalanceApiErrors\",\"api\":\"balance\",\"component\":\"api-balance\",\"endpoint\":\"/v1/balance/main\",\"instance\":\"api-balance-2\",\"job\":\"lab-api\"},\"annotations\":{\"summary\":\"Balance-check API errors on api-balance-2 /v1/balance/main\"},\"startsAt\":\"2026-10-15T19:01:01.865Z\",\"endsAt\":\"0001-01-01T00:00:00Z\",\"generatorURL\":\"http://ad01a72e3b3f:9090/graph?g0.expr=rate%28lab_api_errors_total%7Bapi%3D%22balance%22%2Cjob%3D%22lab-api%22%7D%5B20s%5D%29+%3E+0.2\\u0026g0.tab=1\",\"fingerprint\":\"4ba50c2dbc5c6545\"}],\"notification_reason\":\"first notification\",\"groupLabels\":{\"alertname\":\"BalanceApiErrors\",\"api\":\"balance\",\"component\":\"api-balance\",\"endpoint\":\"/v1/balance/main\",\"instance\":\"api-balance-2\",\"job\":\"lab-api\"},\"commonLabels\":{\"alertname\":\"BalanceApiErrors\",\"api\":\"balance\",\"component\":\"api-balance\",\"endpoint\":\"/v1/balance/main\",\"instance\":\"api-balance-2\",\"job\":\"lab-api\"},\"commonAnnotations\":{\"summary\":\"Balance-check API errors on api-balance-2 /v1/balance/main\"},\"routeLabels\":{},\"externalURL\":\"http://35dcf781ebea:9093\",\"version\":\"4\",\"groupKey\":\"{}/{alertname=~\\\"NodeFilesystemFull|BalanceApiErrors|BundleApiErrors|UssdGatewayTimeouts|SyntheticUssdSessionFailed\\\"}:{alertname=\\\"BalanceApiErrors\\\", api=\\\"balance\\\", component=\\\"api-balance\\\", endpoint=\\\"/v1/balance/main\\\", instance=\\\"api-balance-2\\\", job=\\\"lab-api\\\"}\",\"truncatedAlerts\":0}\n"
+}
