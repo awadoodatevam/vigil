@@ -316,7 +316,7 @@ def test_zabbix(lab):
     )[0]
     assert len(action["filter"]["conditions"]) == 1
     assert [(op["esc_step_from"], op["esc_step_to"]) for op in action["operations"]] == [("1", "1")]
-    assert len(action["recoveryOperations"]) == 1
+    assert len(action["recovery_operations"]) == 1
 
 
 def test_prometheus_and_alertmanager(lab):
@@ -409,7 +409,7 @@ def test_secret_mounts(lab):
         own = "vigil-app" if unit == "dev-recorder" else unit
         assert found["/run/secrets/vigil"]["Source"] == str(lab.secrets / own)
         assert found["/run/secrets/vigil"]["RW"] is False
-        assert "/srv/vigil/generated" not in found
+        assert ("/srv/vigil/generated" in found) is (unit == "lab-zabbix-provision")
         assert not [d for d in found if d.startswith("/run/secrets/") and d != "/run/secrets/vigil"]
     provision = mounts("lab-zabbix-provision")
     assert provision["/srv/vigil/generated"]["Source"] == str(lab.base / "generated")
