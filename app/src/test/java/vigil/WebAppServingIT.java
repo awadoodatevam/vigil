@@ -4,29 +4,40 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.web.servlet.client.RestTestClient;
+import vigil.testsupport.VigilDatabase;
+import vigil.testsupport.VigilTestApp;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class WebAppServingIT {
 
-  @LocalServerPort private int port;
+  private static VigilTestApp app;
+  private static RestTestClient client;
+  private static String indexHtml;
 
-  private RestTestClient client;
-  private String indexHtml;
-
-  @BeforeEach
-  void setUp() throws IOException {
-    client = RestTestClient.bindToServer().baseUrl("http://localhost:" + port).build();
+  @BeforeAll
+  static void start() throws IOException, InterruptedException {
+    app = VigilTestApp.start(VigilDatabase.fresh());
+    client = RestTestClient.bindToServer().baseUrl(app.baseUrl()).build();
     indexHtml =
         new ClassPathResource("static/index.html").getContentAsString(StandardCharsets.UTF_8);
+    long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+    while (client.get().uri("/").exchange().returnResult(String.class).getStatus().value() == 503) {
+      assertThat(System.nanoTime()).as("ready within 30 s").isLessThan(deadline);
+      Thread.sleep(200);
+    }
+  }
+
+  @AfterAll
+  static void stop() {
+    app.close();
   }
 
   @Test

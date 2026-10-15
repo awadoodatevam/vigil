@@ -1,0 +1,3 @@
+table,class,tenant_scoped
+platform.event_publication,technical_rw,no
+platform.flyway_schema_history,technical_none,no
