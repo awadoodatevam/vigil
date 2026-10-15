@@ -6,7 +6,7 @@
 | Branch | `p-03-lab-hosts-and-mocks` |
 | Pin date (BP-R-08) | 15 October 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (setup version 1, Temurin 25.0.4.1+1, Docker 29.8.2, Compose 2.40.3, buildx 0.37.1) |
-| State | Built; the gate command passes in this session and the `ci.yml` job `gate` passes on the pull request; the owner-run step (Section 6.10) is open; deviation 1 and document feedback 1 need the owner's confirmation |
+| State | Built; the gate command passes in this session and the `ci.yml` job `gate` passes on the pull request; the owner-run step (Section 6.10) passed on the owner's Mac (Section 8); deviation 1 and document feedback 1 need the owner's confirmation |
 
 ## 1. What was built
 
@@ -105,17 +105,37 @@ None other than this report (spec Section 9).
 
 ## 8. Owner-run results
 
-The owner-run step (spec Section 6.10, `tests/acceptance/p03_mac_check.sh` on the Mac, profile `demo`) has not run yet. Its result file `tests/acceptance/results/P-03-mac-demo.txt` is copied here by the session "Record the owner-run results of P-03".
+The owner-run step (spec Section 6.10, `tests/acceptance/p03_mac_check.sh` on the Mac, profile `demo`) ran and passed. Result file: `tests/acceptance/results/P-03-mac-demo.txt` (commit `e534b00`), copied here by the session "Record the owner-run results of P-03".
+
+| Item | Result |
+| --- | --- |
+| `uname -m` | `arm64` |
+| `docker version --format '{{.Server.Version}}'` | `29.8.2` (Docker Desktop, builder `desktop-linux`) |
+| `deploy/images.sh --test` | Passed. Pulled `zabbix/zabbix-agent2:ubuntu-7.0.25@sha256:4a84f14b76fdc317dccfad1d92a8e09b650127adc79e3c7d40d4ca802dda3a1f` and `ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55` (the pinned digests); apt step from `ports.ubuntu.com` (arm64) 43.5 s; `ldd` check of the copied `zabbix_agent2` passed on arm64; `prometheus-client==0.26.0` installed from PyPI; image `vigil/demo-lab:local` (`sha256:7645f48321a8622ff286850eeccf9ffad27dafb29a345e5e1942413d723b4d08`). |
+| `pytest -m "lab and mac" demo/lab -v` (`VIGIL_LAB_PROFILE=demo`) | Python 3.12.3, pytest 9.1.1 on `darwin`; 25 collected, 21 deselected, 4 selected: `test_image_and_data`, `test_size_profile`, `test_permissions`, `test_command_templates` all PASSED; `4 passed, 21 deselected in 20.05s`. |
+
+`demo`-profile `df` and `du` lines of `lab-db-01` (information for P-04: DD-F-10 `baseline_used_pct` is measured there):
+
+| Measure | Bytes |
+| --- | --- |
+| `df -B1 /data` (`/dev/loop0`): size | 17,112,760,320 |
+| used | 7,877,840,896 |
+| available | 9,234,919,424 |
+| Use% | 47 % |
+| `du -B1 --max-depth=1 /data`: `/data/db` | 6,442,450,944 |
+| `/data/export` | 1,073,741,824 |
+| `/data/txlog_archive` | 0 |
+| `/data` | 7,516,192,768 |
 
 Results of this session (spec Section 9):
 
 | Item | Result |
 | --- | --- |
 | BP-ASM-02 (lab part) | Proved in the cloud session: `deploy/images.sh --test` pulled both base images from Docker Hub, reached `archive.ubuntu.com` and `security.ubuntu.com` over HTTPS through the proxy with the CA bundle, and PyPI. Build time: 45 s from an empty cache, base-image pulls included (35 s with the base images present). No pull was refused (BP-O-04). |
-| BP-ASM-06 | Cloud session: proved (privileged `lab-db-01`, loop device, XFS mount of a 4 GiB image on the named volume, restart with unmount and remount). GitHub runner: proved by the `ci.yml` job `gate` on pull request awadoodatevam/vigil#2 (run 38734391944, head `b359e54`, 15 Oct 2026 12:24:30 to 12:29:08 UTC, conclusion `success`): the runner built `vigil/demo-lab:local` and ran all 16 lab tests in the `test` profile (step 3: 40 passed in 83 s), so privileged containers, loop devices and XFS work on GitHub-hosted `ubuntu-24.04` runners. Mac: owner-run step. |
+| BP-ASM-06 | Cloud session: proved (privileged `lab-db-01`, loop device, XFS mount of a 4 GiB image on the named volume, restart with unmount and remount). GitHub runner: proved by the `ci.yml` job `gate` on pull request awadoodatevam/vigil#2 (run 38734391944, head `b359e54`, 15 Oct 2026 12:24:30 to 12:29:08 UTC, conclusion `success`): the runner built `vigil/demo-lab:local` and ran all 16 lab tests in the `test` profile (step 3: 40 passed in 83 s), so privileged containers, loop devices and XFS work on GitHub-hosted `ubuntu-24.04` runners. Mac: proved by the owner-run step (Docker Desktop 29.8.2, arm64): `lab-db-01` loop-mounted the 16 GiB XFS image (`/dev/loop0` on `/data`) in the `demo` profile, and `test_image_and_data`, with its restart of `lab-db-01`, passed. |
 | BP-ASM-09 (P-03 part) | Proved: the copied `zabbix_agent2` 7.0.25 passes the `ldd` check, runs as user `zabbix` in `lab-db-01`, `lab-vas-01`, `lab-rpt-01`, listens on 10050 and answers `vfs.fs.size[/data,free]` and `vfs.file.contents[…]` (`test_interfaces`). |
 | Docker started by step (0) | Yes: at the start of this session the Docker daemon was not running (`docker info` failed). `tools/start-docker.sh`, the script of gate step (0), started it as root in about 2 s; it was run directly before the first image build. In the gate run that followed, step (0) found the daemon running and did nothing. No other Docker problem occurred apart from the build CA read error of deviation 3. |
-| `demo`-profile `df` and `du` lines | Owner-run step; information for P-04 (DD-F-10 `baseline_used_pct` is measured there). For comparison, `test` profile in this session: `df -B1 /data` size 4,227,858,432, used 1,081,274,368, available 3,146,584,064 (26 %); `du -B1`: `/data/db` 858,980,352, `/data/export` 107,364,352, `/data/txlog_archive` 0, `/data` 966,344,704. |
+| `demo`-profile `df` and `du` lines | From the owner's result file, above: `df` 47 % used (7,877,840,896 of 17,112,760,320 bytes); `du` `/data` 7,516,192,768. Information for P-04 (DD-F-10 `baseline_used_pct` is measured there). For comparison, `test` profile in this session: `df -B1 /data` size 4,227,858,432, used 1,081,274,368, available 3,146,584,064 (26 %); `du -B1`: `/data/db` 858,980,352, `/data/export` 107,364,352, `/data/txlog_archive` 0, `/data` 966,344,704. |
 
 ## 9. Lines of production code added and changed (P03-DC-02)
 
@@ -127,7 +147,7 @@ GitHub: the `ci.yml` job `gate` passes on pull request awadoodatevam/vigil#2 (ru
 
 Cloud session: `tools/check-all.sh` (`CLAUDE_CODE_REMOTE=true`, setup version 1): steps 0 to 7 pass, last line `== all checks passed`. Step 0 found the daemon running (started earlier in the session by the same script); step 1a built `vigil/demo-lab:local` from cache; step 2: `vigil-app` 49 unit tests and 28 `*IT`, `demo-control` 1 unit test and 2 `*IT` (no Java change, P-01 and P-02 tests pass); step 3: 40 Python tests in 91 s (15 earlier tests, 9 mock unit tests, 16 lab tests in the `test` profile); step 4: `shellcheck` on every `*.sh`; step 5: 49 data checks, 0 failed; step 6: `deploy/local/compose.yaml` valid with no variable set; step 7: `trace.py --check` exits 0.
 
-Done-check: BP-DC-01 to BP-DC-07 hold, except BP-DC-07's owner-run result file (the Mac step); BP-DC-02 holds in the session and on the pull request; P03-DC-01 holds (lab tests in the session and the `gate` job on the runner); P03-DC-02 holds (1,337); P03-DC-03 is the owner-run step; P03-DC-04 holds (`demo/lab/README.md`, `README.md`).
+Done-check: BP-DC-01 to BP-DC-07 hold (BP-DC-07: the owner-run result file `tests/acceptance/results/P-03-mac-demo.txt` is committed); BP-DC-02 holds in the session and on the pull request; P03-DC-01 holds (lab tests in the session and the `gate` job on the runner); P03-DC-02 holds (1,337); P03-DC-03 holds (the 4 `lab and mac` tests passed in the `demo` profile on the Mac, Section 8); P03-DC-04 holds (`demo/lab/README.md`, `README.md`).
 
 ## 11. Follow-up items for later packages
 
