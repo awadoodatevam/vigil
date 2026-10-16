@@ -1,0 +1,291 @@
+openapi: 3.1.0
+info:
+  title: vigil-api
+  version: '1'
+  description: Every operation can also answer 400 bad_request (a request the firewall or Spring MVC refuses), 500 internal_error, 503 dependency_failed and 503 starting (AR-I-03).
+paths:
+  /api/v1/public/branding:
+    get:
+      security: []
+      responses:
+        '200':
+          description: The tenant settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantSettings'
+        '404':
+          description: unknown_host, or not_found when the tenant has no settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/public/logo:
+    get:
+      security: []
+      responses:
+        '200':
+          description: The logo image
+          content:
+            image/png:
+              schema:
+                type: string
+                contentMediaType: image/png
+            image/svg+xml:
+              schema:
+                type: string
+                contentMediaType: image/svg+xml
+        '404':
+          description: not_found when the tenant has no logo, or unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/session:
+    post:
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: The user; sets the vigil_session and vigil_csrf cookies
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: bad_request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: not_signed_in, "Username or password is incorrect."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      security:
+        - session: []
+      responses:
+        '200':
+          description: The user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      security:
+        - session: []
+      parameters:
+        - name: X-Vigil-CSRF
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: The session ended; both cookies are cleared
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden (missing or wrong CSRF header)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/tenant:
+    get:
+      security:
+        - session: []
+      responses:
+        '200':
+          description: The tenant settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantSettings'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/live:
+    get:
+      security:
+        - session: []
+      parameters:
+        - name: topics
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Server-Sent Events
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '400':
+          description: bad_request (missing or invalid topics)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: vigil_session
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      required:
+        - error
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorContent'
+    ErrorContent:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          enum:
+            - bad_request
+            - session_ended
+            - not_signed_in
+            - bad_token
+            - forbidden
+            - not_found
+            - unknown_host
+            - conflict
+            - too_large
+            - refused
+            - invalid
+            - internal_error
+            - dependency_failed
+            - starting
+        message:
+          type: string
+        details:
+          type: object
+    User:
+      type: object
+      additionalProperties: false
+      required:
+        - username
+        - display_name
+        - permissions
+        - team_keys
+      properties:
+        username:
+          type: string
+        display_name:
+          type: string
+        permissions:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            enum:
+              - view
+              - acknowledge
+              - approve_action
+              - manage_setup
+              - manage_routing
+              - manage_ai_settings
+              - rerun_ai_investigation
+              - edit_workflow
+              - run_test_replay
+              - publish_workflow
+        team_keys:
+          type: array
+          items:
+            type: string
+    TenantSettings:
+      type: object
+      additionalProperties: false
+      required:
+        - product_display_name
+        - customer_name
+        - has_logo
+        - environment_label
+      properties:
+        product_display_name:
+          type: string
+        customer_name:
+          type: string
+        has_logo:
+          type: boolean
+        environment_label:
+          type:
+            - string
+            - 'null'
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
