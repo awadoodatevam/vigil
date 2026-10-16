@@ -1,3 +1,12 @@
 table,class,tenant_scoped
 platform.event_publication,technical_rw,no
 platform.flyway_schema_history,technical_none,no
+audit.audit_event,immutable,yes
+tenancy.tenant,stateful,no
+tenancy.tenant_settings,configuration,yes
+tenancy.tenant_alias,revisioned,no
+identity.user,configuration,yes
+identity.team,configuration,yes
+identity.team_membership,configuration,yes
+identity.permission_grant,configuration,yes
+identity.login_session,stateful,yes

@@ -30,7 +30,7 @@ lab_db_server:
     test: {device_size_gib: 4, /data/db: 0.8, /data/export: 0.1}
   baseline_content: {/data/db: "6 GiB (database files)", /data/export: "1 GiB (export files)", /data/txlog_archive: "empty"}
   baseline_used_gib: 7
-  baseline_used_pct: measured           # expected 43 to 45
+  baseline_used_pct: measured           # development value 47 (development_values, P-04); final value P-32
   no_purge_job: "No archive shipping or purge job runs in the lab; the nightly purge exists only in the story and in RB-DB-01. Only the registered action and the clear step delete archive files."
   injected_size: "about 8.8 GiB (16 GiB device - 7 GiB baseline - XFS overhead - 64 MiB free); it MUST be larger than the largest baseline folder plus 1 GiB (so /data/txlog_archive is the largest folder) and at most the 12 GiB action limit (so the action removes every injected file). Measured by SB-T-01."
   files_never_touched: "No reset, fault or clear step creates, changes or touches any file under /data/db or /data/export, so their change times stay older than any diagnostic period."

@@ -23,6 +23,7 @@
     <google-java-format.version>1.36.1</google-java-format.version>
     <node.version>v22.23.3</node.version>
     <java-json-canonicalization.version>1.1</java-json-canonicalization.version>
+    <bcprov.version>1.86</bcprov.version>
   </properties>
 
   <dependencyManagement>
@@ -74,6 +75,15 @@
       <groupId>io.github.erdtman</groupId>
       <artifactId>java-json-canonicalization</artifactId>
       <version>${java-json-canonicalization.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-crypto</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk18on</artifactId>
+      <version>${bcprov.version}</version>
     </dependency>
 
     <dependency>
