@@ -42,17 +42,17 @@ lab_db_server:
     disk_growth: "<gib> GiB written to <files> files under /data in the last 15 minutes"
   expected_action_result: "every injected file removed (<files> files, <gib> GiB, both measured, under the 12 GiB limit); /data returns to its baseline percentage"
   development_values:                  # SB-T-01 development run (60-build-plan P-04, BP-A-18): owner's Mac, profile demo; final values P-32
-    measured_on: measured              # UTC date of the run, YYYY-MM-DD
-    baseline_used_pct: measured        # fs_used_pct before injection
-    injected_files: measured           # N + 1
-    injected_bytes: measured
-    injected_gib: measured             # bytes / 1073741824, rounded half-up to 1 decimal place (DD-F-04)
-    disk_usage: measured               # disk_usage summary after SL-F-1 (the whole DD-F-04 summary_template, filled)
-    largest_folders: measured          # largest_folders summary after SL-F-1 (the whole summary)
-    disk_growth: measured              # disk_growth summary after SL-F-1
-    action_files_removed: measured
-    action_gib_removed: measured
-    used_pct_after_action: measured    # fs_used_pct after the action
+    measured_on: 2026-10-16              # UTC date of the run, YYYY-MM-DD
+    baseline_used_pct: 47        # fs_used_pct before injection
+    injected_files: 34           # N + 1
+    injected_bytes: 9167810560
+    injected_gib: 8.5             # bytes / 1073741824, rounded half-up to 1 decimal place (DD-F-04)
+    disk_usage: "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)"               # disk_usage summary after SL-F-1 (the whole DD-F-04 summary_template, filled)
+    largest_folders: "Largest folder under /data: /data/txlog_archive (8.5 GiB)"          # largest_folders summary after SL-F-1 (the whole summary)
+    disk_growth: "8.5 GiB written to 34 files under /data in the last 15 minutes"              # disk_growth summary after SL-F-1
+    action_files_removed: 34
+    action_gib_removed: 8.5
+    used_pct_after_action: 47    # fs_used_pct after the action
 
 faults:
   SL-F-1:

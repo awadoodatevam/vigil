@@ -6,7 +6,7 @@
 | Branch | `p-04-lab-monitoring-faults-storm-timing` |
 | Pin date (BP-R-08) | 15 October 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (setup version 1, Temurin 25.0.4.1+1, Docker 29.8.2, Compose 2.40.3) |
-| State | Built; the gate command passes in this session (twice, P04-DC-02 steps 1 and 6); the cloud 10-storm run of SB-T-01 passed (10 of 10 standard storms, the `read-only` and the `clear` run; Section 8); the owner-run step (Section 6.13, `tests/acceptance/p04_mac_check.sh`) is open |
+| State | Built; the gate command passes in this session (twice, P04-DC-02 steps 1 and 6) and the `ci.yml` job `gate` passes on the pull request; the cloud 10-storm run of SB-T-01 passed (10 of 10 standard storms, the `read-only` and the `clear` run); the owner-run step on the Mac passed (3 of 3 standard storms, the `read-only` and the `clear` run, profile `demo`) and its values are recorded in DD-F-10 (Sections 7 and 8) |
 
 ## 1. What was built
 
@@ -76,6 +76,7 @@ BP-R-12 is "checked by review" (spec part 4): the skip rule is in `tools/check-a
 1. **Zabbix preprocessing parameters** (deviation 1): spec 6.2.2 (and any later text that lists trim characters) MAY say that the characters are given as `\s\t\r\n`, because the API reads a newline in `params` as a parameter separator.
 2. **Docker Hub refusals in cloud sessions (BP-O-04)**: this session's anonymous pulls were refused with `429 Too Many Requests` at least 18 times (8 times in a row for `postgres:16.15`, and again for `zabbix-server-pgsql`, `zabbix-web-nginx-pgsql` and `prometheus`), and Testcontainers' pull of `pgvector/pgvector` was refused once during the gate before it succeeded. All pulls succeeded within the retries. This is the first package report after P-03 that records refused pulls, so BP-O-04's "Resolved in" applies: the pre-pull in `tools/cloud-setup.sh` (or a registry mirror) is for the owner to decide. `mirror.gcr.io` is reachable from the session (HTTP 401 on `/v2/`, the normal answer) and could serve as the daemon's `registry-mirrors`.
 3. **Admin's API view**: as `Admin`, `item.get` and `trigger.get` also return the objects of Zabbix's own host "Zabbix server" (from its default template). The lab tests and the spike read the lab's objects by host group or as user `vigil` (read on `Lab hosts` only). For P-31: `demo-control` reads Zabbix as `vigil`, so its problem list holds only lab problems.
+4. **DD-ASM-05 baseline percentage**: the Mac run measured `baseline_used_pct` 47 % in the `demo` profile (P-03 measured the same with `df`), not the 43 to 45 % that DD-ASM-05 and the comment of DD-F-10 `baseline_used_pct` expect. The 7 GiB baseline is 7,516,192,768 bytes of 17,112,760,320 (44 %), but XFS's own metadata and log on the 16 GiB image bring `df`'s used figure to 7,877,840,896 bytes (P-03 report Section 8), and `df` rounds up. The injection limits of DD-ASM-05 hold (8.5 GiB). Proposed: DD-ASM-05 and the comment say 47 % (or "as measured"), and SB-S03's shown values follow the final values of P-32. No check depends on the percentage; the action's precondition (at least 90 %) and the return to the baseline percentage hold.
 
 ## 5. Blocking questions
 
@@ -99,7 +100,21 @@ The five third-party images publish `linux/amd64` and `linux/arm64` (checked wit
 
 ## 7. Values recorded under `docs/`
 
-None in this session. DD-F-10 `lab_db_server.development_values` are recorded from the Mac run by the session "Record the owner-run results of P-04" (spec Section 9).
+`docs/31-demo-data/10-lab-and-faults.yaml`, `lab_db_server.development_values` (spec Section 9, amendment BP-A-18), recorded by the session "Record the owner-run results of P-04" from the first `standard` run of the Mac result file `spikes/results/storm-timing-20261016T060947Z.json`. Each value replaces the word `measured` on its line; the comments stay; no other line of `docs/31-demo-data/` changed. The data checks pass (`check_data.py`: 49 checks, 0 failed).
+
+| Field | Value |
+| --- | --- |
+| `measured_on` | 2026-10-16 |
+| `baseline_used_pct` | 47 |
+| `injected_files` | 34 |
+| `injected_bytes` | 9167810560 |
+| `injected_gib` | 8.5 |
+| `disk_usage` | "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)" |
+| `largest_folders` | "Largest folder under /data: /data/txlog_archive (8.5 GiB)" |
+| `disk_growth` | "8.5 GiB written to 34 files under /data in the last 15 minutes" |
+| `action_files_removed` | 34 |
+| `action_gib_removed` | 8.5 |
+| `used_pct_after_action` | 47 |
 
 ## 8. Owner-run results
 
@@ -130,24 +145,50 @@ Margins: every alert arrived within 32 s of the injection (target 120 s) with ga
 
 Saved recordings: the 254 calls of standard storm 1 (64 Zabbix: 32 firing and 32 resolved, including LA-09; 190 Alertmanager: 95 firing and 95 resolved) under `dev/fakes/recordings/monitoring/`. No file holds a secret (each secret file of the installation was searched for in them).
 
-### 8.2 Owner-run step (Section 6.13): open
+### 8.2 Owner-run step (Section 6.13): Mac run, profile `demo`
 
-The owner runs `tests/acceptance/p04_mac_check.sh` on the Mac from the repository root (about 55 minutes plus the image build) and commits `tests/acceptance/results/P-04-mac-demo.txt` and the result file under `spikes/results/`; a follow-up session "Record the owner-run results of P-04" copies the `demo` values into DD-F-10 `lab_db_server.development_values` and into this section.
+The owner ran `tests/acceptance/p04_mac_check.sh` on the Mac and committed `tests/acceptance/results/P-04-mac-demo.txt` and `spikes/results/storm-timing-20261016T060947Z.json` (commit `cf8d7c0`, whose message says "P-03" but which holds the P-04 results).
+
+From `P-04-mac-demo.txt`: `uname -m` `arm64`; Docker `29.8.2`; `deploy/images.sh --test` pulled the five third-party images and built the five local images with no refused pull (BP-O-04); `docker image inspect` of the third-party images (BP-ASM-05):
+
+| Image | Pulled |
+| --- | --- |
+| `postgres:16.15` | `postgres@sha256:ca0bd484…ebca641d linux/arm64` |
+| `zabbix/zabbix-server-pgsql:alpine-7.0.31` | `zabbix/zabbix-server-pgsql@sha256:bdfe9084…a088975b9 linux/arm64` |
+| `zabbix/zabbix-web-nginx-pgsql:alpine-7.0.31` | `zabbix/zabbix-web-nginx-pgsql@sha256:d9ce0774…dd679b92d linux/arm64` |
+| `prom/prometheus:v3.15.0` | `prom/prometheus@sha256:efd719c9…92118753e linux/arm64` |
+| `prom/alertmanager:v0.34.1` | `prom/alertmanager@sha256:e9733baf…2c3357a linux/arm64` |
+
+(The digests are the pinned index digests of the compose file.) `deploy/local.sh up --lab-only --profile demo` printed `Lab is up (profile demo, project vigil-local).`; the spike ran in the foreground; `deploy/local.sh down` stopped the lab afterwards.
+
+Result file `spikes/results/storm-timing-20261016T060947Z.json`: `passed` true, `finished` true, `profile` `demo`, `machine` `aarch64`, 06:09:47 to 07:00:09 UTC (50 min), versions Zabbix 7.0.31, Prometheus 3.15.0, Alertmanager 0.34.1. Checks: `zabbix_connection_test` (HTTP 200 with a result array), `alertmanager_connection_test` (HTTP 200), `alertmanager_requires_auth` (HTTP 401), `prometheus_targets_up`, `start_clear` and `baseline_window` (876 s) passed.
+
+| Run | `passed` | first arrival (s) | last arrival (s) | largest gap (s) | SL-F-3 arrival (s) | last resolve after action (s) | last resolve after clear (s) | storm firing (Zabbix + AM) | SL-F-3 firing | still firing after action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| standard 1 | true | 3.8 | 30.7 | 10.6 | 4.7 | 37.7 | 6.0 | 126 (31 + 95) | 1 | — |
+| standard 2 | true | 0.7 | 30.7 | 10.6 | 1.8 | 35.7 | 5.0 | 126 (31 + 95) | 1 | — |
+| standard 3 | true | 1.7 | 30.7 | 10.6 | 0.7 | 34.7 | 5.0 | 126 (31 + 95) | 1 | — |
+| read-only 1 | true | 1.7 | 30.7 | 10.6 | 0.7 | 10.3 (the later disk_full resolve) | 31.6 | 126 (31 + 95) | 1 | 124 |
+| clear 1 | true | 4.3 | 30.3 | 10.6 | 5.3 | — | 39.4 | 126 (31 + 95) | 1 | — |
+
+Measured values of the `demo` profile (identical in all five runs; the action values in the four runs with the action): `baseline_used_pct` 47; `used_pct_after_injection` 100; `avail_bytes_after_injection` 67,104,768; `injected_files` 34; `injected_bytes` 9,167,810,560; `injected_gib` 8.5; `disk_usage` "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)"; `largest_folders` "Largest folder under /data: /data/txlog_archive (8.5 GiB)"; `disk_growth` "8.5 GiB written to 34 files under /data in the last 15 minutes"; `action_files_removed` 34; `action_gib_removed` 8.5; `used_pct_after_action` 47. These are the values copied into DD-F-10 (Section 7).
+
+The clear is again the tightest margin: 39.4 s in the `clear` run (target 40 s), 31.6 s in the `read-only` run.
 
 ### 8.3 Assumptions
 
 | Item | Result |
 | --- | --- |
-| DD-ASM-03 | Proved in the cloud session (`test` profile): every timing target of DD-F-10 that does not need Vigil was met in 10 of 10 standard storms and in the `read-only` and `clear` runs (8.1). Mac run open. |
-| DD-ASM-05 | Open (measured by the Mac run in the `demo` profile: `baseline_used_pct` against 43 to 45 %, injection between 7 and 12 GiB). Information: `test` profile 26 % baseline, 2.9 GiB injected; P-03 measured 47 % with `df` in `demo`. |
+| DD-ASM-03 | Proved: every timing target of DD-F-10 that does not need Vigil was met in the cloud session (`test` profile, 10 of 10 standard storms and the `read-only` and `clear` runs, 8.1) and on the Mac (`demo` profile, 3 of 3 standard storms and the `read-only` and `clear` runs, 8.2). The 40 s clear target has the smallest margin (at most 39.4 s). |
+| DD-ASM-05 | Partly refuted. The baseline is 47 %, not 43 to 45 % (`fs_used_pct` on the Mac in the `demo` profile; P-03 measured 47 % with `df` too). The injection limits hold: 8.5 GiB injected (34 files), larger than `/data/db` (6 GiB) plus 1 GiB and below the 12 GiB action limit, so `/data/txlog_archive` is the largest folder and the action removed every injected file. The percentage is a measured value and does not stop the package (spec Section 11); see document feedback 4. |
 | SL-ASM-01, DM-ASM-05 | Proved: 126 individual entries (95 from Alertmanager, one alert per call) within 32 s, each storm alert exactly once (`arrival`, `counts`, `exactly_once` in all 12 runs). |
 | DM-ASM-08 | Proved for the lab: every lab alert resolved within 40 s of the clear (`resolve_after_clear`, at most 38.0 s). |
 | AR-ASM-07 | Proved: `{EVENT.TAGSJSON}` parses to an array of `{tag, value}` objects (`messages` passed in all runs; the recordings). |
-| BP-ASM-05 | Open (Mac run). The five images publish `linux/arm64` (registry index). |
+| BP-ASM-05 | Proved for the five P-04 images: the Mac pulled the `linux/arm64` variants of the pinned indexes (8.2) and ran them. |
 | BP-ASM-09 (P-04 part) | Proved: agent 2 7.0.25 with server 7.0.31: all 32 items have values (`test_zabbix`), and the node exporter's `node_filesystem_avail_bytes{mountpoint="/data"}` drives LA-04. |
-| BP-ASM-10 | Proved in the cloud session: `demo-faults` on the host network listens on 172.31.0.1:8091, is reached from `storm-spike` on `lab-net` and from the test process, and runs commands in `lab-db-01` and `lab-rpt-01` through the socket. GitHub runner: by the `gate` job of the pull request. Mac: open (owner-run step). |
+| BP-ASM-10 | Proved in all three environments: in the cloud session (`demo-faults` on the host network listens on 172.31.0.1:8091, is reached from `storm-spike` on `lab-net` and from the test process, and runs commands in `lab-db-01` and `lab-rpt-01` through the socket); on the GitHub runner (the lab tests of the `gate` job, Section 10); on the Mac (every inject and clear of the 5 runs answered 200 and the `steps` checks passed; there the host network is that of Docker Desktop's Linux VM). |
 | BP-ASM-11 | Proved with one deviation: `last(…,#1:now-20s)`, `vfs.fs.size` and `vfs.file.contents` with a trim step on numeric items, a webhook script with custom headers through `HttpRequest`, a token of a non-Super-admin user (`token.create` for `vigil` by `Admin`) and every create and update method work; the trim characters are written as `\s\t\r\n` (deviation 1). |
-| BP-O-04 | Docker Hub refused pulls in this session (document feedback 2); all pulls succeeded within the retries. |
+| BP-O-04 | Docker Hub refused pulls in the cloud session (document feedback 2); all pulls succeeded within the retries. The Mac run had no refused pull. |
 
 ## 9. Lines of production code added and changed (P04-DC-03)
 
@@ -157,9 +198,9 @@ The owner runs `tests/acceptance/p04_mac_check.sh` on the Mac from the repositor
 
 Cloud session (`CLAUDE_CODE_REMOTE=true tools/check-all.sh`, setup version 1): steps 0 to 7 pass, last line `== all checks passed`, twice: before the development run (P04-DC-02 step 1) and after `down --volumes` (step 6, 670 s in total). Step 1a pulled the five third-party images (after the refusals of document feedback 2) and built the five local images; step 2: `vigil-app` 49 unit tests and 28 `*IT`, `demo-control` 1 and 2 (no Java change; the P-01 to P-03 tests pass); step 3: `ruff` clean, 85 Python tests in 585 s, among them the 16 lab tests of P-03 and the 19 lab tests of P-04 with one storm (`--storms 0 --extra read-only`), which passed without the retry in both gate runs; step 4: `shellcheck`; step 5: 49 data checks, 0 failed; step 6: `deploy/local/compose.yaml` valid with no variable set; step 7: `trace.py --check` exits 0. This branch changes `demo/`, `deploy/`, `dev/`, `spikes/` and `tools/`, so step 3 ran the lab tests (CTX-D-036).
 
-GitHub: the `ci.yml` job `gate` runs on the pull request; its result is added here when it has finished.
+GitHub: the `ci.yml` job `gate` passes on pull request awadoodatevam/vigil#3 (run 38805542530, head `d224a62`, 15 Oct 2026 20:53:11 to 21:06:10 UTC, conclusion `success`). It built the images and ran the lab and monitoring tests with the storm on the runner (BP-ASM-10, P04-DC-01).
 
-Done-check: BP-DC-01 (every part 4 row has its test, `trace.py --check`), BP-DC-03, BP-DC-04 (no Java change), BP-DC-05 (nothing of that kind added), BP-DC-06 (`README.md`; `CLAUDE.md` was updated by the spec commit) hold; BP-DC-02 holds in the session, the runner pending; BP-DC-07: the owner-run result file is open (Section 8.2). P04-DC-02 holds (Section 8.1). P04-DC-03 holds (1,202). P04-DC-04 is open (owner-run step). P04-DC-05 holds: the READMEs of spec 6.11 with the interfaces of 6.12; under `docs/` only this report changed.
+Done-check: BP-DC-01 to BP-DC-07 hold (BP-DC-02: in the session and on the pull request; BP-DC-04: no Java change, the P-01 to P-03 tests pass; BP-DC-07: the owner-run result files are committed). P04-DC-01 holds (the gate in the session and the `gate` job on the runner). P04-DC-02 holds (Section 8.1). P04-DC-03 holds (1,202). P04-DC-04 holds: `P-04-mac-demo.txt` and the Mac result file are committed, its `passed` is true, and this report and DD-F-10 have the recorded values (Sections 7 and 8.2). P04-DC-05 holds: the READMEs of spec 6.11 with the interfaces of 6.12; under `docs/` only this report and DD-F-10 `development_values` changed.
 
 ## 11. Follow-up items for later packages
 
@@ -168,3 +209,4 @@ Done-check: BP-DC-01 (every part 4 row has its test, `trace.py --check`), BP-DC-
 3. P-31: `demo-faults` adds SL-F-4 (and `NET_ADMIN`, `NET_RAW`); `demo-control` reads Zabbix as `vigil` with `secrets/demo-control/zabbix-api` and Alertmanager with `alertmanager-password`, as `storm_timing.py`'s quiet check does (`Lab.zabbix_problems`, `Lab.alertmanager_alerts`).
 4. P-32: `lab-zabbix-provision` runs unchanged with `user: 10001`, the demo `webhook_base_url` and `/srv/vigil/generated`.
 5. BP-O-04: see document feedback 2.
+6. P-32: the final values of DD-F-10 (`baseline_used_pct`, `injected_size`, `expected_diagnostics_after_SL-F-1`, `expected_action_result`) are measured on the main host; the development values of the Mac are 47 %, 34 files, 8.5 GiB (document feedback 4).
