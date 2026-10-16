@@ -24,6 +24,7 @@
     <node.version>v22.23.3</node.version>
     <java-json-canonicalization.version>1.1</java-json-canonicalization.version>
     <bcprov.version>1.86</bcprov.version>
+    <json-schema-validator.version>3.0.6</json-schema-validator.version>
   </properties>
 
   <dependencyManagement>
@@ -85,6 +86,10 @@
       <artifactId>bcprov-jdk18on</artifactId>
       <version>${bcprov.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -112,6 +117,12 @@
       <artifactId>testcontainers</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <version>${json-schema-validator.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -125,6 +136,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <argLine>-Djdk.httpclient.allowRestrictedHeaders=host</argLine>
+        </configuration>
       </plugin>
 
       <plugin>

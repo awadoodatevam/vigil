@@ -27,6 +27,7 @@ class ErrorCodeTest {
             "TOO_LARGE 413 too_large",
             "REFUSED 422 refused",
             "INVALID 422 invalid",
+            "INTERNAL_ERROR 500 internal_error",
             "DEPENDENCY_FAILED 503 dependency_failed",
             "STARTING 503 starting");
     VigilError error = new VigilError(VigilError.Code.STARTING);

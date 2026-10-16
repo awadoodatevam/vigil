@@ -30,7 +30,7 @@ public final class VigilTestApp implements AutoCloseable {
   private final CompletableFuture<ConfigurableApplicationContext> started =
       new CompletableFuture<>();
 
-  private VigilTestApp(VigilDatabase database, Class<?>... configurations) {
+  private VigilTestApp(VigilDatabase database, List<String> extraArgs, Class<?>... configurations) {
     List<Class<?>> sources = new ArrayList<>();
     sources.add(VigilApplication.class);
     sources.addAll(List.of(configurations));
@@ -44,13 +44,16 @@ public final class VigilTestApp implements AutoCloseable {
             port.complete(initialized.getWebServer().getPort());
           }
         });
-    String[] args = {
-      "--server.port=0",
-      "--VIGIL_SECRETS_DIR=" + database.appSecretsFolder(),
-      "--VIGIL_DB_HOST=" + database.host(),
-      "--VIGIL_DB_PORT=" + database.port(),
-      "--VIGIL_DB_NAME=" + database.name()
-    };
+    List<String> arguments =
+        new ArrayList<>(
+            List.of(
+                "--server.port=0",
+                "--VIGIL_SECRETS_DIR=" + database.appSecretsFolder(),
+                "--VIGIL_DB_HOST=" + database.host(),
+                "--VIGIL_DB_PORT=" + database.port(),
+                "--VIGIL_DB_NAME=" + database.name()));
+    arguments.addAll(extraArgs);
+    String[] args = arguments.toArray(String[]::new);
     Thread thread =
         new Thread(
             () -> {
@@ -68,7 +71,16 @@ public final class VigilTestApp implements AutoCloseable {
 
   /** Starts vigil-app on {@code database} with extra configuration classes. */
   public static VigilTestApp start(VigilDatabase database, Class<?>... configurations) {
-    return new VigilTestApp(database, configurations);
+    return start(database, List.of(), configurations);
+  }
+
+  /**
+   * Starts vigil-app on {@code database} with extra command-line arguments after the existing ones
+   * and extra configuration classes.
+   */
+  public static VigilTestApp start(
+      VigilDatabase database, List<String> extraArgs, Class<?>... configurations) {
+    return new VigilTestApp(database, extraArgs, configurations);
   }
 
   /** The HTTP port, as soon as the web server is up. */

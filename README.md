@@ -40,6 +40,7 @@ Migrations are Flyway SQL files in `app/src/main/resources/db/migration/{schema}
 - Every `*IT` that starts `vigil-app` uses `VigilTestApp` on a fresh database (`VigilDatabase.fresh()`), except a test that must run the JAR as a process.
 - Time comes from the `Clock` bean through `Timestamps.now(clock)`; tests replace it with a `@Primary` test clock passed to `VigilTestApp`.
 - Every module's scheduled work for tenants is matched to `TenantService.activeTenants()` at restart step (6) and on `TenantAliasChanged` (AR-R-23).
+- Every `vigil-api` handler method carries `@Public`, `@LoggedIn` or `@RequiresPermission`; errors are `VigilError`s, mapped by `ApiErrors` (AR-I-03); timestamps are written with `ApiTimes`; live notices are published with `LiveHub.publish` after the commit; every operation is in `openapi/vigil-api.yaml` and in `ContractIT`.
 
 Interfaces of the platform modules for later packages (P-08):
 
@@ -47,6 +48,14 @@ Interfaces of the platform modules for later packages (P-08):
 - P-11: `TenantService.createTenant`, `markReady`, `markFailed`, `setAlias`; `TenantImport` and `IdentityImport` (their problems lists become the part's `error`).
 - P-13 to P-24: `AuditService.append` inside their transactions; `TenantService.activeTenants` and their own `TenantAliasChanged` listeners; `IdentityService.team`, `isMember`, `teamMembers`.
 - P-39: `AuditService.query`.
+
+Interfaces of `vigil-api` for later packages (P-09):
+
+- P-11: the installation paths `/api/v1/installation/**` pass without host resolution, session and CSRF; P-11 adds its bearer-token check for them and its own access annotation, and extends `EntryPointTest`.
+- P-13: the webhook path `/api/v1/webhooks/**` passes without session and CSRF, tied to the host's tenant; P-13 adds its token check and annotation the same way.
+- P-25 and later: `@RequiresPermission`, `TenantId` and `ApiCaller` handler parameters, `ApiTimes`, `VigilError` for refusals, `LiveHub.publish` for the topics of AR-I-04, the OpenAPI file and `ContractIT` scenarios for each new operation.
+- P-28: the operations AR-I-10 to AR-I-16, the cookies `vigil_session` and `vigil_csrf`, the header `X-Vigil-CSRF` and the default messages of AR-I-03.
+- Test support: `VigilTestApp.start(database, extraArgs, configurations)`, `ApiClient` (requests with their own `Host` header, and streams read line by line) and `TestTenants` (`ready` tenants with users, teams and a host alias).
 
 ## Local installation
 
