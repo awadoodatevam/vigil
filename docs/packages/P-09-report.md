@@ -86,19 +86,21 @@ Recorded by this package (spec Section 9):
 | Item | Result |
 | --- | --- |
 | Versions introduced | Section 6. |
-| Largest delay between `publish` and arrival (`LiveStreamIT`, PM-M23-04, 20 notices 100 ms apart, measured at the arrival of each `data:` line) | GATE_DELAY |
+| Largest delay between `publish` and arrival (`LiveStreamIT`, PM-M23-04, 20 notices 100 ms apart, measured at the arrival of each `data:` line) | 2 ms (gate run in this session; 2 ms also in the separate `LiveStreamIT` run before it) |
 
 Assumptions of spec 11: `json-schema-validator` 3.0.6 runs with Jackson 3.1.5 and resolves the `$ref`s inside the OpenAPI document by JSON pointer (`ContractIT` passes); Tomcat on virtual threads serves 250 blocking streams at once and the hub ends them at shutdown (`LiveLoadIT` passes; `close()` returned within 5 s); `java.net.http.HttpClient` sends the test's own `Host` header with `-Djdk.httpclient.allowRestrictedHeaders=host` (`HostResolutionIT` passes), so `ApiClient` needs no socket fallback.
 
 ## 9. Lines of production code added and changed (P09-DC-01)
 
-`tools/loc.sh origin/main HEAD` prints **GATE_LOC** (at most 2,000).
+`tools/loc.sh origin/main HEAD` prints **1,335** (at most 2,000).
 
 ## 10. Gate command result
 
-GATE_RESULT
+Cloud session (`CLAUDE_CODE_REMOTE=true tools/check-all.sh`, setup version 1): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 2: `vigil-app` 61 unit tests and 108 `*IT` (54 and 80 before this package; every earlier test passes, among them `AppStartIT`, `WebAppServingIT`, `JsonLogIT` and `MigrateIT`), `demo-control` 1 and 2; step 3: `ruff` clean, 50 Python tests passed and 35 deselected (no file under `demo/`, `deploy/`, `dev/`, `spikes/`, `tools/` or `docs/31-demo-data/` changed, so the lab tests did not run, CTX-D-036); step 4: `shellcheck`; step 5: 49 data checks, 0 failed; step 6: compose file valid; step 7: `trace.py --check` exits 0.
 
-Done-check: BP-DC-01 (every part 4 row with proof `test` has a test that names it; the rows checked by review are listed in Section 1), BP-DC-03 (no operation, field, setting or behaviour beyond the spec; the OpenAPI file holds only the content of spec 6.9 and response descriptions), BP-DC-04 (AR-Q-01 `ModuleStructureTest`, AR-Q-02 `SchemaRuleTest`, AR-Q-03 `ConnectorLibraryRuleTest` pass; no new table, event listener or external call), BP-DC-05 (the seven operations are in `openapi/vigil-api.yaml` and `ContractIT` passes), BP-DC-06 (`README.md`; no command added or changed), BP-DC-07 (this report; no owner-run step) hold; BP-DC-02 holds in the session, the runner pending. P09-DC-01 holds (GATE_LOC). P09-DC-02 holds. P09-DC-03: the session part holds, the runner pending.
+GitHub: the `ci.yml` job `gate` runs on the pull request.
+
+Done-check: BP-DC-01 (every part 4 row with proof `test` has a test that names it; the rows checked by review are listed in Section 1), BP-DC-03 (no operation, field, setting or behaviour beyond the spec; the OpenAPI file holds only the content of spec 6.9 and response descriptions), BP-DC-04 (AR-Q-01 `ModuleStructureTest`, AR-Q-02 `SchemaRuleTest`, AR-Q-03 `ConnectorLibraryRuleTest` pass; no new table, event listener or external call), BP-DC-05 (the seven operations are in `openapi/vigil-api.yaml` and `ContractIT` passes), BP-DC-06 (`README.md`; no command added or changed), BP-DC-07 (this report; no owner-run step) hold; BP-DC-02 holds in the session, the runner pending. P09-DC-01 holds (1,335). P09-DC-02 holds. P09-DC-03: the session part holds, the runner pending.
 
 ## 11. Follow-up items for later packages
 
