@@ -1,0 +1,1211 @@
+arm64
+29.8.2
+docker.io/library/postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d: Pulling from library/postgres
+bbeda6b4abb7: Pulling fs layer
+19fcd068927b: Pulling fs layer
+dae9c1725998: Pulling fs layer
+a97c43a6325a: Pulling fs layer
+adef3e37879a: Pulling fs layer
+729e9c644210: Pulling fs layer
+21a9e5df9938: Pulling fs layer
+c344258f5c4b: Pulling fs layer
+d7ceeacb2be1: Pulling fs layer
+6bff2a087d78: Pulling fs layer
+5e02800fe956: Pulling fs layer
+1e68462331b3: Pulling fs layer
+27377261f2cc: Pulling fs layer
+09d1510a7dd6: Pulling fs layer
+a97c43a6325a: Waiting
+adef3e37879a: Waiting
+729e9c644210: Waiting
+21a9e5df9938: Waiting
+c344258f5c4b: Waiting
+d7ceeacb2be1: Waiting
+6bff2a087d78: Waiting
+09d1510a7dd6: Waiting
+5e02800fe956: Waiting
+1e68462331b3: Waiting
+27377261f2cc: Waiting
+19fcd068927b: Verifying Checksum
+19fcd068927b: Download complete
+a97c43a6325a: Verifying Checksum
+a97c43a6325a: Download complete
+dae9c1725998: Verifying Checksum
+dae9c1725998: Download complete
+bbeda6b4abb7: Verifying Checksum
+bbeda6b4abb7: Download complete
+21a9e5df9938: Download complete
+c344258f5c4b: Verifying Checksum
+c344258f5c4b: Download complete
+729e9c644210: Verifying Checksum
+729e9c644210: Download complete
+bbeda6b4abb7: Pull complete
+19fcd068927b: Pull complete
+dae9c1725998: Pull complete
+a97c43a6325a: Pull complete
+6bff2a087d78: Verifying Checksum
+6bff2a087d78: Download complete
+5e02800fe956: Verifying Checksum
+5e02800fe956: Download complete
+1e68462331b3: Verifying Checksum
+1e68462331b3: Download complete
+27377261f2cc: Download complete
+09d1510a7dd6: Verifying Checksum
+09d1510a7dd6: Download complete
+adef3e37879a: Verifying Checksum
+adef3e37879a: Download complete
+adef3e37879a: Pull complete
+729e9c644210: Pull complete
+21a9e5df9938: Pull complete
+c344258f5c4b: Pull complete
+d7ceeacb2be1: Verifying Checksum
+d7ceeacb2be1: Download complete
+d7ceeacb2be1: Pull complete
+6bff2a087d78: Pull complete
+5e02800fe956: Pull complete
+1e68462331b3: Pull complete
+27377261f2cc: Pull complete
+09d1510a7dd6: Pull complete
+Digest: sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+Status: Downloaded newer image for postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+docker.io/library/postgres:16.15@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+docker.io/zabbix/zabbix-server-pgsql@sha256:bdfe90847bd259a6da448db1e6ae83f5f439224654ed767296a8d57a088975b9: Pulling from zabbix/zabbix-server-pgsql
+a9986cd6f37d: Pulling fs layer
+93c984665366: Pulling fs layer
+af5596eee2ef: Pulling fs layer
+89f12a199fde: Pulling fs layer
+b9217a2d5529: Pulling fs layer
+01943ae7e340: Pulling fs layer
+2a58fb3e4cd1: Pulling fs layer
+1a64de0b5f20: Pulling fs layer
+4f4fb700ef54: Pulling fs layer
+89f12a199fde: Waiting
+b9217a2d5529: Waiting
+01943ae7e340: Waiting
+2a58fb3e4cd1: Waiting
+1a64de0b5f20: Waiting
+4f4fb700ef54: Waiting
+af5596eee2ef: Download complete
+89f12a199fde: Verifying Checksum
+89f12a199fde: Download complete
+b9217a2d5529: Verifying Checksum
+b9217a2d5529: Download complete
+93c984665366: Download complete
+01943ae7e340: Verifying Checksum
+01943ae7e340: Download complete
+a9986cd6f37d: Verifying Checksum
+a9986cd6f37d: Download complete
+1a64de0b5f20: Download complete
+a9986cd6f37d: Pull complete
+93c984665366: Pull complete
+af5596eee2ef: Pull complete
+89f12a199fde: Pull complete
+b9217a2d5529: Pull complete
+01943ae7e340: Pull complete
+4f4fb700ef54: Verifying Checksum
+4f4fb700ef54: Download complete
+2a58fb3e4cd1: Verifying Checksum
+2a58fb3e4cd1: Download complete
+2a58fb3e4cd1: Pull complete
+1a64de0b5f20: Pull complete
+4f4fb700ef54: Pull complete
+Digest: sha256:bdfe90847bd259a6da448db1e6ae83f5f439224654ed767296a8d57a088975b9
+Status: Downloaded newer image for zabbix/zabbix-server-pgsql@sha256:bdfe90847bd259a6da448db1e6ae83f5f439224654ed767296a8d57a088975b9
+docker.io/zabbix/zabbix-server-pgsql:alpine-7.0.31@sha256:bdfe90847bd259a6da448db1e6ae83f5f439224654ed767296a8d57a088975b9
+docker.io/zabbix/zabbix-web-nginx-pgsql@sha256:d9ce0774cb6036ce5d49c9c8d46bf1474dad98aae810350de0d5068dd679b92d: Pulling from zabbix/zabbix-web-nginx-pgsql
+a9986cd6f37d: Already exists
+f62450327431: Pulling fs layer
+66d82f05ad2b: Pulling fs layer
+a1df77d3eff9: Pulling fs layer
+b860737048da: Pulling fs layer
+345fc9b5748d: Pulling fs layer
+4f4fb700ef54: Pulling fs layer
+b860737048da: Waiting
+345fc9b5748d: Waiting
+4f4fb700ef54: Waiting
+66d82f05ad2b: Verifying Checksum
+66d82f05ad2b: Download complete
+a1df77d3eff9: Download complete
+345fc9b5748d: Verifying Checksum
+345fc9b5748d: Download complete
+4f4fb700ef54: Verifying Checksum
+4f4fb700ef54: Download complete
+f62450327431: Verifying Checksum
+f62450327431: Download complete
+f62450327431: Pull complete
+66d82f05ad2b: Pull complete
+a1df77d3eff9: Pull complete
+b860737048da: Verifying Checksum
+b860737048da: Download complete
+b860737048da: Pull complete
+345fc9b5748d: Pull complete
+4f4fb700ef54: Pull complete
+Digest: sha256:d9ce0774cb6036ce5d49c9c8d46bf1474dad98aae810350de0d5068dd679b92d
+Status: Downloaded newer image for zabbix/zabbix-web-nginx-pgsql@sha256:d9ce0774cb6036ce5d49c9c8d46bf1474dad98aae810350de0d5068dd679b92d
+docker.io/zabbix/zabbix-web-nginx-pgsql:alpine-7.0.31@sha256:d9ce0774cb6036ce5d49c9c8d46bf1474dad98aae810350de0d5068dd679b92d
+docker.io/prom/prometheus@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e: Pulling from prom/prometheus
+e3c413c9dfa5: Pulling fs layer
+886712664838: Pulling fs layer
+45278761f8bd: Pulling fs layer
+c85349fa3ec5: Pulling fs layer
+c66a3cf5349e: Pulling fs layer
+fde357b1187c: Pulling fs layer
+71af9fb8ff89: Pulling fs layer
+dc5176008be0: Pulling fs layer
+842865fffbac: Pulling fs layer
+71af9fb8ff89: Waiting
+dc5176008be0: Waiting
+c85349fa3ec5: Waiting
+842865fffbac: Waiting
+c66a3cf5349e: Waiting
+fde357b1187c: Waiting
+886712664838: Verifying Checksum
+886712664838: Download complete
+e3c413c9dfa5: Verifying Checksum
+e3c413c9dfa5: Download complete
+e3c413c9dfa5: Pull complete
+886712664838: Pull complete
+c66a3cf5349e: Verifying Checksum
+c66a3cf5349e: Download complete
+fde357b1187c: Verifying Checksum
+fde357b1187c: Download complete
+71af9fb8ff89: Verifying Checksum
+71af9fb8ff89: Download complete
+dc5176008be0: Verifying Checksum
+dc5176008be0: Download complete
+842865fffbac: Verifying Checksum
+842865fffbac: Download complete
+c85349fa3ec5: Verifying Checksum
+c85349fa3ec5: Download complete
+45278761f8bd: Download complete
+45278761f8bd: Pull complete
+c85349fa3ec5: Pull complete
+c66a3cf5349e: Pull complete
+fde357b1187c: Pull complete
+71af9fb8ff89: Pull complete
+dc5176008be0: Pull complete
+842865fffbac: Pull complete
+Digest: sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
+Status: Downloaded newer image for prom/prometheus@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
+docker.io/prom/prometheus:v3.15.0@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
+docker.io/prom/alertmanager@sha256:e9733bafb1bdef9b00e25a21f8f99dc26a22224bf16641ad754d1649f4c3357a: Pulling from prom/alertmanager
+e3c413c9dfa5: Already exists
+886712664838: Already exists
+7522aac89385: Pulling fs layer
+d1bd62887448: Pulling fs layer
+5aaa416cac6b: Pulling fs layer
+982983be00d3: Pulling fs layer
+4f4fb700ef54: Pulling fs layer
+982983be00d3: Waiting
+4f4fb700ef54: Waiting
+5aaa416cac6b: Verifying Checksum
+5aaa416cac6b: Download complete
+982983be00d3: Verifying Checksum
+982983be00d3: Download complete
+4f4fb700ef54: Verifying Checksum
+4f4fb700ef54: Download complete
+7522aac89385: Verifying Checksum
+7522aac89385: Download complete
+7522aac89385: Pull complete
+d1bd62887448: Download complete
+d1bd62887448: Pull complete
+5aaa416cac6b: Pull complete
+982983be00d3: Pull complete
+4f4fb700ef54: Pull complete
+Digest: sha256:e9733bafb1bdef9b00e25a21f8f99dc26a22224bf16641ad754d1649f4c3357a
+Status: Downloaded newer image for prom/alertmanager@sha256:e9733bafb1bdef9b00e25a21f8f99dc26a22224bf16641ad754d1649f4c3357a
+docker.io/prom/alertmanager:v0.34.1@sha256:e9733bafb1bdef9b00e25a21f8f99dc26a22224bf16641ad754d1649f4c3357a
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.89kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/zabbix/zabbix-agent2:ubuntu-7.0.25@sha256:4a84f14b76fdc317dccfad1d92a8e09b650127adc79e3c7d40d4ca802dda3a1f
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [stage-1  1/12] FROM docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#5 DONE 0.0s
+
+#6 [agent 1/1] FROM docker.io/zabbix/zabbix-agent2:ubuntu-7.0.25@sha256:4a84f14b76fdc317dccfad1d92a8e09b650127adc79e3c7d40d4ca802dda3a1f
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 74.43kB done
+#7 DONE 0.0s
+
+#8 [stage-1  5/12] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444     --mount=type=bind,source=requirements.txt,target=/tmp/requirements.txt     set -eu;     python3 -m venv /opt/venv;     if [ -f /run/secrets/ca_bundle ]; then       /opt/venv/bin/pip install --no-cache-dir --cert /run/secrets/ca_bundle -r /tmp/requirements.txt;     else       /opt/venv/bin/pip install --no-cache-dir -r /tmp/requirements.txt;     fi
+#8 CACHED
+
+#9 [stage-1  6/12] RUN rm -f /etc/ssh/ssh_host_*
+#9 CACHED
+
+#10 [stage-1  4/12] RUN if ldd /usr/sbin/zabbix_agent2 | grep 'not found'; then       echo 'zabbix_agent2 needs libraries this image does not have'; exit 1;     fi
+#10 CACHED
+
+#11 [stage-1  3/12] COPY --from=agent /usr/sbin/zabbix_agent2 /usr/sbin/zabbix_agent2
+#11 CACHED
+
+#12 [stage-1  2/12] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444     set -eu;     if [ -f /run/secrets/ca_bundle ]; then       echo 'Acquire::https::CAInfo "/run/secrets/ca_bundle";' > /etc/apt/apt.conf.d/99vigil-build-ca;       sed -i 's|http://|https://|g' /etc/apt/sources.list.d/ubuntu.sources;     fi;     apt-get update;     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends       python3 python3-venv openssh-server openssh-client prometheus-node-exporter libcurl4t64       xfsprogs util-linux iproute2 procps ca-certificates tzdata;     rm -f /etc/apt/apt.conf.d/99vigil-build-ca;     sed -i 's|https://|http://|g' /etc/apt/sources.list.d/ubuntu.sources;     rm -rf /var/lib/apt/lists/*
+#12 CACHED
+
+#13 [stage-1  7/12] RUN set -eu;     groupadd -g 1997 zabbix;     useradd -u 1997 -g zabbix -M -d /var/lib/zabbix -s /usr/sbin/nologin zabbix;     groupadd -g 2001 vigil-diag;     useradd -u 2001 -g vigil-diag -m -d /home/vigil-diag -s /bin/bash -p '*' vigil-diag;     groupadd -g 2002 vigil-action;     useradd -u 2002 -g vigil-action -G vigil-diag -m -d /home/vigil-action -s /bin/bash -p '*' vigil-action
+#13 CACHED
+
+#14 [stage-1  8/12] COPY labmocks/ /opt/labmocks/labmocks/
+#14 DONE 0.3s
+
+#15 [stage-1  9/12] COPY --chmod=0755 labctl.sh /usr/local/bin/labctl
+#15 DONE 0.0s
+
+#16 [stage-1 10/12] COPY --chmod=0755 entrypoint.sh /usr/local/bin/lab-entrypoint
+#16 DONE 0.0s
+
+#17 [stage-1 11/12] COPY sshd_config /etc/ssh/sshd_config.d/10-vigil.conf
+#17 DONE 0.0s
+
+#18 [stage-1 12/12] WORKDIR /opt/labmocks
+#18 DONE 0.0s
+
+#19 exporting to image
+#19 exporting layers 0.0s done
+#19 writing image sha256:4d23b19d292b2fd84b4943430860da5373ec6323b227a94f08f18142b677202b done
+#19 naming to docker.io/vigil/demo-lab:local done
+#19 DONE 0.0s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/r6r64ea0us8prrd0f5u38hff5
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.11kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [stage-0 1/5] FROM docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#4 CACHED
+
+#5 [internal] load build context
+#5 transferring context: 12.66kB done
+#5 DONE 0.0s
+
+#6 [stage-0 2/5] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444     set -eu;     if [ -f /run/secrets/ca_bundle ]; then       echo 'Acquire::https::CAInfo "/run/secrets/ca_bundle";' > /etc/apt/apt.conf.d/99vigil-build-ca;       sed -i 's|http://|https://|g' /etc/apt/sources.list.d/ubuntu.sources;     fi;     apt-get update;     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3 ca-certificates tzdata;     rm -f /etc/apt/apt.conf.d/99vigil-build-ca;     sed -i 's|https://|http://|g' /etc/apt/sources.list.d/ubuntu.sources;     rm -rf /var/lib/apt/lists/*
+#6 0.574 Get:1 http://ports.ubuntu.com/ubuntu-ports noble InRelease [256 kB]
+#6 1.894 Get:2 http://ports.ubuntu.com/ubuntu-ports noble-updates InRelease [126 kB]
+#6 2.201 Get:3 http://ports.ubuntu.com/ubuntu-ports noble-backports InRelease [126 kB]
+#6 2.532 Get:4 http://ports.ubuntu.com/ubuntu-ports noble-security InRelease [126 kB]
+#6 2.900 Get:5 http://ports.ubuntu.com/ubuntu-ports noble/restricted arm64 Packages [113 kB]
+#6 2.916 Get:6 http://ports.ubuntu.com/ubuntu-ports noble/multiverse arm64 Packages [274 kB]
+#6 3.159 Get:7 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 Packages [19.0 MB]
+#6 7.465 Get:8 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 Packages [1776 kB]
+#6 7.707 Get:9 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 Packages [2214 kB]
+#6 8.648 Get:10 http://ports.ubuntu.com/ubuntu-ports noble-updates/restricted arm64 Packages [3251 kB]
+#6 8.914 Get:11 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 Packages [1786 kB]
+#6 9.794 Get:12 http://ports.ubuntu.com/ubuntu-ports noble-updates/multiverse arm64 Packages [104 kB]
+#6 9.934 Get:13 http://ports.ubuntu.com/ubuntu-ports noble-backports/multiverse arm64 Packages [669 B]
+#6 9.935 Get:14 http://ports.ubuntu.com/ubuntu-ports noble-backports/universe arm64 Packages [36.3 kB]
+#6 9.942 Get:15 http://ports.ubuntu.com/ubuntu-ports noble-backports/main arm64 Packages [49.0 kB]
+#6 9.951 Get:16 http://ports.ubuntu.com/ubuntu-ports noble-security/main arm64 Packages [1475 kB]
+#6 9.959 Get:17 http://ports.ubuntu.com/ubuntu-ports noble-security/restricted arm64 Packages [3129 kB]
+#6 10.93 Get:18 http://ports.ubuntu.com/ubuntu-ports noble-security/universe arm64 Packages [1638 kB]
+#6 11.05 Get:19 http://ports.ubuntu.com/ubuntu-ports noble-security/multiverse arm64 Packages [99.1 kB]
+#6 11.21 Fetched 35.6 MB in 11s (3202 kB/s)
+#6 11.21 Reading package lists...
+#6 11.99 Reading package lists...
+#6 12.78 Building dependency tree...
+#6 12.94 Reading state information...
+#6 13.17 The following additional packages will be installed:
+#6 13.17   libexpat1 libpython3-stdlib libpython3.12-minimal libpython3.12-stdlib
+#6 13.17   libreadline8t64 libsqlite3-0 libssl3t64 media-types netbase openssl
+#6 13.17   python3-minimal python3.12 python3.12-minimal readline-common
+#6 13.17 Suggested packages:
+#6 13.17   python3-doc python3-tk python3-venv python3.12-venv python3.12-doc binutils
+#6 13.17   binfmt-support readline-doc
+#6 13.24 The following NEW packages will be installed:
+#6 13.24   ca-certificates libexpat1 libpython3-stdlib libpython3.12-minimal
+#6 13.24   libpython3.12-stdlib libreadline8t64 libsqlite3-0 media-types netbase
+#6 13.24   openssl python3 python3-minimal python3.12 python3.12-minimal
+#6 13.24   readline-common tzdata
+#6 13.24 The following packages will be upgraded:
+#6 13.25   libssl3t64
+#6 14.29 1 upgraded, 16 newly installed, 0 to remove and 4 not upgraded.
+#6 14.29 Need to get 10.1 MB of archives.
+#6 14.29 After this operation, 31.7 MB of additional disk space will be used.
+#6 14.29 Get:1 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libssl3t64 arm64 3.0.13-0ubuntu3.16 [1838 kB]
+#6 17.46 Get:2 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libpython3.12-minimal arm64 3.12.3-1ubuntu0.17 [835 kB]
+#6 18.48 Get:3 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libexpat1 arm64 2.6.1-2ubuntu0.6 [89.8 kB]
+#6 18.48 Get:4 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3.12-minimal arm64 3.12.3-1ubuntu0.17 [2253 kB]
+#6 18.79 Get:5 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3-minimal arm64 3.12.3-0ubuntu2.1 [27.4 kB]
+#6 18.82 Get:6 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 media-types all 10.1.0 [27.5 kB]
+#6 19.17 Get:7 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 netbase all 6.4 [13.1 kB]
+#6 19.17 Get:8 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 tzdata all 2026e-0ubuntu0.24.04.1 [282 kB]
+#6 19.19 Get:9 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 readline-common all 8.2-4build1 [56.5 kB]
+#6 19.20 Get:10 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libreadline8t64 arm64 8.2-4build1 [153 kB]
+#6 19.21 Get:11 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libsqlite3-0 arm64 3.45.1-1ubuntu2.8 [691 kB]
+#6 19.43 Get:12 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libpython3.12-stdlib arm64 3.12.3-1ubuntu0.17 [2039 kB]
+#6 20.24 Get:13 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3.12 arm64 3.12.3-1ubuntu0.17 [651 kB]
+#6 20.29 Get:14 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libpython3-stdlib arm64 3.12.3-0ubuntu2.1 [10.1 kB]
+#6 20.29 Get:15 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3 arm64 3.12.3-0ubuntu2.1 [23.0 kB]
+#6 20.29 Get:16 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 openssl arm64 3.0.13-0ubuntu3.16 [985 kB]
+#6 20.30 Get:17 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 ca-certificates all 20260601~24.04.1 [139 kB]
+#6 20.69 debconf: delaying package configuration, since apt-utils is not installed
+#6 20.71 Fetched 10.1 MB in 7s (1383 kB/s)
+#6 20.73 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4376 files and directories currently installed.)
+#6 20.74 Preparing to unpack .../libssl3t64_3.0.13-0ubuntu3.16_arm64.deb ...
+#6 20.74 Unpacking libssl3t64:arm64 (3.0.13-0ubuntu3.16) over (3.0.13-0ubuntu3.15) ...
+#6 20.80 Setting up libssl3t64:arm64 (3.0.13-0ubuntu3.16) ...
+#6 20.81 Selecting previously unselected package libpython3.12-minimal:arm64.
+#6 20.81 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4376 files and directories currently installed.)
+#6 20.81 Preparing to unpack .../libpython3.12-minimal_3.12.3-1ubuntu0.17_arm64.deb ...
+#6 20.81 Unpacking libpython3.12-minimal:arm64 (3.12.3-1ubuntu0.17) ...
+#6 20.85 Selecting previously unselected package libexpat1:arm64.
+#6 20.85 Preparing to unpack .../libexpat1_2.6.1-2ubuntu0.6_arm64.deb ...
+#6 20.85 Unpacking libexpat1:arm64 (2.6.1-2ubuntu0.6) ...
+#6 20.86 Selecting previously unselected package python3.12-minimal.
+#6 20.87 Preparing to unpack .../python3.12-minimal_3.12.3-1ubuntu0.17_arm64.deb ...
+#6 20.87 Unpacking python3.12-minimal (3.12.3-1ubuntu0.17) ...
+#6 20.91 Setting up libpython3.12-minimal:arm64 (3.12.3-1ubuntu0.17) ...
+#6 20.91 Setting up libexpat1:arm64 (2.6.1-2ubuntu0.6) ...
+#6 20.91 Setting up python3.12-minimal (3.12.3-1ubuntu0.17) ...
+#6 21.43 Selecting previously unselected package python3-minimal.
+#6 21.43 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4695 files and directories currently installed.)
+#6 21.44 Preparing to unpack .../0-python3-minimal_3.12.3-0ubuntu2.1_arm64.deb ...
+#6 21.44 Unpacking python3-minimal (3.12.3-0ubuntu2.1) ...
+#6 21.45 Selecting previously unselected package media-types.
+#6 21.45 Preparing to unpack .../1-media-types_10.1.0_all.deb ...
+#6 21.45 Unpacking media-types (10.1.0) ...
+#6 21.46 Selecting previously unselected package netbase.
+#6 21.46 Preparing to unpack .../2-netbase_6.4_all.deb ...
+#6 21.46 Unpacking netbase (6.4) ...
+#6 21.47 Selecting previously unselected package tzdata.
+#6 21.47 Preparing to unpack .../3-tzdata_2026e-0ubuntu0.24.04.1_all.deb ...
+#6 21.47 Unpacking tzdata (2026e-0ubuntu0.24.04.1) ...
+#6 21.51 Selecting previously unselected package readline-common.
+#6 21.51 Preparing to unpack .../4-readline-common_8.2-4build1_all.deb ...
+#6 21.51 Unpacking readline-common (8.2-4build1) ...
+#6 21.52 Selecting previously unselected package libreadline8t64:arm64.
+#6 21.52 Preparing to unpack .../5-libreadline8t64_8.2-4build1_arm64.deb ...
+#6 21.52 Adding 'diversion of /lib/aarch64-linux-gnu/libhistory.so.8 to /lib/aarch64-linux-gnu/libhistory.so.8.usr-is-merged by libreadline8t64'
+#6 21.52 Adding 'diversion of /lib/aarch64-linux-gnu/libhistory.so.8.2 to /lib/aarch64-linux-gnu/libhistory.so.8.2.usr-is-merged by libreadline8t64'
+#6 21.52 Adding 'diversion of /lib/aarch64-linux-gnu/libreadline.so.8 to /lib/aarch64-linux-gnu/libreadline.so.8.usr-is-merged by libreadline8t64'
+#6 21.53 Adding 'diversion of /lib/aarch64-linux-gnu/libreadline.so.8.2 to /lib/aarch64-linux-gnu/libreadline.so.8.2.usr-is-merged by libreadline8t64'
+#6 21.53 Unpacking libreadline8t64:arm64 (8.2-4build1) ...
+#6 21.54 Selecting previously unselected package libsqlite3-0:arm64.
+#6 21.54 Preparing to unpack .../6-libsqlite3-0_3.45.1-1ubuntu2.8_arm64.deb ...
+#6 21.54 Unpacking libsqlite3-0:arm64 (3.45.1-1ubuntu2.8) ...
+#6 21.56 Selecting previously unselected package libpython3.12-stdlib:arm64.
+#6 21.56 Preparing to unpack .../7-libpython3.12-stdlib_3.12.3-1ubuntu0.17_arm64.deb ...
+#6 21.56 Unpacking libpython3.12-stdlib:arm64 (3.12.3-1ubuntu0.17) ...
+#6 21.62 Selecting previously unselected package python3.12.
+#6 21.62 Preparing to unpack .../8-python3.12_3.12.3-1ubuntu0.17_arm64.deb ...
+#6 21.62 Unpacking python3.12 (3.12.3-1ubuntu0.17) ...
+#6 21.63 Selecting previously unselected package libpython3-stdlib:arm64.
+#6 21.64 Preparing to unpack .../9-libpython3-stdlib_3.12.3-0ubuntu2.1_arm64.deb ...
+#6 21.64 Unpacking libpython3-stdlib:arm64 (3.12.3-0ubuntu2.1) ...
+#6 21.65 Setting up python3-minimal (3.12.3-0ubuntu2.1) ...
+#6 21.73 Selecting previously unselected package python3.
+#6 21.73 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 5701 files and directories currently installed.)
+#6 21.73 Preparing to unpack .../python3_3.12.3-0ubuntu2.1_arm64.deb ...
+#6 21.74 Unpacking python3 (3.12.3-0ubuntu2.1) ...
+#6 21.75 Selecting previously unselected package openssl.
+#6 21.75 Preparing to unpack .../openssl_3.0.13-0ubuntu3.16_arm64.deb ...
+#6 21.75 Unpacking openssl (3.0.13-0ubuntu3.16) ...
+#6 21.77 Selecting previously unselected package ca-certificates.
+#6 21.77 Preparing to unpack .../ca-certificates_20260601~24.04.1_all.deb ...
+#6 21.77 Unpacking ca-certificates (20260601~24.04.1) ...
+#6 21.79 Setting up media-types (10.1.0) ...
+#6 21.79 Setting up libsqlite3-0:arm64 (3.45.1-1ubuntu2.8) ...
+#6 21.80 Setting up tzdata (2026e-0ubuntu0.24.04.1) ...
+#6 21.84 
+#6 21.84 Current default time zone: 'Etc/UTC'
+#6 21.84 Local time is now:      Fri Oct 16 06:08:07 UTC 2026.
+#6 21.84 Universal Time is now:  Fri Oct 16 06:08:07 UTC 2026.
+#6 21.84 Run 'dpkg-reconfigure tzdata' if you wish to change it.
+#6 21.84 
+#6 21.85 Setting up netbase (6.4) ...
+#6 21.86 Setting up openssl (3.0.13-0ubuntu3.16) ...
+#6 21.86 Setting up readline-common (8.2-4build1) ...
+#6 21.87 Setting up ca-certificates (20260601~24.04.1) ...
+#6 22.06 Updating certificates in /etc/ssl/certs...
+#6 22.32 121 added, 0 removed; done.
+#6 22.33 Setting up libreadline8t64:arm64 (8.2-4build1) ...
+#6 22.34 Setting up libpython3.12-stdlib:arm64 (3.12.3-1ubuntu0.17) ...
+#6 22.34 Setting up python3.12 (3.12.3-1ubuntu0.17) ...
+#6 22.88 Setting up libpython3-stdlib:arm64 (3.12.3-0ubuntu2.1) ...
+#6 22.89 Setting up python3 (3.12.3-0ubuntu2.1) ...
+#6 22.94 Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+#6 22.96 Processing triggers for ca-certificates (20260601~24.04.1) ...
+#6 22.97 Updating certificates in /etc/ssl/certs...
+#6 23.13 0 added, 0 removed; done.
+#6 23.13 Running hooks in /etc/ca-certificates/update.d...
+#6 23.13 done.
+#6 DONE 23.2s
+
+#7 [stage-0 3/5] COPY faults.py /opt/faults/
+#7 DONE 0.0s
+
+#8 [stage-0 4/5] COPY scripts/ /opt/faults/scripts/
+#8 DONE 0.0s
+
+#9 [stage-0 5/5] WORKDIR /opt/faults
+#9 DONE 0.0s
+
+#10 exporting to image
+#10 exporting layers
+#10 exporting layers 0.2s done
+#10 writing image sha256:b371716c492b93caeddab50152cd2c8923803fc659c70e5c994035952982de65 done
+#10 naming to docker.io/vigil/demo-faults:local done
+#10 DONE 0.2s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/iu18xkzve545hamv5jtk2pfcg
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.56kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [stage-0 1/5] FROM docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#4 CACHED
+
+#5 [internal] load build context
+#5 transferring context: 19.88kB done
+#5 DONE 0.0s
+
+#6 [stage-0 2/5] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444     set -eu;     if [ -f /run/secrets/ca_bundle ]; then       echo 'Acquire::https::CAInfo "/run/secrets/ca_bundle";' > /etc/apt/apt.conf.d/99vigil-build-ca;       sed -i 's|http://|https://|g' /etc/apt/sources.list.d/ubuntu.sources;     fi;     apt-get update;     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3 python3-venv ca-certificates tzdata;     rm -f /etc/apt/apt.conf.d/99vigil-build-ca;     sed -i 's|https://|http://|g' /etc/apt/sources.list.d/ubuntu.sources;     rm -rf /var/lib/apt/lists/*
+#6 0.556 Get:1 http://ports.ubuntu.com/ubuntu-ports noble InRelease [256 kB]
+#6 1.850 Get:2 http://ports.ubuntu.com/ubuntu-ports noble-updates InRelease [126 kB]
+#6 2.443 Get:3 http://ports.ubuntu.com/ubuntu-ports noble-backports InRelease [126 kB]
+#6 2.741 Get:4 http://ports.ubuntu.com/ubuntu-ports noble-security InRelease [126 kB]
+#6 3.073 Get:5 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 Packages [19.0 MB]
+#6 7.815 Get:6 http://ports.ubuntu.com/ubuntu-ports noble/restricted arm64 Packages [113 kB]
+#6 7.815 Get:7 http://ports.ubuntu.com/ubuntu-ports noble/multiverse arm64 Packages [274 kB]
+#6 7.815 Get:8 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 Packages [1776 kB]
+#6 8.287 Get:9 http://ports.ubuntu.com/ubuntu-ports noble-updates/restricted arm64 Packages [3251 kB]
+#6 8.982 Get:10 http://ports.ubuntu.com/ubuntu-ports noble-updates/multiverse arm64 Packages [104 kB]
+#6 8.983 Get:11 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 Packages [2214 kB]
+#6 9.902 Get:12 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 Packages [1786 kB]
+#6 10.44 Get:13 http://ports.ubuntu.com/ubuntu-ports noble-backports/multiverse arm64 Packages [669 B]
+#6 10.44 Get:14 http://ports.ubuntu.com/ubuntu-ports noble-backports/universe arm64 Packages [36.3 kB]
+#6 10.44 Get:15 http://ports.ubuntu.com/ubuntu-ports noble-backports/main arm64 Packages [49.0 kB]
+#6 10.44 Get:16 http://ports.ubuntu.com/ubuntu-ports noble-security/restricted arm64 Packages [3129 kB]
+#6 10.84 Get:17 http://ports.ubuntu.com/ubuntu-ports noble-security/main arm64 Packages [1475 kB]
+#6 10.97 Get:18 http://ports.ubuntu.com/ubuntu-ports noble-security/multiverse arm64 Packages [99.1 kB]
+#6 10.98 Get:19 http://ports.ubuntu.com/ubuntu-ports noble-security/universe arm64 Packages [1638 kB]
+#6 11.30 Fetched 35.6 MB in 11s (3160 kB/s)
+#6 11.30 Reading package lists...
+#6 12.09 Reading package lists...
+#6 12.86 Building dependency tree...
+#6 13.01 Reading state information...
+#6 13.23 The following additional packages will be installed:
+#6 13.23   libexpat1 libpython3-stdlib libpython3.12-minimal libpython3.12-stdlib
+#6 13.23   libreadline8t64 libsqlite3-0 libssl3t64 media-types netbase openssl
+#6 13.23   python3-minimal python3-pip-whl python3-setuptools-whl python3.12
+#6 13.23   python3.12-minimal python3.12-venv readline-common
+#6 13.23 Suggested packages:
+#6 13.23   python3-doc python3-tk python3.12-doc binutils binfmt-support readline-doc
+#6 13.32 The following NEW packages will be installed:
+#6 13.32   ca-certificates libexpat1 libpython3-stdlib libpython3.12-minimal
+#6 13.32   libpython3.12-stdlib libreadline8t64 libsqlite3-0 media-types netbase
+#6 13.32   openssl python3 python3-minimal python3-pip-whl python3-setuptools-whl
+#6 13.32   python3-venv python3.12 python3.12-minimal python3.12-venv readline-common
+#6 13.32   tzdata
+#6 13.32 The following packages will be upgraded:
+#6 13.32   libssl3t64
+#6 13.90 1 upgraded, 20 newly installed, 0 to remove and 4 not upgraded.
+#6 13.90 Need to get 12.5 MB of archives.
+#6 13.90 After this operation, 34.5 MB of additional disk space will be used.
+#6 13.90 Get:1 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libssl3t64 arm64 3.0.13-0ubuntu3.16 [1838 kB]
+#6 16.39 Get:2 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libpython3.12-minimal arm64 3.12.3-1ubuntu0.17 [835 kB]
+#6 16.87 Get:3 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libexpat1 arm64 2.6.1-2ubuntu0.6 [89.8 kB]
+#6 16.87 Get:4 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3.12-minimal arm64 3.12.3-1ubuntu0.17 [2253 kB]
+#6 17.30 Get:5 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3-minimal arm64 3.12.3-0ubuntu2.1 [27.4 kB]
+#6 17.30 Get:6 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 media-types all 10.1.0 [27.5 kB]
+#6 17.30 Get:7 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 netbase all 6.4 [13.1 kB]
+#6 17.30 Get:8 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 tzdata all 2026e-0ubuntu0.24.04.1 [282 kB]
+#6 17.31 Get:9 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 readline-common all 8.2-4build1 [56.5 kB]
+#6 17.31 Get:10 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libreadline8t64 arm64 8.2-4build1 [153 kB]
+#6 17.31 Get:11 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libsqlite3-0 arm64 3.45.1-1ubuntu2.8 [691 kB]
+#6 17.32 Get:12 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libpython3.12-stdlib arm64 3.12.3-1ubuntu0.17 [2039 kB]
+#6 18.80 Get:13 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3.12 arm64 3.12.3-1ubuntu0.17 [651 kB]
+#6 18.81 Get:14 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libpython3-stdlib arm64 3.12.3-0ubuntu2.1 [10.1 kB]
+#6 18.81 Get:15 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3 arm64 3.12.3-0ubuntu2.1 [23.0 kB]
+#6 18.81 Get:16 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 openssl arm64 3.0.13-0ubuntu3.16 [985 kB]
+#6 18.82 Get:17 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 ca-certificates all 20260601~24.04.1 [139 kB]
+#6 18.86 Get:18 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 python3-pip-whl all 24.0+dfsg-1ubuntu1.3 [1707 kB]
+#6 19.07 Get:19 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 python3-setuptools-whl all 68.1.2-2ubuntu1.2 [716 kB]
+#6 22.49 Get:20 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 python3.12-venv arm64 3.12.3-1ubuntu0.17 [5684 B]
+#6 22.49 Get:21 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 python3-venv arm64 3.12.3-0ubuntu2.1 [1032 B]
+#6 22.60 debconf: delaying package configuration, since apt-utils is not installed
+#6 22.63 Fetched 12.5 MB in 9s (1369 kB/s)
+#6 22.64 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4376 files and directories currently installed.)
+#6 22.65 Preparing to unpack .../libssl3t64_3.0.13-0ubuntu3.16_arm64.deb ...
+#6 22.65 Unpacking libssl3t64:arm64 (3.0.13-0ubuntu3.16) over (3.0.13-0ubuntu3.15) ...
+#6 22.70 Setting up libssl3t64:arm64 (3.0.13-0ubuntu3.16) ...
+#6 22.71 Selecting previously unselected package libpython3.12-minimal:arm64.
+#6 22.71 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4376 files and directories currently installed.)
+#6 22.71 Preparing to unpack .../libpython3.12-minimal_3.12.3-1ubuntu0.17_arm64.deb ...
+#6 22.71 Unpacking libpython3.12-minimal:arm64 (3.12.3-1ubuntu0.17) ...
+#6 22.76 Selecting previously unselected package libexpat1:arm64.
+#6 22.76 Preparing to unpack .../libexpat1_2.6.1-2ubuntu0.6_arm64.deb ...
+#6 22.76 Unpacking libexpat1:arm64 (2.6.1-2ubuntu0.6) ...
+#6 22.77 Selecting previously unselected package python3.12-minimal.
+#6 22.77 Preparing to unpack .../python3.12-minimal_3.12.3-1ubuntu0.17_arm64.deb ...
+#6 22.77 Unpacking python3.12-minimal (3.12.3-1ubuntu0.17) ...
+#6 22.81 Setting up libpython3.12-minimal:arm64 (3.12.3-1ubuntu0.17) ...
+#6 22.82 Setting up libexpat1:arm64 (2.6.1-2ubuntu0.6) ...
+#6 22.82 Setting up python3.12-minimal (3.12.3-1ubuntu0.17) ...
+#6 23.32 Selecting previously unselected package python3-minimal.
+#6 23.32 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4695 files and directories currently installed.)
+#6 23.32 Preparing to unpack .../0-python3-minimal_3.12.3-0ubuntu2.1_arm64.deb ...
+#6 23.33 Unpacking python3-minimal (3.12.3-0ubuntu2.1) ...
+#6 23.34 Selecting previously unselected package media-types.
+#6 23.34 Preparing to unpack .../1-media-types_10.1.0_all.deb ...
+#6 23.34 Unpacking media-types (10.1.0) ...
+#6 23.35 Selecting previously unselected package netbase.
+#6 23.35 Preparing to unpack .../2-netbase_6.4_all.deb ...
+#6 23.35 Unpacking netbase (6.4) ...
+#6 23.36 Selecting previously unselected package tzdata.
+#6 23.36 Preparing to unpack .../3-tzdata_2026e-0ubuntu0.24.04.1_all.deb ...
+#6 23.36 Unpacking tzdata (2026e-0ubuntu0.24.04.1) ...
+#6 23.39 Selecting previously unselected package readline-common.
+#6 23.40 Preparing to unpack .../4-readline-common_8.2-4build1_all.deb ...
+#6 23.40 Unpacking readline-common (8.2-4build1) ...
+#6 23.41 Selecting previously unselected package libreadline8t64:arm64.
+#6 23.41 Preparing to unpack .../5-libreadline8t64_8.2-4build1_arm64.deb ...
+#6 23.41 Adding 'diversion of /lib/aarch64-linux-gnu/libhistory.so.8 to /lib/aarch64-linux-gnu/libhistory.so.8.usr-is-merged by libreadline8t64'
+#6 23.41 Adding 'diversion of /lib/aarch64-linux-gnu/libhistory.so.8.2 to /lib/aarch64-linux-gnu/libhistory.so.8.2.usr-is-merged by libreadline8t64'
+#6 23.42 Adding 'diversion of /lib/aarch64-linux-gnu/libreadline.so.8 to /lib/aarch64-linux-gnu/libreadline.so.8.usr-is-merged by libreadline8t64'
+#6 23.42 Adding 'diversion of /lib/aarch64-linux-gnu/libreadline.so.8.2 to /lib/aarch64-linux-gnu/libreadline.so.8.2.usr-is-merged by libreadline8t64'
+#6 23.42 Unpacking libreadline8t64:arm64 (8.2-4build1) ...
+#6 23.43 Selecting previously unselected package libsqlite3-0:arm64.
+#6 23.43 Preparing to unpack .../6-libsqlite3-0_3.45.1-1ubuntu2.8_arm64.deb ...
+#6 23.43 Unpacking libsqlite3-0:arm64 (3.45.1-1ubuntu2.8) ...
+#6 23.47 Selecting previously unselected package libpython3.12-stdlib:arm64.
+#6 23.48 Preparing to unpack .../7-libpython3.12-stdlib_3.12.3-1ubuntu0.17_arm64.deb ...
+#6 23.48 Unpacking libpython3.12-stdlib:arm64 (3.12.3-1ubuntu0.17) ...
+#6 23.55 Selecting previously unselected package python3.12.
+#6 23.55 Preparing to unpack .../8-python3.12_3.12.3-1ubuntu0.17_arm64.deb ...
+#6 23.55 Unpacking python3.12 (3.12.3-1ubuntu0.17) ...
+#6 23.56 Selecting previously unselected package libpython3-stdlib:arm64.
+#6 23.57 Preparing to unpack .../9-libpython3-stdlib_3.12.3-0ubuntu2.1_arm64.deb ...
+#6 23.57 Unpacking libpython3-stdlib:arm64 (3.12.3-0ubuntu2.1) ...
+#6 23.58 Setting up python3-minimal (3.12.3-0ubuntu2.1) ...
+#6 23.66 Selecting previously unselected package python3.
+#6 23.66 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 5701 files and directories currently installed.)
+#6 23.66 Preparing to unpack .../0-python3_3.12.3-0ubuntu2.1_arm64.deb ...
+#6 23.66 Unpacking python3 (3.12.3-0ubuntu2.1) ...
+#6 23.67 Selecting previously unselected package openssl.
+#6 23.67 Preparing to unpack .../1-openssl_3.0.13-0ubuntu3.16_arm64.deb ...
+#6 23.68 Unpacking openssl (3.0.13-0ubuntu3.16) ...
+#6 23.70 Selecting previously unselected package ca-certificates.
+#6 23.70 Preparing to unpack .../2-ca-certificates_20260601~24.04.1_all.deb ...
+#6 23.70 Unpacking ca-certificates (20260601~24.04.1) ...
+#6 23.72 Selecting previously unselected package python3-pip-whl.
+#6 23.72 Preparing to unpack .../3-python3-pip-whl_24.0+dfsg-1ubuntu1.3_all.deb ...
+#6 23.72 Unpacking python3-pip-whl (24.0+dfsg-1ubuntu1.3) ...
+#6 23.73 Selecting previously unselected package python3-setuptools-whl.
+#6 23.73 Preparing to unpack .../4-python3-setuptools-whl_68.1.2-2ubuntu1.2_all.deb ...
+#6 23.73 Unpacking python3-setuptools-whl (68.1.2-2ubuntu1.2) ...
+#6 23.75 Selecting previously unselected package python3.12-venv.
+#6 23.75 Preparing to unpack .../5-python3.12-venv_3.12.3-1ubuntu0.17_arm64.deb ...
+#6 23.75 Unpacking python3.12-venv (3.12.3-1ubuntu0.17) ...
+#6 23.75 Selecting previously unselected package python3-venv.
+#6 23.76 Preparing to unpack .../6-python3-venv_3.12.3-0ubuntu2.1_arm64.deb ...
+#6 23.76 Unpacking python3-venv (3.12.3-0ubuntu2.1) ...
+#6 23.77 Setting up media-types (10.1.0) ...
+#6 23.77 Setting up python3-setuptools-whl (68.1.2-2ubuntu1.2) ...
+#6 23.77 Setting up libsqlite3-0:arm64 (3.45.1-1ubuntu2.8) ...
+#6 23.78 Setting up tzdata (2026e-0ubuntu0.24.04.1) ...
+#6 23.82 
+#6 23.82 Current default time zone: 'Etc/UTC'
+#6 23.82 Local time is now:      Fri Oct 16 06:08:32 UTC 2026.
+#6 23.82 Universal Time is now:  Fri Oct 16 06:08:32 UTC 2026.
+#6 23.82 Run 'dpkg-reconfigure tzdata' if you wish to change it.
+#6 23.82 
+#6 23.83 Setting up netbase (6.4) ...
+#6 23.84 Setting up openssl (3.0.13-0ubuntu3.16) ...
+#6 23.84 Setting up readline-common (8.2-4build1) ...
+#6 23.84 Setting up ca-certificates (20260601~24.04.1) ...
+#6 24.05 Updating certificates in /etc/ssl/certs...
+#6 24.29 121 added, 0 removed; done.
+#6 24.30 Setting up libreadline8t64:arm64 (8.2-4build1) ...
+#6 24.31 Setting up libpython3.12-stdlib:arm64 (3.12.3-1ubuntu0.17) ...
+#6 24.31 Setting up python3-pip-whl (24.0+dfsg-1ubuntu1.3) ...
+#6 24.31 Setting up python3.12 (3.12.3-1ubuntu0.17) ...
+#6 24.88 Setting up libpython3-stdlib:arm64 (3.12.3-0ubuntu2.1) ...
+#6 24.88 Setting up python3.12-venv (3.12.3-1ubuntu0.17) ...
+#6 24.91 Setting up python3 (3.12.3-0ubuntu2.1) ...
+#6 24.97 Setting up python3-venv (3.12.3-0ubuntu2.1) ...
+#6 24.98 Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+#6 24.98 Processing triggers for ca-certificates (20260601~24.04.1) ...
+#6 24.99 Updating certificates in /etc/ssl/certs...
+#6 25.20 0 added, 0 removed; done.
+#6 25.20 Running hooks in /etc/ca-certificates/update.d...
+#6 25.20 done.
+#6 DONE 25.5s
+
+#7 [stage-0 3/5] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444     --mount=type=bind,source=requirements.txt,target=/tmp/requirements.txt     set -eu;     python3 -m venv /opt/venv;     if [ -f /run/secrets/ca_bundle ]; then       /opt/venv/bin/pip install --no-cache-dir --cert /run/secrets/ca_bundle -r /tmp/requirements.txt;     else       /opt/venv/bin/pip install --no-cache-dir -r /tmp/requirements.txt;     fi
+#7 2.936 Collecting bcrypt==5.0.0 (from -r /tmp/requirements.txt (line 1))
+#7 3.502   Downloading bcrypt-5.0.0-cp39-abi3-manylinux_2_34_aarch64.whl.metadata (10 kB)
+#7 3.686 Downloading bcrypt-5.0.0-cp39-abi3-manylinux_2_34_aarch64.whl (275 kB)
+#7 4.154    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 275.7/275.7 kB 611.6 kB/s eta 0:00:00
+#7 4.169 Installing collected packages: bcrypt
+#7 4.220 Successfully installed bcrypt-5.0.0
+#7 DONE 4.3s
+
+#8 [stage-0 4/5] COPY provision.py make_secret.py /opt/provision/
+#8 DONE 0.0s
+
+#9 [stage-0 5/5] WORKDIR /opt/provision
+#9 DONE 0.0s
+
+#10 exporting to image
+#10 exporting layers
+#10 exporting layers 0.2s done
+#10 writing image sha256:807ec20470741aa2e3ed938067117d29df5446bc8d0768ab935f2c829bb3890c done
+#10 naming to docker.io/vigil/lab-zabbix-provision:local done
+#10 DONE 0.2s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/m3ezpr3s6woyl9na5norss500
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.07kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [stage-0 1/4] FROM docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#4 DONE 0.0s
+
+#5 [stage-0 2/4] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444     set -eu;     if [ -f /run/secrets/ca_bundle ]; then       echo 'Acquire::https::CAInfo "/run/secrets/ca_bundle";' > /etc/apt/apt.conf.d/99vigil-build-ca;       sed -i 's|http://|https://|g' /etc/apt/sources.list.d/ubuntu.sources;     fi;     apt-get update;     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3 ca-certificates tzdata;     rm -f /etc/apt/apt.conf.d/99vigil-build-ca;     sed -i 's|https://|http://|g' /etc/apt/sources.list.d/ubuntu.sources;     rm -rf /var/lib/apt/lists/*
+#5 CACHED
+
+#6 [internal] load build context
+#6 transferring context: 6.89kB done
+#6 DONE 0.0s
+
+#7 [stage-0 3/4] COPY recorder.py /opt/recorder/
+#7 DONE 0.0s
+
+#8 [stage-0 4/4] WORKDIR /opt/recorder
+#8 DONE 0.0s
+
+#9 exporting to image
+#9 exporting layers 0.0s done
+#9 writing image sha256:741c455d7cd720a3ce821a7a9f77971ffeabb3944abdb25862af58c4d30ce3c6 done
+#9 naming to docker.io/vigil/recorder:local done
+#9 DONE 0.0s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/eiicwrjauuuiw4dhzjroulqyr
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.57kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [stage-0 1/5] FROM docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#4 CACHED
+
+#5 [internal] load build context
+#5 transferring context: 50.94kB done
+#5 DONE 0.0s
+
+#6 [stage-0 2/5] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444     set -eu;     if [ -f /run/secrets/ca_bundle ]; then       echo 'Acquire::https::CAInfo "/run/secrets/ca_bundle";' > /etc/apt/apt.conf.d/99vigil-build-ca;       sed -i 's|http://|https://|g' /etc/apt/sources.list.d/ubuntu.sources;     fi;     apt-get update;     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3 python3-venv openssh-client ca-certificates tzdata;     rm -f /etc/apt/apt.conf.d/99vigil-build-ca;     sed -i 's|https://|http://|g' /etc/apt/sources.list.d/ubuntu.sources;     rm -rf /var/lib/apt/lists/*
+#6 0.720 Get:1 http://ports.ubuntu.com/ubuntu-ports noble InRelease [256 kB]
+#6 1.716 Get:2 http://ports.ubuntu.com/ubuntu-ports noble-updates InRelease [126 kB]
+#6 1.963 Get:3 http://ports.ubuntu.com/ubuntu-ports noble-backports InRelease [126 kB]
+#6 2.222 Get:4 http://ports.ubuntu.com/ubuntu-ports noble-security InRelease [126 kB]
+#6 2.462 Get:5 http://ports.ubuntu.com/ubuntu-ports noble/multiverse arm64 Packages [274 kB]
+#6 2.642 Get:6 http://ports.ubuntu.com/ubuntu-ports noble/universe arm64 Packages [19.0 MB]
+#6 9.127 Get:7 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 Packages [1776 kB]
+#6 9.660 Get:8 http://ports.ubuntu.com/ubuntu-ports noble/restricted arm64 Packages [113 kB]
+#6 9.661 Get:9 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 Packages [1786 kB]
+#6 10.15 Get:10 http://ports.ubuntu.com/ubuntu-ports noble-updates/restricted arm64 Packages [3251 kB]
+#6 11.17 Get:11 http://ports.ubuntu.com/ubuntu-ports noble-updates/multiverse arm64 Packages [104 kB]
+#6 11.19 Get:12 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 Packages [2214 kB]
+#6 11.93 Get:13 http://ports.ubuntu.com/ubuntu-ports noble-backports/universe arm64 Packages [36.3 kB]
+#6 11.94 Get:14 http://ports.ubuntu.com/ubuntu-ports noble-backports/multiverse arm64 Packages [669 B]
+#6 11.94 Get:15 http://ports.ubuntu.com/ubuntu-ports noble-backports/main arm64 Packages [49.0 kB]
+#6 11.96 Get:16 http://ports.ubuntu.com/ubuntu-ports noble-security/multiverse arm64 Packages [99.1 kB]
+#6 11.98 Get:17 http://ports.ubuntu.com/ubuntu-ports noble-security/main arm64 Packages [1475 kB]
+#6 12.77 Get:18 http://ports.ubuntu.com/ubuntu-ports noble-security/universe arm64 Packages [1638 kB]
+#6 13.30 Get:19 http://ports.ubuntu.com/ubuntu-ports noble-security/restricted arm64 Packages [3129 kB]
+#6 14.07 Fetched 35.6 MB in 14s (2538 kB/s)
+#6 14.07 Reading package lists...
+#6 14.90 Reading package lists...
+#6 15.69 Building dependency tree...
+#6 15.85 Reading state information...
+#6 16.05 The following additional packages will be installed:
+#6 16.05   adduser libbsd0 libcbor0.10 libedit2 libexpat1 libfido2-1 libgssapi-krb5-2
+#6 16.05   libk5crypto3 libkeyutils1 libkrb5-3 libkrb5support0 libpython3-stdlib
+#6 16.05   libpython3.12-minimal libpython3.12-stdlib libreadline8t64 libsqlite3-0
+#6 16.05   libssl3t64 media-types netbase openssl python3-minimal python3-pip-whl
+#6 16.05   python3-setuptools-whl python3.12 python3.12-minimal python3.12-venv
+#6 16.05   readline-common
+#6 16.05 Suggested packages:
+#6 16.05   liblocale-gettext-perl perl cron quota ecryptfs-utils krb5-doc krb5-user
+#6 16.05   keychain libpam-ssh monkeysphere ssh-askpass python3-doc python3-tk
+#6 16.05   python3.12-doc binutils binfmt-support readline-doc
+#6 16.05 Recommended packages:
+#6 16.05   krb5-locales xauth
+#6 16.17 The following NEW packages will be installed:
+#6 16.17   adduser ca-certificates libbsd0 libcbor0.10 libedit2 libexpat1 libfido2-1
+#6 16.17   libgssapi-krb5-2 libk5crypto3 libkeyutils1 libkrb5-3 libkrb5support0
+#6 16.17   libpython3-stdlib libpython3.12-minimal libpython3.12-stdlib libreadline8t64
+#6 16.17   libsqlite3-0 media-types netbase openssh-client openssl python3
+#6 16.17   python3-minimal python3-pip-whl python3-setuptools-whl python3-venv
+#6 16.17   python3.12 python3.12-minimal python3.12-venv readline-common tzdata
+#6 16.17 The following packages will be upgraded:
+#6 16.17   libssl3t64
+#6 16.61 1 upgraded, 31 newly installed, 0 to remove and 4 not upgraded.
+#6 16.61 Need to get 14.4 MB of archives.
+#6 16.61 After this operation, 41.7 MB of additional disk space will be used.
+#6 16.61 Get:1 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libssl3t64 arm64 3.0.13-0ubuntu3.16 [1838 kB]
+#6 18.40 Get:2 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libpython3.12-minimal arm64 3.12.3-1ubuntu0.17 [835 kB]
+#6 19.19 Get:3 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libexpat1 arm64 2.6.1-2ubuntu0.6 [89.8 kB]
+#6 19.19 Get:4 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3.12-minimal arm64 3.12.3-1ubuntu0.17 [2253 kB]
+#6 19.22 Get:5 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3-minimal arm64 3.12.3-0ubuntu2.1 [27.4 kB]
+#6 19.22 Get:6 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 media-types all 10.1.0 [27.5 kB]
+#6 19.22 Get:7 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 netbase all 6.4 [13.1 kB]
+#6 19.22 Get:8 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 tzdata all 2026e-0ubuntu0.24.04.1 [282 kB]
+#6 19.22 Get:9 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 readline-common all 8.2-4build1 [56.5 kB]
+#6 19.22 Get:10 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libreadline8t64 arm64 8.2-4build1 [153 kB]
+#6 19.22 Get:11 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libsqlite3-0 arm64 3.45.1-1ubuntu2.8 [691 kB]
+#6 19.37 Get:12 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libpython3.12-stdlib arm64 3.12.3-1ubuntu0.17 [2039 kB]
+#6 20.08 Get:13 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3.12 arm64 3.12.3-1ubuntu0.17 [651 kB]
+#6 20.16 Get:14 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libpython3-stdlib arm64 3.12.3-0ubuntu2.1 [10.1 kB]
+#6 20.16 Get:15 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 python3 arm64 3.12.3-0ubuntu2.1 [23.0 kB]
+#6 20.16 Get:16 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 adduser all 3.137ubuntu1 [101 kB]
+#6 20.47 Get:17 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 openssl arm64 3.0.13-0ubuntu3.16 [985 kB]
+#6 20.48 Get:18 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 ca-certificates all 20260601~24.04.1 [139 kB]
+#6 20.48 Get:19 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libbsd0 arm64 0.12.1-1build1.1 [41.0 kB]
+#6 20.48 Get:20 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libkrb5support0 arm64 1.20.1-6ubuntu2.10 [35.4 kB]
+#6 20.48 Get:21 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libk5crypto3 arm64 1.20.1-6ubuntu2.10 [85.8 kB]
+#6 20.48 Get:22 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libkeyutils1 arm64 1.6.3-3build1 [9654 B]
+#6 20.48 Get:23 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libkrb5-3 arm64 1.20.1-6ubuntu2.10 [350 kB]
+#6 20.48 Get:24 http://ports.ubuntu.com/ubuntu-ports noble-updates/main arm64 libgssapi-krb5-2 arm64 1.20.1-6ubuntu2.10 [142 kB]
+#6 20.49 Get:25 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libcbor0.10 arm64 0.10.2-1.2ubuntu2 [26.0 kB]
+#6 20.82 Get:26 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libedit2 arm64 3.1-20230828-1build1 [97.5 kB]
+#6 20.83 Get:27 http://ports.ubuntu.com/ubuntu-ports noble/main arm64 libfido2-1 arm64 1.14.0-1build3 [82.5 kB]
+#6 20.83 Get:28 http://ports.ubuntu.com/ubuntu-ports noble-security/main arm64 openssh-client arm64 1:9.6p1-3ubuntu13.20 [891 kB]
+#6 21.11 Get:29 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 python3-pip-whl all 24.0+dfsg-1ubuntu1.3 [1707 kB]
+#6 21.50 Get:30 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 python3-setuptools-whl all 68.1.2-2ubuntu1.2 [716 kB]
+#6 21.69 Get:31 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 python3.12-venv arm64 3.12.3-1ubuntu0.17 [5684 B]
+#6 21.69 Get:32 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe arm64 python3-venv arm64 3.12.3-0ubuntu2.1 [1032 B]
+#6 21.81 debconf: delaying package configuration, since apt-utils is not installed
+#6 21.87 Fetched 14.4 MB in 6s (2614 kB/s)
+#6 21.88 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4376 files and directories currently installed.)
+#6 21.88 Preparing to unpack .../libssl3t64_3.0.13-0ubuntu3.16_arm64.deb ...
+#6 21.88 Unpacking libssl3t64:arm64 (3.0.13-0ubuntu3.16) over (3.0.13-0ubuntu3.15) ...
+#6 21.94 Setting up libssl3t64:arm64 (3.0.13-0ubuntu3.16) ...
+#6 21.96 Selecting previously unselected package libpython3.12-minimal:arm64.
+#6 21.96 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4376 files and directories currently installed.)
+#6 21.96 Preparing to unpack .../libpython3.12-minimal_3.12.3-1ubuntu0.17_arm64.deb ...
+#6 21.96 Unpacking libpython3.12-minimal:arm64 (3.12.3-1ubuntu0.17) ...
+#6 22.01 Selecting previously unselected package libexpat1:arm64.
+#6 22.01 Preparing to unpack .../libexpat1_2.6.1-2ubuntu0.6_arm64.deb ...
+#6 22.01 Unpacking libexpat1:arm64 (2.6.1-2ubuntu0.6) ...
+#6 22.02 Selecting previously unselected package python3.12-minimal.
+#6 22.02 Preparing to unpack .../python3.12-minimal_3.12.3-1ubuntu0.17_arm64.deb ...
+#6 22.02 Unpacking python3.12-minimal (3.12.3-1ubuntu0.17) ...
+#6 22.06 Setting up libpython3.12-minimal:arm64 (3.12.3-1ubuntu0.17) ...
+#6 22.07 Setting up libexpat1:arm64 (2.6.1-2ubuntu0.6) ...
+#6 22.07 Setting up python3.12-minimal (3.12.3-1ubuntu0.17) ...
+#6 22.57 Selecting previously unselected package python3-minimal.
+#6 22.57 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4695 files and directories currently installed.)
+#6 22.57 Preparing to unpack .../0-python3-minimal_3.12.3-0ubuntu2.1_arm64.deb ...
+#6 22.57 Unpacking python3-minimal (3.12.3-0ubuntu2.1) ...
+#6 22.58 Selecting previously unselected package media-types.
+#6 22.58 Preparing to unpack .../1-media-types_10.1.0_all.deb ...
+#6 22.59 Unpacking media-types (10.1.0) ...
+#6 22.60 Selecting previously unselected package netbase.
+#6 22.60 Preparing to unpack .../2-netbase_6.4_all.deb ...
+#6 22.60 Unpacking netbase (6.4) ...
+#6 22.61 Selecting previously unselected package tzdata.
+#6 22.61 Preparing to unpack .../3-tzdata_2026e-0ubuntu0.24.04.1_all.deb ...
+#6 22.61 Unpacking tzdata (2026e-0ubuntu0.24.04.1) ...
+#6 22.64 Selecting previously unselected package readline-common.
+#6 22.65 Preparing to unpack .../4-readline-common_8.2-4build1_all.deb ...
+#6 22.65 Unpacking readline-common (8.2-4build1) ...
+#6 22.66 Selecting previously unselected package libreadline8t64:arm64.
+#6 22.66 Preparing to unpack .../5-libreadline8t64_8.2-4build1_arm64.deb ...
+#6 22.66 Adding 'diversion of /lib/aarch64-linux-gnu/libhistory.so.8 to /lib/aarch64-linux-gnu/libhistory.so.8.usr-is-merged by libreadline8t64'
+#6 22.67 Adding 'diversion of /lib/aarch64-linux-gnu/libhistory.so.8.2 to /lib/aarch64-linux-gnu/libhistory.so.8.2.usr-is-merged by libreadline8t64'
+#6 22.67 Adding 'diversion of /lib/aarch64-linux-gnu/libreadline.so.8 to /lib/aarch64-linux-gnu/libreadline.so.8.usr-is-merged by libreadline8t64'
+#6 22.67 Adding 'diversion of /lib/aarch64-linux-gnu/libreadline.so.8.2 to /lib/aarch64-linux-gnu/libreadline.so.8.2.usr-is-merged by libreadline8t64'
+#6 22.67 Unpacking libreadline8t64:arm64 (8.2-4build1) ...
+#6 22.68 Selecting previously unselected package libsqlite3-0:arm64.
+#6 22.68 Preparing to unpack .../6-libsqlite3-0_3.45.1-1ubuntu2.8_arm64.deb ...
+#6 22.68 Unpacking libsqlite3-0:arm64 (3.45.1-1ubuntu2.8) ...
+#6 22.70 Selecting previously unselected package libpython3.12-stdlib:arm64.
+#6 22.70 Preparing to unpack .../7-libpython3.12-stdlib_3.12.3-1ubuntu0.17_arm64.deb ...
+#6 22.71 Unpacking libpython3.12-stdlib:arm64 (3.12.3-1ubuntu0.17) ...
+#6 22.77 Selecting previously unselected package python3.12.
+#6 22.77 Preparing to unpack .../8-python3.12_3.12.3-1ubuntu0.17_arm64.deb ...
+#6 22.77 Unpacking python3.12 (3.12.3-1ubuntu0.17) ...
+#6 22.78 Selecting previously unselected package libpython3-stdlib:arm64.
+#6 22.78 Preparing to unpack .../9-libpython3-stdlib_3.12.3-0ubuntu2.1_arm64.deb ...
+#6 22.78 Unpacking libpython3-stdlib:arm64 (3.12.3-0ubuntu2.1) ...
+#6 22.79 Setting up python3-minimal (3.12.3-0ubuntu2.1) ...
+#6 22.88 Selecting previously unselected package python3.
+#6 22.88 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 5701 files and directories currently installed.)
+#6 22.88 Preparing to unpack .../python3_3.12.3-0ubuntu2.1_arm64.deb ...
+#6 22.88 Unpacking python3 (3.12.3-0ubuntu2.1) ...
+#6 22.90 Selecting previously unselected package adduser.
+#6 22.90 Preparing to unpack .../adduser_3.137ubuntu1_all.deb ...
+#6 22.90 Unpacking adduser (3.137ubuntu1) ...
+#6 22.91 Setting up adduser (3.137ubuntu1) ...
+#6 22.93 Selecting previously unselected package openssl.
+#6 22.93 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 5770 files and directories currently installed.)
+#6 22.93 Preparing to unpack .../00-openssl_3.0.13-0ubuntu3.16_arm64.deb ...
+#6 22.93 Unpacking openssl (3.0.13-0ubuntu3.16) ...
+#6 22.95 Selecting previously unselected package ca-certificates.
+#6 22.95 Preparing to unpack .../01-ca-certificates_20260601~24.04.1_all.deb ...
+#6 22.95 Unpacking ca-certificates (20260601~24.04.1) ...
+#6 22.97 Selecting previously unselected package libbsd0:arm64.
+#6 22.97 Preparing to unpack .../02-libbsd0_0.12.1-1build1.1_arm64.deb ...
+#6 22.98 Unpacking libbsd0:arm64 (0.12.1-1build1.1) ...
+#6 22.99 Selecting previously unselected package libkrb5support0:arm64.
+#6 22.99 Preparing to unpack .../03-libkrb5support0_1.20.1-6ubuntu2.10_arm64.deb ...
+#6 22.99 Unpacking libkrb5support0:arm64 (1.20.1-6ubuntu2.10) ...
+#6 23.00 Selecting previously unselected package libk5crypto3:arm64.
+#6 23.00 Preparing to unpack .../04-libk5crypto3_1.20.1-6ubuntu2.10_arm64.deb ...
+#6 23.00 Unpacking libk5crypto3:arm64 (1.20.1-6ubuntu2.10) ...
+#6 23.01 Selecting previously unselected package libkeyutils1:arm64.
+#6 23.01 Preparing to unpack .../05-libkeyutils1_1.6.3-3build1_arm64.deb ...
+#6 23.01 Unpacking libkeyutils1:arm64 (1.6.3-3build1) ...
+#6 23.02 Selecting previously unselected package libkrb5-3:arm64.
+#6 23.02 Preparing to unpack .../06-libkrb5-3_1.20.1-6ubuntu2.10_arm64.deb ...
+#6 23.03 Unpacking libkrb5-3:arm64 (1.20.1-6ubuntu2.10) ...
+#6 23.04 Selecting previously unselected package libgssapi-krb5-2:arm64.
+#6 23.04 Preparing to unpack .../07-libgssapi-krb5-2_1.20.1-6ubuntu2.10_arm64.deb ...
+#6 23.04 Unpacking libgssapi-krb5-2:arm64 (1.20.1-6ubuntu2.10) ...
+#6 23.06 Selecting previously unselected package libcbor0.10:arm64.
+#6 23.06 Preparing to unpack .../08-libcbor0.10_0.10.2-1.2ubuntu2_arm64.deb ...
+#6 23.06 Unpacking libcbor0.10:arm64 (0.10.2-1.2ubuntu2) ...
+#6 23.07 Selecting previously unselected package libedit2:arm64.
+#6 23.07 Preparing to unpack .../09-libedit2_3.1-20230828-1build1_arm64.deb ...
+#6 23.07 Unpacking libedit2:arm64 (3.1-20230828-1build1) ...
+#6 23.08 Selecting previously unselected package libfido2-1:arm64.
+#6 23.08 Preparing to unpack .../10-libfido2-1_1.14.0-1build3_arm64.deb ...
+#6 23.08 Unpacking libfido2-1:arm64 (1.14.0-1build3) ...
+#6 23.10 Selecting previously unselected package openssh-client.
+#6 23.10 Preparing to unpack .../11-openssh-client_1%3a9.6p1-3ubuntu13.20_arm64.deb ...
+#6 23.10 Unpacking openssh-client (1:9.6p1-3ubuntu13.20) ...
+#6 23.13 Selecting previously unselected package python3-pip-whl.
+#6 23.13 Preparing to unpack .../12-python3-pip-whl_24.0+dfsg-1ubuntu1.3_all.deb ...
+#6 23.13 Unpacking python3-pip-whl (24.0+dfsg-1ubuntu1.3) ...
+#6 23.14 Selecting previously unselected package python3-setuptools-whl.
+#6 23.14 Preparing to unpack .../13-python3-setuptools-whl_68.1.2-2ubuntu1.2_all.deb ...
+#6 23.14 Unpacking python3-setuptools-whl (68.1.2-2ubuntu1.2) ...
+#6 23.16 Selecting previously unselected package python3.12-venv.
+#6 23.16 Preparing to unpack .../14-python3.12-venv_3.12.3-1ubuntu0.17_arm64.deb ...
+#6 23.16 Unpacking python3.12-venv (3.12.3-1ubuntu0.17) ...
+#6 23.16 Selecting previously unselected package python3-venv.
+#6 23.17 Preparing to unpack .../15-python3-venv_3.12.3-0ubuntu2.1_arm64.deb ...
+#6 23.17 Unpacking python3-venv (3.12.3-0ubuntu2.1) ...
+#6 23.18 Setting up media-types (10.1.0) ...
+#6 23.18 Setting up python3-setuptools-whl (68.1.2-2ubuntu1.2) ...
+#6 23.18 Setting up libkeyutils1:arm64 (1.6.3-3build1) ...
+#6 23.19 Setting up libcbor0.10:arm64 (0.10.2-1.2ubuntu2) ...
+#6 23.19 Setting up libsqlite3-0:arm64 (3.45.1-1ubuntu2.8) ...
+#6 23.19 Setting up libkrb5support0:arm64 (1.20.1-6ubuntu2.10) ...
+#6 23.20 Setting up tzdata (2026e-0ubuntu0.24.04.1) ...
+#6 23.24 
+#6 23.24 Current default time zone: 'Etc/UTC'
+#6 23.24 Local time is now:      Fri Oct 16 06:09:02 UTC 2026.
+#6 23.24 Universal Time is now:  Fri Oct 16 06:09:02 UTC 2026.
+#6 23.24 Run 'dpkg-reconfigure tzdata' if you wish to change it.
+#6 23.24 
+#6 23.25 Setting up libk5crypto3:arm64 (1.20.1-6ubuntu2.10) ...
+#6 23.25 Setting up netbase (6.4) ...
+#6 23.26 Setting up libkrb5-3:arm64 (1.20.1-6ubuntu2.10) ...
+#6 23.26 Setting up libfido2-1:arm64 (1.14.0-1build3) ...
+#6 23.27 Setting up openssl (3.0.13-0ubuntu3.16) ...
+#6 23.27 Setting up libbsd0:arm64 (0.12.1-1build1.1) ...
+#6 23.27 Setting up readline-common (8.2-4build1) ...
+#6 23.28 Setting up libedit2:arm64 (3.1-20230828-1build1) ...
+#6 23.28 Setting up ca-certificates (20260601~24.04.1) ...
+#6 23.48 Updating certificates in /etc/ssl/certs...
+#6 23.74 121 added, 0 removed; done.
+#6 23.75 Setting up libgssapi-krb5-2:arm64 (1.20.1-6ubuntu2.10) ...
+#6 23.75 Setting up libreadline8t64:arm64 (8.2-4build1) ...
+#6 23.76 Setting up libpython3.12-stdlib:arm64 (3.12.3-1ubuntu0.17) ...
+#6 23.76 Setting up python3-pip-whl (24.0+dfsg-1ubuntu1.3) ...
+#6 23.76 Setting up openssh-client (1:9.6p1-3ubuntu13.20) ...
+#6 23.80 Setting up python3.12 (3.12.3-1ubuntu0.17) ...
+#6 24.37 Setting up libpython3-stdlib:arm64 (3.12.3-0ubuntu2.1) ...
+#6 24.37 Setting up python3.12-venv (3.12.3-1ubuntu0.17) ...
+#6 24.40 Setting up python3 (3.12.3-0ubuntu2.1) ...
+#6 24.46 Setting up python3-venv (3.12.3-0ubuntu2.1) ...
+#6 24.46 Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+#6 24.47 Processing triggers for ca-certificates (20260601~24.04.1) ...
+#6 24.47 Updating certificates in /etc/ssl/certs...
+#6 24.65 0 added, 0 removed; done.
+#6 24.65 Running hooks in /etc/ca-certificates/update.d...
+#6 24.65 done.
+#6 DONE 24.7s
+
+#7 [stage-0 3/5] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444     --mount=type=bind,source=requirements.txt,target=/tmp/requirements.txt     set -eu;     python3 -m venv /opt/venv;     if [ -f /run/secrets/ca_bundle ]; then       /opt/venv/bin/pip install --no-cache-dir --cert /run/secrets/ca_bundle -r /tmp/requirements.txt;     else       /opt/venv/bin/pip install --no-cache-dir -r /tmp/requirements.txt;     fi
+#7 3.056 Collecting PyYAML==6.0.3 (from -r /tmp/requirements.txt (line 1))
+#7 3.583   Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (2.4 kB)
+#7 3.787 Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (775 kB)
+#7 6.657    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 775.1/775.1 kB 268.3 kB/s eta 0:00:00
+#7 6.695 Installing collected packages: PyYAML
+#7 6.741 Successfully installed PyYAML-6.0.3
+#7 DONE 6.8s
+
+#8 [stage-0 4/5] COPY storm_timing.py /opt/storm-timing/
+#8 DONE 0.0s
+
+#9 [stage-0 5/5] WORKDIR /opt/storm-timing
+#9 DONE 0.0s
+
+#10 exporting to image
+#10 exporting layers
+#10 exporting layers 0.2s done
+#10 writing image sha256:3fb5df74acac6da9de843aeb8cbc63df85af56529c9480c4706cb928abdf3429 done
+#10 naming to docker.io/vigil/storm-spike:local done
+#10 DONE 0.2s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/mmmbocf15qjoqkrnqcv53preu
+postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d linux/arm64
+zabbix/zabbix-server-pgsql@sha256:bdfe90847bd259a6da448db1e6ae83f5f439224654ed767296a8d57a088975b9 linux/arm64
+zabbix/zabbix-web-nginx-pgsql@sha256:d9ce0774cb6036ce5d49c9c8d46bf1474dad98aae810350de0d5068dd679b92d linux/arm64
+prom/prometheus@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e linux/arm64
+prom/alertmanager@sha256:e9733bafb1bdef9b00e25a21f8f99dc26a22224bf16641ad754d1649f4c3357a linux/arm64
+ Volume vigil-local_lab-db-01-data Creating 
+ Volume vigil-local_demo-faults-state Creating 
+ Volume vigil-local_lab-zabbix-db-data Creating 
+ Volume vigil-local_lab-db-01-data Creating 
+ Volume vigil-local_lab-zabbix-db-data Creating 
+ Volume vigil-local_demo-faults-state Creating 
+ Network vigil-local_lab-net Creating 
+ Network vigil-local_lab-net Creating 
+ Volume vigil-local_lab-db-01-data Created 
+ Volume vigil-local_lab-db-01-data Created 
+ Volume vigil-local_lab-zabbix-db-data Created 
+ Volume vigil-local_lab-zabbix-db-data Created 
+ Volume vigil-local_demo-faults-state Created 
+ Volume vigil-local_demo-faults-state Created 
+ Network vigil-local_lab-net Created 
+ Network vigil-local_lab-net Created 
+ Container lab-rpt-01 Creating 
+ Container lab-zabbix-db Creating 
+ Container lab-db-01 Creating 
+ Container lab-alertmanager Creating 
+ Container dev-recorder Creating 
+ Container lab-rpt-01 Created 
+ Container lab-db-01 Created 
+ Container lab-api-01 Creating 
+ Container dev-recorder Created 
+ Container lab-zabbix-db Created 
+ Container lab-zabbix-web Creating 
+ Container lab-zabbix-server Creating 
+ Container lab-alertmanager Created 
+ Container lab-api-01 Created 
+ Container lab-vas-01 Creating 
+ Container lab-zabbix-web Created 
+ Container lab-zabbix-server Created 
+ Container lab-vas-01 Created 
+ Container lab-probe-01 Creating 
+ Container lab-probe-01 Created 
+ Container lab-prometheus Creating 
+ Container demo-faults Creating 
+ Container demo-faults Created 
+ Container lab-prometheus Created 
+ Container lab-db-01 Starting 
+ Container lab-alertmanager Starting 
+ Container lab-rpt-01 Starting 
+ Container dev-recorder Starting 
+ Container lab-zabbix-db Starting 
+ Container lab-db-01 Started 
+ Container lab-db-01 Waiting 
+ Container lab-alertmanager Started 
+ Container lab-rpt-01 Started 
+ Container dev-recorder Started 
+ Container lab-zabbix-db Started 
+ Container lab-zabbix-db Waiting 
+ Container lab-zabbix-db Waiting 
+ Container lab-db-01 Healthy 
+ Container lab-api-01 Starting 
+ Container lab-api-01 Started 
+ Container lab-db-01 Waiting 
+ Container lab-api-01 Waiting 
+ Container lab-zabbix-db Healthy 
+ Container lab-zabbix-db Healthy 
+ Container lab-zabbix-web Starting 
+ Container lab-zabbix-server Starting 
+ Container lab-zabbix-web Started 
+ Container lab-zabbix-server Started 
+ Container lab-db-01 Healthy 
+ Container lab-api-01 Healthy 
+ Container lab-vas-01 Starting 
+ Container lab-vas-01 Started 
+ Container lab-vas-01 Waiting 
+ Container lab-vas-01 Healthy 
+ Container lab-probe-01 Starting 
+ Container lab-probe-01 Started 
+ Container lab-db-01 Waiting 
+ Container lab-api-01 Waiting 
+ Container lab-vas-01 Waiting 
+ Container lab-probe-01 Waiting 
+ Container lab-rpt-01 Waiting 
+ Container lab-api-01 Waiting 
+ Container lab-vas-01 Waiting 
+ Container lab-probe-01 Waiting 
+ Container lab-rpt-01 Waiting 
+ Container lab-db-01 Waiting 
+ Container lab-vas-01 Healthy 
+ Container lab-db-01 Healthy 
+ Container lab-api-01 Healthy 
+ Container lab-vas-01 Healthy 
+ Container lab-api-01 Healthy 
+ Container lab-db-01 Healthy 
+ Container lab-rpt-01 Healthy 
+ Container lab-rpt-01 Healthy 
+ Container lab-probe-01 Healthy 
+ Container lab-probe-01 Healthy 
+ Container lab-prometheus Starting 
+ Container demo-faults Starting 
+ Container lab-prometheus Started 
+ Container demo-faults Started 
+ Container lab-zabbix-web Running 
+ Container lab-zabbix-server Running 
+ Container lab-zabbix-db Running 
+ Container lab-zabbix-provision Creating 
+ Container lab-zabbix-provision Created 
+ Container lab-zabbix-db Waiting 
+ Container lab-zabbix-db Waiting 
+ Container lab-zabbix-db Healthy 
+ Container lab-zabbix-db Healthy 
+ Container lab-zabbix-provision Starting 
+ Container lab-zabbix-provision Started 
+Lab is up (profile demo, project vigil-local).
+ Container storm-spike Creating 
+ Container storm-spike Created 
+06:09:47 SB-T-01: 3 standard storms, extra read-only,clear
+06:24:24 baseline window: reached after 876 s
+06:24:24 run standard 1: start
+06:24:36 inject SL-F-1: HTTP 200
+06:24:36 inject SL-F-3: HTTP 200
+06:27:07 measured: /data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free); 34 files, 9167810560 bytes injected
+06:27:07 action: 34 files removed
+06:32:45 clear: HTTP 200
+06:33:37 run standard 1: passed True
+06:33:37 run standard 2: start
+06:33:49 inject SL-F-1: HTTP 200
+06:33:49 inject SL-F-3: HTTP 200
+06:36:20 measured: /data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free); 34 files, 9167810560 bytes injected
+06:36:20 action: 34 files removed
+06:41:56 clear: HTTP 200
+06:42:48 run standard 2: passed True
+06:42:48 run standard 3: start
+06:43:00 inject SL-F-1: HTTP 200
+06:43:00 inject SL-F-3: HTTP 200
+06:45:31 measured: /data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free); 34 files, 9167810560 bytes injected
+06:45:31 action: 34 files removed
+06:51:06 clear: HTTP 200
+06:51:58 run standard 3: passed True
+06:51:58 run read-only 1: start
+06:52:10 inject SL-F-1: HTTP 200
+06:52:10 inject SL-F-2: HTTP 200
+06:52:10 inject SL-F-3: HTTP 200
+06:54:41 measured: /data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free); 34 files, 9167810560 bytes injected
+06:54:41 action: 34 files removed
+06:55:41 clear: HTTP 200
+06:56:33 run read-only 1: passed True
+06:56:33 run clear 1: start
+06:56:46 inject SL-F-1: HTTP 200
+06:56:46 inject SL-F-3: HTTP 200
+06:59:16 measured: /data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free); 34 files, 9167810560 bytes injected
+06:59:17 clear: HTTP 200
+07:00:09 run clear 1: passed True
+07:00:09 result: passed True
+result file /Users/awadood/workspace/anthropic/noc automation/spikes/results/storm-timing-20261016T060947Z.json
+ Container lab-alertmanager Stopping 
+ Container dev-recorder Stopping 
+ Container lab-prometheus Stopping 
+ Container demo-faults Stopping 
+ Container lab-zabbix-provision Stopping 
+ Container lab-zabbix-provision Stopped 
+ Container lab-zabbix-provision Removing 
+ Container lab-zabbix-provision Removed 
+ Container lab-zabbix-server Stopping 
+ Container lab-zabbix-web Stopping 
+ Container lab-alertmanager Stopped 
+ Container lab-alertmanager Removing 
+ Container lab-alertmanager Removed 
+ Container lab-prometheus Stopped 
+ Container lab-prometheus Removing 
+ Container lab-prometheus Removed 
+ Container lab-zabbix-web Stopped 
+ Container lab-zabbix-web Removing 
+ Container lab-zabbix-web Removed 
+ Container lab-zabbix-server Stopped 
+ Container lab-zabbix-server Removing 
+ Container lab-zabbix-server Removed 
+ Container lab-zabbix-db Stopping 
+ Container lab-zabbix-db Stopped 
+ Container lab-zabbix-db Removing 
+ Container lab-zabbix-db Removed 
+ Container demo-faults Stopped 
+ Container demo-faults Removing 
+ Container demo-faults Removed 
+ Container lab-rpt-01 Stopping 
+ Container lab-probe-01 Stopping 
+ Container dev-recorder Stopped 
+ Container dev-recorder Removing 
+ Container dev-recorder Removed 
+ Container lab-rpt-01 Stopped 
+ Container lab-rpt-01 Removing 
+ Container lab-rpt-01 Removed 
+ Container lab-probe-01 Stopped 
+ Container lab-probe-01 Removing 
+ Container lab-probe-01 Removed 
+ Container lab-vas-01 Stopping 
+ Container lab-vas-01 Stopped 
+ Container lab-vas-01 Removing 
+ Container lab-vas-01 Removed 
+ Container lab-api-01 Stopping 
+ Container lab-api-01 Stopped 
+ Container lab-api-01 Removing 
+ Container lab-api-01 Removed 
+ Container lab-db-01 Stopping 
+ Container lab-db-01 Stopped 
+ Container lab-db-01 Removing 
+ Container lab-db-01 Removed 
+ Network vigil-local_lab-net Removing 
+ Network vigil-local_lab-net Removed 

@@ -41,12 +41,24 @@ lab_db_server:
     largest_folders_top1: "/data/txlog_archive (<size> GiB)"
     disk_growth: "<gib> GiB written to <files> files under /data in the last 15 minutes"
   expected_action_result: "every injected file removed (<files> files, <gib> GiB, both measured, under the 12 GiB limit); /data returns to its baseline percentage"
+  development_values:                  # SB-T-01 development run (60-build-plan P-04, BP-A-18): owner's Mac, profile demo; final values P-32
+    measured_on: 2026-10-16              # UTC date of the run, YYYY-MM-DD
+    baseline_used_pct: 47        # fs_used_pct before injection
+    injected_files: 34           # N + 1
+    injected_bytes: 9167810560
+    injected_gib: 8.5             # bytes / 1073741824, rounded half-up to 1 decimal place (DD-F-04)
+    disk_usage: "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)"               # disk_usage summary after SL-F-1 (the whole DD-F-04 summary_template, filled)
+    largest_folders: "Largest folder under /data: /data/txlog_archive (8.5 GiB)"          # largest_folders summary after SL-F-1 (the whole summary)
+    disk_growth: "8.5 GiB written to 34 files under /data in the last 15 minutes"              # disk_growth summary after SL-F-1
+    action_files_removed: 34
+    action_gib_removed: 8.5
+    used_pct_after_action: 47    # fs_used_pct after the action
 
 faults:
   SL-F-1:
     name: "Subscriber DB /data full"
     story: "Archive shipping caught up after a link outage and wrote two days of transaction log archives back to /data."
-    inject: "(1) Read /data free space F. (2) Compute N = the number of 256 MiB files that fit while at least 320 MiB stay free, plus one last file of size (F - N x 256 MiB - 64 MiB) rounded down to a multiple of 4 KiB, so 64 MiB stay free (below the 256 MiB write limit and the 1 GiB disk trigger; df shows 100%). (3) Create the N + 1 files in /data/txlog_archive with fallocate, named txlog_000001.arc to txlog_<N+1>.arc (numbering restarts at 1 for every injection). (4) Set the modification times of all N + 1 files, the last one included, evenly from 47 hours to 26 hours before now. Every injected file is therefore older than the 24-hour purge limit and has a change time of now."
+    inject: "(1) Read /data free space F. (2) Compute N = the number of 256 MiB files that fit while at least 320 MiB stay free, plus one last file of size (F - N x 256 MiB - 64 MiB) rounded down to a multiple of 4 KiB, so 64 MiB stay free (below the 256 MiB write limit and the 1 GiB disk trigger; df shows 100% in the demo profile and 99% in the test profile, 60-build-plan BP-R-30). (3) Create the N + 1 files in /data/txlog_archive with fallocate, named txlog_000001.arc to txlog_<N+1>.arc (numbering restarts at 1 for every injection). (4) Set the modification times of all N + 1 files, the last one included, evenly from 47 hours to 26 hours before now. Every injected file is therefore older than the 24-hour purge limit and has a change time of now."
     clear: "delete the injected files that still exist"
     expected_effect: "the 126 storm alerts of DD-F-03 fire within 120 s"
   SL-F-2:

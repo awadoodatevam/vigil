@@ -137,3 +137,17 @@ def test_report_lists_untested_ids_except_bp(tmp_path, capsys):
     assert "AR-Q-03" not in output
     assert "BP-R-01" not in output
     assert Path(tmp_path).exists()
+
+
+def test_spikes_tests_count(tmp_path):
+    """BP-R-15 a pytest test under spikes/ names its ID for --check."""
+    spec(tmp_path, ["| SB-T-01 | | test |\n"])
+    write(
+        tmp_path,
+        "spikes/storm-timing/test_storm_timing.py",
+        '''\
+        def test_storm():
+            """SB-T-01 the storm passes."""
+        ''',
+    )
+    assert trace_module.main(["--check"], tmp_path) == 0

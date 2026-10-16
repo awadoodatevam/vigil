@@ -153,7 +153,7 @@ start_agent() {
   install -d -m 0755 -o zabbix -g zabbix /run/zabbix
   cat > /etc/zabbix/zabbix_agent2.conf << CONF
 Hostname=$role
-Server=172.31.0.0/24
+Server=172.31.0.0/24,127.0.0.1
 ListenPort=10050
 ServerActive=
 LogType=console

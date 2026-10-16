@@ -149,7 +149,7 @@ def private_key(lab, kind):
     return json.loads((lab.secrets / "vigil-app" / f"lab-db-01-{kind}").read_text())["private_key"]
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def lab(tmp_path_factory):
     home = tmp_path_factory.mktemp("vigil-local")
     lab = Lab(home)
@@ -310,12 +310,13 @@ def secret_files(lab):
 def test_secret_files(lab, tmp_path):
     """BP-R-26 secret files 0444 in 0555 unit folders; a second up keeps them; an incomplete pair stops up."""
     assert stat.S_IMODE(lab.secrets.stat().st_mode) == 0o700
-    for unit in ("lab-db-01", "vigil-app"):
-        folder = lab.secrets / unit
+    folders = [folder for folder in lab.secrets.iterdir() if folder.is_dir()]
+    assert len(folders) == 10
+    for folder in folders:
         assert stat.S_IMODE(folder.stat().st_mode) == 0o555
         assert folder.stat().st_uid == os.getuid()
     files = secret_files(lab)
-    assert len(files) == 5
+    assert len(files) == 21
     for path in files:
         assert stat.S_IMODE(path.stat().st_mode) == 0o444
         assert path.stat().st_uid == os.getuid()

@@ -1,4 +1,5 @@
-# The local installation (docs/60-build-plan.md Section 11), started by deploy/local.sh. This package: the lab hosts.
+# The local installation (docs/60-build-plan.md Section 11), started by deploy/local.sh. So far: the lab hosts (P-03),
+# Zabbix, Prometheus, Alertmanager, demo-faults, the webhook recorder and the storm timing spike (P-04).
 # Subnets and container names are fixed, so one local installation runs per Docker host.
 
 networks:
@@ -17,6 +18,8 @@ networks:
 
 volumes:
   lab-db-01-data:
+  lab-zabbix-db-data:
+  demo-faults-state:
 
 services:
   lab-db-01:
@@ -50,6 +53,8 @@ services:
     environment:
       LAB_ROLE: lab-api-01
     networks: [lab-net]
+    depends_on:
+      lab-db-01: {condition: service_healthy}
     restart: "no"
     healthcheck: *lab-health
 
@@ -60,6 +65,9 @@ services:
     environment:
       LAB_ROLE: lab-vas-01
     networks: [lab-net]
+    depends_on:
+      lab-db-01: {condition: service_healthy}
+      lab-api-01: {condition: service_healthy}
     restart: "no"
     healthcheck: *lab-health
 
@@ -70,6 +78,8 @@ services:
     environment:
       LAB_ROLE: lab-probe-01
     networks: [lab-net]
+    depends_on:
+      lab-vas-01: {condition: service_healthy}
     restart: "no"
     healthcheck: *lab-health
 
@@ -82,3 +92,235 @@ services:
     networks: [lab-net]
     restart: "no"
     healthcheck: *lab-health
+
+  lab-zabbix-db:
+    image: postgres:16.15@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+    container_name: lab-zabbix-db
+    environment:
+      POSTGRES_USER: zabbix
+      POSTGRES_DB: zabbix
+      POSTGRES_PASSWORD_FILE: /run/secrets/vigil/zabbix-db-password
+    networks: [lab-net]
+    volumes:
+      - lab-zabbix-db-data:/var/lib/postgresql/data
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/lab-zabbix-db
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "zabbix", "-d", "zabbix"]
+      interval: 2s
+      timeout: 2s
+      retries: 60
+
+  lab-zabbix-server:
+    image: zabbix/zabbix-server-pgsql:alpine-7.0.31@sha256:bdfe90847bd259a6da448db1e6ae83f5f439224654ed767296a8d57a088975b9
+    container_name: lab-zabbix-server
+    environment:
+      DB_SERVER_HOST: lab-zabbix-db
+      POSTGRES_USER: zabbix
+      POSTGRES_DB: zabbix
+      POSTGRES_PASSWORD_FILE: /run/secrets/vigil/zabbix-db-password
+    depends_on:
+      lab-zabbix-db: {condition: service_healthy}
+    networks: [lab-net]
+    volumes:
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/lab-zabbix-server
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: "no"
+
+  lab-zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:alpine-7.0.31@sha256:d9ce0774cb6036ce5d49c9c8d46bf1474dad98aae810350de0d5068dd679b92d
+    container_name: lab-zabbix-web
+    environment:
+      ZBX_SERVER_HOST: lab-zabbix-server
+      DB_SERVER_HOST: lab-zabbix-db
+      POSTGRES_USER: zabbix
+      POSTGRES_DB: zabbix
+      POSTGRES_PASSWORD_FILE: /run/secrets/vigil/zabbix-db-password
+      PHP_TZ: UTC
+    depends_on:
+      lab-zabbix-db: {condition: service_healthy}
+    networks: [lab-net]
+    volumes:
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/lab-zabbix-web
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: "no"
+
+  lab-zabbix-provision:
+    image: vigil/lab-zabbix-provision:local
+    container_name: lab-zabbix-provision
+    user: "${VIGIL_LOCAL_UID:-10001}:${VIGIL_LOCAL_GID:-10001}"
+    environment:
+      WEBHOOK_BASE_URL: ${VIGIL_WEBHOOK_BASE_URL:-http://demo.vigil.test:8080}
+      ZABBIX_URL: http://lab-zabbix-web:8080
+    depends_on:
+      lab-zabbix-web: {condition: service_started}
+      lab-zabbix-server: {condition: service_started}
+    networks: [lab-net]
+    volumes:
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/lab-zabbix-provision
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${VIGIL_LOCAL_GENERATED:-/nonexistent}
+        target: /srv/vigil/generated
+        bind:
+          create_host_path: false
+    restart: "no"
+
+  lab-prometheus:
+    image: prom/prometheus:v3.15.0@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
+    container_name: lab-prometheus
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus"]
+    depends_on: &lab-hosts-healthy
+      lab-db-01: {condition: service_healthy}
+      lab-api-01: {condition: service_healthy}
+      lab-vas-01: {condition: service_healthy}
+      lab-probe-01: {condition: service_healthy}
+      lab-rpt-01: {condition: service_healthy}
+    networks: [lab-net]
+    volumes:
+      - type: bind
+        source: ../../demo/monitoring/prometheus
+        target: /etc/prometheus
+        read_only: true
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/lab-prometheus
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: "no"
+
+  lab-alertmanager:
+    image: prom/alertmanager:v0.34.1@sha256:e9733bafb1bdef9b00e25a21f8f99dc26a22224bf16641ad754d1649f4c3357a
+    container_name: lab-alertmanager
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --web.config.file=/run/secrets/vigil/alertmanager-web-config
+      - --storage.path=/alertmanager
+      - --cluster.listen-address=
+    networks: [lab-net]
+    volumes:
+      - type: bind
+        source: ${VIGIL_LOCAL_CONFIG:-/nonexistent}/alertmanager.yml
+        target: /etc/alertmanager/alertmanager.yml
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/lab-alertmanager
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: "no"
+
+  demo-faults:
+    image: vigil/demo-faults:local
+    container_name: demo-faults
+    network_mode: host
+    user: "0"
+    environment:
+      FAULTS_LISTEN: 172.31.0.1:8091
+    depends_on: *lab-hosts-healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - demo-faults-state:/var/lib/demo-faults
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/demo-faults
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "/usr/bin/python3", "-c", "import socket; socket.create_connection(('172.31.0.1', 8091), 2)"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  dev-recorder:
+    image: vigil/recorder:local
+    container_name: dev-recorder
+    profiles: ["lab-only"]
+    user: "${VIGIL_LOCAL_UID:-10001}:${VIGIL_LOCAL_GID:-10001}"
+    networks:
+      lab-net:
+        aliases: [demo.vigil.test]
+    volumes:
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/vigil-app
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${VIGIL_LOCAL_RECORDINGS:-/nonexistent}
+        target: /recordings
+        bind:
+          create_host_path: false
+    restart: "no"
+    healthcheck:
+      test:
+        - CMD
+        - /usr/bin/python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/_recorder/health', timeout=2)"
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  storm-spike:
+    image: vigil/storm-spike:local
+    container_name: storm-spike
+    profiles: ["spike"]
+    user: "0"
+    environment:
+      VIGIL_LAB_PROFILE: ${VIGIL_LAB_PROFILE:-test}
+      VIGIL_LOCAL_UID: ${VIGIL_LOCAL_UID:-10001}
+      VIGIL_LOCAL_GID: ${VIGIL_LOCAL_GID:-10001}
+    networks: [lab-net]
+    volumes:
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/vigil-app
+        target: /run/secrets/vigil-app
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/demo-control
+        target: /run/secrets/demo-control
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ../../docs/31-demo-data
+        target: /demo-data
+        read_only: true
+      - type: bind
+        source: ${VIGIL_SPIKE_RESULTS:-../../spikes/results}
+        target: /results
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${VIGIL_SPIKE_SAVE:-../../dev/fakes/recordings/monitoring}
+        target: /save
+        bind:
+          create_host_path: false
+    restart: "no"

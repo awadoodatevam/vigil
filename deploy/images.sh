@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Builds the local images (BP-R-04). --test: the images that tests use (in P-03 only vigil/demo-lab:local).
+# Builds the local images (BP-R-04). --test: the images that tests use (P-03, P-04), after pulling the third-party
+# images of deploy/local/compose.yaml.
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
@@ -18,25 +19,34 @@ if ! docker buildx version > /dev/null 2>&1; then
   exit 1
 fi
 
-# Base images: pulled when missing, with retries for refused requests (BP-O-04).
-pull_base_images() {
-  local dockerfile=$1 reference attempt
-  while read -r reference; do
-    if docker image inspect "$reference" > /dev/null 2>&1; then
-      continue
+# Pulls an image when it is missing, with retries for refused requests (BP-O-04).
+pull_image() {
+  local reference=$1 attempt=1
+  if docker image inspect "$reference" > /dev/null 2>&1; then
+    return
+  fi
+  until docker pull "$reference"; do
+    if [ "$attempt" -ge 5 ]; then
+      echo "Could not pull $reference after $attempt attempts"
+      exit 1
     fi
-    attempt=1
-    until docker pull "$reference"; do
-      if [ "$attempt" -ge 5 ]; then
-        echo "Could not pull $reference after $attempt attempts"
-        exit 1
-      fi
-      attempt=$((attempt + 1))
-      echo "Pull of $reference failed; attempt $attempt of 5 in 30 s"
-      sleep 30
-    done
-  done < <(awk 'toupper($1) == "FROM" { print $2 }' "$dockerfile")
+    attempt=$((attempt + 1))
+    echo "Pull of $reference failed; attempt $attempt of 5 in 30 s"
+    sleep 30
+  done
 }
+
+pull_base_images() {
+  local reference
+  while read -r reference; do
+    pull_image "$reference"
+  done < <(awk 'toupper($1) == "FROM" { print $2 }' "$1")
+}
+
+# The third-party images of the local compose file: every image: value pinned by digest.
+while read -r reference; do
+  pull_image "$reference"
+done < <(awk '$1 == "image:" && $2 ~ /@sha256:/ { print $2 }' deploy/local/compose.yaml)
 
 build_image() {
   local tag=$1 context=$2 name
@@ -54,3 +64,7 @@ build_image() {
 }
 
 build_image vigil/demo-lab:local demo/lab
+build_image vigil/demo-faults:local demo/faults
+build_image vigil/lab-zabbix-provision:local demo/monitoring/provision
+build_image vigil/recorder:local dev/recorder
+build_image vigil/storm-spike:local spikes/storm-timing

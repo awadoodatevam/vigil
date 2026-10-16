@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 31-demo-data (ID prefix `DD-`) |
-| Version | 1.3 |
+| Version | 1.4 |
 | Date | 12 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 3 closed. Amended by Round 4 (`40-demo-cut` DC-A-04, DC-A-05, DC-A-09, DC-A-17) Round 5 (`50-architecture` AR-A-12, AR-A-13, AR-A-15) and Round 6 (`60-build-plan` BP-A-01, BP-A-04, BP-A-05, BP-A-15). |
+| Status | Baseline (owner reviewed). Round 3 closed. Amended by Round 4 (`40-demo-cut` DC-A-04, DC-A-05, DC-A-09, DC-A-17) Round 5 (`50-architecture` AR-A-12, AR-A-13, AR-A-15) and Round 6 (`60-build-plan` BP-A-01, BP-A-04, BP-A-05, BP-A-15); build amendment `60-build-plan` BP-A-18 (CTX-D-035). |
 
 ## 1. Purpose
 
@@ -52,7 +52,7 @@ This folder is the complete invented data set for the demo (SL-DR-04): the conte
 
 ## 5. Checks (complete list)
 
-`tools/check_data.py` runs these checks. Results for this version: all 48 checks pass.
+`tools/check_data.py` runs these checks. Results for this version: all 49 checks pass.
 
 | ID | Check | Result |
 | --- | --- | --- |
@@ -113,3 +113,4 @@ See `30-jazz-storyboard` Section 17 (one review covers both outputs of Round 3).
 | 1.1 | 10 Oct 2026 | Round 4 amendments (CTX-D-022, CTX-D-024): DD-F-01 `product_display_name` "Techfinity" and admin display name "Platform Administrator"; DD-F-07 demo Team "Techfinity Demo"; DD-F-06 comment on added step IDs; DD-F-10 Alertmanager `summary` annotations. |
 | 1.2 | 12 Oct 2026 | Round 5 amendments (`50-architecture` AR-A-12, AR-A-13, AR-A-15; CTX-D-025): DD-F-07 credential locators `secret:{name}`, nine Teams webhook credentials and their delivery-address references, connector addresses and settings, model names and prices, mailbox placeholders; DD-F-03 `source_key`; DD-F-10 lab placement, SL-F-4 rule, Alertmanager authentication, Zabbix message, reset protocol; DD-R-03, DD-R-05, DD-R-07 (4); check DD-K-16; DD-O-01, DD-O-02, DD-O-04 closed; DD-ASM-01 resolved. |
 | 1.3 | 12 Oct 2026 | Round 6 amendments (`60-build-plan` BP-A-01, BP-A-04, BP-A-05, BP-A-15; CTX-D-029): DD-F-07 external connector addresses and `email-demo` STARTTLS become the placeholders `endpoint.jira`, `endpoint.smtp`, `smtp_starttls`, `endpoint.claude`, `endpoint.openai`, `endpoint.local_embedding` (replacing `jira_site`; `email-demo` in block style); DD-F-10 webhook base address is the lab value `${webhook_base_url}`, `lab_db_server` adds `filesystem_setup` and the `demo` and `test` size profiles; DD-R-05, DD-F-12, DD-K-14 and DD-K-16 updated and `tools/check_data.py` adds the size profile check (49 checks); DD-O-03 "Resolved in" P-04 and P-32. |
+| 1.4 | 15 Oct 2026 | Build amendment `60-build-plan` BP-A-18 (CTX-D-035): DD-F-10 SL-F-1 step (2) gives the `df` percentage per size profile; `lab_db_server.development_values` holds the values of SB-T-01's development run (P-04). The seeded files are unchanged (DD-F-10 is not seeded); `bundle_version` follows this version (DD-R-11). |
