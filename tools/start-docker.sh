@@ -7,10 +7,10 @@ if docker info > /dev/null 2>&1; then
 fi
 
 if [ "$(id -u)" -eq 0 ]; then
-  setsid dockerd > /tmp/dockerd.log 2>&1 < /dev/null &
+  setsid dockerd --registry-mirror=https://mirror.gcr.io > /tmp/dockerd.log 2>&1 < /dev/null &
 else
   setsid sudo -n --preserve-env=HTTPS_PROXY,https_proxy,HTTP_PROXY,http_proxy,NO_PROXY,no_proxy \
-    dockerd > /tmp/dockerd.log 2>&1 < /dev/null &
+    dockerd --registry-mirror=https://mirror.gcr.io > /tmp/dockerd.log 2>&1 < /dev/null &
 fi
 
 for _ in $(seq 1 60); do

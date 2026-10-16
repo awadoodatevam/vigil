@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.modulith.events.IncompleteEventPublications;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
+import vigil.identity.api.SessionExpiry;
 
 /**
  * The restart procedure of AR-R-24: steps (1) to (7) in order, after the application context has
@@ -24,14 +25,17 @@ class RestartProcedure implements ApplicationRunner {
   private final IncompleteEventPublications incompletePublications;
   private final TaskScheduler taskScheduler;
   private final ReadyGate readyGate;
+  private final SessionExpiry sessionExpiry;
 
   RestartProcedure(
       IncompleteEventPublications incompletePublications,
       TaskScheduler taskScheduler,
-      ReadyGate readyGate) {
+      ReadyGate readyGate,
+      SessionExpiry sessionExpiry) {
     this.incompletePublications = incompletePublications;
     this.taskScheduler = taskScheduler;
     this.readyGate = readyGate;
+    this.sessionExpiry = sessionExpiry;
   }
 
   @Override
@@ -78,6 +82,7 @@ class RestartProcedure implements ApplicationRunner {
         this::resubmitOldPublications,
         taskScheduler.getClock().instant().plus(RESUBMISSION_INTERVAL),
         RESUBMISSION_INTERVAL);
+    sessionExpiry.matchActiveTenants();
   }
 
   void step7SetReady() {
