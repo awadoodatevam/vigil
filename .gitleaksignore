@@ -1,0 +1,3 @@
+# False positives of gitleaks (one fingerprint per line, as gitleaks prints it).
+# P-05: the assertions of deploy/test_new_installation.py on the first and last line of a generated key, not a key.
+a2dddaa6582e3819bbea437a9f982b72315fb00b:deploy/test_new_installation.py:private-key:66

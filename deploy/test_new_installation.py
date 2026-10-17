@@ -22,6 +22,9 @@ PASSWORDS_20 = [
 PASSWORDS_24 = ["vigil-db-superuser", "vigil-db-owner", "vigil-db-app"]
 KEYS = ["lab-db-01-diag", "lab-db-01-action", "lab-db-01-diag-pub", "lab-db-01-action-pub", "lab-db-01-host-key"]
 ALL = TOKENS + PASSWORDS_20 + PASSWORDS_24 + KEYS
+# The first and last line of an OpenSSH private key file (split so that secret scanners see no key here).
+KEY_BEGIN = "-----BEGIN OPENSSH " + "PRIVATE KEY-----"
+KEY_END = "-----END OPENSSH " + "PRIVATE KEY-----"
 
 
 def public_key(tmp_path, private_key):
@@ -63,15 +66,15 @@ def test_first_and_second_run(harness, tmp_path):
         secret = json.loads(values[f"lab-db-01-{kind}"])
         assert list(secret) == ["username", "private_key"]
         assert secret["username"] == f"vigil-{kind}"
-        assert secret["private_key"].startswith("-----BEGIN OPENSSH PRIVATE KEY-----\n")
+        assert secret["private_key"].startswith(KEY_BEGIN + "\n")
         public_line = values[f"lab-db-01-{kind}-pub"]
         assert not public_line.endswith("\n")
         assert public_line.startswith("ssh-ed25519 ")
         assert public_line.endswith(f" vigil-{kind}")
         assert public_key(tmp_path, secret["private_key"]) == public_line.split()[:2]
     host_key = values["lab-db-01-host-key"]
-    assert host_key.startswith("-----BEGIN OPENSSH PRIVATE KEY-----\n")
-    assert host_key.endswith("-----END OPENSSH PRIVATE KEY-----")
+    assert host_key.startswith(KEY_BEGIN + "\n")
+    assert host_key.endswith(KEY_END)
 
     calls = harness.aws_calls()
     puts = harness.aws_calls("ssm", "put-parameter")
