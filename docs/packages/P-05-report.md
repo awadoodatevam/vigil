@@ -106,7 +106,11 @@ Pending: spec Section 6.13 steps 0 to 11 on the Mac against AWS, at Cloudflare a
 
 ## 10. Gate command result
 
-GATE_RESULT
+Cloud session (`CLAUDE_CODE_REMOTE=true tools/check-all.sh`, setup version 1): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 1a builds `vigil/sse-probe:local` with the other test images; step 2: `BUILD SUCCESS` (`vigil-app` 108 `*IT`, `demo-control` unit and `*IT` tests; no Java code changed); step 3: `ruff` clean, 115 Python tests passed and 1 skipped (`test_alertmanager_web_config`, no `bcrypt` in the gate's tools), lab tests included because the branch changes `deploy/`, `spikes/` and `tools/` (CTX-D-036); step 4: `shellcheck` on every `*.sh`; step 5: 49 data checks, 0 failed; step 6: `deploy/local/compose.yaml`, `deploy/main/compose.yaml` and `deploy/gpu/compose.yaml` valid; step 7: `trace.py --check` exits 0.
+
+GitHub: the `ci.yml` job `gate` runs on the pull request.
+
+Done-check: BP-DC-01 (every part 4 row with proof `test` has a test that names it; the rows checked by review are built as Section 1 lists), BP-DC-03 (nothing beyond the spec; deviations in Section 3), BP-DC-04 (no Java module, table, listener or external call changed), BP-DC-05 (no migration, OpenAPI entry or seed part), BP-DC-06 (`README.md`; `CLAUDE.md` changed by the spec commit) hold; BP-DC-02 holds in the session, the runner pending; BP-DC-07 and P05-DC-02 wait for the owner-run steps. P05-DC-01 holds (2,531). P05-DC-03: the session part holds, the runner pending.
 
 ## 11. Follow-up items for later packages
 
