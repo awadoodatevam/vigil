@@ -1,0 +1,42 @@
+# BP-W-03: builds the images of a release for linux/amd64 and pushes them to the demo installation's ECR repositories
+# with the GitHub OIDC push role (deploy/build.sh; P-05 spec Section 6.14). Manual run on main only.
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Release name (deploy/build.sh {release})"
+        required: true
+        type: string
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  release:
+    name: release
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: aws credentials
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.VIGIL_PUSH_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: build and push
+        env:
+          RELEASE: ${{ inputs.release }}
+        run: deploy/build.sh "$RELEASE"

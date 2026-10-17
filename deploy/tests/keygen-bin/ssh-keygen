@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+"""Fake of ssh-keygen for machines without one (cloud sessions; P-05 spec Section 7): runs ssh-keygen with the same
+arguments as root in the image vigil/demo-lab:local, with the real docker (PATH without deploy/tests/bin), the folders
+of its file arguments mounted at the same paths, then gives the files to the test's user (as in_lab_image of
+deploy/local.sh does).
+"""
+
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+arguments = sys.argv[1:]
+folders = sorted(
+    {str(Path(arguments[i + 1]).resolve().parent) for i, a in enumerate(arguments[:-1]) if a == "-f"}
+)
+fakes = (Path(__file__).resolve().parent.parent / "bin").resolve()
+path = os.pathsep.join(p for p in os.environ["PATH"].split(os.pathsep) if p and Path(p).resolve() != fakes)
+docker = shutil.which("docker", path=path)
+owner = f"{os.getuid()}:{os.getgid()}"
+script = 'ssh-keygen "$@"; code=$?; chown -R ' + owner + " " + " ".join(f"'{f}'" for f in folders) + "; exit $code"
+command = [docker, "run", "--rm", "-i", "--user", "0", "--entrypoint", "sh"]
+for folder in folders:
+    command += ["-v", f"{folder}:{folder}"]
+command += ["vigil/demo-lab:local", "-c", script if folders else 'ssh-keygen "$@"', "sh"] + arguments
+sys.exit(subprocess.run(command, check=False).returncode)

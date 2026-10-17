@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Builds the local images (BP-R-04). --test: the images that tests use (P-03, P-04), after pulling the third-party
-# images of deploy/local/compose.yaml.
+# Builds the local images (BP-R-04). --test: the images that tests use (P-03, P-04, P-05), after pulling the
+# third-party images of deploy/local/compose.yaml.
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
@@ -68,3 +68,4 @@ build_image vigil/demo-faults:local demo/faults
 build_image vigil/lab-zabbix-provision:local demo/monitoring/provision
 build_image vigil/recorder:local dev/recorder
 build_image vigil/storm-spike:local spikes/storm-timing
+build_image vigil/sse-probe:local spikes/sse-probe

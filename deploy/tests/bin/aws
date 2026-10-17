@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+"""The fake AWS CLI of the tests of deploy/ (deploy/tests/fake_aws.py)."""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+import fake_aws  # noqa: E402
+
+sys.exit(fake_aws.main(sys.argv[1:]))

@@ -5,3 +5,4 @@ Re-runnable spike scripts (`docs/60-build-plan.md` Section 9), one folder per sp
 | Folder | Spike | Package |
 | --- | --- | --- |
 | `storm-timing/` | SB-T-01 storm timing, development run against the webhook recorder | P-04 |
+| `sse-probe/` | AR-SP-01 probe part: live updates through the load balancer from a browser in Pakistan (owner-run) | P-05 |

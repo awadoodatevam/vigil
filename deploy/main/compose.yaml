@@ -1,0 +1,49 @@
+# The main host of the demo installation (AR-H-01; P-05 spec Section 6.3): in P-05 the SSE probe at vigil-app's
+# addresses and vigil-embed; P-32 adds the other units. Every variable has a default, so the file validates without
+# any secret or deployment value. Logs: Docker's local driver from the host's daemon configuration (AR-H-12).
+name: vigil
+
+networks:
+  vigil-net:
+    name: vigil-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+          gateway: 172.30.0.1
+  lab-net:
+    name: lab-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.0.0/24
+          gateway: 172.31.0.1
+
+volumes:
+  vigil-embed-models:
+
+services:
+  sse-probe:
+    image: ${VIGIL_REGISTRY:-registry.invalid}/${VIGIL_INSTALLATION:-demo}/sse-probe:${VIGIL_RELEASE:-unset}
+    container_name: sse-probe
+    user: "10001"
+    networks:
+      vigil-net:
+        ipv4_address: 172.30.0.10
+        gw_priority: 1
+      lab-net:
+        ipv4_address: 172.31.0.10
+        gw_priority: 0
+    ports:
+      - "10.40.1.10:8080:8080"
+    environment:
+      PROBE_ADDRESS: 172.30.0.10
+    restart: unless-stopped
+
+  vigil-embed:
+    image: ollama/ollama:0.40.5@sha256:5d3a2f25f9825628daba94dc0b1d421c7d57d6c03ae5faa9ba050e058bab8241
+    container_name: vigil-embed
+    networks: [vigil-net]
+    volumes:
+      - vigil-embed-models:/root/.ollama
+    restart: unless-stopped

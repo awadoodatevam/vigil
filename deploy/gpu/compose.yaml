@@ -1,0 +1,23 @@
+# The GPU host of the demo installation (AR-H-02, AR-U-04; P-05 spec Section 6.3), started by deploy/gpu.sh start.
+# Logs: Docker's local driver from the host's daemon configuration (AR-H-12).
+name: vigil-gpu
+
+volumes:
+  vigil-llm-models:
+
+services:
+  vigil-llm:
+    image: ollama/ollama:0.40.5@sha256:5d3a2f25f9825628daba94dc0b1d421c7d57d6c03ae5faa9ba050e058bab8241
+    container_name: vigil-llm
+    ports:
+      - "10.40.1.20:11434:11434"
+    volumes:
+      - vigil-llm-models:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped

@@ -44,7 +44,7 @@ step 3 "python checks and tests"
 "$PY" -m ruff check .
 "$PY" -m ruff format --check .
 test_dirs=()
-for dir in tools demo dev deploy/local spikes tests/acceptance; do
+for dir in tools demo dev deploy spikes tests/acceptance; do
   if [ -d "$dir" ]; then
     test_dirs+=("$dir")
   fi
