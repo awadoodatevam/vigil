@@ -1,0 +1,86 @@
+# Units with secrets on the main host (AR-S-04, AR-S-13; P-05 spec Section 6.2): the numeric user each unit runs as
+# and the secret names it reads. deploy/secrets.sh writes /srv/vigil/secrets/{unit}/ from it.
+units:
+  vigil-app:
+    user: 10001
+    secrets:
+      - webhook-zabbix
+      - webhook-alertmanager
+      - zabbix-api
+      - alertmanager-password
+      - lab-db-01-diag
+      - lab-db-01-action
+      - jira
+      - smtp
+      - claude
+      - openai
+      - teams-team-noc-l1
+      - teams-team-db-ops
+      - teams-team-vas-service-owners
+      - teams-team-it-apps
+      - teams-team-noc-shift-lead
+      - teams-team-noc-management
+      - teams-team-customer-care
+      - teams-user-dbops-engineer
+      - teams-user-dbops-lead
+      - seed-password-presenter
+      - seed-password-noc-l1
+      - seed-password-dbops-engineer
+      - seed-password-dbops-lead
+      - seed-password-admin
+      - installation-token
+      - vigil-db-app
+  vigil-migrate:
+    user: 10001
+    secrets:
+      - vigil-db-owner
+  demo-control:
+    user: 10001
+    secrets:
+      - zabbix-api
+      - alertmanager-password
+      - installation-token
+      - control-password
+      - faults-token
+  lab-zabbix-provision:
+    user: 10001
+    secrets:
+      - webhook-zabbix
+      - zabbix-admin-password
+  demo-faults:
+    user: 0
+    secrets:
+      - faults-token
+  vigil-db:
+    user: 999
+    secrets:
+      - vigil-db-superuser
+      - vigil-db-owner
+      - vigil-db-app
+  lab-zabbix-db:
+    user: 999
+    secrets:
+      - zabbix-db-password
+  lab-zabbix-server:
+    user: 1997
+    secrets:
+      - zabbix-db-password
+  lab-zabbix-web:
+    user: 1997
+    secrets:
+      - zabbix-db-password
+  lab-prometheus:
+    user: 65534
+    secrets:
+      - alertmanager-password
+  lab-alertmanager:
+    user: 65534
+    secrets:
+      - webhook-alertmanager
+      - alertmanager-web-config
+  lab-db-01:
+    user: 0
+    secrets:
+      - lab-db-01-diag-pub
+      - lab-db-01-action-pub
+      - lab-db-01-host-key

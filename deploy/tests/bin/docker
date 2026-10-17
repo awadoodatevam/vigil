@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+"""Fake of docker (and, as deploy/tests/bin/curl, of curl) for the tests of deploy/ (P-05 spec Section 7).
+
+Records its arguments as one JSON line {"command", "args"} in the file named by FAKE_LOG, reads and discards its
+standard input, and answers from the table in the JSON file named by FAKE_TABLE: a list of
+{"command": "docker" or "curl", "pattern": regular expression searched in the arguments joined by spaces,
+"answers": [{"out": standard output, "err": standard error, "code": exit code}]}; the first matching entry answers,
+its answers used in order, the last one repeating. A call that no entry matches prints nothing and exits 0.
+"""
+
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+command = Path(sys.argv[0]).name
+arguments = sys.argv[1:]
+with open(os.environ["FAKE_LOG"], "a") as log:
+    log.write(json.dumps({"command": command, "args": arguments}) + "\n")
+if not sys.stdin.isatty():
+    sys.stdin.read()
+
+table_path = Path(os.environ["FAKE_TABLE"])
+counts_path = Path(str(table_path) + ".counts")
+table = json.loads(table_path.read_text())
+counts = json.loads(counts_path.read_text()) if counts_path.exists() else {}
+joined = " ".join(arguments)
+for index, entry in enumerate(table):
+    if entry.get("command", "docker") == command and re.search(entry["pattern"], joined):
+        used = counts.get(str(index), 0)
+        counts[str(index)] = used + 1
+        counts_path.write_text(json.dumps(counts))
+        answer = entry["answers"][min(used, len(entry["answers"]) - 1)]
+        sys.stdout.write(answer.get("out", ""))
+        sys.stderr.write(answer.get("err", ""))
+        sys.exit(answer.get("code", 0))
+sys.exit(0)

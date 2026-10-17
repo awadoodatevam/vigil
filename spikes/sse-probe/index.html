@@ -1,0 +1,215 @@
+<!doctype html>
+<!-- The test page of spike AR-SP-01 (P-05 spec Section 6.11), served by probe.py. Plain JavaScript, no external resource. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AR-SP-01 SSE probe</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 50rem; }
+  button { font-size: 1.1rem; padding: 0.4rem 1.2rem; }
+  pre { background: #f4f4f4; padding: 1rem; white-space: pre-wrap; }
+  .pass { color: #116b2e; }
+  .fail { color: #a11a1a; }
+</style>
+</head>
+<body>
+<h1>AR-SP-01: live updates through the load balancer</h1>
+<p>Press "Start" and keep this tab in front until the result appears (about 11 minutes).</p>
+<button id="start" type="button">Start</button>
+<p id="verdict"></p>
+<pre id="result"></pre>
+<p><a id="download" hidden download="P-05-AR-SP-01.json">Download result</a></p>
+<script>
+"use strict";
+
+const NOTICES_NEEDED = 200;
+const LIMIT_MS = 15 * 60 * 1000;
+const WAIT_FOR_OPEN_MS = 5000;
+const resultArea = document.getElementById("result");
+
+function now() {
+  return performance.timeOrigin + performance.now();
+}
+
+function show(text) {
+  resultArea.textContent = text;
+}
+
+function round(value) {
+  return value === null ? null : Math.round(value * 10) / 10;
+}
+
+// Clock offset: 20 requests of /probe/time; the one with the smallest round trip gives the offset.
+async function measureOffset() {
+  let best = null;
+  for (let i = 0; i < 20; i++) {
+    const tSend = now();
+    const response = await fetch("/probe/time", { cache: "no-store" });
+    const body = await response.json();
+    const tReceive = now();
+    const rtt = tReceive - tSend;
+    if (best === null || rtt < best.rtt) {
+      best = { rtt: rtt, offset: body.server_ms - (tSend + tReceive) / 2 };
+    }
+  }
+  return best;
+}
+
+async function runTest() {
+  document.getElementById("start").disabled = true;
+  const startedAt = new Date();
+  const t0 = now();
+  show("Measuring the clock offset ...");
+  const info = await (await fetch("/probe/info", { cache: "no-store" })).json();
+  const start = await measureOffset();
+
+  const delays = [];
+  const reconnects = [];
+  const streams = {};
+  let idleFirstOpen = null;
+  let idleFirstError = null;
+  let idleOpens = 0;
+
+  await new Promise((resolve) => {
+    let ending = false;
+
+    function finish() {
+      clearInterval(progress);
+      clearTimeout(limit);
+      for (const name of Object.keys(streams)) {
+        const state = streams[name];
+        state.source.close();
+        if (state.errorAt !== null) {
+          reconnects.push({ stream: name, at_s: round((state.errorAt - t0) / 1000), gap_ms: null });
+        }
+      }
+      resolve();
+    }
+
+    function inError() {
+      return Object.values(streams).some((state) => state.errorAt !== null && !state.closed);
+    }
+
+    function check() {
+      if (ending || delays.length < NOTICES_NEEDED || idleOpens < 2) {
+        return;
+      }
+      endTest();
+    }
+
+    function endTest() {
+      if (ending) {
+        return;
+      }
+      ending = true;
+      if (!inError()) {
+        finish();
+        return;
+      }
+      const waitStart = now();
+      const waiting = setInterval(() => {
+        if (!inError() || now() - waitStart >= WAIT_FOR_OPEN_MS) {
+          clearInterval(waiting);
+          finish();
+        }
+      }, 100);
+    }
+
+    function open(name) {
+      const source = new EventSource("/probe/stream?mode=" + name);
+      const state = { source: source, errorAt: null, closed: false };
+      streams[name] = state;
+      source.onopen = () => {
+        const t = now();
+        if (state.errorAt !== null) {
+          reconnects.push({ stream: name, at_s: round((t - t0) / 1000), gap_ms: round(t - state.errorAt) });
+          state.errorAt = null;
+        }
+        if (name === "idle") {
+          idleOpens += 1;
+          if (idleFirstOpen === null) {
+            idleFirstOpen = t;
+          }
+        }
+        check();
+      };
+      source.onerror = () => {
+        const t = now();
+        if (state.errorAt === null) {
+          state.errorAt = t;
+        }
+        if (name === "idle" && idleFirstError === null && idleFirstOpen !== null) {
+          idleFirstError = t;
+        }
+        // EventSource does not reconnect after a non-200 answer; such a stream is not reopened.
+        if (source.readyState === EventSource.CLOSED) {
+          state.closed = true;
+        }
+      };
+      if (name === "notices") {
+        source.addEventListener("change", (event) => {
+          const t = now();
+          const data = JSON.parse(event.data);
+          delays.push(t + start.offset - data.sent_ms);
+          check();
+        });
+      }
+    }
+
+    const progress = setInterval(() => {
+      show("Running: " + delays.length + " of " + NOTICES_NEEDED + " notices, idle stream opened " + idleOpens +
+        " times, " + Math.round((now() - t0) / 1000) + " s since Start.");
+    }, 1000);
+    const limit = setTimeout(endTest, LIMIT_MS - (now() - t0));
+    open("notices");
+    open("idle");
+  });
+
+  show("Measuring the clock offset again ...");
+  const end = await measureOffset();
+  const maxDelay = delays.length ? Math.max(...delays) : null;
+  const firstErrorAfter = idleFirstError === null ? null : (idleFirstError - idleFirstOpen) / 1000;
+  const criteria = {
+    local_address: info.local_address === "172.30.0.10",
+    https_origin: location.protocol === "https:" && location.hostname === "demo.vigil.solviclabs.com",
+    notices_200: delays.length >= NOTICES_NEEDED,
+    max_delay_1000: maxDelay !== null && maxDelay <= 1000,
+    idle_open_295: idleFirstOpen !== null && (firstErrorAfter === null || firstErrorAfter >= 295),
+    reconnect_5000: reconnects.every((r) => r.gap_ms !== null && r.gap_ms <= 5000),
+  };
+  const passed = Object.values(criteria).every(Boolean);
+  const result = {
+    started_at: startedAt.toISOString(),
+    finished_at: new Date().toISOString(),
+    page_url: location.href,
+    user_agent: navigator.userAgent,
+    local_address: info.local_address,
+    forwarded_for: info.forwarded_for,
+    offset_ms_start: round(start.offset),
+    offset_ms_end: round(end.offset),
+    rtt_min_ms: round(start.rtt),
+    notices: { count: delays.length, max_delay_ms: round(maxDelay), delays_ms: delays.map(round) },
+    idle: { first_error_after_s: round(firstErrorAfter) },
+    reconnects: reconnects,
+    criteria: criteria,
+    passed: passed,
+  };
+
+  const verdict = document.getElementById("verdict");
+  verdict.textContent = passed ? "PASS" : "FAIL";
+  verdict.className = passed ? "pass" : "fail";
+  show(Object.entries(criteria).map(([name, ok]) => (ok ? "PASS " : "FAIL ") + name).join("\n") +
+    "\n\nlargest delay: " + round(maxDelay) + " ms; smallest round trip: " + round(start.rtt) + " ms; reconnections: " +
+    reconnects.length);
+  const link = document.getElementById("download");
+  link.href = URL.createObjectURL(new Blob([JSON.stringify(result, null, 2) + "\n"], { type: "application/json" }));
+  link.hidden = false;
+}
+
+document.getElementById("start").addEventListener("click", () => {
+  runTest().catch((error) => show("The test stopped: " + error));
+});
+</script>
+</body>
+</html>

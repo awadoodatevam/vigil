@@ -8,7 +8,7 @@ Vigil is a NOC automation product (working name; the audience sees "Techfinity")
 tools/check-all.sh
 ```
 
-It runs every check a package MUST pass, in this order, and stops at the first failure: in a cloud session, step (0) starts the Docker daemon when it is not running (`tools/start-docker.sh`, with the registry mirror `mirror.gcr.io`; Docker Hub stays the fallback); the cloud setup version check (only in a cloud session); the build of the images that tests use (`deploy/images.sh --test`); `./mvnw -B verify` (Spotless, Java tests, and the web application's `npm ci`, lint, Prettier, type check, Vitest and build), `ruff` and `pytest` (the Python tests of `tools/`, `demo/`, `dev/`, `deploy/local/`, `spikes/` and `tests/acceptance/`; the tests marked `lab`, which start the lab with its monitoring and run one storm, only when the branch changes a file under `demo/`, `deploy/`, `dev/`, `spikes/`, `tools/` or `docs/31-demo-data/`), `shellcheck`, the demo data checks, Docker Compose validation, and `tools/trace.py --check`. The GitHub Actions job `gate` in `.github/workflows/ci.yml` runs the same command on every pull request to `main`.
+It runs every check a package MUST pass, in this order, and stops at the first failure: in a cloud session, step (0) starts the Docker daemon when it is not running (`tools/start-docker.sh`, with the registry mirror `mirror.gcr.io`; Docker Hub stays the fallback); the cloud setup version check (only in a cloud session); the build of the images that tests use (`deploy/images.sh --test`); `./mvnw -B verify` (Spotless, Java tests, and the web application's `npm ci`, lint, Prettier, type check, Vitest and build), `ruff` and `pytest` (the Python tests of `tools/`, `demo/`, `dev/`, `deploy/`, `spikes/` and `tests/acceptance/`; the tests marked `lab`, which start the lab with its monitoring and run one storm, only when the branch changes a file under `demo/`, `deploy/`, `dev/`, `spikes/`, `tools/` or `docs/31-demo-data/`), `shellcheck`, the demo data checks, Docker Compose validation, and `tools/trace.py --check`. The GitHub Actions job `gate` in `.github/workflows/ci.yml` runs the same command on every pull request to `main`.
 
 Other commands: `./mvnw -B verify` (Java and web build and tests only), `tools/loc.sh origin/main HEAD` (lines of production code added and changed), `tools/trace.py` (requirement IDs without tests).
 
@@ -59,7 +59,7 @@ Interfaces of `vigil-api` for later packages (P-09):
 
 ## Local installation
 
-`deploy/images.sh --test` builds the images that tests use, after pulling the pinned third-party images of `deploy/local/compose.yaml` (with retries): `vigil/demo-lab:local` (the five lab hosts, `demo/lab/`), `vigil/demo-faults:local` (`demo/faults/`), `vigil/lab-zabbix-provision:local` (`demo/monitoring/provision/`), `vigil/recorder:local` (`dev/recorder/`) and `vigil/storm-spike:local` (`spikes/storm-timing/`). It is the only way to build local images: it passes the proxy variables and the CA bundle the build needs.
+`deploy/images.sh --test` builds the images that tests use, after pulling the pinned third-party images of `deploy/local/compose.yaml` (with retries): `vigil/demo-lab:local` (the five lab hosts, `demo/lab/`), `vigil/demo-faults:local` (`demo/faults/`), `vigil/lab-zabbix-provision:local` (`demo/monitoring/provision/`), `vigil/recorder:local` (`dev/recorder/`), `vigil/storm-spike:local` (`spikes/storm-timing/`) and `vigil/sse-probe:local` (`spikes/sse-probe/`). It is the only way to build local images: it passes the proxy variables and the CA bundle the build needs.
 
 ```bash
 deploy/local.sh up --lab-only [--profile test|demo] [--project NAME]   # starts the lab with its monitoring
@@ -77,3 +77,18 @@ spikes/storm-timing/run.sh [--storms N] [--extra LIST] [--save-recordings] [--fo
 ```
 
 It writes `spikes/results/storm-timing-{UTC time}.json` (see `spikes/storm-timing/README.md`). Vigil and the rest of the local installation arrive in P-26.
+
+## Demo installation on AWS
+
+The demo installation runs on AWS in `us-east-1` (`docs/50-architecture.md` Section 17). Its scripts run on the owner's Mac with the AWS CLI (signed in with `aws login`); they act on the hosts through AWS Systems Manager. `deploy/edge.md` gives the steps, in order, and the prerequisites.
+
+- `deploy/edge.sh {installation}`: creates, idempotently, the network, security groups, roles, ECR repositories, deployment bucket, Route 53 zone, SES identity, certificate, load balancer and the two hosts with their bootstrap.
+- `deploy/new-installation.sh {installation}`: generates the installation's secrets into Parameter Store `/vigil/{installation}/`, never overwriting one.
+- `deploy/build.sh {release}`: builds the release's images for `linux/amd64` and pushes them to ECR (run by `.github/workflows/release.yml` on `main`).
+- `deploy/deploy.sh {installation} {release}`: uploads the deployment files to the deployment bucket and runs the deployment sequence on the main host (secrets through `deploy/secrets.sh`, pull, start, `deployed.yaml`, the models check).
+- `deploy/status.sh {installation}`: the hosts' states and, on the main host, the containers, secret directories, health and models.
+- `deploy/gpu.sh start|stop|status`: starts the GPU host and waits until `vigil-llm` answers, stops it, or shows it.
+- `deploy/models.sh update {model}`: pulls a model again and writes its new digest into `deploy/models.lock`, which the operator commits.
+- `tests/acceptance/p05_aws_check.sh {installation}`: records the resources and the HTTPS checks in `tests/acceptance/results/P-05-aws.txt` (owner-run step of P-05).
+
+The tests of these scripts (`deploy/test_*.py`) run in the gate with fakes of the AWS CLI, Docker, `curl` and `ssh-keygen` (`deploy/tests/`); nothing in the gate calls AWS.

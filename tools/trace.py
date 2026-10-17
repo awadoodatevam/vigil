@@ -26,7 +26,7 @@ TS_NAME_RE = re.compile(r"""\b(?:test|it|describe)\s*\(\s*(["'`])((?:\\.|(?!\1).
 JAVA_ROOTS = ("app/src/test", "demo/*/src/test")
 TS_UNIT_ROOTS = ("web/src",)
 TS_E2E_ROOTS = ("tests/e2e",)
-PYTHON_ROOTS = ("tools", "demo", "dev", "deploy/local", "spikes", "tests")
+PYTHON_ROOTS = ("tools", "demo", "dev", "deploy", "spikes", "tests")
 
 
 def first_word_id(name):

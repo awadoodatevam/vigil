@@ -151,3 +151,17 @@ def test_spikes_tests_count(tmp_path):
         ''',
     )
     assert trace_module.main(["--check"], tmp_path) == 0
+
+
+def test_deploy_tests_count(tmp_path):
+    """BP-R-15 a pytest test under deploy/, outside deploy/local/, names its ID for --check."""
+    spec(tmp_path, ["| AR-H-12 | | test |\n"])
+    write(
+        tmp_path,
+        "deploy/test_status.py",
+        '''\
+        def test_status():
+            """AR-H-12 the status is shown."""
+        ''',
+    )
+    assert trace_module.main(["--check"], tmp_path) == 0
