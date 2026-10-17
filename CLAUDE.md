@@ -53,6 +53,7 @@ Under `docs/` you MAY change only: your package report; the values your spec nam
 | Build the local images that tests use (from P-03) | `deploy/images.sh --test` (the gate command runs it) |
 | Storm driver (from P-27) | `docker compose -f deploy/local/compose.yaml --profile acceptance run --rm storm-driver --mode immediate` |
 | Playwright tests (from P-26) | `deploy/local.sh e2e [suite]` |
+| Demo installation on AWS (owner-run, from the Mac; P-05): edge, secrets, images, deployment, status, GPU host, models | `deploy/edge.md` (the scripts `deploy/edge.sh`, `new-installation.sh`, `build.sh`, `deploy.sh`, `status.sh`, `gpu.sh`, `models.sh`) |
 
 Builds with Testcontainers take longer than 2 minutes: run them with a longer timeout or in the background and wait for the result. A foreground command stops waiting after at most 10 minutes. In cloud sessions use the lab profile `test`.
 
@@ -63,6 +64,7 @@ Builds with Testcontainers take longer than 2 minutes: run them with a longer ti
 - Docker and `docker compose` are available. Testcontainers needs them. The Docker daemon may not be running when a session starts: `tools/check-all.sh` starts it in its step (0) (from P-03; with the registry mirror `mirror.gcr.io` from P-08, Docker Hub as fallback); to start it before that, run `tools/start-docker.sh` (or, before P-03 is merged, `sudo dockerd > /tmp/dockerd.log 2>&1 &` and wait until `docker info` succeeds). Build local images only with `deploy/images.sh`, never with a plain `docker build` (it passes the proxy settings and CA bundle the build needs). Tests use those images by their local tags.
 - Python tools (`ruff`, `pytest`, `PyYAML`) are in the virtual environment `/opt/vigil-tools`; Ubuntu's system Python refuses `pip install`. Run Python checks with `/opt/vigil-tools/bin/python`. Python images install their packages into `/opt/venv`.
 - Reachable: GitHub (including release downloads), Maven Central, npm, PyPI, Docker Hub (and its mirror `mirror.gcr.io`), `ghcr.io`, `mcr.microsoft.com`, `public.ecr.aws`, `nodejs.org`, Ubuntu package mirrors, `api.anthropic.com`.
+- AWS: cloud sessions have no AWS credentials. Nothing in the gate calls AWS; scripts that act on AWS are owner-run from the Mac, and their tests use the fakes in `deploy/tests/`.
 - Not reachable: Debian package mirrors, `repo.zabbix.com`, Jira (Atlassian), Microsoft Teams, SMTP servers, `api.openai.com`, the Ollama model registry, Playwright's browser download hosts (use the `mcr.microsoft.com/playwright` image). Tests never call real external systems: use WireMock in Java tests and the dev fakes (`dev/fakes/`) in the local installation. Spikes against real systems are owner-run steps (`spikes/`).
 
 ## Code rules you MUST NOT break
@@ -83,7 +85,7 @@ Builds with Testcontainers take longer than 2 minutes: run them with a longer ti
 
 - Java: google-java-format through Spotless; logging through SLF4J in the JSON format of AR-S-11; no `System.out`.
 - TypeScript: ESLint, Prettier, `tsc --noEmit`; TanStack Query for data; CSS Modules for styles.
-- Python (`demo/`, `dev/`, `spikes/`, `tests/acceptance/`, `deploy/local/`): Python 3.12, standard library first; `ruff check` and `ruff format`; pytest in `test_*.py` files next to the code.
+- Python (`demo/`, `dev/`, `spikes/`, `tests/acceptance/`, `deploy/`): Python 3.12, standard library first; `ruff check` and `ruff format`; pytest in `test_*.py` files next to the code.
 - Shell: `set -euo pipefail`; `shellcheck` clean.
 - Tests: `*Test` for unit tests, `*IT` for tests that start PostgreSQL, WireMock, SSH, containers or a Spring context; `*.test.ts(x)` for Vitest; Playwright under `tests/e2e/`.
 
