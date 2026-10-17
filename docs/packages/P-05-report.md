@@ -70,10 +70,12 @@ The deploy tests also passed as a non-root user in this session (27 passed; the 
 | 6 | `deploy/gpu.sh stop` on a `pending` host waits for `running` at most 60 × 10 s, then stops it. | Spec 6.10 names the wait but not its limit; every time limit is counted in attempts (spec 6.1), so the stop wait's limit is used. |
 | 7 | The user data reads the installed Docker server version from `dockerd --version`; on a failed step it logs `bootstrap failed at line {n}`, and it ends with the log line `bootstrap done`. | The daemon need not be running before the bootstrap restarts it; the two log lines go only to `/var/log/vigil-bootstrap.log` and help find a failed step. |
 | 8 | Ollama image: `0.40.5`, although Docker Hub has a tag `0.40.6` pushed at 00:53 UTC on the pin date. | Ollama's `latest` tag still points to 0.40.5: Ollama retags `latest` only when a GitHub release is published (`.github/workflows/latest.yaml`, `on: release: types: [released]`), so 0.40.6 was a draft, not a release, on the pin date. |
+| 9 | A root file `.gitleaksignore` holds one fingerprint: the `private-key` match of `gitleaks` on commit `a2dddaa` (`deploy/test_new_installation.py` line 66), where the test asserted the first and last line of a generated key; the test now builds those lines from two parts. | A false positive (no key is committed) that failed the `ci.yml` step `gitleaks`, which scans every commit of the pull request; the ignore file is gitleaks' own mechanism and avoids rewriting the branch's history. `.gitleaksignore` is not in the layout of `60-build-plan` Section 5.1 (document feedback 2). |
 
 ## 4. Document feedback (CTX-Q-8)
 
 1. Spec 6.4 step 11 has no message for a quota or capacity refusal of the main host (step 16 has them for the GPU host). Proposal: none needed for P-05 (deviation 3 prints the AWS CLI error); a later spec may add a message.
+2. `.gitleaksignore` (deviation 9) is a top-level entry that `60-build-plan` Section 5.1 (complete list) does not name. Proposal: add it to Section 5.1 as "Other" (false positives of `gitleaks`, one fingerprint per line).
 
 ## 5. Blocking questions
 
