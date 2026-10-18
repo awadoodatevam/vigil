@@ -128,6 +128,7 @@ def test_old_docker(harness):
 def test_models_update(harness):
     """AR-H-11 models.sh update writes the digest Ollama reports into models.lock; an unknown model exits 2."""
     lock = harness.root / "deploy" / "models.lock"
+    write_lock(lock, EMBED, "unrecorded")
     original = lock.read_text()
     harness.seed(instances={"i-0main": MAIN})
     harness.table(
@@ -139,9 +140,9 @@ def test_models_update(harness):
     )
     result = harness.run("deploy/models.sh", "update", "embeddinggemma")
     assert result.returncode == 0, result.stdout + result.stderr
-    assert result.stdout.strip() == f"embeddinggemma: unrecorded -> {NEW}"
+    assert result.stdout.strip() == f"embeddinggemma: {EMBED} -> {NEW}"
     assert lock.read_text() == original.replace(
-        "embeddinggemma vigil-embed unrecorded", f"embeddinggemma vigil-embed {NEW}"
+        f"embeddinggemma vigil-embed {EMBED}", f"embeddinggemma vigil-embed {NEW}"
     )
     assert ["exec", "vigil-embed", "ollama", "pull", "embeddinggemma"] in [
         c["args"] for c in harness.fake_calls("docker")

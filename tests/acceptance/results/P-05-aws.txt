@@ -1,0 +1,263 @@
+== date
+Sun Oct 18 11:36:04 UTC 2026
+aws-cli/2.38.1 Python/3.14.6 Darwin/27.0.0 exe/arm64
+caller: arn:aws:iam::653271908574:user/abdul-admin
+exit 0
+== edge
+vpc vigil-demo: exists
+internet-gateway vigil-demo: exists
+subnet vigil-demo-a: exists
+subnet vigil-demo-b: exists
+subnet-reservation 10.40.1.8/29: exists
+subnet-reservation 10.40.1.16/29: exists
+route-table vigil-demo: exists
+security-group vigil-demo-alb: exists
+security-group vigil-demo-main: exists
+security-group vigil-demo-gpu: exists
+role vigil-demo-main: set
+role-policy vigil-demo-main: set
+instance-profile vigil-demo-main: exists
+role vigil-demo-gpu: set
+role-policy vigil-demo-gpu: set
+instance-profile vigil-demo-gpu: exists
+oidc-provider https://token.actions.githubusercontent.com: exists
+role vigil-demo-github-push: set
+role-policy vigil-demo-github-push: set
+ecr-repository demo/vigil-app: set
+ecr-repository demo/demo-control: set
+ecr-repository demo/demo-lab: set
+ecr-repository demo/demo-faults: set
+ecr-repository demo/lab-zabbix-provision: set
+ecr-repository demo/sse-probe: set
+bucket vigil-demo-deploy-653271908574: set
+hosted-zone vigil.solviclabs.com: exists
+name server ns-307.awsdns-38.com
+name server ns-721.awsdns-26.net
+name server ns-1964.awsdns-53.co.uk
+name server ns-1489.awsdns-58.org
+ses-identity vigil.solviclabs.com: exists
+dns-records ses-dkim: set
+certificate vigil-demo: exists
+dns-records certificate-validation: set
+target-group vigil-app: set
+target-group demo-control: set
+load-balancer vigil-alb: set
+listener 80: exists
+instance vigil-demo-main: exists
+target vigil-app/vigil-demo-main: exists
+target demo-control/vigil-demo-main: exists
+listener 443: exists
+listener-rules 443: exists
+dns-records demo-and-control: set
+The GPU host was not created: VcpuLimitExceeded. See BP-OT-09 in deploy/edge.md and run deploy/edge.sh demo again later.
+name server ns-307.awsdns-38.com
+name server ns-721.awsdns-26.net
+name server ns-1964.awsdns-53.co.uk
+name server ns-1489.awsdns-58.org
+load balancer: vigil-alb-2119980440.us-east-1.elb.amazonaws.com
+bucket: vigil-demo-deploy-653271908574
+push role: arn:aws:iam::653271908574:role/vigil-demo-github-push
+main host: i-0512f130bee88b091 running
+gpu host: not created
+exit 3
+== delegation
+dig +short NS vigil.solviclabs.com:
+ns-1964.awsdns-53.co.uk.
+ns-307.awsdns-38.com.
+ns-721.awsdns-26.net.
+ns-1489.awsdns-58.org.
+dig +short NS vigil.solviclabs.com @1.1.1.1:
+ns-1489.awsdns-58.org.
+ns-1964.awsdns-53.co.uk.
+ns-307.awsdns-38.com.
+ns-721.awsdns-26.net.
+zone name servers:
+ns-307.awsdns-38.com
+ns-721.awsdns-26.net
+ns-1964.awsdns-53.co.uk
+ns-1489.awsdns-58.org
+exit 0
+== network
+vpc vigil-demo: vpc-0875f58e7e6021323 10.40.0.0/16
+dns support: true
+dns host names: true
+internet gateway igw-0487e84a639cf84d0 attached to vpc-0875f58e7e6021323 available
+subnet vigil-demo-a subnet-07cf5bddc4b26e620 10.40.1.0/24 us-east-1a public IPv4 on launch true
+  reservation 10.40.1.16/29 explicit
+  reservation 10.40.1.8/29 explicit
+subnet vigil-demo-b subnet-05f235c14f39bcbfd 10.40.2.0/24 us-east-1b public IPv4 on launch true
+route table rtb-01b8ea84f33fe4425
+  route 10.40.0.0/16 -> local
+  route 0.0.0.0/0 -> igw-0487e84a639cf84d0
+  association subnet-07cf5bddc4b26e620
+  association subnet-05f235c14f39bcbfd
+exit 0
+== security-groups
+security group vigil-demo-alb sg-0a9a90312d4c34832
+  inbound tcp 443-443 from 0.0.0.0/0
+  inbound tcp 80-80 from 0.0.0.0/0
+security group vigil-demo-main sg-0ca3fa1ab10048f54
+  inbound tcp 8080-8080 from sg-0a9a90312d4c34832
+  inbound tcp 8090-8090 from sg-0a9a90312d4c34832
+security group vigil-demo-gpu sg-058dbad9971a088b3
+  inbound tcp 11434-11434 from 10.40.1.10/32
+exit 0
+== dns
+vigil.solviclabs.com. NS ns-307.awsdns-38.com. ns-721.awsdns-26.net. ns-1964.awsdns-53.co.uk. ns-1489.awsdns-58.org.
+vigil.solviclabs.com. SOA ns-307.awsdns-38.com. awsdns-hostmaster.amazon.com. 1 7200 900 1209600 86400
+7v5ystimuaiif6tqtxuusdt3hmz3jaok._domainkey.vigil.solviclabs.com. CNAME 7v5ystimuaiif6tqtxuusdt3hmz3jaok.dkim.amazonses.com
+kiny4oxijjqtkpjh2vpfttlshgbo2mop._domainkey.vigil.solviclabs.com. CNAME kiny4oxijjqtkpjh2vpfttlshgbo2mop.dkim.amazonses.com
+rkfxjrdgxusbn7cay5wzr3jwys34g3sw._domainkey.vigil.solviclabs.com. CNAME rkfxjrdgxusbn7cay5wzr3jwys34g3sw.dkim.amazonses.com
+control.vigil.solviclabs.com. A alias vigil-alb-2119980440.us-east-1.elb.amazonaws.com.
+_3872ed6187cc8038d1ea60584c283864.control.vigil.solviclabs.com. CNAME _5a3efbbd393e8c58d2a119391421082a.wzccmgtwzk.acm-validations.aws.
+demo.vigil.solviclabs.com. A alias vigil-alb-2119980440.us-east-1.elb.amazonaws.com.
+_159502813973c265fd8f09bd700004c8.demo.vigil.solviclabs.com. CNAME _35da1201fe39e3494832a5ed40c37742.wzccmgtwzk.acm-validations.aws.
+exit 0
+== certificate
+certificate arn:aws:acm:us-east-1:653271908574:certificate/8761362c-684a-4fe1-aad8-1c1d92b4e4e9
+  names demo.vigil.solviclabs.com, control.vigil.solviclabs.com
+  status ISSUED
+  validation DNS
+exit 0
+== load-balancer
+load balancer vigil-alb internet-facing vigil-alb-2119980440.us-east-1.elb.amazonaws.com subnets subnet-05f235c14f39bcbfd, subnet-07cf5bddc4b26e620 security groups sg-0a9a90312d4c34832
+  idle_timeout.timeout_seconds = 120
+listener 443 HTTPS policy ELBSecurityPolicy-TLS13-1-2-2021-06 certificate arn:aws:acm:us-east-1:653271908574:certificate/8761362c-684a-4fe1-aad8-1c1d92b4e4e9 default [{"Type": "fixed-response", "FixedResponseConfig": {"StatusCode": "404", "ContentType": "text/plain"}}]
+listener 80 HTTP policy None certificate  default [{"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "Host": "#{host}", "Path": "/#{path}", "Query": "#{query}", "StatusCode": "HTTP_301"}}]
+rule 10 host-header demo.vigil.solviclabs.com; path-pattern /actuator* -> fixed-response {"StatusCode": "404", "ContentType": "text/plain"}
+rule 20 host-header demo.vigil.solviclabs.com -> forward arn:aws:elasticloadbalancing:us-east-1:653271908574:targetgroup/vigil-app/3f90f465bd75fc84
+rule 30 host-header control.vigil.solviclabs.com -> forward arn:aws:elasticloadbalancing:us-east-1:653271908574:targetgroup/demo-control/ab2fa9d4fb4d2fd4
+rule default - -> fixed-response {"StatusCode": "404", "ContentType": "text/plain"}
+target group vigil-app port 8080 health /actuator/health/liveness every 10 s code 200
+  target i-0512f130bee88b091:8080 healthy
+target group demo-control port 8090 health /health every 10 s code 200
+  target i-0512f130bee88b091:8090 unhealthy
+exit 0
+== instances
+main host: i-0512f130bee88b091 running
+i-0512f130bee88b091 m7i.xlarge ami-02a9cdd4e98bc3c78 us-east-1a 10.40.1.10 running HttpTokens required profile arn:aws:iam::653271908574:instance-profile/vigil-demo-main
+  image name ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-20261017
+  root volume 100 GiB gp3
+gpu host: not created
+exit 0
+== ecr-and-bucket
+repository demo/vigil-app IMMUTABLE
+  tags 
+repository demo/demo-control IMMUTABLE
+  tags 
+repository demo/demo-lab IMMUTABLE
+  tags 
+repository demo/demo-faults IMMUTABLE
+  tags 
+repository demo/lab-zabbix-provision IMMUTABLE
+  tags 
+repository demo/sse-probe IMMUTABLE
+  tags p05-1
+bucket vigil-demo-deploy-653271908574
+  public access block {"BlockPublicAcls": true, "IgnorePublicAcls": true, "BlockPublicPolicy": true, "RestrictPublicBuckets": true}
+  object ownership BucketOwnerEnforced
+  encryption AES256
+exit 0
+== iam
+role vigil-demo-main
+  trust {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Principal": {"Service": "ec2.amazonaws.com"}, "Action": "sts:AssumeRole"}]}
+  attached arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  inline {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": ["ssm:GetParameter", "ssm:GetParametersByPath"], "Resource": ["arn:aws:ssm:us-east-1:653271908574:parameter/vigil/demo/*", "arn:aws:ssm:us-east-1:653271908574:parameter/vigil/demo"]}, {"Effect": "Allow", "Action": "ecr:GetAuthorizationToken", "Resource": "*"}, {"Effect": "Allow", "Action": ["ecr:BatchGetImage", "ecr:GetDownloadUrlForLayer", "ecr:BatchCheckLayerAvailability"], "Resource": "arn:aws:ecr:us-east-1:653271908574:repository/demo/*"}, {"Effect": "Allow", "Action": "s3:GetObject", "Resource": "arn:aws:s3:::vigil-demo-deploy-653271908574/*"}, {"Effect": "Allow", "Action": "s3:ListBucket", "Resource": "arn:aws:s3:::vigil-demo-deploy-653271908574"}, {"Effect": "Deny", "Action": ["ssm:GetParameter", "ssm:GetParameters", "ssm:GetParametersByPath"], "NotResource": ["arn:aws:ssm:us-east-1:653271908574:parameter/vigil/demo/*", "arn:aws:ssm:us-east-1:653271908574:parameter/vigil/demo"]}]}
+role vigil-demo-gpu
+  trust {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Principal": {"Service": "ec2.amazonaws.com"}, "Action": "sts:AssumeRole"}]}
+  attached arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  inline {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": "ecr:GetAuthorizationToken", "Resource": "*"}, {"Effect": "Allow", "Action": ["ecr:BatchGetImage", "ecr:GetDownloadUrlForLayer", "ecr:BatchCheckLayerAvailability"], "Resource": "arn:aws:ecr:us-east-1:653271908574:repository/demo/*"}, {"Effect": "Deny", "Action": ["ssm:GetParameter", "ssm:GetParameters", "ssm:GetParametersByPath"], "Resource": "arn:aws:ssm:*:653271908574:parameter/*"}]}
+role vigil-demo-github-push
+  trust {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Principal": {"Federated": "arn:aws:iam::653271908574:oidc-provider/token.actions.githubusercontent.com"}, "Action": "sts:AssumeRoleWithWebIdentity", "Condition": {"StringEquals": {"token.actions.githubusercontent.com:aud": "sts.amazonaws.com", "token.actions.githubusercontent.com:sub": "repo:awadoodatevam/vigil:ref:refs/heads/main"}}}]}
+  inline {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": "ecr:GetAuthorizationToken", "Resource": "*"}, {"Effect": "Allow", "Action": ["ecr:BatchCheckLayerAvailability", "ecr:InitiateLayerUpload", "ecr:UploadLayerPart", "ecr:CompleteLayerUpload", "ecr:PutImage", "ecr:BatchGetImage", "ecr:DescribeImages"], "Resource": "arn:aws:ecr:us-east-1:653271908574:repository/demo/*"}]}
+oidc provider token.actions.githubusercontent.com client IDs sts.amazonaws.com
+exit 0
+== ses
+identity vigil.solviclabs.com verified for sending true, DKIM SUCCESS
+exit 0
+== parameters
+/vigil/demo/alertmanager-password
+/vigil/demo/control-password
+/vigil/demo/faults-token
+/vigil/demo/installation-token
+/vigil/demo/lab-db-01-action
+/vigil/demo/lab-db-01-action-pub
+/vigil/demo/lab-db-01-diag
+/vigil/demo/lab-db-01-diag-pub
+/vigil/demo/lab-db-01-host-key
+/vigil/demo/seed-password-admin
+/vigil/demo/seed-password-dbops-engineer
+/vigil/demo/seed-password-dbops-lead
+/vigil/demo/seed-password-noc-l1
+/vigil/demo/seed-password-presenter
+/vigil/demo/vigil-db-app
+/vigil/demo/vigil-db-owner
+/vigil/demo/vigil-db-superuser
+/vigil/demo/webhook-alertmanager
+/vigil/demo/webhook-zabbix
+/vigil/demo/zabbix-admin-password
+/vigil/demo/zabbix-db-password
+count 21
+exit 0
+== status
+main host: i-0512f130bee88b091 running
+gpu host: not created
+bootstrap main 1 docker 29.1.3 compose 2.40.3
+docker 29.1.3
+compose 2.40.3
+release: "p05-1"
+deployed_at: "2026-10-18T11:08:22Z"
+NAME          STATE     STATUS
+sse-probe     running   Up 33 minutes
+vigil-embed   running   Up 33 minutes
+no unit with secrets is running
+vigil-app health: {"status": "UP"}
+embeddinggemma 85462619ee721b466c5927d109d4cb765861907d5417b9109caebc4e614679f1 matches models.lock
+exit 0
+== main-host
+bootstrap main 1 docker 29.1.3 compose 2.40.3
+Reference ID    : A9FEA97B (169.254.169.123)
+Stratum         : 2
+Ref time (UTC)  : Sun Oct 18 11:39:39 2026
+System time     : 0.000000013 seconds fast of NTP time
+Last offset     : +0.000001918 seconds
+RMS offset      : 0.000002612 seconds
+Frequency       : 0.536 ppm slow
+Residual freq   : +0.000 ppm
+Skew            : 0.072 ppm
+Root delay      : 0.000159594 seconds
+Root dispersion : 0.000040448 seconds
+Update interval : 16.1 seconds
+Leap status     : Normal
+               Local time: Sun 2026-10-18 11:39:48 UTC
+           Universal time: Sun 2026-10-18 11:39:48 UTC
+                 RTC time: Sun 2026-10-18 11:39:48
+                Time zone: UTC (UTC, +0000)
+System clock synchronized: yes
+              NTP service: active
+          RTC in local TZ: no
+-N DOCKER-USER
+-A DOCKER-USER -s 172.31.0.0/24 -d 172.30.0.10/32 -m conntrack --ctstate NEW -j DROP
+{"log-driver": "local", "log-opts": {"max-size": "10m", "max-file": "5"}}
+embedding length 768
+exit 0
+== https
+301
+Location: https://demo.vigil.solviclabs.com:443/
+200
+404
+502
+404
+exit code 35
+curl: (35) LibreSSL/3.3.6: error:1404B42E:SSL routines:ST_CONNECT:tlsv1 alert protocol version
+exit 0
+PASS http-redirect
+PASS https-demo
+PASS actuator-404
+PASS control-502
+PASS unknown-host-404
+PASS tls-1.1-refused
+PASS AR-ASM-09
+PASS embedding
+PASS DOCKER-USER
+PASS clock

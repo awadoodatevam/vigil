@@ -6,7 +6,7 @@
 | Branch | `p-05-aws-edge-hosts-deployment` |
 | Pin date (BP-R-08) | 17 October 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (setup version 1, Temurin 25.0.4.1+1, Docker 29.8.2, Compose 2.40.3) |
-| State | Built; the gate command passes in this session (with the lab tests, CTX-D-036); the `ci.yml` job `gate` runs on the pull request. The owner-run steps of spec Section 6.13 (AWS, Cloudflare, the browser in Pakistan) are pending; their results are recorded by the session "Record the owner-run results of P-05". |
+| State | Built and merged (pull request #6, squash-merged on 17 October 2026 before the owner-run steps, deviation 10); the gate command passed in the build session and the `ci.yml` job `gate` passed on #6. Owner-run steps of spec Section 6.13 done on 18 October 2026: every `PASS`/`FAIL` line of `P-05-aws.txt` reads `PASS`; AR-SP-01 passed on its second run (deviation 11); the GPU host is not created while BP-OT-09 is pending. Results recorded on 18 October 2026 by the session "Record the owner-run results of P-05"; they reach `main` through a second pull request from this branch. |
 
 ## 1. What was built
 
@@ -29,7 +29,7 @@
 | `tools/check-all.sh` step (3) and `tools/trace.py` read `deploy/` in place of `deploy/local/`; `deploy/images.sh --test` builds `vigil/sse-probe:local`; `README.md` (gate, local images, section "Demo installation on AWS"); `spikes/README.md`, `spikes/results/README.md` | BP-R-12, BP-R-15, BP-R-04, BP-DC-06 |
 | Nothing in this package creates a backup | AR-H-13 |
 
-The rows of spec part 4 with proof "checked by review" (AR-H-01 to AR-H-06, AR-H-08, AR-H-09, AR-H-13, AR-S-09, AR-T-19, SL-A3-05, BP-W-03, BP-A-06, BP-R-12) are built as listed above; their review evidence is the owner-run result file `tests/acceptance/results/P-05-aws.txt` (pending) and, for BP-W-03 and BP-R-12, the files themselves.
+The rows of spec part 4 with proof "checked by review" (AR-H-01 to AR-H-06, AR-H-08, AR-H-09, AR-H-13, AR-S-09, AR-T-19, SL-A3-05, BP-W-03, BP-A-06, BP-R-12) are built as listed above; their review evidence is the owner-run result file `tests/acceptance/results/P-05-aws.txt` (Section 8) and, for BP-W-03 and BP-R-12, the files themselves. AR-H-02 shows that BP-OT-09 is pending (the GPU host is not created).
 
 ## 2. Tests added
 
@@ -58,6 +58,8 @@ All in the gate (step 3), with the fakes of `deploy/tests/` (`fake_aws.py` with 
 
 The deploy tests also passed as a non-root user in this session (27 passed; the owner checks are skipped then, the "Not root" line is checked). The test page `index.html` was also run once in the session's Chromium against the probe with short timings (200 notices, two reconnections, result file downloaded with every key of spec 6.11); this is not a gate test.
 
+Changed in the results session (18 October 2026): `test_models_update` now writes its own copy of `models.lock` (spec Section 7: "a copy of `models.lock`") instead of reading the repository's, which holds the recorded `embeddinggemma` digest since step 11 and made the test fail.
+
 ## 3. Deviations from the spec
 
 | # | Deviation | Reason |
@@ -71,11 +73,14 @@ The deploy tests also passed as a non-root user in this session (27 passed; the 
 | 7 | The user data reads the installed Docker server version from `dockerd --version`; on a failed step it logs `bootstrap failed at line {n}`, and it ends with the log line `bootstrap done`. | The daemon need not be running before the bootstrap restarts it; the two log lines go only to `/var/log/vigil-bootstrap.log` and help find a failed step. |
 | 8 | Ollama image: `0.40.5`, although Docker Hub has a tag `0.40.6` pushed at 00:53 UTC on the pin date. | Ollama's `latest` tag still points to 0.40.5: Ollama retags `latest` only when a GitHub release is published (`.github/workflows/latest.yaml`, `on: release: types: [released]`), so 0.40.6 was a draft, not a release, on the pin date. |
 | 9 | A root file `.gitleaksignore` holds one fingerprint: the `private-key` match of `gitleaks` on commit `a2dddaa` (`deploy/test_new_installation.py` line 66), where the test asserted the first and last line of a generated key; the test now builds those lines from two parts. | A false positive (no key is committed) that failed the `ci.yml` step `gitleaks`, which scans every commit of the pull request; the ignore file is gitleaks' own mechanism and avoids rewriting the branch's history. `.gitleaksignore` is not in the layout of `60-build-plan` Section 5.1 (document feedback 2). |
+| 10 | Pull request #6 was squash-merged into `main` on 17 October 2026, before the owner-run steps of spec Section 6.13, contrary to BP-L-5 ("They run on the branch before the merge", spec Section 1). The results are committed to `p-05-aws-edge-hosts-deployment` and reach `main` through a second pull request from this branch, "P-05: owner-run results" (with a merge of `main` into the branch, so that it carries only the results and this report). | Owner decision, 18 October 2026. |
+| 11 | AR-SP-01 ran twice. Run 1 (`spikes/results/P-05-AR-SP-01-run1.json`) failed only `max_delay_1000`; run 2 (`spikes/results/P-05-AR-SP-01.json`, the file spec 6.13 step 8 names) passed every criterion. Both files are kept. | Owner decision under P05-DC-02 after run 1, 18 October 2026: run again and keep both files (document feedback 3). |
 
 ## 4. Document feedback (CTX-Q-8)
 
 1. Spec 6.4 step 11 has no message for a quota or capacity refusal of the main host (step 16 has them for the GPU host). Proposal: none needed for P-05 (deviation 3 prints the AWS CLI error); a later spec may add a message.
 2. `.gitleaksignore` (deviation 9) is a top-level entry that `60-build-plan` Section 5.1 (complete list) does not name. Proposal: add it to Section 5.1 as "Other" (false positives of `gitleaks`, one fingerprint per line).
+3. AR-SP-01 run 1 (P05-DC-02): 4 of 200 notices took longer than 1 s (1,016.7, 1,190.5, 1,206.2 and 1,258.1 ms), all within about 35 s around 276 to 311 s after the start, around the server's close of the first connections at 300 s and the reconnections; the median was 141 ms, the 95th percentile 318.6 ms, the smallest round trip 233.2 ms, and every other criterion passed. Run 2, half an hour later from the same browser, passed with a largest delay of 399.2 ms (median 141 ms). The 1 s limit of AR-I-04 ("A notice MUST reach the browser within 1 s") is a maximum over every notice, so one short slow period on the path from Pakistan fails a run. Proposal: keep AR-I-04 and the criterion as they are for P-05 (run 2 proves AR-ASM-03 for the probe part); P-32 repeats AR-SP-01 with `vigil-app`, and when a run there fails only `max_delay_1000` again, the Claude project decides whether the criterion becomes a stated percentile with a separate maximum, or whether a run may be repeated.
 
 ## 5. Blocking questions
 
@@ -100,7 +105,69 @@ None (spec Section 9: only this report).
 
 ## 8. Owner-run results
 
-Pending: spec Section 6.13 steps 0 to 11 on the Mac against AWS, at Cloudflare and in a browser in Pakistan. The session "Record the owner-run results of P-05" adds here, from `tests/acceptance/results/P-05-aws.txt`, `spikes/results/P-05-AR-SP-01.json` and `deploy/models.lock`: the AR-SP-01 values (`max_delay_ms`, `rtt_min_ms`, `first_error_after_s`, the reconnection gaps, `passed`), the instance image IDs and names, the zones A and B, the `PASS`/`FAIL` lines, the `embeddinggemma` digest, and the states of AR-ASM-03 (probe part), AR-ASM-09, AR-ASM-12 (`embeddinggemma`), BP-ASM-12 (bootstrap part) and BP-ASM-13.
+Spec Section 6.13, run by the owner on 18 October 2026 from the Mac (`aws-cli/2.38.1`, as the BP-OT-03 administrator user), at Cloudflare, and in a browser in Pakistan (Chrome 155 on macOS). Result files committed to the branch: `tests/acceptance/results/P-05-aws.txt`, `spikes/results/P-05-AR-SP-01.json` (run 2), `spikes/results/P-05-AR-SP-01-run1.json` (run 1), and `deploy/models.lock` with the `embeddinggemma` digest.
+
+### 8.1 Steps
+
+| Step | Result |
+| --- | --- |
+| 0 | Prerequisites done. BP-OT-09: the quota "Running On-Demand G and VT instances" in `us-east-1` was 0; an increase to 4 was requested on 18 October 2026 (request `effc6d78f3bc48a0b112f78dc1debfc9yUH9mqXn`, state `PENDING`). |
+| 1 to 3 | `deploy/edge.sh demo` exited 4 with the four name servers, the `NS` records were added at Cloudflare, and the runs after the delegation exited 3 (`The GPU host was not created: VcpuLimitExceeded.`, BP-OT-09 pending) with both targets registered (`target vigil-app/vigil-demo-main` and `target demo-control/vigil-demo-main`, not `skipped`). In part `edge` of `P-05-aws.txt` every resource line reads `exists` or `set`. |
+| 4 | The push role that `VIGIL_PUSH_ROLE_ARN` takes is `arn:aws:iam::653271908574:role/vigil-demo-github-push` (summary of part `edge`); the variable itself is not in the result files. |
+| 5 | `deploy/new-installation.sh demo`: the 21 parameters exist (part `parameters`: count 21, names only). |
+| 6 | `deploy/build.sh p05-1`: `demo/sse-probe` holds the tag `p05-1` (part `ecr-and-bucket`). |
+| 7 | `deploy/models.sh update embeddinggemma` recorded the digest in `deploy/models.lock`, and the deployment of `p05-1` completed: `deployed.yaml` holds `release: "p05-1"` and `deployed_at: "2026-10-18T11:08:22Z"`, and `deploy/status.sh` shows the digest matching `models.lock` (part `status`). |
+| 8 | AR-SP-01: run 1 failed `max_delay_1000`, run 2 passed (Section 8.3). |
+| 9 | `tests/acceptance/p05_aws_check.sh demo` (11:36 UTC): every check `PASS` (Section 8.2). |
+| 10, 11 | Step 10 (stop the main host, CTX-D-041) is the owner's and is not in the result files; step 11: the result files and `deploy/models.lock` are in commit `0f6e417` on the branch. |
+
+### 8.2 `tests/acceptance/results/P-05-aws.txt`
+
+| Item | Value |
+| --- | --- |
+| Checks | `PASS http-redirect`, `PASS https-demo`, `PASS actuator-404`, `PASS control-502`, `PASS unknown-host-404`, `PASS tls-1.1-refused`, `PASS AR-ASM-09`, `PASS embedding`, `PASS DOCKER-USER`, `PASS clock` (10 of 10) |
+| HTTPS answers (part `https`) | `http://demo…/` 301 with `Location: https://demo.vigil.solviclabs.com:443/`; `https://demo…/` 200; `https://demo…/actuator/health` 404; `https://control…/` 502; the load balancer's own name 404; `/usr/bin/curl --tlsv1.0 --tls-max 1.1` exit 35, `LibreSSL/3.3.6: error:1404B42E:SSL routines:ST_CONNECT:tlsv1 alert protocol version` |
+| Zones A and B | `us-east-1a` (subnet `vigil-demo-a`, `10.40.1.0/24`, with the reservations `10.40.1.8/29` and `10.40.1.16/29`), `us-east-1b` (subnet `vigil-demo-b`, `10.40.2.0/24`) |
+| Main host | `i-0512f130bee88b091`, `m7i.xlarge`, image `ami-02a9cdd4e98bc3c78` (`ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-20261017`), `us-east-1a`, `10.40.1.10`, root volume 100 GiB `gp3`, `HttpTokens required`, instance profile `vigil-demo-main` |
+| GPU host | `gpu host: not created` (BP-OT-09 pending) |
+| Bootstrap marker | `bootstrap main 1 docker 29.1.3 compose 2.40.3` |
+| Clock | `chronyc tracking`: reference `A9FEA97B (169.254.169.123)`, stratum 2; `timedatectl`: `Time zone: UTC (UTC, +0000)`, synchronized |
+| `DOCKER-USER`, `daemon.json` | `-A DOCKER-USER -s 172.31.0.0/24 -d 172.30.0.10/32 -m conntrack --ctstate NEW -j DROP`; `{"log-driver": "local", "log-opts": {"max-size": "10m", "max-file": "5"}}` |
+| Load balancer | `vigil-alb`, internet-facing, both subnets, security group `vigil-demo-alb`, `idle_timeout.timeout_seconds = 120`; listener 443 HTTPS with `ELBSecurityPolicy-TLS13-1-2-2021-06`, default 404; listener 80 redirect `HTTP_301`; rules 10 (`demo…` and `/actuator*` → 404), 20 (`demo…` → `vigil-app`), 30 (`control…` → `demo-control`) |
+| Targets | `vigil-app` `i-0512f130bee88b091:8080` `healthy` (the probe answers `/actuator/health/liveness`); `demo-control` `i-0512f130bee88b091:8090` `unhealthy`, by design until P-32: no unit listens on port 8090 yet, which is what the check `control-502` expects |
+| Security groups | `vigil-demo-alb`: TCP 443 and 80 from `0.0.0.0/0`; `vigil-demo-main`: TCP 8080 and 8090 from `vigil-demo-alb`; `vigil-demo-gpu`: TCP 11434 from `10.40.1.10/32` |
+| Roles | `vigil-demo-main` and `vigil-demo-gpu` with `AmazonSSMManagedInstanceCore` and their inline policies, each with the explicit `Deny` of parameter reads of spec 6.4; `vigil-demo-github-push` trusted only for `repo:awadoodatevam/vigil:ref:refs/heads/main` with audience `sts.amazonaws.com`; OIDC provider `token.actions.githubusercontent.com`, client ID `sts.amazonaws.com` |
+| ECR and bucket | six repositories, each `IMMUTABLE`; bucket `vigil-demo-deploy-653271908574` with all four public access blocks, `BucketOwnerEnforced`, `AES256` |
+| DNS, certificate, SES | zone `vigil.solviclabs.com` with the four name servers, the three DKIM `CNAME` records, the two validation records and the alias records of `demo` and `control`; certificate for `demo.vigil.solviclabs.com` and `control.vigil.solviclabs.com`, `ISSUED`, DNS validation; SES identity verified for sending, DKIM `SUCCESS` (production access: BP-OT-08, P-07) |
+| `deploy/status.sh demo` | `sse-probe` and `vigil-embed` running; `no unit with secrets is running`; `vigil-app health: {"status": "UP"}` (the probe); `embeddinggemma 85462619ee721b466c5927d109d4cb765861907d5417b9109caebc4e614679f1 matches models.lock` |
+| `embeddinggemma` | digest `85462619ee721b466c5927d109d4cb765861907d5417b9109caebc4e614679f1` in `deploy/models.lock`; `embedding length 768` from the probe's container over `vigil-net` |
+
+### 8.3 AR-SP-01 (probe part)
+
+Both runs from the same browser in Pakistan on `https://demo.vigil.solviclabs.com/`; `local_address` `172.30.0.10` (the load balancer reached the probe at `vigil-app`'s `vigil-net` address through the published port) and a public `forwarded_for` address in both.
+
+| Value | Run 1 (`P-05-AR-SP-01-run1.json`, 11:19 to 11:29 UTC) | Run 2 (`P-05-AR-SP-01.json`, 11:48 to 11:58 UTC) |
+| --- | --- | --- |
+| Notices | 200 | 200 |
+| `max_delay_ms` | 1,258.1 (4 notices over 1,000 ms: 1,016.7, 1,190.5, 1,206.2, 1,258.1, within about 35 s around 276 to 311 s) | 399.2 |
+| Median delay | 141 ms | 141 ms |
+| `rtt_min_ms` | 233.2 | 222.4 |
+| `offset_ms_start`, `offset_ms_end` | 13.2, 14.1 | −3.2, 3.2 |
+| `idle.first_error_after_s` | 300.4 | 300.0 |
+| Reconnection gaps (ms) | notices 1,237.8 and 1,237.8; idle 1,237.9 and 1,236.6 | notices 2,022.3 and 1,239.2; idle 2,020.7 and 1,239.8 |
+| Criteria | `max_delay_1000` false; `local_address`, `https_origin`, `notices_200`, `idle_open_295`, `reconnect_5000` true | all six true |
+| `passed` | false | true |
+
+### 8.4 Assumptions
+
+| Item | State |
+| --- | --- |
+| AR-ASM-03 (probe part) | Proved by run 2: 200 notices through the load balancer to a browser in Pakistan, each within 1 s (largest 399.2 ms); the idle stream stayed open for 300 s with heartbeats; reconnections within 2.1 s. Run 1 had 4 notices over 1 s (document feedback 3). P-32 repeats it with `vigil-app`. |
+| AR-ASM-09 | Proved: `dig +short NS vigil.solviclabs.com @1.1.1.1` names exactly the zone's four name servers (`PASS AR-ASM-09`). |
+| AR-ASM-12 (`embeddinggemma`) | Proved for `embeddinggemma`: Ollama's library served it (digest above) and it returns 768 dimensions. `gemma4:12b`: P-06. |
+| AR-ASM-13 | P-32 (no unit with secrets runs in P-05). |
+| BP-ASM-12 (bootstrap part) | Pending: the GPU host is not created while BP-OT-09 is pending (`gpu host: not created`); a later `deploy/edge.sh demo` run after the quota increase creates it, waits for its bootstrap marker and stops it. |
+| BP-ASM-13 | Proved: Canonical's Ubuntu 24.04 image `ami-02a9cdd4e98bc3c78` brought `snapd` and the Systems Manager agent (the bootstrap finished and `run_on_host` reached the host), and the archive offered `docker.io` 29.1.3 (marker `bootstrap main 1 docker 29.1.3 compose 2.40.3`). |
 
 ## 9. Lines of production code added and changed (P05-DC-01)
 
@@ -110,14 +177,15 @@ Pending: spec Section 6.13 steps 0 to 11 on the Mac against AWS, at Cloudflare a
 
 Cloud session (`CLAUDE_CODE_REMOTE=true tools/check-all.sh`, setup version 1): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 1a builds `vigil/sse-probe:local` with the other test images; step 2: `BUILD SUCCESS` (`vigil-app` 108 `*IT`, `demo-control` unit and `*IT` tests; no Java code changed); step 3: `ruff` clean, 115 Python tests passed and 1 skipped (`test_alertmanager_web_config`, no `bcrypt` in the gate's tools), lab tests included because the branch changes `deploy/`, `spikes/` and `tools/` (CTX-D-036); step 4: `shellcheck` on every `*.sh`; step 5: 49 data checks, 0 failed; step 6: `deploy/local/compose.yaml`, `deploy/main/compose.yaml` and `deploy/gpu/compose.yaml` valid; step 7: `trace.py --check` exits 0.
 
-GitHub: the `ci.yml` job `gate` runs on the pull request.
+GitHub: on pull request #6 the `ci.yml` job `gate` first failed only at its `gitleaks` step (deviation 9; `tools/check-all.sh` itself passed), then passed on the head `3b367ee` (17 October 2026, 13:38 to 13:53 UTC).
 
-Done-check: BP-DC-01 (every part 4 row with proof `test` has a test that names it; the rows checked by review are built as Section 1 lists), BP-DC-03 (nothing beyond the spec; deviations in Section 3), BP-DC-04 (no Java module, table, listener or external call changed), BP-DC-05 (no migration, OpenAPI entry or seed part), BP-DC-06 (`README.md`; `CLAUDE.md` changed by the spec commit) hold; BP-DC-02 holds in the session, the runner pending; BP-DC-07 and P05-DC-02 wait for the owner-run steps. P05-DC-01 holds (2,531). P05-DC-03: the session part holds, the runner pending.
+Done-check: BP-DC-01 (every part 4 row with proof `test` has a test that names it; the rows checked by review have their evidence in `P-05-aws.txt`, Section 8.2), BP-DC-02 (the session and the runner), BP-DC-03 (nothing beyond the spec; deviations in Section 3), BP-DC-04 (no Java module, table, listener or external call changed), BP-DC-05 (no migration, OpenAPI entry or seed part), BP-DC-06 (`README.md`; `CLAUDE.md` changed by the spec commit) and BP-DC-07 (this report; `tests/acceptance/results/P-05-aws.txt` and `spikes/results/P-05-AR-SP-01.json` exist on the branch) hold. P05-DC-01 holds (2,531). P05-DC-02 holds: AR-SP-01 `passed` is true in `P-05-AR-SP-01.json` (run 2, after the owner's decision on run 1, deviation 11 and document feedback 3) and every `PASS`/`FAIL` line of `P-05-aws.txt` reads `PASS`. P05-DC-03 holds.
 
 ## 11. Follow-up items for later packages
 
-1. Owner: run spec Section 6.13 on the branch before the merge (BP-L-5); then "Record the owner-run results of P-05" in a cloud session.
-2. After the merge (CTX-D-041): set `VIGIL_PUSH_ROLE_ARN` (if not done in step 4) and run `release.yml` once on `main`.
-3. P-06: the first `deploy/gpu.sh start` (it stops at "No digest recorded for gemma4:12b" until `deploy/models.sh update gemma4:12b` records it), and the Jira token expiry that `deploy/secrets.sh` prints (AR-H-07).
-4. P-32: the other units in `deploy/main/compose.yaml` (the deployment sequence already has their steps: `docker wait lab-zabbix-provision`, `--generated`, `vigil-app` and `demo-control` last), their images in `deploy/build.sh`'s image list and in `release.yml`'s run, `deploy/values/demo.yaml` beyond `demo_domain`, the AR-ASM-13 check of the secret directories (already in `deploy/status.sh`), the lab-to-`vigil-app` check of AR-SP-01; `--remove-orphans` removes `sse-probe` when it leaves the file.
-5. P-07: SES production access (BP-OT-08) and mailbox verification; `deploy/edge.md` describes the request.
+1. Owner: merge the second pull request "P-05: owner-run results", which carries the result files, `deploy/models.lock` and this report to `main` (deviation 10).
+2. Owner, after BP-OT-09 is granted (request `effc6d78f3bc48a0b112f78dc1debfc9yUH9mqXn`): with the main host running, run `deploy/edge.sh demo` again; it creates the GPU host, waits for its bootstrap marker and stops it, which proves BP-ASM-12 (bootstrap part). P-06 needs it.
+3. Owner, after the merge (CTX-D-041): run `release.yml` once on `main` (`VIGIL_PUSH_ROLE_ARN` is set). The release name MUST differ from `p05-1`, which the immutable tag of `demo/sse-probe` already holds.
+4. P-06: the first `deploy/gpu.sh start` (it stops at "No digest recorded for gemma4:12b" until `deploy/models.sh update gemma4:12b` records it), and the Jira token expiry that `deploy/secrets.sh` prints (AR-H-07).
+5. P-32: the other units in `deploy/main/compose.yaml` (the deployment sequence already has their steps: `docker wait lab-zabbix-provision`, `--generated`, `vigil-app` and `demo-control` last), their images in `deploy/build.sh`'s image list and in `release.yml`'s run, `deploy/values/demo.yaml` beyond `demo_domain`, the AR-ASM-13 check of the secret directories (already in `deploy/status.sh`), AR-SP-01 with `vigil-app` and the lab-to-`vigil-app` check (document feedback 3 if `max_delay_1000` fails again); `--remove-orphans` removes `sse-probe` when it leaves the file; the `demo-control` target becomes healthy once `demo-control` answers `GET /health` on port 8090.
+6. P-07: SES production access (BP-OT-08) and mailbox verification; `deploy/edge.md` describes the request.
