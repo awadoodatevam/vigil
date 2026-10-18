@@ -1,4 +1,4 @@
 # Ollama models of the demo installation (AR-H-11; P-05 spec Section 6.2): {model} {unit} {digest}.
 # {digest} is the digest Ollama's /api/tags reports, or "unrecorded"; change it only with deploy/models.sh update {model}.
-embeddinggemma vigil-embed unrecorded
+embeddinggemma vigil-embed 85462619ee721b466c5927d109d4cb765861907d5417b9109caebc4e614679f1
 gemma4:12b vigil-llm unrecorded
