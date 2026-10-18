@@ -237,7 +237,9 @@ None.
 
 ### Gate command result
 
-GATE_RESULT_A1
+Cloud session (`CLAUDE_CODE_REMOTE=true tools/check-all.sh`, setup version 1, 18 October 2026): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 2: `BUILD SUCCESS`; step 3: `ruff` clean, 116 Python tests passed (one more than before: `test_push_role_subject`) and 1 skipped (`test_alertmanager_web_config`, no `bcrypt` in the gate's tools), lab tests included because the branch changes `deploy/` (CTX-D-036); step 4: `shellcheck`; step 5: 49 data checks, 0 failed; step 6: the three compose files valid; step 7: `trace.py --check` exits 0. GitHub: the `ci.yml` job `gate` runs on the pull request.
+
+Done-check (spec Section 12.6): BP-DC-01 (BP-A-06 has its test; BP-W-03 waits for the owner-run steps), BP-DC-02 (the session; the runner pending), BP-DC-03 (only the subject and its test changed), BP-DC-04 and BP-DC-05 (nothing of the product changed), BP-DC-06 (no command added or changed) and BP-DC-07 (this section) hold.
 
 ### Owner-run results
 
