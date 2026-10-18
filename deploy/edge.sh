@@ -317,7 +317,7 @@ documents = {
                 "Condition": {
                     "StringEquals": {
                         "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-                        "token.actions.githubusercontent.com:sub": "repo:awadoodatevam/vigil:ref:refs/heads/main",
+                        "token.actions.githubusercontent.com:sub": "repo:awadoodatevam@100553969/vigil@1420372759:ref:refs/heads/main",
                     }
                 },
             }
