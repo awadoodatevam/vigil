@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.7 |
-| Date | 16 October 2026 |
+| Version | 1.8 |
+| Date | 18 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
 
@@ -100,6 +100,7 @@ Terms defined in earlier documents keep their meaning. The terms below are added
 | `tools/` | `cloud-setup.sh`, `requirements-dev.txt`, `check-all.sh`, `start-docker.sh` (from P-03), `trace.py`, `loc.sh`. | Other |
 | `.github/workflows/` | `ci.yml`, `e2e.yml`, `release.yml` (Section 10.1). | Other |
 | `.gitignore` | Build outputs, `node_modules/`, local results and generated files. | Other |
+| `.gitleaksignore` | Fingerprints of `gitleaks` findings that are false positives, one per line (P-05 deviation 9; CTX-D-042). | Other |
 | `docs/` | The project documents, with `docs/packages/` for package specs and reports. | Other |
 
 ### 5.2 Conventions (complete list)
@@ -905,7 +906,7 @@ Checked on 12 October 2026.
 | 5 | The standard GitHub-hosted Linux runner for private repositories has 2 CPU, 8 GB memory and 14 GB SSD; larger runners need GitHub Team or Enterprise Cloud. | Confirmed (re-checked in review pass 2: the table row reads 2 CPU, 8 GB, 14 GB). | [GitHub-hosted runners](https://docs.github.com/en/actions/reference/runners/github-hosted-runners) |
 | 6 | Protected branches are available in public repositories on GitHub Free, and in private repositories on GitHub Pro, Team and Enterprise. | Confirmed. | [About protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches) |
 | 7 | Eclipse Temurin 25 binaries are published by Adoptium. | Confirmed (announcement); download from GitHub release assets is BP-ASM-01. | [Adoptium: Eclipse Temurin 25 available](https://adoptium.net/news/2025/09/eclipse-temurin-25-available) |
-| 8 | GitHub Actions can assume an AWS IAM role through GitHub's OIDC provider and push to Amazon ECR without stored keys. | Confirmed (secondary source, AWS re:Post). | [AWS re:Post: pushing images to ECR with GitHub Actions](https://www.repost.aws/articles/ARMUXtVzgISX6SQKRlroJheg/setting-up-to-push-container-images-to-ecr-using-github-actions) |
+| 8 | GitHub Actions can assume an AWS IAM role through GitHub's OIDC provider and push to Amazon ECR without stored keys. | Confirmed (secondary source, AWS re:Post). Added 18 October 2026 (CTX-D-042): for repositories created after 15 July 2026, the default `sub` claim carries the owner's and the repository's IDs (`repo:{owner}@{owner id}/{repository}@{repository id}:ref:…`), so the role's trust condition uses that form ([GitHub changelog](https://github.blog/changelog/2026-04-23-immutable-subject-claims-for-github-actions-oidc-tokens)). | [AWS re:Post: pushing images to ECR with GitHub Actions](https://www.repost.aws/articles/ARMUXtVzgISX6SQKRlroJheg/setting-up-to-push-container-images-to-ecr-using-github-actions) |
 | 9 | The pinned third-party images (Zabbix 7.0, PostgreSQL with pgvector, Prometheus, Alertmanager, Ollama, Mailpit, Ubuntu, Playwright) publish `linux/arm64`; Ubuntu 24.04's archive has the Prometheus node exporter (it has no Zabbix package: refuted on 15 October 2026 by the P-03 readiness test, which read the archive's package indexes; amendment BP-A-17); Docker in cloud sessions and Docker Desktop on macOS run privileged containers with loop devices and XFS; image builds in cloud sessions reach Ubuntu mirrors and PyPI through the session's proxy. | Not confirmed from official pages in this round: BP-ASM-02, BP-ASM-05, BP-ASM-06, BP-ASM-09. | [Docker Hub: zabbix/zabbix-server-pgsql tags](https://hub.docker.com/r/zabbix/zabbix-server-pgsql/tags) |
 
 ## 17. Decisions, changes to earlier documents, assumptions
@@ -1019,3 +1020,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.5 | 16 Oct 2026 | The P-08 entry names every requirement its spec builds and the registry mirror (BP-L-1). From the P-04 report (BP-L-8, CTX-D-037): BP-ASM-05 proved for P-04's images, BP-ASM-09 (P-04 part), BP-ASM-10 and BP-ASM-11 proved; BP-O-04 closed by the owner's decision for a registry mirror in `tools/start-docker.sh` (BP-R-12 step (0), built by P-08). No behaviour of Vigil changes. |
 | 1.6 | 16 Oct 2026 | For the P-09 spec (BP-L-1): the P-09 entry names the session cookie, `internal_error`, the test-only permission check, shortened stream timings and the contract test, and every requirement its spec builds; the P-28 entry names the TypeScript types generated from the OpenAPI file (BP-R-13); amendment BP-A-20 (AR-I-03 errors, owner decision CTX-D-039, `50-architecture` v1.4); BP-R-08 chooses a dependency's latest release that needs no newer minor of a library Spring Boot manages (CTX-D-038). P-08 report (BP-L-8, CTX-D-038): no document change. |
 | 1.7 | 16 Oct 2026 | For the P-05 spec (BP-L-1, CTX-D-041): the gate's pytest step and `tools/trace.py` cover `deploy/` (BP-R-12, BP-R-15); the P-05 entry's tests (secret directories of AR-ASM-13 in P-32; `deploy/gpu.sh` first run in P-06; gate tests of the scripts); the P-06 entry adds the first GPU host start and the Jira token expiry print; the P-32 entry adds the AR-ASM-13 check; BP-R-04 names the SSE probe's image; Section 10.3 names `secrets.sh`'s installation argument and the uploaded host scripts; P-05 is size L (Section 7.7); amendment BP-A-21 (deployment bucket name with the account ID, `50-architecture` v1.5); assumptions BP-ASM-12 (GPU host image) and BP-ASM-13 (main host image). |
+| 1.8 | 18 Oct 2026 | From the P-05 report (BP-L-8, CTX-D-042): Section 5.1 lists `.gitleaksignore`; Section 16 item 8 notes GitHub's OIDC subject with immutable IDs (P-05 amendment 1). No behaviour of Vigil changes. |

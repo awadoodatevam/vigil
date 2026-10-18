@@ -134,3 +134,10 @@ def test_region(tmp_path):
         ["aws", "sts", "get-caller-identity", "--output", "json"], env=environment, capture_output=True, text=True
     )
     assert accepted.returncode == 0
+
+
+def test_push_role_subject():
+    """BP-A-06 the push role trusts only main of awadoodatevam/vigil, with the subject GitHub sends."""
+    text = (DEPLOY / "edge.sh").read_text()
+    assert text.count("repo:awadoodatevam@100553969/vigil@1420372759:ref:refs/heads/main") == 1
+    assert "repo:awadoodatevam/vigil:" not in text

@@ -189,3 +189,58 @@ Done-check: BP-DC-01 (every part 4 row with proof `test` has a test that names i
 4. P-06: the first `deploy/gpu.sh start` (it stops at "No digest recorded for gemma4:12b" until `deploy/models.sh update gemma4:12b` records it), and the Jira token expiry that `deploy/secrets.sh` prints (AR-H-07).
 5. P-32: the other units in `deploy/main/compose.yaml` (the deployment sequence already has their steps: `docker wait lab-zabbix-provision`, `--generated`, `vigil-app` and `demo-control` last), their images in `deploy/build.sh`'s image list and in `release.yml`'s run, `deploy/values/demo.yaml` beyond `demo_domain`, the AR-ASM-13 check of the secret directories (already in `deploy/status.sh`), AR-SP-01 with `vigil-app` and the lab-to-`vigil-app` check (document feedback 3 if `max_delay_1000` fails again); `--remove-orphans` removes `sse-probe` when it leaves the file; the `demo-control` target becomes healthy once `demo-control` answers `GET /health` on port 8090.
 6. P-07: SES production access (BP-OT-08) and mailbox verification; `deploy/edge.md` describes the request.
+
+## Amendment 1 (spec Section 12; CTX-D-042): the push role's OIDC subject
+
+| Field | Value |
+| --- | --- |
+| Branch | `p-05-a1-oidc-subject` |
+| Built by | Claude Code, cloud session in the environment `vigil`, 18 October 2026 |
+| State | Built; the gate command passes in this session (with the lab tests, CTX-D-036); the owner-run steps of spec Section 12.5 follow the merge |
+
+### What was built
+
+| Part | Requirement IDs |
+| --- | --- |
+| `deploy/edge.sh` step 5: the trust document `trust-github` of the role `vigil-{i}-github-push` has the condition `token.actions.githubusercontent.com:sub` = `repo:awadoodatevam@100553969/vigil@1420372759:ref:refs/heads/main` (in place of `repo:awadoodatevam/vigil:ref:refs/heads/main`); the operator `StringEquals` and the condition `token.actions.githubusercontent.com:aud` = `sts.amazonaws.com` are unchanged. `edge.sh` writes the trust policies on every run, so the next run updates the existing role (`role vigil-demo-github-push: set`). | BP-A-06 |
+| `release.yml` is unchanged; it assumes the role once the trust policy carries the subject GitHub sends (owner-run steps of spec Section 12.5) | BP-W-03 |
+
+No other file under `deploy/`, `.github/` or `tests/` changed. `tests/acceptance/results/P-05-aws.txt` keeps the old subject: it is the record of the 18 October 2026 run.
+
+### Tests added
+
+| File | Test | IDs |
+| --- | --- | --- |
+| `deploy/test_units.py` | `test_push_role_subject`: `deploy/edge.sh` contains `repo:awadoodatevam@100553969/vigil@1420372759:ref:refs/heads/main` exactly once and no `repo:awadoodatevam/vigil:` | BP-A-06 |
+
+Also checked in the session (not a gate test): the Python program of `edge.sh` step 5, run with the demo values, writes `trust-github.json` with `{"StringEquals": {"token.actions.githubusercontent.com:aud": "sts.amazonaws.com", "token.actions.githubusercontent.com:sub": "repo:awadoodatevam@100553969/vigil@1420372759:ref:refs/heads/main"}}`.
+
+### Deviations from the spec
+
+None.
+
+### Document feedback (CTX-Q-8)
+
+1. `tools/trace.py --check` reads only the part 4 table ("## 4. Requirements built") of a spec, so the proof `test` of BP-A-06 in the table of Section 12.2 is not checked by it (the test exists and names BP-A-06). Proposal: when amendments with their own requirement tables become usual, `trace.py` (BP-R-15) also reads tables under a heading "Requirements built" inside an amendment section.
+
+### Blocking questions
+
+None.
+
+### Versions introduced (BP-R-08)
+
+None.
+
+### Lines of production code added and changed
+
+`tools/loc.sh origin/main HEAD` prints **1** (the changed line of `deploy/edge.sh`; size class S).
+
+### Gate command result
+
+Cloud session (`CLAUDE_CODE_REMOTE=true tools/check-all.sh`, setup version 1, 18 October 2026): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 2: `BUILD SUCCESS`; step 3: `ruff` clean, 116 Python tests passed (one more than before: `test_push_role_subject`) and 1 skipped (`test_alertmanager_web_config`, no `bcrypt` in the gate's tools), lab tests included because the branch changes `deploy/` (CTX-D-036); step 4: `shellcheck`; step 5: 49 data checks, 0 failed; step 6: the three compose files valid; step 7: `trace.py --check` exits 0. GitHub: the `ci.yml` job `gate` runs on the pull request.
+
+Done-check (spec Section 12.6): BP-DC-01 (BP-A-06 has its test; BP-W-03 waits for the owner-run steps), BP-DC-02 (the session; the runner pending), BP-DC-03 (only the subject and its test changed), BP-DC-04 and BP-DC-05 (nothing of the product changed), BP-DC-06 (no command added or changed) and BP-DC-07 (this section) hold.
+
+### Owner-run results
+
+Pending: recorded by the Claude project after the merge (spec Section 12.5).
