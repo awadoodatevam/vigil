@@ -92,6 +92,11 @@ public final class VigilDatabase {
     return postgres.secretsFolderWith(SecretFiles.APP);
   }
 
+  /** The password of {@code vigil_app}, for a secret folder made by {@link TestSecrets}. */
+  String appPassword() {
+    return postgres.password(SecretFiles.APP);
+  }
+
   /** The {@code java} executable of the running test JVM. */
   public static String javaExecutable() {
     return ProcessHandle.current().info().command().orElseThrow();

@@ -1,0 +1,17 @@
+{
+  "seq": 231,
+  "received_at": "2026-10-15T19:03:37.002Z",
+  "source_key": "alertmanager-lab",
+  "method": "POST",
+  "path": "/api/v1/webhooks/alertmanager-lab",
+  "status": 200,
+  "authorized": true,
+  "headers": {
+    "Host": "demo.vigil.test:8080",
+    "User-Agent": "Alertmanager/0.34.1",
+    "Content-Length": "1426",
+    "Authorization": "Bearer <redacted>",
+    "Content-Type": "application/json"
+  },
+  "body": "{\"receiver\":\"vigil\",\"status\":\"resolved\",\"alerts\":[{\"status\":\"resolved\",\"labels\":{\"alertname\":\"BundleApiErrors\",\"api\":\"bundle\",\"component\":\"api-bundle\",\"endpoint\":\"/v1/bundles/offers\",\"instance\":\"api-bundle-3\",\"job\":\"lab-api\"},\"annotations\":{\"summary\":\"Bundle-purchase API errors on api-bundle-3 /v1/bundles/offers\"},\"startsAt\":\"2026-10-15T19:01:01.865Z\",\"endsAt\":\"2026-10-15T19:03:31.865Z\",\"generatorURL\":\"http://ad01a72e3b3f:9090/graph?g0.expr=rate%28lab_api_errors_total%7Bapi%3D%22bundle%22%2Cjob%3D%22lab-api%22%7D%5B20s%5D%29+%3E+0.2\\u0026g0.tab=1\",\"fingerprint\":\"deb927b4757b4db9\"}],\"notification_reason\":\"all alerts resolved\",\"groupLabels\":{\"alertname\":\"BundleApiErrors\",\"api\":\"bundle\",\"component\":\"api-bundle\",\"endpoint\":\"/v1/bundles/offers\",\"instance\":\"api-bundle-3\",\"job\":\"lab-api\"},\"commonLabels\":{\"alertname\":\"BundleApiErrors\",\"api\":\"bundle\",\"component\":\"api-bundle\",\"endpoint\":\"/v1/bundles/offers\",\"instance\":\"api-bundle-3\",\"job\":\"lab-api\"},\"commonAnnotations\":{\"summary\":\"Bundle-purchase API errors on api-bundle-3 /v1/bundles/offers\"},\"routeLabels\":{},\"externalURL\":\"http://35dcf781ebea:9093\",\"version\":\"4\",\"groupKey\":\"{}/{alertname=~\\\"NodeFilesystemFull|BalanceApiErrors|BundleApiErrors|UssdGatewayTimeouts|SyntheticUssdSessionFailed\\\"}:{alertname=\\\"BundleApiErrors\\\", api=\\\"bundle\\\", component=\\\"api-bundle\\\", endpoint=\\\"/v1/bundles/offers\\\", instance=\\\"api-bundle-3\\\", job=\\\"lab-api\\\"}\",\"truncatedAlerts\":0}\n"
+}

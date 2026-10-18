@@ -1,0 +1,19 @@
+{
+  "seq": 66,
+  "received_at": "2026-10-15T19:01:08.547Z",
+  "source_key": "zabbix-lab",
+  "method": "POST",
+  "path": "/api/v1/webhooks/zabbix-lab",
+  "status": 200,
+  "authorized": true,
+  "headers": {
+    "Host": "demo.vigil.test:8080",
+    "Accept": "*/*",
+    "Accept-Encoding": "deflate, gzip, br, zstd",
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <redacted>",
+    "User-Agent": "zabbix-webhook",
+    "Content-Length": "301"
+  },
+  "body": "{\"event_id\":\"56\",\"event_value\":\"1\",\"event_name\":\"SMS queue growing on route route-12\",\"host\":\"lab-vas-01\",\"severity\":\"Not classified\",\"tags\":[{\"tag\":\"component\",\"value\":\"sms-queue\"},{\"tag\":\"vigil\",\"value\":\"lab\"}],\"event_date\":\"2026.10.15\",\"event_time\":\"19:01:08\",\"recovery_date\":\"\",\"recovery_time\":\"\"}"
+}

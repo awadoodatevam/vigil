@@ -25,6 +25,7 @@
     <java-json-canonicalization.version>1.1</java-json-canonicalization.version>
     <bcprov.version>1.86</bcprov.version>
     <json-schema-validator.version>3.0.6</json-schema-validator.version>
+    <wiremock.version>3.13.2</wiremock.version>
   </properties>
 
   <dependencyManagement>
@@ -121,6 +122,12 @@
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
       <version>${json-schema-validator.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.wiremock</groupId>
+      <artifactId>wiremock-standalone</artifactId>
+      <version>${wiremock.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
