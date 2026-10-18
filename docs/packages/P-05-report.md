@@ -243,4 +243,12 @@ Done-check (spec Section 12.6): BP-DC-01 (BP-A-06 has its test; BP-W-03 waits fo
 
 ### Owner-run results
 
-Pending: recorded by the Claude project after the merge (spec Section 12.5).
+Recorded by the Claude project (BP-L-8) from the owner's outputs of 18 October 2026, after the merge of pull request #8 (`1af4a2e`):
+
+| Step (spec 12.5) | Result |
+| --- | --- |
+| 2 | `deploy/edge.sh demo` with the main host stopped: `role vigil-demo-github-push: set`; every other resource line `exists` or `set`; `The GPU host was not created: VcpuLimitExceeded.`; summary `main host: i-0512f130bee88b091 stopped`, `gpu host: not created`; exit 3. `aws iam get-role --role-name vigil-demo-github-push` shows the condition `"token.actions.githubusercontent.com:sub": "repo:awadoodatevam@100553969/vigil@1420372759:ref:refs/heads/main"`. |
+| 3 | `release.yml` on `main` with the release `p05-2`: the run succeeded (the owner's report; the run of 18 October 2026 before it, with the old subject, failed with "Not authorized to perform sts:AssumeRoleWithWebIdentity"). |
+| 4 | `aws ecr describe-images --repository-name demo/sse-probe`: the tags `p05-2` and `p05-1`. |
+
+BP-W-03 is proved for the probe image (every image: P-32). BP-OT-09: AWS refused the increase of the G quota to 4 on 18 October 2026 (the quota stays 0; the email invites an appeal with a detailed use case), so BP-ASM-12 (bootstrap part) stays pending and the GPU host is not created; P-06 needs it.

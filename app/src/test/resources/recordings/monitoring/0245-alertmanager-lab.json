@@ -1,0 +1,17 @@
+{
+  "seq": 245,
+  "received_at": "2026-10-15T19:03:37.013Z",
+  "source_key": "alertmanager-lab",
+  "method": "POST",
+  "path": "/api/v1/webhooks/alertmanager-lab",
+  "status": 200,
+  "authorized": true,
+  "headers": {
+    "Host": "demo.vigil.test:8080",
+    "User-Agent": "Alertmanager/0.34.1",
+    "Content-Length": "1384",
+    "Authorization": "Bearer <redacted>",
+    "Content-Type": "application/json"
+  },
+  "body": "{\"receiver\":\"vigil\",\"status\":\"resolved\",\"alerts\":[{\"status\":\"resolved\",\"labels\":{\"alertname\":\"UssdGatewayTimeouts\",\"component\":\"ussd-gw\",\"instance\":\"lab-vas-01:9200\",\"job\":\"lab-vas\",\"menu\":\"data-bundles\",\"node\":\"ussd-gw-b\"},\"annotations\":{\"summary\":\"USSD gateway timeouts on ussd-gw-b, menu data-bundles\"},\"startsAt\":\"2026-10-15T19:01:01.865Z\",\"endsAt\":\"2026-10-15T19:03:31.865Z\",\"generatorURL\":\"http://ad01a72e3b3f:9090/graph?g0.expr=rate%28lab_ussd_timeouts_total%7Bjob%3D%22lab-vas%22%7D%5B20s%5D%29+%3E+0.2\\u0026g0.tab=1\",\"fingerprint\":\"54995f033ad7dc49\"}],\"notification_reason\":\"all alerts resolved\",\"groupLabels\":{\"alertname\":\"UssdGatewayTimeouts\",\"component\":\"ussd-gw\",\"instance\":\"lab-vas-01:9200\",\"job\":\"lab-vas\",\"menu\":\"data-bundles\",\"node\":\"ussd-gw-b\"},\"commonLabels\":{\"alertname\":\"UssdGatewayTimeouts\",\"component\":\"ussd-gw\",\"instance\":\"lab-vas-01:9200\",\"job\":\"lab-vas\",\"menu\":\"data-bundles\",\"node\":\"ussd-gw-b\"},\"commonAnnotations\":{\"summary\":\"USSD gateway timeouts on ussd-gw-b, menu data-bundles\"},\"routeLabels\":{},\"externalURL\":\"http://35dcf781ebea:9093\",\"version\":\"4\",\"groupKey\":\"{}/{alertname=~\\\"NodeFilesystemFull|BalanceApiErrors|BundleApiErrors|UssdGatewayTimeouts|SyntheticUssdSessionFailed\\\"}:{alertname=\\\"UssdGatewayTimeouts\\\", component=\\\"ussd-gw\\\", instance=\\\"lab-vas-01:9200\\\", job=\\\"lab-vas\\\", menu=\\\"data-bundles\\\", node=\\\"ussd-gw-b\\\"}\",\"truncatedAlerts\":0}\n"
+}

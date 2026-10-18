@@ -1,0 +1,19 @@
+{
+  "seq": 249,
+  "received_at": "2026-10-15T19:03:41.534Z",
+  "source_key": "zabbix-lab",
+  "method": "POST",
+  "path": "/api/v1/webhooks/zabbix-lab",
+  "status": 200,
+  "authorized": true,
+  "headers": {
+    "Host": "demo.vigil.test:8080",
+    "Accept": "*/*",
+    "Accept-Encoding": "deflate, gzip, br, zstd",
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <redacted>",
+    "User-Agent": "zabbix-webhook",
+    "Content-Length": "337"
+  },
+  "body": "{\"event_id\":\"41\",\"event_value\":\"0\",\"event_name\":\"Database write errors on schema subscriber_profile\",\"host\":\"lab-db-01\",\"severity\":\"Not classified\",\"tags\":[{\"tag\":\"component\",\"value\":\"db-subscriber\"},{\"tag\":\"vigil\",\"value\":\"lab\"}],\"event_date\":\"2026.10.15\",\"event_time\":\"19:00:51\",\"recovery_date\":\"2026.10.15\",\"recovery_time\":\"19:03:41\"}"
+}

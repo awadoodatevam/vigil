@@ -40,6 +40,7 @@ Migrations are Flyway SQL files in `app/src/main/resources/db/migration/{schema}
 - Every `*IT` that starts `vigil-app` uses `VigilTestApp` on a fresh database (`VigilDatabase.fresh()`), except a test that must run the JAR as a process.
 - Time comes from the `Clock` bean through `Timestamps.now(clock)`; tests replace it with a `@Primary` test clock passed to `VigilTestApp`.
 - Every module's scheduled work for tenants is matched to `TenantService.activeTenants()` at restart step (6) and on `TenantAliasChanged` (AR-R-23).
+- Secrets are read only through `vigil.connectors.api.Secrets` (callers as `docs/50-architecture.md` AR-S-04, checked by `SecretCallerRuleTest`); monitoring payloads are parsed and sources tested only through `ConnectorService`; every entry point that makes an external call calls `TransactionGuard.assertNoTransaction()` first and is listed in `ExternalCallGuardIT`.
 - Every `vigil-api` handler method carries `@Public`, `@LoggedIn` or `@RequiresPermission`; errors are `VigilError`s, mapped by `ApiErrors` (AR-I-03); timestamps are written with `ApiTimes`; live notices are published with `LiveHub.publish` after the commit; every operation is in `openapi/vigil-api.yaml` and in `ContractIT`.
 
 Interfaces of the platform modules for later packages (P-08):
@@ -49,10 +50,19 @@ Interfaces of the platform modules for later packages (P-08):
 - P-13 to P-24: `AuditService.append` inside their transactions; `TenantService.activeTenants` and their own `TenantAliasChanged` listeners; `IdentityService.team`, `isMember`, `teamMembers`.
 - P-39: `AuditService.query`.
 
+Interfaces of `vigil-connectors` for later packages (P-10):
+
+- P-11: `ConnectorImport` (its problems list becomes the part's `error`; its handle map goes to the later parts), `Secrets.readSeedPassword`, `Secrets.verifyInstallationToken`.
+- P-13: `ConnectorService.parse`, `testConnection`, `instance` (to check that a source's connector instance has the source's kind), `credentialReference` (to check that a webhook token reference has purpose `webhook_token`), `Secrets.verify`.
+- P-18: `Secrets.read`, `ConnectorService.instance`, `credentialReference`; the target type interface and its registration (AR-K-00b).
+- P-19, P-21, P-22: their type interfaces, kinds' implementations and registries, following `MonitoringConnectors`, and their entry points added to `ExternalCallGuardIT`.
+- P-38: the address change of an instance.
+- Test support: `TestSecrets` (a secret folder with generated values, changed with `replace` and `remove`) and `VigilTestApp.start(database, secretsFolder, extraArgs, configurations)`.
+
 Interfaces of `vigil-api` for later packages (P-09):
 
 - P-11: the installation paths `/api/v1/installation/**` pass without host resolution, session and CSRF; P-11 adds its bearer-token check for them and its own access annotation, and extends `EntryPointTest`.
-- P-13: the webhook path `/api/v1/webhooks/**` passes without session and CSRF, tied to the host's tenant; P-13 adds its token check and annotation the same way.
+- P-13: the webhook path `/api/v1/webhooks/**` passes without session and CSRF, tied to the host's tenant; P-13 adds its access annotation and passes the call to `vigil-intake`, which checks the token with `Secrets.verify` (AR-S-05).
 - P-25 and later: `@RequiresPermission`, `TenantId` and `ApiCaller` handler parameters, `ApiTimes`, `VigilError` for refusals, `LiveHub.publish` for the topics of AR-I-04, the OpenAPI file and `ContractIT` scenarios for each new operation.
 - P-28: the operations AR-I-10 to AR-I-16, the cookies `vigil_session` and `vigil_csrf`, the header `X-Vigil-CSRF` and the default messages of AR-I-03.
 - Test support: `VigilTestApp.start(database, extraArgs, configurations)`, `ApiClient` (requests with their own `Host` header, and streams read line by line) and `TestTenants` (`ready` tenants with users, teams and a host alias).

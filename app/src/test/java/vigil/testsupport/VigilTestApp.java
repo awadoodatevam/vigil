@@ -1,5 +1,6 @@
 package vigil.testsupport;
 
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,11 @@ public final class VigilTestApp implements AutoCloseable {
   private final CompletableFuture<ConfigurableApplicationContext> started =
       new CompletableFuture<>();
 
-  private VigilTestApp(VigilDatabase database, List<String> extraArgs, Class<?>... configurations) {
+  private VigilTestApp(
+      VigilDatabase database,
+      Path secretsFolder,
+      List<String> extraArgs,
+      Class<?>... configurations) {
     List<Class<?>> sources = new ArrayList<>();
     sources.add(VigilApplication.class);
     sources.addAll(List.of(configurations));
@@ -48,7 +53,7 @@ public final class VigilTestApp implements AutoCloseable {
         new ArrayList<>(
             List.of(
                 "--server.port=0",
-                "--VIGIL_SECRETS_DIR=" + database.appSecretsFolder(),
+                "--VIGIL_SECRETS_DIR=" + secretsFolder,
                 "--VIGIL_DB_HOST=" + database.host(),
                 "--VIGIL_DB_PORT=" + database.port(),
                 "--VIGIL_DB_NAME=" + database.name()));
@@ -80,7 +85,19 @@ public final class VigilTestApp implements AutoCloseable {
    */
   public static VigilTestApp start(
       VigilDatabase database, List<String> extraArgs, Class<?>... configurations) {
-    return new VigilTestApp(database, extraArgs, configurations);
+    return new VigilTestApp(database, database.appSecretsFolder(), extraArgs, configurations);
+  }
+
+  /**
+   * Starts vigil-app on {@code database} with {@code secretsFolder} as its secret folder (Example:
+   * {@link TestSecrets#folder()}), extra command-line arguments and extra configuration classes.
+   */
+  public static VigilTestApp start(
+      VigilDatabase database,
+      Path secretsFolder,
+      List<String> extraArgs,
+      Class<?>... configurations) {
+    return new VigilTestApp(database, secretsFolder, extraArgs, configurations);
   }
 
   /** The HTTP port, as soon as the web server is up. */

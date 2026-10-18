@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 50-architecture (ID prefix `AR-`) |
-| Version | 1.5 |
-| Date | 16 October 2026 |
+| Version | 1.6 |
+| Date | 18 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 5 closed. Amended by Round 6 (`60-build-plan` BP-A-01 to BP-A-10, BP-A-15, BP-A-16) and during the build (BP-A-17, BP-A-19, BP-A-20, BP-A-21). |
+| Status | Baseline (owner reviewed). Round 5 closed. Amended by Round 6 (`60-build-plan` BP-A-01 to BP-A-10, BP-A-15, BP-A-16) and during the build (BP-A-17, BP-A-19, BP-A-20, BP-A-21, BP-A-22). |
 
 ## 1. Purpose
 
@@ -417,14 +417,16 @@ Each interface is in `vigil.connectors.api`. Implementations are Spring beans re
 | AR-K-00d | Notification channel | `send(address, credential reference id or none, subject line, lines)` → sent, or failed with reason. | PM-M20-02 |
 | AR-K-00e | AI provider | `complete(model, system text, parts, output schema name, output schema, max output units)` → output text and units, or `unreachable` / `provider_error` with reason; `embed(model, texts)` → vectors and units, or `unreachable` / `provider_error`. | PM-M18, SL-B-08 |
 
+**Connection test failure reasons (complete list; amendment `60-build-plan` BP-A-22, owner decision CTX-D-043).** A monitoring source connection test (AR-K-01, AR-K-02) that does not pass returns the first of these reasons that applies: (1) the address with the kind's path is not an `http` or `https` address with a host: "The address is not a valid http or https address."; (2) the instance has no credential reference: "No credential is set."; (3) its secret file is missing or unreadable: "Secret {name} is not available."; (4) no connection within the connect timeout (AR-TM-01): "No connection to {host}:{port} within 5 s."; (5) no complete answer within the call timeout (AR-TM-01): "No answer within 10 s."; (6) the host name does not resolve: "Host {host} not found."; (7) any other failure to connect (Example: refused): "Could not connect to {host}:{port}."; (8) any other failure of the call: "Connection failed: {message}.", where `{message}` is the first non-empty message among the error and its causes, or the error's type name; (9) an answer that does not pass: the kind's rule (AR-K-01: `error.data`, otherwise "HTTP {status}"; AR-K-02: "HTTP {status}"). `{port}` is the address's port, or 80 for `http` and 443 for `https`. A reason has at most 500 characters (DM-E-15 `last_test_reason`) and never contains a secret value. The setup screen shows it as written (DC-S07-02).
+
 ### 12.2 Connector kinds (complete list, PM-K-01 to PM-K-10)
 
 `settings` is the JSON of DM-E-10; "Secret" is the content of the secret named by the credential reference's locator (AR-S-04).
 
 | ID | Kind | `address` | `settings` (complete list of keys) | Secret | Wire format and behaviour |
 | --- | --- | --- | --- | --- | --- |
-| AR-K-01 | `zabbix` | Zabbix web interface base address (demo `http://lab-zabbix-web:8080`) | `api_path` (demo `/api_jsonrpc.php`) | Zabbix API token | Section 12.3. Test: `POST {address}{api_path}` JSON-RPC 2.0 `{"jsonrpc":"2.0","method":"host.get","params":{"output":["hostid"],"limit":1},"id":1}` with header `Authorization: Bearer {token}`; passed when the answer is HTTP 200 with a `result` array; failed otherwise, with the reason `error.data` of the answer, or "HTTP {status}", or the connection error text. Requires Zabbix 7.0.12 or later (Section 20, item 4). |
-| AR-K-02 | `alertmanager` | Alertmanager base address (demo `http://lab-alertmanager:9093`) | `username` (demo `vigil`) | Alertmanager basic authentication password | Section 12.4. Test: `GET {address}/api/v2/status` with HTTP basic authentication; passed on HTTP 200; failed otherwise with "HTTP {status}" or the connection error text. |
+| AR-K-01 | `zabbix` | Zabbix web interface base address (demo `http://lab-zabbix-web:8080`) | `api_path` (demo `/api_jsonrpc.php`) | Zabbix API token | Section 12.3. Test: `POST {address}{api_path}` JSON-RPC 2.0 `{"jsonrpc":"2.0","method":"host.get","params":{"output":["hostid"],"limit":1},"id":1}` with header `Authorization: Bearer {token}`; passed when the answer is HTTP 200 with a `result` array; failed otherwise, with the reason `error.data` of the answer, or "HTTP {status}", or a connection test failure reason of Section 12.1 (amendment `60-build-plan` BP-A-22). Requires Zabbix 7.0.12 or later (Section 20, item 4). |
+| AR-K-02 | `alertmanager` | Alertmanager base address (demo `http://lab-alertmanager:9093`) | `username` (demo `vigil`) | Alertmanager basic authentication password | Section 12.4. Test: `GET {address}/api/v2/status` with HTTP basic authentication; passed on HTTP 200; failed otherwise with "HTTP {status}" or a connection test failure reason of Section 12.1 (amendment `60-build-plan` BP-A-22). |
 | AR-K-03 | `linux_server` | Host name of the target (demo `lab-db-01`) | `port` (demo 22); `host_key_sha256` (the target's SSH host key fingerprint, `SHA256:` followed by base64, a deployment value, AR-B-07) | Per grant (DM-E-13), JSON `{"username": …, "private_key": …}` with an OpenSSH private key; the diagnostic and action grants use different users and keys (DM-E13-R1) | Section 12.5. |
 | AR-K-04 | `jira_cloud` | `https://{site}.atlassian.net` (placeholder `endpoint.jira`, AR-B-07) | `project_key` (demo `NOC`); `issue_type` (demo `Task`); `resolved_status` (demo `Done`); `reopened_status` (demo `To Do`); `label_prefix` (demo `vigil-`) | JSON `{"email": …, "api_token": …}` (Jira basic authentication with an API token; tokens expire after at most 365 days, AR-H-07) | Section 12.6. |
 | AR-K-05 | `ms_teams` | `https://teams.microsoft.com` (informational) | none (empty object) | None on the instance. Each Teams delivery address has its own credential reference whose secret (`teams-team-{team key}` or `teams-user-{username}`, AR-S-13) is the channel's Workflows webhook address (amendment AR-A-12; resolves PM-O-10 and DD-O-04) | Section 12.7. |
@@ -964,3 +966,4 @@ Carried open items still open: CTX-O-01, CTX-O-05; SL-O-19; SB-O-03; DD-O-03.
 | 1.3 | 15 Oct 2026 | Build amendment `60-build-plan` BP-A-19 (CTX-D-035): AR-H-11 waits for `lab-zabbix-provision` with `docker wait`. |
 | 1.4 | 16 Oct 2026 | Build amendment `60-build-plan` BP-A-20 (owner decision CTX-D-039): AR-I-03 adds 500 `internal_error`, answers a method that a path does not offer with 404 `not_found`, gives each code a default message and leaves out empty `details`. |
 | 1.5 | 16 Oct 2026 | Build amendment `60-build-plan` BP-A-21 (CTX-D-041): the deployment bucket's name carries the AWS account ID (AR-H-06, AR-H-11). |
+| 1.6 | 18 Oct 2026 | Build amendment `60-build-plan` BP-A-22 (owner decision CTX-D-043): the monitoring source connection test failure reasons (Section 12.1; AR-K-01, AR-K-02). |

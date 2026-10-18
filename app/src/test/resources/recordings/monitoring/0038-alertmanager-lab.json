@@ -1,0 +1,17 @@
+{
+  "seq": 38,
+  "received_at": "2026-10-15T19:01:06.946Z",
+  "source_key": "alertmanager-lab",
+  "method": "POST",
+  "path": "/api/v1/webhooks/alertmanager-lab",
+  "status": 200,
+  "authorized": true,
+  "headers": {
+    "Host": "demo.vigil.test:8080",
+    "User-Agent": "Alertmanager/0.34.1",
+    "Content-Length": "1435",
+    "Authorization": "Bearer <redacted>",
+    "Content-Type": "application/json"
+  },
+  "body": "{\"receiver\":\"vigil\",\"status\":\"firing\",\"alerts\":[{\"status\":\"firing\",\"labels\":{\"alertname\":\"NodeFilesystemFull\",\"component\":\"srv-db-01\",\"device\":\"/dev/loop0\",\"fstype\":\"xfs\",\"instance\":\"lab-db-01:9100\",\"job\":\"lab-db-node\",\"mountpoint\":\"/data\"},\"annotations\":{\"summary\":\"Disk full on lab-db-01 /data\"},\"startsAt\":\"2026-10-15T19:01:01.865Z\",\"endsAt\":\"0001-01-01T00:00:00Z\",\"generatorURL\":\"http://ad01a72e3b3f:9090/graph?g0.expr=node_filesystem_avail_bytes%7Bjob%3D%22lab-db-node%22%2Cmountpoint%3D%22%2Fdata%22%7D+%3C+1073741824\\u0026g0.tab=1\",\"fingerprint\":\"d925f9c0e9778519\"}],\"notification_reason\":\"first notification\",\"groupLabels\":{\"alertname\":\"NodeFilesystemFull\",\"component\":\"srv-db-01\",\"device\":\"/dev/loop0\",\"fstype\":\"xfs\",\"instance\":\"lab-db-01:9100\",\"job\":\"lab-db-node\",\"mountpoint\":\"/data\"},\"commonLabels\":{\"alertname\":\"NodeFilesystemFull\",\"component\":\"srv-db-01\",\"device\":\"/dev/loop0\",\"fstype\":\"xfs\",\"instance\":\"lab-db-01:9100\",\"job\":\"lab-db-node\",\"mountpoint\":\"/data\"},\"commonAnnotations\":{\"summary\":\"Disk full on lab-db-01 /data\"},\"routeLabels\":{},\"externalURL\":\"http://35dcf781ebea:9093\",\"version\":\"4\",\"groupKey\":\"{}/{alertname=~\\\"NodeFilesystemFull|BalanceApiErrors|BundleApiErrors|UssdGatewayTimeouts|SyntheticUssdSessionFailed\\\"}:{alertname=\\\"NodeFilesystemFull\\\", component=\\\"srv-db-01\\\", device=\\\"/dev/loop0\\\", fstype=\\\"xfs\\\", instance=\\\"lab-db-01:9100\\\", job=\\\"lab-db-node\\\", mountpoint=\\\"/data\\\"}\",\"truncatedAlerts\":0}\n"
+}

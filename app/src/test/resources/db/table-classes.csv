@@ -10,3 +10,5 @@ identity.team,configuration,yes
 identity.team_membership,configuration,yes
 identity.permission_grant,configuration,yes
 identity.login_session,stateful,yes
+connectors.credential_reference,configuration,yes
+connectors.connector_instance,configuration,yes
