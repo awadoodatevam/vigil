@@ -10,6 +10,7 @@ import org.springframework.modulith.events.IncompleteEventPublications;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import vigil.identity.api.SessionExpiry;
+import vigil.intake.api.IntakeScheduling;
 import vigil.setup.api.SeedImports;
 
 /**
@@ -28,18 +29,21 @@ class RestartProcedure implements ApplicationRunner {
   private final ReadyGate readyGate;
   private final SessionExpiry sessionExpiry;
   private final SeedImports seedImports;
+  private final IntakeScheduling intakeScheduling;
 
   RestartProcedure(
       IncompleteEventPublications incompletePublications,
       TaskScheduler taskScheduler,
       ReadyGate readyGate,
       SessionExpiry sessionExpiry,
-      SeedImports seedImports) {
+      SeedImports seedImports,
+      IntakeScheduling intakeScheduling) {
     this.incompletePublications = incompletePublications;
     this.taskScheduler = taskScheduler;
     this.readyGate = readyGate;
     this.sessionExpiry = sessionExpiry;
     this.seedImports = seedImports;
+    this.intakeScheduling = intakeScheduling;
   }
 
   @Override
@@ -87,6 +91,7 @@ class RestartProcedure implements ApplicationRunner {
         taskScheduler.getClock().instant().plus(RESUBMISSION_INTERVAL),
         RESUBMISSION_INTERVAL);
     sessionExpiry.matchActiveTenants();
+    intakeScheduling.matchActiveTenants();
   }
 
   void step7SetReady() {

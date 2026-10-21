@@ -43,7 +43,8 @@ class AccessInterceptor implements HandlerInterceptor {
       checkInstallationToken(request);
       return true;
     }
-    if (method.hasMethodAnnotation(Public.class)) {
+    if (method.hasMethodAnnotation(Public.class)
+        || method.hasMethodAnnotation(WebhookToken.class)) {
       return true;
     }
     if (method.hasMethodAnnotation(LoggedIn.class)) {

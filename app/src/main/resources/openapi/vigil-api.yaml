@@ -357,6 +357,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /api/v1/webhooks/{source_key}:
+    post:
+      security:
+        - webhook: []
+      parameters:
+        - name: source_key
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: The monitoring source's message, any media type, at most 5 MiB (AR-TM-02); stored exactly as received
+        content:
+          '*/*':
+            schema:
+              type: string
+              contentMediaType: application/octet-stream
+      responses:
+        '200':
+          description: The call was stored; the number of alert entries the connector found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookEntries'
+        '401':
+          description: not_signed_in (no or malformed bearer token) or bad_token (not the source's token)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found (no active source with this key), or unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: too_large (a body over 5 MiB)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   securitySchemes:
     session:
@@ -366,7 +409,19 @@ components:
     installation:
       type: http
       scheme: bearer
+    webhook:
+      type: http
+      scheme: bearer
   schemas:
+    WebhookEntries:
+      type: object
+      additionalProperties: false
+      required:
+        - entries
+      properties:
+        entries:
+          type: integer
+          minimum: 0
     Error:
       type: object
       additionalProperties: false

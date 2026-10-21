@@ -29,6 +29,12 @@ import vigil.audit.api.AuditEventView;
 import vigil.audit.api.AuditQuery;
 import vigil.audit.api.AuditService;
 import vigil.identity.api.IdentityService;
+import vigil.intake.api.AlertReceived;
+import vigil.intake.api.AlertStateChanged;
+import vigil.intake.api.AlertTypeView;
+import vigil.intake.api.IntakeService;
+import vigil.intake.api.SourceHealthChanged;
+import vigil.intake.api.SourceView;
 import vigil.servicemap.api.Counts;
 import vigil.servicemap.api.GenerationView;
 import vigil.servicemap.api.ServiceMapImported;
@@ -87,6 +93,7 @@ class SeedImportIT {
 
   private static final RecordingCheck RECORDING_CHECK = new RecordingCheck();
   private static final List<ServiceMapImported> SERVICE_MAP_EVENTS = new CopyOnWriteArrayList<>();
+  private static final List<Object> INTAKE_EVENTS = new CopyOnWriteArrayList<>();
   private static final LatchImporter LATCH = new LatchImporter();
 
   private static App main;
@@ -139,7 +146,7 @@ class SeedImportIT {
     }
   }
 
-  /** The key check of the main app: referring part 3, target part 6; records its calls. */
+  /** The key check of the main app: referring part 3, target part 7; records its calls. */
   static final class RecordingCheck implements SeedKeyCheck {
 
     final List<TenantId> calls = new CopyOnWriteArrayList<>();
@@ -151,7 +158,7 @@ class SeedImportIT {
 
     @Override
     public int targetPart() {
-      return 6;
+      return 7;
     }
 
     @Override
@@ -226,13 +233,29 @@ class SeedImportIT {
   }
 
   /**
-   * Records every {@code ServiceMapImported} the main app publishes, in or out of a transaction.
+   * Records every {@code ServiceMapImported} and intake event the main app publishes, in or out of
+   * a transaction.
    */
   static class ServiceMapListener {
 
     @EventListener
     void on(ServiceMapImported event) {
       SERVICE_MAP_EVENTS.add(event);
+    }
+
+    @EventListener
+    void on(AlertReceived event) {
+      INTAKE_EVENTS.add(event);
+    }
+
+    @EventListener
+    void on(AlertStateChanged event) {
+      INTAKE_EVENTS.add(event);
+    }
+
+    @EventListener
+    void on(SourceHealthChanged event) {
+      INTAKE_EVENTS.add(event);
     }
   }
 
@@ -331,7 +354,10 @@ class SeedImportIT {
     for (int number = 1; number <= 17; number++) {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
-          .isEqualTo(number <= 3 || number == 5 ? PartOutcome.SUCCEEDED : PartOutcome.NOT_STARTED);
+          .isEqualTo(
+              number <= 3 || number == 5 || number == 6
+                  ? PartOutcome.SUCCEEDED
+                  : PartOutcome.NOT_STARTED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.READY);
     TenantSettingsView settings = main.tenants().settings(view.tenantId());
@@ -431,6 +457,8 @@ class SeedImportIT {
         .isEqualTo(Map.of("credential_references", 19, "connector_instances", 11));
     assertThat(part(view, 5).counts())
         .isEqualTo(Map.of("services", 4, "components", 12, "identity_keys", 15, "dependencies", 6));
+    assertThat(part(view, 6).counts())
+        .isEqualTo(Map.of("monitoring_sources", 2, "alert_types", 18, "alert_type_mappings", 9));
     assertThat(view.parts()).allSatisfy(part -> assertThat(part.error()).isNull());
   }
 
@@ -506,10 +534,9 @@ class SeedImportIT {
     SeedImportView view =
         main.imported(
             SeedTests.demoBundleWith(
-                "03-monitoring.yaml",
-                SeedTests.section("monitoring_sources", "monitoring_sources: 3")));
+                SETTINGS, SeedTests.section("task_assignments", "task_assignments: 3")));
     assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
-    assertThat(part(view, 6).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
+    assertThat(part(view, 7).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
   }
 
   @Test
@@ -732,5 +759,71 @@ class SeedImportIT {
     assertThat(part(view, 4).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
     assertThat(main.app().context().getBeansOfType(SeedKeyCheck.class).values())
         .noneMatch(check -> check.referringPart() == 5 && check.targetPart() == 4);
+  }
+
+  private static final String MONITORING = "03-monitoring.yaml";
+
+  @Test
+  @DisplayName("DD-F-03 03-monitoring.yaml is imported as seed part 6, with its first tests")
+  void monitoringPart() {
+    SeedImportView view = main.imported(SeedTests.demoBundle());
+    assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
+    IntakeService intake = main.app().context().getBean(IntakeService.class);
+    List<SourceView> sources = intake.sources(view.tenantId());
+    assertThat(sources.stream().map(s -> s.sourceKey() + " " + s.sourceKind().key()))
+        .containsExactly("alertmanager-lab alertmanager", "zabbix-lab zabbix");
+    assertThat(sources)
+        .allSatisfy(
+            source -> {
+              assertThat(source.healthCheckInterval()).isEqualTo(Duration.ofSeconds(30));
+              assertThat(source.staleAfter()).isEqualTo(Duration.ofSeconds(120));
+              assertThat(source.disconnectedAfter()).isEqualTo(Duration.ofSeconds(300));
+            });
+    List<AlertTypeView> types = intake.alertTypes(view.tenantId());
+    assertThat(types).hasSize(19);
+    long deadline = System.nanoTime() + Duration.ofSeconds(15).toNanos();
+    while (intake.sources(view.tenantId()).stream().anyMatch(s -> s.lastTestAt() == null)) {
+      assertThat(System.nanoTime()).as("first tests within 15 s").isLessThan(deadline);
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new IllegalStateException(e);
+      }
+    }
+    assertThat(intake.sources(view.tenantId()))
+        .allSatisfy(
+            source -> {
+              assertThat(source.lastTestOutcome().key()).isEqualTo("failed");
+              assertThat(source.health().key()).isEqualTo("disconnected");
+            });
+    assertThat(INTAKE_EVENTS)
+        .noneMatch(
+            event ->
+                event instanceof SourceHealthChanged changed
+                    && changed.tenantId().equals(view.tenantId()));
+  }
+
+  @Test
+  @DisplayName("AR-B-11 the intake part is refused with the module's problems")
+  void monitoringPartRefused() {
+    String line =
+        "cred-webhook-zabbix,       health_check_interval_s: 30, stale_after_s: 120,"
+            + " disconnected_after_s: 300";
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                MONITORING,
+                SeedTests.replacing(
+                    line, line.replace("disconnected_after_s: 300", "disconnected_after_s: 100"))));
+    assertFailedPart(
+        view,
+        6,
+        "Part intake refused. monitoring_sources: disconnected_after_s of zabbix-lab: must be"
+            + " greater than stale_after_s");
+    for (int number : List.of(1, 2, 3, 5)) {
+      assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    }
+    assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
   }
 }

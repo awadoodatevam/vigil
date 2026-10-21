@@ -13,6 +13,7 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -33,6 +34,8 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 import vigil.identity.api.Permission;
+import vigil.shared.TenantId;
+import vigil.tenancy.api.TenantService;
 import vigil.testsupport.ApiClient;
 import vigil.testsupport.ApiClient.Request;
 import vigil.testsupport.ApiClient.Response;
@@ -48,6 +51,7 @@ class ContractIT {
   private static final String FILE = "openapi/vigil-api.yaml";
   private static final String FILE_IRI = "https://vigil.invalid/vigil-api.yaml";
   private static final JsonMapper JSON = JsonMapper.builder().build();
+  private static final String HOOKS = "hooks.test";
 
   private static VigilTestApp app;
   private static ApiClient client;
@@ -67,7 +71,13 @@ class ContractIT {
         SchemaRegistry.withDefaultDialect(
             SpecificationVersion.DRAFT_2020_12, builder -> builder.schemas(Map.of(FILE_IRI, text)));
     VigilDatabase database = VigilDatabase.fresh();
-    secrets = InstallationIT.secrets(database);
+    Map<String, String> values = new LinkedHashMap<>();
+    values.put("installation-token", TestSecrets.randomToken());
+    InstallationIT.USERS.forEach(
+        user -> values.put("seed-password-" + user, TestTenants.randomPassword()));
+    values.put("webhook-zabbix", TestSecrets.randomToken());
+    values.put("webhook-alertmanager", TestSecrets.randomToken());
+    secrets = TestSecrets.create(database, values);
     app = VigilTestApp.start(database, secrets.folder(), List.of());
     app.awaitStarted();
     client = new ApiClient(app);
@@ -85,6 +95,9 @@ class ContractIT {
     readyTenant = createTenant();
     readyImport = startImport(readyTenant).json().get("seed_import_id").stringValue();
     awaitImport(readyImport);
+    app.context()
+        .getBean(TenantService.class)
+        .setAlias(HOOKS, new TenantId(UUID.fromString(readyTenant)), "installation token");
     provisioningTenant = createTenant();
   }
 
@@ -204,6 +217,7 @@ class ContractIT {
     Set<Operation> code = new TreeSet<>();
     Set<Operation> publicInCode = new TreeSet<>();
     Set<Operation> installationInCode = new TreeSet<>();
+    Set<Operation> webhookInCode = new TreeSet<>();
     apiHandlers()
         .forEach(
             (info, handler) -> {
@@ -222,6 +236,9 @@ class ContractIT {
                           if (handler.hasMethodAnnotation(InstallationToken.class)) {
                             installationInCode.add(operation);
                           }
+                          if (handler.hasMethodAnnotation(WebhookToken.class)) {
+                            webhookInCode.add(operation);
+                          }
                         });
               }
             });
@@ -231,6 +248,7 @@ class ContractIT {
 
     Set<Operation> publicInFile = new TreeSet<>();
     Set<Operation> installationInFile = new TreeSet<>();
+    Set<Operation> webhookInFile = new TreeSet<>();
     for (Operation operation : fileOperations()) {
       JsonNode security = operation(operation).get("security");
       assertThat(security).as("security of %s", operation).isNotNull();
@@ -240,12 +258,15 @@ class ContractIT {
         publicInFile.add(normalisedOperation);
       } else if (security.equals(JSON.readTree("[{\"installation\":[]}]"))) {
         installationInFile.add(normalisedOperation);
+      } else if (security.equals(JSON.readTree("[{\"webhook\":[]}]"))) {
+        webhookInFile.add(normalisedOperation);
       } else {
         assertThat(security).isEqualTo(JSON.readTree("[{\"session\":[]}]"));
       }
     }
     assertThat(publicInFile).isEqualTo(publicInCode);
     assertThat(installationInFile).isEqualTo(installationInCode);
+    assertThat(webhookInFile).isEqualTo(webhookInCode).isNotEmpty();
   }
 
   @Test
@@ -329,7 +350,42 @@ class ContractIT {
             baseScenarios(
                 branding, logo, login, session, logout, tenant, live, password, loginBody));
     scenarios.addAll(installationScenarios());
+    scenarios.addAll(webhookScenarios());
     return scenarios;
+  }
+
+  /** A Zabbix message like the first recorded one (AR §12.3). */
+  private static final String ZABBIX_BODY =
+      "{\"event_id\":\"36\",\"event_value\":\"1\",\"event_name\":\"Database write errors on"
+          + " schema bundle_catalog\",\"host\":\"lab-db-01\",\"severity\":\"Not classified\","
+          + "\"tags\":[{\"tag\":\"component\",\"value\":\"db-subscriber\"}],"
+          + "\"event_date\":\"2026.10.15\",\"event_time\":\"19:00:43\",\"recovery_date\":\"\","
+          + "\"recovery_time\":\"\"}";
+
+  private static Request webhookRequest(String sourceKey, byte[] body, boolean token) {
+    Request request =
+        client
+            .post("/api/v1/webhooks/" + sourceKey)
+            .host(HOOKS)
+            .header("Content-Type", "application/json")
+            .body(body);
+    return token
+        ? request.header("Authorization", "Bearer " + secrets.value("webhook-zabbix"))
+        : request;
+  }
+
+  private static List<Scenario> webhookScenarios() {
+    Operation webhook = new Operation("post", "/api/v1/webhooks/{source_key}");
+    byte[] body = ZABBIX_BODY.getBytes(StandardCharsets.UTF_8);
+    return List.of(
+        new Scenario(webhook, "webhook", send(webhookRequest("zabbix-lab", body, true))),
+        new Scenario(
+            webhook, "webhook without token", send(webhookRequest("zabbix-lab", body, false))),
+        new Scenario(webhook, "webhook unknown source", send(webhookRequest("nope", body, true))),
+        new Scenario(
+            webhook,
+            "webhook too large",
+            send(webhookRequest("zabbix-lab", new byte[5_242_881], true))));
   }
 
   private static List<Scenario> installationScenarios() {

@@ -49,12 +49,17 @@ class EntryPointTest {
 
   private static ArchCondition<JavaMethod> carryExactlyOneAccessAnnotation() {
     return new ArchCondition<>(
-        "carry exactly one of @Public, @LoggedIn, @RequiresPermission, @InstallationToken") {
+        "carry exactly one of @Public, @LoggedIn, @RequiresPermission, @InstallationToken,"
+            + " @WebhookToken") {
       @Override
       public void check(JavaMethod method, ConditionEvents events) {
         long count =
             Stream.of(
-                    Public.class, LoggedIn.class, RequiresPermission.class, InstallationToken.class)
+                    Public.class,
+                    LoggedIn.class,
+                    RequiresPermission.class,
+                    InstallationToken.class,
+                    WebhookToken.class)
                 .filter(method::isAnnotatedWith)
                 .count();
         events.add(
