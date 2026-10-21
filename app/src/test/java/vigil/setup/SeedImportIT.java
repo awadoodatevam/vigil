@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -28,6 +29,10 @@ import vigil.audit.api.AuditEventView;
 import vigil.audit.api.AuditQuery;
 import vigil.audit.api.AuditService;
 import vigil.identity.api.IdentityService;
+import vigil.servicemap.api.Counts;
+import vigil.servicemap.api.GenerationView;
+import vigil.servicemap.api.ServiceMapImported;
+import vigil.servicemap.api.ServiceMapService;
 import vigil.setup.api.Installation;
 import vigil.setup.api.PartOutcome;
 import vigil.setup.api.PartView;
@@ -81,6 +86,7 @@ class SeedImportIT {
               "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==");
 
   private static final RecordingCheck RECORDING_CHECK = new RecordingCheck();
+  private static final List<ServiceMapImported> SERVICE_MAP_EVENTS = new CopyOnWriteArrayList<>();
   private static final LatchImporter LATCH = new LatchImporter();
 
   private static App main;
@@ -133,7 +139,7 @@ class SeedImportIT {
     }
   }
 
-  /** The key check of the main app: referring part 3, target part 5; records its calls. */
+  /** The key check of the main app: referring part 3, target part 6; records its calls. */
   static final class RecordingCheck implements SeedKeyCheck {
 
     final List<TenantId> calls = new CopyOnWriteArrayList<>();
@@ -145,7 +151,7 @@ class SeedImportIT {
 
     @Override
     public int targetPart() {
-      return 5;
+      return 6;
     }
 
     @Override
@@ -211,6 +217,22 @@ class SeedImportIT {
     @Bean
     SeedKeyCheck recordingKeyCheck() {
       return RECORDING_CHECK;
+    }
+
+    @Bean
+    ServiceMapListener serviceMapListener() {
+      return new ServiceMapListener();
+    }
+  }
+
+  /**
+   * Records every {@code ServiceMapImported} the main app publishes, in or out of a transaction.
+   */
+  static class ServiceMapListener {
+
+    @EventListener
+    void on(ServiceMapImported event) {
+      SERVICE_MAP_EVENTS.add(event);
     }
   }
 
@@ -309,7 +331,7 @@ class SeedImportIT {
     for (int number = 1; number <= 17; number++) {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
-          .isEqualTo(number <= 3 ? PartOutcome.SUCCEEDED : PartOutcome.NOT_STARTED);
+          .isEqualTo(number <= 3 || number == 5 ? PartOutcome.SUCCEEDED : PartOutcome.NOT_STARTED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.READY);
     TenantSettingsView settings = main.tenants().settings(view.tenantId());
@@ -407,6 +429,8 @@ class SeedImportIT {
         .isEqualTo(Map.of("teams", 9, "users", 5, "memberships", 3, "permission_grants", 5));
     assertThat(part(view, 3).counts())
         .isEqualTo(Map.of("credential_references", 19, "connector_instances", 11));
+    assertThat(part(view, 5).counts())
+        .isEqualTo(Map.of("services", 4, "components", 12, "identity_keys", 15, "dependencies", 6));
     assertThat(view.parts()).allSatisfy(part -> assertThat(part.error()).isNull());
   }
 
@@ -498,7 +522,7 @@ class SeedImportIT {
     assertThat(part(unreadable, 6).error())
         .startsWith("Part intake refused. 03-monitoring.yaml could not be read: ");
     assertThat(part(unreadable, 4).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
-    assertThat(part(unreadable, 5).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
+    assertThat(part(unreadable, 5).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     assertThat(main.state(unreadable.tenantId())).isEqualTo(TenantState.FAILED);
 
     SeedImportView unknown =
@@ -635,5 +659,78 @@ class SeedImportIT {
     assertThat(worker.getName()).isEqualTo("seed-import-" + started.id());
     release.countDown();
     assertThat(latch.await(started).state()).isEqualTo(SeedImportState.SUCCEEDED);
+  }
+
+  private static final String SERVICE_MAP = "02-service-map.yaml";
+
+  @Test
+  @DisplayName("DD-F-02 the service map file is imported as seed part 5, generation 1")
+  void serviceMapPart() {
+    SeedImportView view = main.imported(SeedTests.demoBundle());
+    assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
+    GenerationView generation =
+        main.app()
+            .context()
+            .getBean(ServiceMapService.class)
+            .currentGeneration(view.tenantId())
+            .orElseThrow();
+    assertThat(generation.generation()).isEqualTo(1);
+    assertThat(generation.fileName()).isEqualTo(SERVICE_MAP);
+    assertThat(generation.importedBy()).isEqualTo(Actor.module("vigil-setup"));
+    assertThat(generation.counts()).isEqualTo(new Counts(4, 12, 15, 6));
+    List<AuditEventView> events = events(main, view.tenantId());
+    assertThat(events).hasSize(1);
+    assertThat(events.getFirst().detailsJson()).doesNotContain("\"area\":\"service_map\"");
+    assertThat(SERVICE_MAP_EVENTS).noneMatch(event -> event.tenantId().equals(view.tenantId()));
+  }
+
+  @Test
+  @DisplayName("AR-B-11 the service map part is refused with the module's problems")
+  void serviceMapPartRefused() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                SERVICE_MAP,
+                text -> {
+                  String line =
+                      List.of(text.split("\n")).stream()
+                          .filter(l -> l.startsWith("  - {component_key: srv-db-01,"))
+                          .findFirst()
+                          .orElseThrow();
+                  return SeedTests.replacing(line, line + "\n" + line).apply(text);
+                }));
+    assertFailedPart(
+        view, 5, "Part service map refused. components: key 'srv-db-01' appears more than once.");
+    for (int number = 1; number <= 3; number++) {
+      assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    }
+    assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
+  }
+
+  @Test
+  @DisplayName("DM-R-60 an owner team of the service map that part 2 does not define fails part 5")
+  void serviceMapTeamCheck() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                SERVICE_MAP,
+                SeedTests.replacing(
+                    "\"Charging API server\",    kind: server, criticality: high,     owner_team_key:"
+                        + " it-infra}",
+                    "\"Charging API server\",    kind: server, criticality: high,     owner_team_key:"
+                        + " ghost-team}")));
+    assertFailedPart(
+        view, 5, "Key check failed: components 'srv-api-01': team 'ghost-team' does not exist");
+    assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
+  }
+
+  @Test
+  @DisplayName("BP-R-29 part 5 is registered; its check against part 4 waits for P-18")
+  void serviceMapTargetCheckWaits() {
+    SeedImportView view = main.imported(SeedTests.demoBundle());
+    assertThat(part(view, 5).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    assertThat(part(view, 4).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
+    assertThat(main.app().context().getBeansOfType(SeedKeyCheck.class).values())
+        .noneMatch(check -> check.referringPart() == 5 && check.targetPart() == 4);
   }
 }

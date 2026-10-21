@@ -13,3 +13,8 @@ identity.login_session,stateful,yes
 connectors.credential_reference,configuration,yes
 connectors.connector_instance,configuration,yes
 setup.seed_import,stateful,yes
+servicemap.generation,immutable,yes
+servicemap.business_service,immutable,yes
+servicemap.component,immutable,yes
+servicemap.component_identity_key,immutable,yes
+servicemap.dependency,immutable,yes
