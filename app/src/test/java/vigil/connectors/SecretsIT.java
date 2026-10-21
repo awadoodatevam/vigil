@@ -24,6 +24,7 @@ import vigil.connectors.api.Secrets;
 import vigil.shared.Ids;
 import vigil.shared.TenantId;
 import vigil.shared.VigilError;
+import vigil.testsupport.LogLines;
 import vigil.testsupport.TestSecrets;
 import vigil.testsupport.VigilDatabase;
 import vigil.testsupport.VigilTestApp;

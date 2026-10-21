@@ -12,3 +12,4 @@ identity.permission_grant,configuration,yes
 identity.login_session,stateful,yes
 connectors.credential_reference,configuration,yes
 connectors.connector_instance,configuration,yes
+setup.seed_import,stateful,yes

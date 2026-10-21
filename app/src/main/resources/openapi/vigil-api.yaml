@@ -185,12 +185,187 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /api/v1/installation/tenants:
+    post:
+      security:
+        - installation: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewTenant'
+      responses:
+        '200':
+          description: The new tenant, in state provisioning
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantCreated'
+        '400':
+          description: 'bad_request, also "name: 1 to 100 characters"'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: not_signed_in (no or malformed bearer token) or bad_token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/installation/tenants/{tenant_id}/seed-imports:
+    post:
+      security:
+        - installation: []
+      parameters:
+        - name: tenant_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - bundle
+              properties:
+                bundle:
+                  type: string
+                  contentMediaType: application/zip
+      responses:
+        '202':
+          description: The import started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeedImportStarted'
+        '400':
+          description: bad_request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: not_signed_in or bad_token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found (no such tenant)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: too_large (a file over 10 MiB)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: invalid (the bundle's problems) or refused (tenant_not_new)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/installation/seed-imports/{seed_import_id}:
+    get:
+      security:
+        - installation: []
+      parameters:
+        - name: seed_import_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The seed import record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeedImport'
+        '400':
+          description: bad_request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: not_signed_in or bad_token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/installation/aliases/{host_name}:
+    put:
+      security:
+        - installation: []
+      parameters:
+        - name: host_name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AliasSet'
+      responses:
+        '200':
+          description: The new alias revision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alias'
+        '400':
+          description: bad_request (also a host name that is not valid)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: not_signed_in or bad_token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found (no such tenant)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: refused, tenant_not_ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   securitySchemes:
     session:
       type: apiKey
       in: cookie
       name: vigil_session
+    installation:
+      type: http
+      scheme: bearer
   schemas:
     Error:
       type: object
@@ -288,4 +463,117 @@ components:
         username:
           type: string
         password:
+          type: string
+    NewTenant:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    AliasSet:
+      type: object
+      required:
+        - tenant_id
+      properties:
+        tenant_id:
+          type: string
+          format: uuid
+    TenantCreated:
+      type: object
+      additionalProperties: false
+      required:
+        - tenant_id
+      properties:
+        tenant_id:
+          type: string
+          format: uuid
+    SeedImportStarted:
+      type: object
+      additionalProperties: false
+      required:
+        - seed_import_id
+      properties:
+        seed_import_id:
+          type: string
+          format: uuid
+    SeedImport:
+      type: object
+      additionalProperties: false
+      required:
+        - seed_import_id
+        - tenant_id
+        - bundle_name
+        - bundle_version
+        - state
+        - started_at
+        - finished_at
+        - parts
+      properties:
+        seed_import_id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        bundle_name:
+          type: string
+        bundle_version:
+          type: string
+        state:
+          type: string
+          enum:
+            - running
+            - succeeded
+            - failed
+        started_at:
+          type: string
+        finished_at:
+          type:
+            - string
+            - 'null'
+        parts:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - module
+              - outcome
+              - counts
+              - error
+            properties:
+              module:
+                type: string
+              outcome:
+                type: string
+                enum:
+                  - succeeded
+                  - failed
+                  - not_started
+              counts:
+                type: object
+                additionalProperties:
+                  type: integer
+              error:
+                type:
+                  - string
+                  - 'null'
+    Alias:
+      type: object
+      additionalProperties: false
+      required:
+        - host_name
+        - revision
+        - tenant_id
+        - set_at
+      properties:
+        host_name:
+          type: string
+        revision:
+          type: integer
+        tenant_id:
+          type: string
+          format: uuid
+        set_at:
           type: string

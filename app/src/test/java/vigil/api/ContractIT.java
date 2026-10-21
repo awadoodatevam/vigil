@@ -11,12 +11,14 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterAll;
@@ -34,6 +36,9 @@ import vigil.identity.api.Permission;
 import vigil.testsupport.ApiClient;
 import vigil.testsupport.ApiClient.Request;
 import vigil.testsupport.ApiClient.Response;
+import vigil.testsupport.SeedBundles;
+import vigil.testsupport.SeedBundles.MultipartBody;
+import vigil.testsupport.TestSecrets;
 import vigil.testsupport.TestTenants;
 import vigil.testsupport.VigilDatabase;
 import vigil.testsupport.VigilTestApp;
@@ -46,7 +51,11 @@ class ContractIT {
 
   private static VigilTestApp app;
   private static ApiClient client;
+  private static TestSecrets secrets;
   private static TestTenants.Tenant tenantA;
+  private static String readyTenant;
+  private static String readyImport;
+  private static String provisioningTenant;
   private static JsonNode contract;
   private static SchemaRegistry schemas;
 
@@ -57,7 +66,9 @@ class ContractIT {
     schemas =
         SchemaRegistry.withDefaultDialect(
             SpecificationVersion.DRAFT_2020_12, builder -> builder.schemas(Map.of(FILE_IRI, text)));
-    app = VigilTestApp.start(VigilDatabase.fresh());
+    VigilDatabase database = VigilDatabase.fresh();
+    secrets = InstallationIT.secrets(database);
+    app = VigilTestApp.start(database, secrets.folder(), List.of());
     app.awaitStarted();
     client = new ApiClient(app);
     byte[] png = new byte[64];
@@ -71,6 +82,68 @@ class ContractIT {
             .user("alice", "Alice", Permission.VIEW)
             .create();
     tenants.tenant("Tenant B").host("b.test").create();
+    readyTenant = createTenant();
+    readyImport = startImport(readyTenant).json().get("seed_import_id").stringValue();
+    awaitImport(readyImport);
+    provisioningTenant = createTenant();
+  }
+
+  private static Request installation(Request request) {
+    return request.header("Authorization", "Bearer " + secrets.value("installation-token"));
+  }
+
+  private static Request createTenantRequest(String body) {
+    return client.post("/api/v1/installation/tenants").host("nowhere.test").json(body);
+  }
+
+  private static String createTenant() {
+    return installation(createTenantRequest("{\"name\":\"contract\"}"))
+        .send()
+        .json()
+        .get("tenant_id")
+        .stringValue();
+  }
+
+  private static Request importRequest(String tenantId, byte[] bundle) {
+    MultipartBody form = SeedBundles.form("bundle", "bundle.zip", bundle);
+    return client
+        .post("/api/v1/installation/tenants/" + tenantId + "/seed-imports")
+        .host("nowhere.test")
+        .header("Content-Type", form.contentType())
+        .body(form.content());
+  }
+
+  private static Response startImport(String tenantId) {
+    return installation(importRequest(tenantId, InstallationIT.demoBundle())).send();
+  }
+
+  private static Request seedImportRequest(String id) {
+    return client.get("/api/v1/installation/seed-imports/" + id).host("nowhere.test");
+  }
+
+  private static Request aliasRequest(String host, String body) {
+    return client
+        .request("PUT", "/api/v1/installation/aliases/" + host)
+        .host("nowhere.test")
+        .json(body);
+  }
+
+  private static void awaitImport(String id) {
+    long deadline = System.nanoTime() + Duration.ofSeconds(60).toNanos();
+    while (installation(seedImportRequest(id))
+        .send()
+        .json()
+        .get("state")
+        .stringValue()
+        .equals("running")) {
+      assertThat(System.nanoTime()).isLessThan(deadline);
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new IllegalStateException(e);
+      }
+    }
   }
 
   @AfterAll
@@ -130,6 +203,7 @@ class ContractIT {
     assertThat(contract.get("openapi").stringValue()).isEqualTo("3.1.0");
     Set<Operation> code = new TreeSet<>();
     Set<Operation> publicInCode = new TreeSet<>();
+    Set<Operation> installationInCode = new TreeSet<>();
     apiHandlers()
         .forEach(
             (info, handler) -> {
@@ -145,6 +219,9 @@ class ContractIT {
                           if (handler.hasMethodAnnotation(Public.class)) {
                             publicInCode.add(operation);
                           }
+                          if (handler.hasMethodAnnotation(InstallationToken.class)) {
+                            installationInCode.add(operation);
+                          }
                         });
               }
             });
@@ -153,16 +230,22 @@ class ContractIT {
     assertThat(file).isEqualTo(code);
 
     Set<Operation> publicInFile = new TreeSet<>();
+    Set<Operation> installationInFile = new TreeSet<>();
     for (Operation operation : fileOperations()) {
       JsonNode security = operation(operation).get("security");
       assertThat(security).as("security of %s", operation).isNotNull();
+      Operation normalisedOperation =
+          new Operation(operation.method(), normalised(operation.path()));
       if (security.isArray() && security.isEmpty()) {
-        publicInFile.add(new Operation(operation.method(), normalised(operation.path())));
+        publicInFile.add(normalisedOperation);
+      } else if (security.equals(JSON.readTree("[{\"installation\":[]}]"))) {
+        installationInFile.add(normalisedOperation);
       } else {
         assertThat(security).isEqualTo(JSON.readTree("[{\"session\":[]}]"));
       }
     }
     assertThat(publicInFile).isEqualTo(publicInCode);
+    assertThat(installationInFile).isEqualTo(installationInCode);
   }
 
   @Test
@@ -241,6 +324,89 @@ class ContractIT {
     Operation live = new Operation("get", "/api/v1/live");
     String password = tenantA.password("alice");
     String loginBody = "{\"username\":\"alice\",\"password\":\"" + password + "\"}";
+    List<Scenario> scenarios =
+        new ArrayList<>(
+            baseScenarios(
+                branding, logo, login, session, logout, tenant, live, password, loginBody));
+    scenarios.addAll(installationScenarios());
+    return scenarios;
+  }
+
+  private static List<Scenario> installationScenarios() {
+    Operation tenants = new Operation("post", "/api/v1/installation/tenants");
+    Operation imports =
+        new Operation("post", "/api/v1/installation/tenants/{tenant_id}/seed-imports");
+    Operation record = new Operation("get", "/api/v1/installation/seed-imports/{seed_import_id}");
+    Operation alias = new Operation("put", "/api/v1/installation/aliases/{host_name}");
+    String readyBody = "{\"tenant_id\":\"" + readyTenant + "\"}";
+    return List.of(
+        new Scenario(
+            tenants, "create tenant", send(installation(createTenantRequest("{\"name\":\"c\"}")))),
+        new Scenario(tenants, "create tenant {}", send(installation(createTenantRequest("{}")))),
+        new Scenario(
+            tenants, "create tenant without token", send(createTenantRequest("{\"name\":\"c\"}"))),
+        new Scenario(
+            imports,
+            "import",
+            () -> answer(installation(importRequest(createTenant(), InstallationIT.demoBundle())))),
+        new Scenario(
+            imports,
+            "import tenant x",
+            send(installation(importRequest("x", InstallationIT.demoBundle())))),
+        new Scenario(
+            imports,
+            "import without token",
+            () -> answer(importRequest(createTenant(), InstallationIT.demoBundle()))),
+        new Scenario(
+            imports,
+            "import unknown tenant",
+            send(
+                installation(
+                    importRequest(UUID.randomUUID().toString(), InstallationIT.demoBundle())))),
+        new Scenario(
+            imports,
+            "import too large",
+            () -> answer(installation(importRequest(createTenant(), new byte[10_485_761])))),
+        new Scenario(
+            imports,
+            "import not new",
+            send(installation(importRequest(readyTenant, InstallationIT.demoBundle())))),
+        new Scenario(record, "seed import", send(installation(seedImportRequest(readyImport)))),
+        new Scenario(record, "seed import x", send(installation(seedImportRequest("x")))),
+        new Scenario(record, "seed import without token", send(seedImportRequest(readyImport))),
+        new Scenario(
+            record,
+            "seed import unknown",
+            send(installation(seedImportRequest(UUID.randomUUID().toString())))),
+        new Scenario(alias, "alias", send(installation(aliasRequest("contract.test", readyBody)))),
+        new Scenario(alias, "alias a_b", send(installation(aliasRequest("a_b", readyBody)))),
+        new Scenario(alias, "alias without token", send(aliasRequest("contract.test", readyBody))),
+        new Scenario(
+            alias,
+            "alias unknown tenant",
+            send(
+                installation(
+                    aliasRequest(
+                        "contract.test", "{\"tenant_id\":\"" + UUID.randomUUID() + "\"}")))),
+        new Scenario(
+            alias,
+            "alias provisioning",
+            send(
+                installation(
+                    aliasRequest(
+                        "contract.test", "{\"tenant_id\":\"" + provisioningTenant + "\"}")))));
+  }
+
+  private static List<Scenario> baseScenarios(
+      Operation branding,
+      Operation logo,
+      Operation login,
+      Operation session,
+      Operation logout,
+      Operation tenant,
+      Operation live,
+      String password,
+      String loginBody) {
     return List.of(
         new Scenario(branding, "branding a.test", send(client.get(branding.path()).host("a.test"))),
         new Scenario(

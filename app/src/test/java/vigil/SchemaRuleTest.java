@@ -34,7 +34,7 @@ class SchemaRuleTest {
   /** A schema-qualified name: one of the 23 schemas followed by a dot and a name. */
   private static final Pattern QUALIFIED =
       Pattern.compile(
-          "(?<![A-Za-z0-9_])(" + String.join("|", TableClasses.SCHEMAS) + ")\\.(?=[\"A-Za-z_])",
+          "(?<![A-Za-z0-9_-])(" + String.join("|", TableClasses.SCHEMAS) + ")\\.(?=[\"A-Za-z_])",
           Pattern.CASE_INSENSITIVE);
 
   private static final Pattern SNAKE_CASE = Pattern.compile("[a-z][a-z0-9]*(_[a-z0-9]+)*");
@@ -103,6 +103,10 @@ class SchemaRuleTest {
       named.addAll(qualifiedSchemas(literal));
     }
     assertThat(named).containsExactly("incidents", "intake", "engine");
+    assertThat(qualifiedSchemas("01-tenant-identity.yaml")).isEmpty();
+    assertThat(qualifiedSchemas("04-operations-actions-recovery.yaml")).isEmpty();
+    assertThat(qualifiedSchemas("09-past-incidents.csv")).isEmpty();
+    assertThat(qualifiedSchemas("SELECT 1 FROM identity.team")).containsExactly("identity");
   }
 
   private static Map<String, String> moduleSchemas() {

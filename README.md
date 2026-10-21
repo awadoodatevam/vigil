@@ -41,7 +41,8 @@ Migrations are Flyway SQL files in `app/src/main/resources/db/migration/{schema}
 - Time comes from the `Clock` bean through `Timestamps.now(clock)`; tests replace it with a `@Primary` test clock passed to `VigilTestApp`.
 - Every module's scheduled work for tenants is matched to `TenantService.activeTenants()` at restart step (6) and on `TenantAliasChanged` (AR-R-23).
 - Secrets are read only through `vigil.connectors.api.Secrets` (callers as `docs/50-architecture.md` AR-S-04, checked by `SecretCallerRuleTest`); monitoring payloads are parsed and sources tested only through `ConnectorService`; every entry point that makes an external call calls `TransactionGuard.assertNoTransaction()` first and is listed in `ExternalCallGuardIT`.
-- Every `vigil-api` handler method carries `@Public`, `@LoggedIn` or `@RequiresPermission`; errors are `VigilError`s, mapped by `ApiErrors` (AR-I-03); timestamps are written with `ApiTimes`; live notices are published with `LiveHub.publish` after the commit; every operation is in `openapi/vigil-api.yaml` and in `ContractIT`.
+- Every `vigil-api` handler method carries `@Public`, `@LoggedIn`, `@RequiresPermission` or `@InstallationToken`; errors are `VigilError`s, mapped by `ApiErrors` (AR-I-03); timestamps are written with `ApiTimes`; live notices are published with `LiveHub.publish` after the commit; every operation is in `openapi/vigil-api.yaml` and in `ContractIT`.
+- A seed part joins the import by a `SeedPartImporter` bean in `vigil.setup` (its sections and name are already in `SeedParts`; its refusal message is `Part {name} refused.`); a cross-module key check by a `SeedKeyCheck` bean; each package that adds one extends `SeedImportIT` (AR-Q-10).
 
 Interfaces of the platform modules for later packages (P-08):
 
@@ -61,11 +62,19 @@ Interfaces of `vigil-connectors` for later packages (P-10):
 
 Interfaces of `vigil-api` for later packages (P-09):
 
-- P-11: the installation paths `/api/v1/installation/**` pass without host resolution, session and CSRF; P-11 adds its bearer-token check for them and its own access annotation, and extends `EntryPointTest`.
+- P-11 (built): the installation operations AR-I-95 to AR-I-98 with `@InstallationToken`.
 - P-13: the webhook path `/api/v1/webhooks/**` passes without session and CSRF, tied to the host's tenant; P-13 adds its access annotation and passes the call to `vigil-intake`, which checks the token with `Secrets.verify` (AR-S-05).
 - P-25 and later: `@RequiresPermission`, `TenantId` and `ApiCaller` handler parameters, `ApiTimes`, `VigilError` for refusals, `LiveHub.publish` for the topics of AR-I-04, the OpenAPI file and `ContractIT` scenarios for each new operation.
 - P-28: the operations AR-I-10 to AR-I-16, the cookies `vigil_session` and `vigil_csrf`, the header `X-Vigil-CSRF` and the default messages of AR-I-03.
 - Test support: `VigilTestApp.start(database, extraArgs, configurations)`, `ApiClient` (requests with their own `Host` header, and streams read line by line) and `TestTenants` (`ready` tenants with users, teams and a host alias).
+
+Interfaces of `vigil-setup` for later packages (P-11):
+
+- P-12 to P-24: a `SeedPartImporter` for their part (with `afterCommit` where AR-B-11 needs it, P-13), their `SeedKeyCheck`s, and their part's checks in `SeedImportIT`.
+- P-20: the checks of `08-runbooks.md` and `09-past-incidents.csv`.
+- P-26: AR-Q-10 with all 17 parts (BP-R-29 ends).
+- P-26, P-31: AR-I-95 to AR-I-98 with `Authorization: Bearer {installation-token}`; `bundle.yaml` written as `SeedBundles.demoEntries` writes it (quoted values); poll AR-I-97 until `state` is not `running`; a 422 refusal's `message` and a failed part's `error` are the texts to show (DC-S12-05).
+- Test support: `SeedBundles` (the demo bundle built from `docs/31-demo-data/` with test placeholder values, `zip` of any entries, `form` for a multipart body) and `LogLines` (the application's ECS log lines in captured output).
 
 ## Local installation
 

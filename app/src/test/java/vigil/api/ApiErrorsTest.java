@@ -22,6 +22,8 @@ import org.springframework.web.ErrorResponseException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -115,6 +117,12 @@ class ApiErrorsTest {
     ApiError tooLarge = map(new ErrorResponseException(HttpStatus.CONTENT_TOO_LARGE));
     assertThat(tooLarge.status()).isEqualTo(413);
     assertThat(tooLarge.code()).isEqualTo("too_large");
+    ApiError uploadTooLarge = map(new MaxUploadSizeExceededException(10_485_760));
+    assertThat(uploadTooLarge.status()).isEqualTo(413);
+    assertThat(uploadTooLarge.code()).isEqualTo("too_large");
+    ApiError badMultipart = map(new MultipartException("malformed"));
+    assertThat(badMultipart.status()).isEqualTo(400);
+    assertThat(badMultipart.code()).isEqualTo("bad_request");
 
     CannotGetJdbcConnectionException noConnection =
         new CannotGetJdbcConnectionException("no connection");
