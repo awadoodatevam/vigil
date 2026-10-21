@@ -5,7 +5,7 @@
 | Package | P-12 Service map (spec `docs/packages/P-12.md`) |
 | Branch | `p-12-service-map` |
 | Pin date (BP-R-08) | 21 October 2026 |
-| Built by | Claude Code, cloud session in the environment `vigil` (Temurin 25.0.4.1+1) |
+| Built by | Claude Code, cloud session in the environment `vigil` (setup version 1, Temurin 25.0.4.1+1, Docker 29.9.1) |
 | State | Built; the gate command passes in this session (without the lab tests, CTX-D-036); the `ci.yml` job `gate` runs on the pull request |
 
 ## 1. What was built
@@ -78,11 +78,11 @@ Assumptions of spec 11: snakeyaml-engine's `Parse` gives events with their ancho
 
 ## 9. Lines of production code added and changed (P12-DC-01)
 
-`tools/loc.sh origin/main HEAD` prints **LOC** (at most 2,000).
+`tools/loc.sh origin/main HEAD` prints **1,915** (at most 2,000).
 
 ## 10. Gate command result
 
-GATE
+Cloud session (`CLAUDE_CODE_REMOTE=true tools/check-all.sh`, setup version 1): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 2: `vigil-app` 94 unit tests and 175 `*IT` (77 and 155 before this package; every earlier test passes, `SeedImportIT` and `SeedImportRestartIT` changed only as spec 6.11), `demo-control` 1 and 2; the web build, lint, type check and Vitest pass; step 3: `ruff` clean, 81 Python tests passed, 1 skipped and 35 deselected (no file under `demo/`, `deploy/`, `dev/`, `spikes/`, `tools/` or `docs/31-demo-data/` changed, so the lab tests did not run, CTX-D-036); step 4: `shellcheck`; step 5: 49 data checks, 0 failed; step 6: compose file valid; step 7: `trace.py --check`.
 
 GitHub: the `ci.yml` job `gate` runs on the pull request.
 
