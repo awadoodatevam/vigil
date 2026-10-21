@@ -10,6 +10,7 @@ import org.springframework.modulith.events.IncompleteEventPublications;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import vigil.identity.api.SessionExpiry;
+import vigil.setup.api.SeedImports;
 
 /**
  * The restart procedure of AR-R-24: steps (1) to (7) in order, after the application context has
@@ -26,16 +27,19 @@ class RestartProcedure implements ApplicationRunner {
   private final TaskScheduler taskScheduler;
   private final ReadyGate readyGate;
   private final SessionExpiry sessionExpiry;
+  private final SeedImports seedImports;
 
   RestartProcedure(
       IncompleteEventPublications incompletePublications,
       TaskScheduler taskScheduler,
       ReadyGate readyGate,
-      SessionExpiry sessionExpiry) {
+      SessionExpiry sessionExpiry,
+      SeedImports seedImports) {
     this.incompletePublications = incompletePublications;
     this.taskScheduler = taskScheduler;
     this.readyGate = readyGate;
     this.sessionExpiry = sessionExpiry;
+    this.seedImports = seedImports;
   }
 
   @Override
@@ -61,7 +65,7 @@ class RestartProcedure implements ApplicationRunner {
   }
 
   void step2FailInterruptedSeedImports() {
-    // Filled by P-11 (vigil-setup).
+    seedImports.failInterrupted();
   }
 
   void step3ResubmitIncompletePublications() {

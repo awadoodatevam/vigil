@@ -18,6 +18,8 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import tools.jackson.databind.json.JsonMapper;
@@ -49,6 +51,12 @@ final class ApiErrors {
             cause instanceof DataAccessResourceFailureException
                 || cause instanceof CannotCreateTransactionException)) {
       return Optional.of(of(Code.DEPENDENCY_FAILED));
+    }
+    if (error instanceof MaxUploadSizeExceededException) {
+      return Optional.of(of(Code.TOO_LARGE));
+    }
+    if (error instanceof MultipartException) {
+      return Optional.of(of(Code.BAD_REQUEST));
     }
     if (responseCommitted
         && hasCause(

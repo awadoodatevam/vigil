@@ -91,7 +91,7 @@ None (no owner-run step).
 
 Assumptions of spec 11:
 
-- Jackson 3's streaming parser over a `String` reports token starts as character offsets, an object or array ends at its end token's offset plus 1, and after `finishToken()` a scalar ends at `currentLocation().getCharOffset()`: holds (`AlertmanagerParseTest` passes on the 190 recordings, the three-element body with whitespace, the scalar `42`, the escapes `&` and `\"`).
+- Jackson 3's streaming parser over a `String` reports token starts as character offsets, an object or array ends at its end token's offset plus 1, and after `finishToken()` a scalar ends at `currentLocation().getCharOffset()`: holds (`AlertmanagerParseTest` passes on the 190 recordings, the three-element body with whitespace, the scalar `42`, the escapes `\u0026` and `\"`).
 - The JDK HTTP client of Java 25 (Temurin 25.0.4.1+1): a refused connection gives "Could not connect to 127.0.0.1:{port}." (rule 4), `nowhere.invalid` gives "Host nowhere.invalid not found." (rule 3), a 3 s answer delay with a 2 s test timeout gives "No answer within 2 s." (rule 2): `ConnectionTestIT` passes, so `FailureReasons` needed no change.
 - `wiremock-standalone` 3.13.2 offers the API of spec 6.2: holds (the build).
 - `nowhere.invalid` does not resolve in the cloud session: holds (`ConnectionTestIT`).

@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.9 |
-| Date | 18 October 2026 |
+| Version | 1.10 |
+| Date | 19 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
 
@@ -611,7 +611,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 | ID | Rule | Ends | Trace |
 | --- | --- | --- | --- |
 | BP-R-22 | The navigation of DC-U-04 lists only the screens already built (amendment BP-A-12). | SL-CP-3 | DC-U-04 |
-| BP-R-29 | Until every seed import part is registered, the import skips the files and top-level sections of parts that are not registered, and the cross-module key checks whose target module has no part registered; AR-Q-10 imports the full bundle and checks the registered parts. A section that belongs to no part (AR-B-05) is still refused. | P-26 | AR-B-05; DM-R-60 |
+| BP-R-29 | Until every seed import part is registered, the import skips the top-level sections of parts that are not registered (their files are still read and checked at the turn of the first part that reads them, amendment BP-A-23), and the cross-module key checks whose referring or target part did not succeed; AR-Q-10 imports the full bundle and checks the registered parts. A section that belongs to no part (AR-B-05) still refuses the first part that reads its file. | P-26 | AR-B-05; DM-R-60 |
 
 ### 7.7 Size summary
 
@@ -963,6 +963,7 @@ Written into the named documents at the close of this round, 12 Oct 2026: `00-co
 | BP-A-20 | `50-architecture` AR-I-03 | Owner decision CTX-D-039 (16 Oct 2026, for P-09). Adds 500 `internal_error` (an unexpected error; its cause is logged) to the complete list; an unreachable database stays 503 `dependency_failed`. A method that a path does not offer answers 404 `not_found` (no 405). Methods other than GET, HEAD, POST, PUT, DELETE, PATCH and OPTIONS are refused before `vigil-api` runs: TRACE with 405 by the web server, the others with 400 `bad_request` by Spring Security's firewall, after the host check of AR-I-02 (on a host with no alias they answer `unknown_host`). Wrong credentials at login answer 401 `not_signed_in` (AR-I-12). When neither the documents nor the module give a text, `message` is the default text of its code (complete list): `bad_request` "The request is not valid."; `session_ended` "Your session ended. Sign in again."; `not_signed_in` "You are not signed in."; `bad_token` "The token is not valid."; `forbidden` "You do not have permission to do this."; `not_found` "Not found."; `unknown_host` "This address is not set up."; `conflict` "This was changed meanwhile. Reload and try again."; `too_large` "The request is too large."; `refused` "The request was refused."; `invalid` "The request has problems."; `internal_error` "Something went wrong. Try again."; `dependency_failed` "A service is not available. Try again later."; `starting` keeps the body of P-02 without a message. `details` is left out when empty. |
 | BP-A-21 | `50-architecture` AR-H-06, AR-H-11 | The deployment bucket is named `vigil-{installation}-deploy-{account id}` (Example: `vigil-demo-deploy-123456789012`), because S3 bucket names are unique across all AWS accounts and `vigil-demo-deploy` could already be taken. Written on 16 October 2026 for P-05 (CTX-D-041). |
 | BP-A-22 | `50-architecture` Section 12.1, AR-K-01, AR-K-02 | Owner decision CTX-D-043 (18 Oct 2026, for P-10). "The connection error text" of a monitoring source connection test becomes a complete list of failure reasons, written after the table of Section 12.1: "The address is not a valid http or https address."; "No credential is set."; "Secret {name} is not available."; "No connection to {host}:{port} within 5 s."; "No answer within 10 s."; "Host {host} not found."; "Could not connect to {host}:{port}."; "Connection failed: {message}."; and the kinds' own answer rules (`error.data` or "HTTP {status}"), at most 500 characters, never a secret value. Written on 18 October 2026 (`50-architecture` v1.6). |
+| BP-A-23 | `50-architecture` AR-B-05 | Owner decision CTX-D-044 (19 Oct 2026, for P-11). Adds (complete list): (1) at upload (AR-I-96) a bundle is refused with 422 `invalid` when its entries unpack to more than 50 MiB in total, a logo entry has more than 512 KB, or a text entry is not UTF-8; (2) a bundle for a tenant that is not `provisioning` or already has a seed import record is refused with 422 `refused` "A seed bundle can be imported only into a new tenant." (`details.refusal` `tenant_not_new`, DM-E82-R1); (3) "refuses the part" for an unknown top-level section, and also for a data file that cannot be read as YAML, means the first part in DM-R-56 order whose entries include that file, at its turn in the import, whether that part is registered or not (BP-R-29). BP-R-29 is reworded to match. Written on 19 October 2026 (`50-architecture` v1.7). |
 
 ### 17.3 Assumptions (complete list)
 
@@ -1023,3 +1024,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.7 | 16 Oct 2026 | For the P-05 spec (BP-L-1, CTX-D-041): the gate's pytest step and `tools/trace.py` cover `deploy/` (BP-R-12, BP-R-15); the P-05 entry's tests (secret directories of AR-ASM-13 in P-32; `deploy/gpu.sh` first run in P-06; gate tests of the scripts); the P-06 entry adds the first GPU host start and the Jira token expiry print; the P-32 entry adds the AR-ASM-13 check; BP-R-04 names the SSE probe's image; Section 10.3 names `secrets.sh`'s installation argument and the uploaded host scripts; P-05 is size L (Section 7.7); amendment BP-A-21 (deployment bucket name with the account ID, `50-architecture` v1.5); assumptions BP-ASM-12 (GPU host image) and BP-ASM-13 (main host image). |
 | 1.8 | 18 Oct 2026 | From the P-05 report (BP-L-8, CTX-D-042): Section 5.1 lists `.gitleaksignore`; Section 16 item 8 notes GitHub's OIDC subject with immutable IDs (P-05 amendment 1). No behaviour of Vigil changes. |
 | 1.9 | 18 Oct 2026 | For the P-10 spec (BP-L-1): amendment BP-A-22 (connection test failure reasons, owner decision CTX-D-043, `50-architecture` v1.6). P-05 amendment 1 document feedback 1 (`tools/trace.py` reads only part 4): no change (CTX-D-043). No other behaviour of Vigil changes. |
+| 1.10 | 19 Oct 2026 | For the P-11 spec (BP-L-1): amendment BP-A-23 (bundle size limits at upload, refusal `tenant_not_new`, which part an unreadable file or unknown section refuses; owner decision CTX-D-044, `50-architecture` v1.7). |

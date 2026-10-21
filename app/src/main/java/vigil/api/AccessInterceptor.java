@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
+import vigil.connectors.api.Secrets;
 import vigil.identity.api.IdentityService;
 import vigil.identity.api.Permission;
 import vigil.shared.VigilError;
@@ -21,10 +22,14 @@ class AccessInterceptor implements HandlerInterceptor {
 
   private static final String API_PACKAGE = AccessInterceptor.class.getPackageName();
 
-  private final IdentityService identity;
+  private static final String BEARER = "Bearer";
 
-  AccessInterceptor(IdentityService identity) {
+  private final IdentityService identity;
+  private final Secrets secrets;
+
+  AccessInterceptor(IdentityService identity, Secrets secrets) {
     this.identity = identity;
+    this.secrets = secrets;
   }
 
   @Override
@@ -32,6 +37,10 @@ class AccessInterceptor implements HandlerInterceptor {
       HttpServletRequest request, HttpServletResponse response, Object handler) {
     if (!(handler instanceof HandlerMethod method)
         || !API_PACKAGE.equals(method.getBeanType().getPackageName())) {
+      return true;
+    }
+    if (method.hasMethodAnnotation(InstallationToken.class)) {
+      checkInstallationToken(request);
       return true;
     }
     if (method.hasMethodAnnotation(Public.class)) {
@@ -51,6 +60,24 @@ class AccessInterceptor implements HandlerInterceptor {
       }
     }
     throw new VigilError(Code.FORBIDDEN);
+  }
+
+  /**
+   * AR-S-07: {@code Authorization} MUST be the scheme Bearer (any case), one space and a token
+   * without spaces that matches the secret {@code installation-token}.
+   */
+  private void checkInstallationToken(HttpServletRequest request) {
+    String header = request.getHeader("Authorization");
+    int space = header == null ? -1 : header.indexOf(' ');
+    if (space < 0
+        || !header.substring(0, space).equalsIgnoreCase(BEARER)
+        || space == header.length() - 1
+        || header.indexOf(' ', space + 1) >= 0) {
+      throw new VigilError(Code.NOT_SIGNED_IN);
+    }
+    if (!secrets.verifyInstallationToken(header.substring(space + 1))) {
+      throw new VigilError(Code.BAD_TOKEN);
+    }
   }
 
   /** The caller of the request; without one the 401 of the authentication entry point. */
