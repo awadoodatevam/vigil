@@ -3,6 +3,7 @@ package vigil.api;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
@@ -328,6 +329,41 @@ class InstallationIT {
   void tooLarge() {
     Response response = installation(importRequest(createTenant(), new byte[10_485_761])).send();
     assertError(response, 413, "too_large");
+  }
+
+  @Test
+  @DisplayName(
+      "AR-I-03 a malformed multipart upload answers 400 bad_request before the token check")
+  void malformedMultipart() {
+    Response response =
+        client
+            .post("/api/v1/installation/tenants/" + createTenant() + "/seed-imports")
+            .host("nowhere.test")
+            .header("Content-Type", "multipart/form-data")
+            .body("garbage".getBytes(StandardCharsets.UTF_8))
+            .send();
+    assertError(response, 400, "bad_request");
+  }
+
+  @Test
+  @DisplayName("AR-I-01 vigil-api reads and writes JSON only")
+  void jsonOnly() {
+    Response yamlBody =
+        installation(
+                client
+                    .post("/api/v1/installation/tenants")
+                    .host("nowhere.test")
+                    .header("Content-Type", "application/yaml")
+                    .body("name: x".getBytes(StandardCharsets.UTF_8)))
+            .send();
+    assertError(yamlBody, 400, "bad_request");
+    Response yamlAnswer =
+        installation(createTenantRequest("json only " + Ids.newId()))
+            .header("Accept", "application/yaml")
+            .send();
+    assertError(yamlAnswer, 400, "bad_request");
+    assertThat(yamlAnswer.header("Content-Type"))
+        .hasValueSatisfying(type -> assertThat(type).startsWith("application/json"));
   }
 
   /** The four operations, each with a request whose token case is under test. */

@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.MethodParameter;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -18,7 +20,8 @@ import vigil.shared.VigilError.Code;
 
 /**
  * Registers the access interceptor for {@code /api/**}, the {@code TenantId} and {@code ApiCaller}
- * handler parameters, and the live stream timings (AR-TM-04).
+ * handler parameters, the message converters without YAML (AR-I-01) and the live stream timings
+ * (AR-TM-04).
  */
 @Configuration
 @Profile("!migrate")
@@ -39,6 +42,15 @@ class ApiWebConfiguration implements WebMvcConfigurer {
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
     resolvers.add(new TenantIdResolver());
     resolvers.add(new CallerResolver());
+  }
+
+  /** {@code vigil-api} reads and writes JSON only, although YAML is on the classpath (AR-I-01). */
+  @Override
+  public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+    converters.removeIf(
+        converter ->
+            converter.getSupportedMediaTypes().stream()
+                .anyMatch(MediaType.APPLICATION_YAML::equalsTypeAndSubtype));
   }
 
   /** A heartbeat every 15 s and the end of a stream after 300 s (AR-TM-04). */

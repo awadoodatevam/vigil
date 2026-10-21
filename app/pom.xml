@@ -26,6 +26,7 @@
     <bcprov.version>1.86</bcprov.version>
     <json-schema-validator.version>3.0.6</json-schema-validator.version>
     <wiremock.version>3.13.2</wiremock.version>
+    <snakeyaml-engine.version>3.0.1</snakeyaml-engine.version>
   </properties>
 
   <dependencyManagement>
@@ -94,6 +95,11 @@
     <dependency>
       <groupId>tools.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-yaml</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.snakeyaml</groupId>
+      <artifactId>snakeyaml-engine</artifactId>
+      <version>${snakeyaml-engine.version}</version>
     </dependency>
 
     <dependency>

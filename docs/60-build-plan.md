@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.10 |
-| Date | 19 October 2026 |
+| Version | 1.11 |
+| Date | 21 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
 
@@ -309,9 +309,9 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | S; P-11; none |
-| Builds | `vigil-servicemap`: DM-E-24 to DM-E-28; matching (DM-R-05); relation, dependents, impact and target questions (DM-E26-R1, DM-E28-R2); file import with the format of AR-B-06 and the rules and messages of DM-R-55 and DC-TX-11; AR-E-04; seed import part 5. |
-| Requirements built | PM-M07-01 to PM-M07-06; DM-E-24 to DM-E-28, DM-E24-R1, DM-E26-R1, DM-E27-R1, DM-E28-R1, DM-E28-R2; DM-R-04 to DM-R-07, DM-R-54, DM-R-55; AR-B-06; AR-E-04; DC-TX-11 (service map messages). |
+| Size; depends on; owner tasks | M; P-11; none |
+| Builds | `vigil-servicemap`: DM-E-24 to DM-E-28; matching (DM-R-05); relation, dependents, impact and target questions (DM-E26-R1, DM-E28-R2); file import with the format of AR-B-06 (with BP-A-24) and the rules and messages of DM-R-55 and DC-TX-11; AR-E-04; seed import part 5 with its team key check (DM-R-60); the two items of the final P-11 spec that P-11 did not build (AR-I-01 JSON only, AR-I-03 malformed multipart test; CTX-D-045). |
+| Requirements built | PM-M07-01 to PM-M07-06; DM-E-24 to DM-E-28, DM-E24-R1, DM-E26-R1, DM-E27-R1, DM-E28-R1, DM-E28-R2; DM-R-04 to DM-R-07, DM-R-54, DM-R-55; AR-B-06, BP-A-24; AR-E-04; DC-TX-11 (service map messages); DM-R-60 (part 5 team keys); AR-I-01, AR-I-03 (CTX-D-045). |
 | Tests | DD-K-03 through the import; every DC-TX-11 service map message; YAML anchors, aliases and tags refused; matching by identity pair order. |
 | Runs in | BP-E-01, BP-E-02 |
 
@@ -964,6 +964,7 @@ Written into the named documents at the close of this round, 12 Oct 2026: `00-co
 | BP-A-21 | `50-architecture` AR-H-06, AR-H-11 | The deployment bucket is named `vigil-{installation}-deploy-{account id}` (Example: `vigil-demo-deploy-123456789012`), because S3 bucket names are unique across all AWS accounts and `vigil-demo-deploy` could already be taken. Written on 16 October 2026 for P-05 (CTX-D-041). |
 | BP-A-22 | `50-architecture` Section 12.1, AR-K-01, AR-K-02 | Owner decision CTX-D-043 (18 Oct 2026, for P-10). "The connection error text" of a monitoring source connection test becomes a complete list of failure reasons, written after the table of Section 12.1: "The address is not a valid http or https address."; "No credential is set."; "Secret {name} is not available."; "No connection to {host}:{port} within 5 s."; "No answer within 10 s."; "Host {host} not found."; "Could not connect to {host}:{port}."; "Connection failed: {message}."; and the kinds' own answer rules (`error.data` or "HTTP {status}"), at most 500 characters, never a secret value. Written on 18 October 2026 (`50-architecture` v1.6). |
 | BP-A-23 | `50-architecture` AR-B-05 | Owner decision CTX-D-044 (19 Oct 2026, for P-11). Adds (complete list): (1) at upload (AR-I-96) a bundle is refused with 422 `invalid` when its entries unpack to more than 50 MiB in total, a logo entry has more than 512 KB, or a text entry is not UTF-8; (2) a bundle for a tenant that is not `provisioning` or already has a seed import record is refused with 422 `refused` "A seed bundle can be imported only into a new tenant." (`details.refusal` `tenant_not_new`, DM-E82-R1); (3) "refuses the part" for an unknown top-level section, and also for a data file that cannot be read as YAML, means the first part in DM-R-56 order whose entries include that file, at its turn in the import, whether that part is registered or not (BP-R-29). BP-R-29 is reworded to match. Written on 19 October 2026 (`50-architecture` v1.7). |
+| BP-A-24 | `50-architecture` AR-B-06 | Proposed by Claude for P-12 and agreed by the owner (CTX-D-045, 21 Oct 2026). Adds (complete list): (1) any tag written in the file is refused like an anchor or alias, also a standard one such as `!!str`; (2) the complete list of parser messages, each shown as "The file could not be read: {parser message}." (DC-TX-11), checked in this order (each one over the whole file before the next, and of several nodes that break the same one, the first in document order; the last four, which concern the fields of an entry, are checked entry by entry in document order instead: the first entry with a problem gives its first problem, the first three in the entry's key order as written, then a missing field in DM-R-54 field order), the first one found being the only problem: `the file is larger than 1 MiB`; `the file is not UTF-8`; the YAML parser's problem text followed by ` (line {l}, column {c})`; `anchors, aliases and custom tags are not allowed (line {n})`; `the file must be a mapping of the sections services, components, identity_keys and dependencies (line 1)` (no document, more than one document, or a root that is not a mapping); `a key must be a single word (line {n})`; `duplicate key '{key}' (line {n})` (in any mapping); `unknown section '{name}' (line {n})`; `missing section '{name}'`; `section '{name}' must be a list (line {n})`; `{section}: each entry must be a mapping (line {n})`; `{section}: unknown field '{field}' (line {n})`; `services: component_keys must be a list (line {n})`; `{section}: field '{field}' must be a single value (line {n})`; `{section}: missing field '{field}' (line {n})`; only when none is found are the DM-R-55 rules checked, all of them; (3) seed part 5 reads `02-service-map.yaml` by the same rules, after the import's file check of AR-B-05 (BP-A-23), which is unchanged and refuses an unreadable file or an unknown section with its own text first; the part's problems are these texts as they are. Written on 21 October 2026 (`50-architecture` v1.8). |
 
 ### 17.3 Assumptions (complete list)
 
@@ -1025,3 +1026,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.8 | 18 Oct 2026 | From the P-05 report (BP-L-8, CTX-D-042): Section 5.1 lists `.gitleaksignore`; Section 16 item 8 notes GitHub's OIDC subject with immutable IDs (P-05 amendment 1). No behaviour of Vigil changes. |
 | 1.9 | 18 Oct 2026 | For the P-10 spec (BP-L-1): amendment BP-A-22 (connection test failure reasons, owner decision CTX-D-043, `50-architecture` v1.6). P-05 amendment 1 document feedback 1 (`tools/trace.py` reads only part 4): no change (CTX-D-043). No other behaviour of Vigil changes. |
 | 1.10 | 19 Oct 2026 | For the P-11 spec (BP-L-1): amendment BP-A-23 (bundle size limits at upload, refusal `tenant_not_new`, which part an unreadable file or unknown section refuses; owner decision CTX-D-044, `50-architecture` v1.7). |
+| 1.11 | 21 Oct 2026 | For the P-12 spec (BP-L-1, CTX-D-045): amendment BP-A-24 (service map parser messages, any tag refused, seed part 5; `50-architecture` v1.8); the P-12 entry is size M and names the team key check and the two items carried from the final P-11 spec. |

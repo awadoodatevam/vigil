@@ -75,6 +75,15 @@ Interfaces of `vigil-setup` for later packages (P-11):
 - P-26: AR-Q-10 with all 17 parts (BP-R-29 ends).
 - P-26, P-31: AR-I-95 to AR-I-98 with `Authorization: Bearer {installation-token}`; `bundle.yaml` written as `SeedBundles.demoEntries` writes it (quoted values); poll AR-I-97 until `state` is not `running`; a 422 refusal's `message` and a failed part's `error` are the texts to show (DC-S12-05).
 - Test support: `SeedBundles` (the demo bundle built from `docs/31-demo-data/` with test placeholder values, `zip` of any entries, `form` for a multipart body) and `LogLines` (the application's ECS log lines in captured output).
+- P-12 (built): part 5 (`vigil-servicemap`) is registered (`ServiceMapAdapter`), with its key check of the owner team keys against part 2 (`ServiceMapTeamCheck`, DM-R-60).
+
+Interfaces of `vigil-servicemap` for later packages (P-12):
+
+- P-15: `ServiceMapService.component`, `service` (owners, criticality).
+- P-16: `ServiceMapService.match`, `relation`, `dependents`, `affectedServices`, `component`, `currentGeneration`.
+- P-18: `ServiceMapService.target`; the key check of part 5 against part 4 (target keys in the service map against runner grants, DM-R-60).
+- P-24: `ServiceMapService.target`.
+- P-38: `ServiceMapService.currentGeneration`, `services`, `components`, `importFile`; the reaction of `vigil-setup` to `ServiceMapImported`.
 
 ## Local installation
 
