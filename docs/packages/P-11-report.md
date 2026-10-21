@@ -97,7 +97,7 @@ Assumptions of spec 11:
 
 ## 10. Gate command result
 
-GATE_RESULT
+Cloud session (`CLAUDE_CODE_REMOTE=true tools/check-all.sh`, setup version 1): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 2: `vigil-app` 77 unit tests and 155 `*IT` (73 and 129 before this package; every earlier test passes), `demo-control` 1 and 2; the web build, lint, type check (types generated from the changed OpenAPI file) and Vitest pass; step 3: `ruff` clean, 81 Python tests passed, 1 skipped and 35 deselected (no file under `demo/`, `deploy/`, `dev/`, `spikes/`, `tools/` or `docs/31-demo-data/` changed, so the lab tests did not run, CTX-D-036); step 4: `shellcheck`; step 5: 49 data checks, 0 failed; step 6: compose file valid; step 7: `trace.py --check`.
 
 GitHub: the `ci.yml` job `gate` runs on the pull request.
 
