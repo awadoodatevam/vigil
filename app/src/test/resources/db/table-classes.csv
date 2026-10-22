@@ -37,3 +37,6 @@ incidents.notified_team,immutable,yes
 incidents.evidence_entry,immutable,yes
 incidents.timeline_entry,immutable,yes
 incidents.incident_settings,configuration,yes
+routing.routing_rule_set_revision,revisioned,yes
+routing.escalation_policy_revision,revisioned,yes
+routing.routing_evaluation,immutable,yes

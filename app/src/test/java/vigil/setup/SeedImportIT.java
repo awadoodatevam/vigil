@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -29,18 +30,39 @@ import vigil.audit.api.AuditEventView;
 import vigil.audit.api.AuditQuery;
 import vigil.audit.api.AuditService;
 import vigil.identity.api.IdentityService;
+import vigil.incidents.api.AffectedServiceCopy;
+import vigil.incidents.api.AlertCopy;
+import vigil.incidents.api.FinalReason;
+import vigil.incidents.api.GroupingReason;
+import vigil.incidents.api.HypothesisCopy;
+import vigil.incidents.api.IdentityPairCopy;
 import vigil.incidents.api.IncidentAcknowledged;
 import vigil.incidents.api.IncidentChanged;
 import vigil.incidents.api.IncidentCreated;
 import vigil.incidents.api.IncidentService;
 import vigil.incidents.api.IncidentSettingsView;
 import vigil.incidents.api.IncidentStateChanged;
+import vigil.incidents.api.IncidentView;
+import vigil.incidents.api.MembershipView;
+import vigil.incidents.api.Severity;
 import vigil.intake.api.AlertReceived;
 import vigil.intake.api.AlertStateChanged;
 import vigil.intake.api.AlertTypeView;
 import vigil.intake.api.IntakeService;
 import vigil.intake.api.SourceHealthChanged;
 import vigil.intake.api.SourceView;
+import vigil.routing.api.EscalationLevel;
+import vigil.routing.api.EvaluationView;
+import vigil.routing.api.NotAppliedReason;
+import vigil.routing.api.OwnerMode;
+import vigil.routing.api.RequestedBy;
+import vigil.routing.api.RoutingCondition;
+import vigil.routing.api.RoutingField;
+import vigil.routing.api.RoutingOperator;
+import vigil.routing.api.RoutingResult;
+import vigil.routing.api.RoutingRule;
+import vigil.routing.api.RoutingService;
+import vigil.routing.api.RuleSetView;
 import vigil.servicemap.api.Counts;
 import vigil.servicemap.api.GenerationView;
 import vigil.servicemap.api.ServiceMapImported;
@@ -53,6 +75,7 @@ import vigil.setup.api.SeedImportView;
 import vigil.setup.api.SeedImports;
 import vigil.shared.Actor;
 import vigil.shared.Ids;
+import vigil.shared.Key;
 import vigil.shared.TenantId;
 import vigil.shared.VigilError;
 import vigil.tenancy.api.TenantLogo;
@@ -382,7 +405,7 @@ class SeedImportIT {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
           .isEqualTo(
-              number <= 3 || number == 5 || number == 6 || number == 9
+              number <= 3 || number == 5 || number == 6 || number == 9 || number == 11
                   ? PartOutcome.SUCCEEDED
                   : PartOutcome.NOT_STARTED);
     }
@@ -487,6 +510,7 @@ class SeedImportIT {
     assertThat(part(view, 6).counts())
         .isEqualTo(Map.of("monitoring_sources", 2, "alert_types", 18, "alert_type_mappings", 9));
     assertThat(part(view, 9).counts()).isEqualTo(Map.of("incident_settings", 1));
+    assertThat(part(view, 11).counts()).isEqualTo(Map.of("rules", 3, "escalation_levels", 2));
     assertThat(view.parts()).allSatisfy(part -> assertThat(part.error()).isNull());
   }
 
@@ -893,14 +917,266 @@ class SeedImportIT {
   }
 
   @Test
-  @DisplayName("BP-R-29 part 9 is registered; parts 7, 8 and 10 to 17 are not started")
+  @DisplayName("BP-R-29 part 9 is registered; parts 7, 8, 10 and 12 to 17 are not started")
   void incidentsPartRegistered() {
     SeedImportView view = main.imported(SeedTests.demoBundle());
     assertThat(part(view, 9).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
-    for (int number : List.of(7, 8, 10, 11, 12, 13, 14, 15, 16, 17)) {
+    for (int number : List.of(7, 8, 10, 12, 13, 14, 15, 16, 17)) {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
           .isEqualTo(PartOutcome.NOT_STARTED);
     }
+  }
+
+  private static final String ROUTING = "05-routing-escalation.yaml";
+  private static final String LEVEL_2 = "- {level: 2, team_keys: [noc-management]}";
+  private static final String HIGH_CONDITION =
+      "{field: highest_service_criticality, operator: at_least, value: high}";
+  private static final Actor CORRELATION = Actor.module("vigil-correlation");
+
+  @Test
+  @DisplayName("DD-F-05 05-routing-escalation.yaml is imported as seed part 11")
+  void routingPart() {
+    SeedImportView view = main.imported(SeedTests.demoBundle());
+    assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
+    RoutingService routing = main.app().context().getBean(RoutingService.class);
+    RuleSetView ruleSet = routing.ruleSet(view.tenantId()).orElseThrow();
+    assertThat(ruleSet.revision()).isEqualTo(1);
+    assertThat(ruleSet.rules().stream().map(RoutingRule::ruleKey).toList())
+        .containsExactly("critical-service", "high-service", "default");
+    RoutingRule critical = ruleSet.rules().getFirst();
+    assertThat(critical.name()).isEqualTo("Critical service affected");
+    assertThat(critical.conditions())
+        .containsExactly(
+            new RoutingCondition(
+                RoutingField.HIGHEST_SERVICE_CRITICALITY,
+                RoutingOperator.AT_LEAST,
+                List.of("critical")));
+    assertThat(critical.severity()).isEqualTo(Severity.P1);
+    assertThat(critical.ownerMode()).isEqualTo(OwnerMode.HYPOTHESIS_COMPONENT_OWNER);
+    assertThat(critical.ownerTeamKey()).isEqualTo("noc-l1");
+    assertThat(critical.informedTeamKeys()).isEmpty();
+    assertThat(critical.informAffectedServiceOwners()).isTrue();
+    RoutingRule high = ruleSet.rules().get(1);
+    assertThat(high.name()).isEqualTo("High-criticality service affected");
+    assertThat(high.conditions().getFirst().values()).containsExactly("high");
+    assertThat(high.severity()).isEqualTo(Severity.P2);
+    RoutingRule fallback = ruleSet.rules().get(2);
+    assertThat(fallback.name()).isEqualTo("Default");
+    assertThat(fallback.conditions()).isEmpty();
+    assertThat(fallback.severity()).isEqualTo(Severity.P4);
+    assertThat(fallback.informAffectedServiceOwners()).isFalse();
+    assertThat(routing.escalationPolicy(view.tenantId()).orElseThrow().levels())
+        .containsExactly(
+            new EscalationLevel(1, List.of("noc-shift-lead")),
+            new EscalationLevel(2, List.of("noc-management")));
+    List<AuditEventView> events = events(main, view.tenantId());
+    assertThat(events).hasSize(1);
+    assertThat(events.getFirst().actor()).isEqualTo(Actor.module("vigil-setup"));
+  }
+
+  /** An incident from vigil-correlation with the hypothesis and services given. */
+  private static UUID incident(
+      TenantId tenant, HypothesisCopy hypothesis, List<AffectedServiceCopy> services) {
+    IncidentService incidents = main.app().context().getBean(IncidentService.class);
+    String component = hypothesis.componentKey();
+    UUID id =
+        incidents.create(
+            tenant,
+            CORRELATION,
+            Ids.newId(),
+            new AlertCopy(
+                Ids.newId(),
+                "zabbix",
+                "k-" + UUID.randomUUID(),
+                "disk_full",
+                "Disk full",
+                "Disk full on " + component,
+                component,
+                new IdentityPairCopy("component", component),
+                Instant.now()),
+            new GroupingReason("created_incident", null, null, null, null));
+    incidents.setHypothesisAndImpact(tenant, CORRELATION, id, hypothesis, Ids.newId(), services);
+    return id;
+  }
+
+  private static UUID storm(TenantId tenant) {
+    return incident(
+        tenant,
+        new HypothesisCopy(1, "srv-db-01", "Subscriber DB server", "server", "critical"),
+        List.of(
+            new AffectedServiceCopy(
+                "svc-balance-check", "Balance Check (USSD)", "critical", List.of("db-subscriber")),
+            new AffectedServiceCopy(
+                "svc-bundle-purchase", "Bundle Purchase", "critical", List.of("db-subscriber")),
+            new AffectedServiceCopy(
+                "svc-sms-notifications", "SMS Notifications", "high", List.of("sms-queue"))));
+  }
+
+  private static void result(
+      EvaluationView view, String rule, Severity severity, String owner, String... informed) {
+    assertThat(view.matchedRuleKey()).isEqualTo(rule);
+    assertThat(view.result()).isEqualTo(new RoutingResult(severity, owner, List.of(informed)));
+  }
+
+  @Test
+  @DisplayName("DD-K-05 the routing expectations of the demo data, before and after SL-A2-06")
+  void routingExpectations() {
+    SeedImportView view = main.imported(SeedTests.demoBundle());
+    TenantId tenant = view.tenantId();
+    RoutingService routing = main.app().context().getBean(RoutingService.class);
+    IncidentService incidents = main.app().context().getBean(IncidentService.class);
+    UUID storm = storm(tenant);
+    result(
+        routing.evaluate(tenant, CORRELATION, storm, RequestedBy.CORRELATION),
+        "critical-service",
+        Severity.P1,
+        "db-ops",
+        "vas-service-owners");
+    UUID report =
+        incident(
+            tenant,
+            new HypothesisCopy(1, "report-export", "Report export job", "application", "low"),
+            List.of(
+                new AffectedServiceCopy(
+                    "svc-mgmt-reports", "Management Reports", null, List.of("report-export"))));
+    result(
+        routing.evaluate(tenant, CORRELATION, report, RequestedBy.CORRELATION),
+        "default",
+        Severity.P4,
+        "it-apps");
+
+    Map<UUID, FinalReason> reasons = new LinkedHashMap<>();
+    for (MembershipView member : incidents.members(tenant, storm)) {
+      reasons.put(member.alertId(), new FinalReason(null, FinalReason.ONLY_ALERT, null, null));
+    }
+    incidents.open(tenant, CORRELATION, storm, reasons);
+    IncidentView opened = incidents.incident(tenant, storm).orElseThrow();
+    List<RoutingRule> rules = new ArrayList<>(routing.ruleSet(tenant).orElseThrow().rules());
+    RoutingRule critical = rules.getFirst();
+    rules.set(
+        0,
+        new RoutingRule(
+            critical.ruleKey(),
+            critical.name(),
+            critical.conditions(),
+            critical.severity(),
+            critical.ownerMode(),
+            critical.ownerTeamKey(),
+            List.of("customer-care"),
+            critical.informAffectedServiceOwners()));
+    UUID admin =
+        main.app()
+            .context()
+            .getBean(IdentityService.class)
+            .userByUsername(tenant, new Key("admin"))
+            .orElseThrow()
+            .id();
+    assertThat(routing.saveRuleSet(tenant, admin, 1, rules).revision()).isEqualTo(2);
+    result(
+        routing.evaluate(tenant, CORRELATION, storm(tenant), RequestedBy.CORRELATION),
+        "critical-service",
+        Severity.P1,
+        "db-ops",
+        "customer-care",
+        "vas-service-owners");
+    EvaluationView frozen =
+        routing.evaluate(tenant, Actor.module("vigil-workflows"), storm, RequestedBy.WORKFLOWS);
+    assertThat(frozen.ruleSetRevision()).isEqualTo(2);
+    result(
+        frozen, "critical-service", Severity.P1, "db-ops", "customer-care", "vas-service-owners");
+    assertThat(frozen.applied()).isFalse();
+    assertThat(frozen.notAppliedReason()).isEqualTo(NotAppliedReason.ASSIGNMENT_FROZEN);
+    IncidentView after = incidents.incident(tenant, storm).orElseThrow();
+    assertThat(after.severity()).isEqualTo(Severity.P1);
+    assertThat(after.ownerTeamKey()).isEqualTo("db-ops");
+    assertThat(after.informedTeamKeys()).containsExactly("vas-service-owners");
+    assertThat(after.assignmentEvaluationId()).isEqualTo(opened.assignmentEvaluationId());
+  }
+
+  @Test
+  @DisplayName("AR-B-11 the routing part is refused with the module's and the adapter's problems")
+  void routingPartRefused() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                ROUTING,
+                SeedTests.replacing(
+                    "owner_team_key: noc-l1                   # used only",
+                    "owner_team_key: noc-l9                   # used only")));
+    assertFailedPart(
+        view,
+        11,
+        "Part routing refused. routing_rule_set_revision_1: Rule 'Critical service affected':"
+            + " 'noc-l9' is not an active team.");
+    for (int number : List.of(1, 2, 3, 5, 6, 9)) {
+      assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    }
+    assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
+    SeedImportView shape =
+        main.imported(
+            SeedTests.demoBundleWith(
+                ROUTING, SeedTests.replacing(LEVEL_2, "- {level: 2, team_keys: noc-management}")));
+    assertFailedPart(
+        shape,
+        11,
+        "Part routing refused. escalation_policy_revision_1.levels[1].team_keys: not a list");
+    assertThat(main.state(shape.tenantId())).isEqualTo(TenantState.FAILED);
+  }
+
+  @Test
+  @DisplayName("DM-R-60 an escalation team that part 2 does not define fails part 11")
+  void routingTeamCheck() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                ROUTING, SeedTests.replacing(LEVEL_2, "- {level: 2, team_keys: [ghost-team]}")));
+    assertFailedPart(
+        view, 11, "Key check failed: escalation level 2: team 'ghost-team' does not exist");
+    assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
+  }
+
+  @Test
+  @DisplayName("DM-R-60 a service compared in a routing rule that part 5 does not define fails")
+  void routingServiceCheck() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                ROUTING,
+                SeedTests.replacing(
+                    HIGH_CONDITION,
+                    "{field: affected_services, operator: contains, value: svc-ghost}")));
+    assertFailedPart(
+        view,
+        11,
+        "Key check failed: routing rule 'high-service': service 'svc-ghost' does not exist");
+    assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
+  }
+
+  @Test
+  @DisplayName("DM-R-60 a component compared in a routing rule that part 5 does not define fails")
+  void routingComponentCheck() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                ROUTING,
+                SeedTests.replacing(
+                    HIGH_CONDITION,
+                    "{field: hypothesis_component, operator: equals, value: srv-ghost}")));
+    assertFailedPart(
+        view,
+        11,
+        "Key check failed: routing rule 'high-service': component 'srv-ghost' does not exist");
+    assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
+  }
+
+  @Test
+  @DisplayName("BP-R-29 part 11 is registered, with its key checks against parts 2 and 5")
+  void routingPartRegistered() {
+    SeedImportView view = main.imported(SeedTests.demoBundle());
+    assertThat(part(view, 11).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    assertThat(main.app().context().getBeansOfType(SeedKeyCheck.class).values())
+        .anyMatch(check -> check.referringPart() == 11 && check.targetPart() == 2)
+        .anyMatch(check -> check.referringPart() == 11 && check.targetPart() == 5);
   }
 }
