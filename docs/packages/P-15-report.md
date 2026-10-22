@@ -48,7 +48,7 @@ Every row of spec part 4 with proof `test` has a method whose display name start
 
 | # | Deviation | Reason |
 | --- | --- | --- |
-| 1 | `tools/loc.sh origin/main HEAD` is 2,069, above the 2,000 of P15-DC-01 (Section 9). The files that make it: `Routing.java` 337, `RoutingRecords.java` 235, `RoutingImporter.java` 223, `setup/RoutingAdapter.java` 207, `RoutingJson.java` 171, `RuleSetValidation.java` 130, `api/RoutingField.java` 101; the other 24 files 665. | P15-DC-01: a count above 2,000 and at most 3,500 does not stop the package; the owner decides at review whether P-15 is reclassed L. |
+| 1 | `tools/loc.sh origin/main HEAD` is 2,070, above the 2,000 of P15-DC-01 (Section 9). The files that make it: `Routing.java` 337, `RoutingRecords.java` 235, `RoutingImporter.java` 224, `setup/RoutingAdapter.java` 207, `RoutingJson.java` 171, `RuleSetValidation.java` 130, `api/RoutingField.java` 101; the other 24 files 665. | P15-DC-01: a count above 2,000 and at most 3,500 does not stop the package; the owner decides at review whether P-15 is reclassed L. |
 | 2 | Package-private classes not named in the spec: `Routing` (implements `RoutingService`), `RoutingImporter` (`RoutingImport`), `RoutingRecords` (the tables), `RoutingJson` (the stored JSON shapes), `RoutingInputs` (the routing fields of an incident), `RuleMatcher`, `RuleSetValidation`, `ChangeSummary`. | Internal structure only. |
 | 3 | A `null` argument is refused with the message "a required argument is missing"; `importPart` also refuses a `null` element of `rules`, `levels` or a rule's `conditions` with `IllegalArgumentException` (spec 6.1 "null arguments"; the adapter never passes one). The step (1) refusals of `saveRuleSet` carry short messages of their own. | The spec gives no message for these. |
 
@@ -78,11 +78,11 @@ Assumption of spec 11 (`evaluate` and `setAssignment` in the caller's transactio
 
 ## 9. Lines of production code added and changed (P15-DC-01)
 
-`tools/loc.sh origin/main HEAD` prints **2,069** (above 2,000, at most 3,500: deviation 1 of Section 3).
+`tools/loc.sh origin/main HEAD` prints **2,070** (above 2,000, at most 3,500: deviation 1 of Section 3).
 
 ## 10. Gate command result
 
-Cloud session (`tools/check-all.sh`): GATE_RESULT
+Cloud session (`tools/check-all.sh`): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 2: `vigil-app` 117 unit tests and 313 `*IT` (every earlier test passes; `SeedImportIT` and `SeedImportRestartIT` changed only as spec 6.9 and Section 7), `demo-control` 1 and 2; the web build, lint, type check and Vitest pass; step 3: `ruff` clean, 81 Python tests passed, 1 skipped and 35 deselected (no file under `demo/`, `deploy/`, `dev/`, `spikes/`, `tools/` or `docs/31-demo-data/` changed, so the lab tests did not run, CTX-D-036); step 4: `shellcheck`; step 5: 49 data checks, 0 failed; step 6: compose file valid; step 7: `trace.py --check`.
 
 GitHub: the `ci.yml` job `gate` runs on the pull request.
 
