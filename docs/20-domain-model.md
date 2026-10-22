@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 20-domain-model (ID prefix `DM-`) |
-| Version | 1.4 |
-| Date | 21 October 2026 |
+| Version | 1.5 |
+| Date | 22 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 2 closed. Amended by Round 3 (`30-jazz-storyboard` SB-A-01, SB-A-06, SB-A-07, SB-A-08), Round 4 (`40-demo-cut` Section 14.2) and Round 5 (`50-architecture` Section 23.2), and during the build (`60-build-plan` BP-A-25). |
+| Status | Baseline (owner reviewed). Round 2 closed. Amended by Round 3 (`30-jazz-storyboard` SB-A-01, SB-A-06, SB-A-07, SB-A-08), Round 4 (`40-demo-cut` Section 14.2) and Round 5 (`50-architecture` Section 23.2), and during the build (`60-build-plan` BP-A-25 to BP-A-27). |
 
 ## 1. Purpose
 
@@ -62,7 +62,7 @@ Terms defined in `01-scope-lock` Section 3 and `10-product-map` Section 3 keep t
 | DM-C-08 | **Time.** All `Timestamp` fields are taken from the Vigil server clock in UTC, except fields whose name starts with `source_`, which hold the time stated by the external system. | SL-B-02 |
 | DM-C-09 | **Test-mode isolation.** Records of a test-mode run (PM-M12-09) are stored only by `vigil-engine` (DM-E-50, DM-E-51, DM-E-52, all with `mode = test`) and `vigil-workflows` (DM-E-49), and by `vigil-routing` as dry-run evaluations (DM-E-43, `applied = false`). No other entity is created or changed by a test-mode run. | SL-A2-06 (test replay definition), PM-M12-09 |
 | DM-C-10 | **Tenant scope.** Every uniqueness rule in this document applies within one tenant. A request or event MUST NOT read or change records of another tenant (PM-R-05). | SL-B-01 |
-| DM-C-11 | **Sizes.** Where a `Text` field holds content produced outside Vigil (alert payload text, command output, AI output) and the content is longer than the field limit, Vigil MUST store the first part up to the limit and set the matching `*_truncated: Boolean` field to true. Raw alert entries and webhook bodies (DM-E-18, DM-E-19) are never truncated. Where the entity has no matching `*_truncated` field (DM-E-18 `content_type`; DM-E-20 `title`, `source_severity`, `failure_reason` and identity pair values, and the copies in DM-E-21), only the first part up to the limit is stored. An alert key longer than its 200 characters is not cut: the entry's normalised alert is `failed` with the reason "the alert key is longer than 200 characters", because a cut key could join two different alerts (amendment `60-build-plan` BP-A-25). | SL-B-02 |
+| DM-C-11 | **Sizes.** Where a `Text` field holds content produced outside Vigil (alert payload text, command output, AI output) and the content is longer than the field limit, Vigil MUST store the first part up to the limit and set the matching `*_truncated: Boolean` field to true. Raw alert entries and webhook bodies (DM-E-18, DM-E-19) are never truncated. Where the entity has no matching `*_truncated` field (DM-E-18 `content_type`; DM-E-20 `title`, `source_severity`, `failure_reason` and identity pair values, and the copies in DM-E-21), only the first part up to the limit is stored. An alert key longer than its 200 characters is not cut: the entry's normalised alert is `failed` with the reason "the alert key is longer than 200 characters", because a cut key could join two different alerts (amendment `60-build-plan` BP-A-25). A text of an entry that Vigil stores (alert key, title, source severity, identity pair names and values) that holds the character U+0000, which the database cannot store, is not cut or changed either: the entry's normalised alert is `failed` with the reason "the entry holds the character U+0000" and changes no alert, while the webhook call and the raw alert keep the entry exactly as received (amendment `60-build-plan` BP-A-26). | SL-B-02 |
 | DM-C-12 | **Rule statements.** A rule in Sections 7 to 10 that states what Vigil does (Example: "the incident moves to `open`") is required behaviour with the force of MUST; Vigil MUST NOT behave otherwise. | CTX-W-02 |
 
 ## 5. Value structures (complete list)
@@ -783,7 +783,7 @@ Owner `vigil-incidents` · Stateful (DM-SM-05) · Trace: SL-A1-02, SL-A1-04, SL-
 | `reopen_count` | Integer | Y | Number of reopenings. The current episode of the incident is `reopen_count + 1`. |
 
 - **DM-E32-R1** Fields described as "set only on request of" a module MUST be refused when requested by any other module (PM-M09-03, PM-M09-06).
-- **DM-E32-R2** Every change to an incident MUST create a timeline entry (DM-E-39) and publish "incident changed" (PM-EV-09), except that a change of only `ai_status_changed_at` and `ai_last_request_group_id` publishes "incident changed" without a timeline entry (`40-demo-cut` DC-A-13); every state change MUST also create a state transition (DM-E-33) and publish "incident state changed" (PM-EV-08).
+- **DM-E32-R2** Every change to an incident MUST create a timeline entry (DM-E-39) and publish "incident changed" (PM-EV-09), except that a change of only `ai_status_changed_at` and `ai_last_request_group_id` (`40-demo-cut` DC-A-13), or of only `hypothesis_computation_id` and `hypothesis_snapshot` while `hypothesis_component_key`, `affected_services` and `title` stay the same (amendment `60-build-plan` BP-A-27), publishes "incident changed" without a timeline entry; every state change MUST also create a state transition (DM-E-33) and publish "incident state changed" (PM-EV-08).
 - **DM-E32-R3** A `merged` incident MUST NOT appear in the incident list (SL-A4-02), in any incident count or in any metric. A `forming` incident has no number; how incidents still forming are shown is decided in `40-demo-cut` (DC-S02-02, DC-S02-03: only in the incoming alerts strip), and MUST NOT present them as separate numbered incidents.
 
 #### DM-E-33 Incident state transition
@@ -808,7 +808,7 @@ Owner `vigil-incidents` · Stateful (active → ended; DM-E34-R1) · Trace: SL-A
 | --- | --- | --- | --- |
 | `incident_id` | Ref<Incident> | Y | |
 | `alert_id` | Ref<Alert> | Y | |
-| `alert_snapshot` | Json | Y | Copy: `{source_kind, alert_type, title, component_key, fired_at}`. |
+| `alert_snapshot` | Json | Y | Copy: `{source_kind, alert_key, alert_type, alert_type_name, title, component_key, first_identity_pair, fired_at}`; `alert_type_name` is the alert type's display name (DM-E-16) and `first_identity_pair` the alert's first identity pair `{name, value}` or empty, both passed by `vigil-correlation`, so that the title rule (DM-R-20) can be computed by `vigil-incidents` (amendment `60-build-plan` BP-A-27). |
 | `grouping_decision_id` | Ref<Grouping decision> | Y | |
 | `reason` | Json | Y | Copy of the grouping reason: `{decision, related_alert_id, relation, relation_path, time_delta}` (DM-E-29), or `{decision: moved_by_merge, from_incident_id, original_reason}` for a membership created by a merge. Shown for each alert (SL-A1-02). |
 | `joined_at` | Timestamp | Y | |
@@ -2264,3 +2264,4 @@ Open items carried from earlier documents and still open after Round 2 (`50-arch
 | 1.2 | 10 Oct 2026 | Round 4 amendments (`40-demo-cut` Section 14.2, CTX-D-022): DM-E-02 `product_display_name` (DC-A-09); DM-E-20 title rule (DC-A-19); DM-E-32 AI attempt fields and DM-E32-R2 exception, DM-E32-R3 and number format (DC-A-13, DC-A-06); DM-E-36 `timer` (DC-A-10); DM-E-41 `change_summary` wording (DC-A-19); DM-E-47 change list order (DC-A-14); DM-E-49 `failure_reason`, DM-E49-R2 (DC-A-15); DM-E-62 last evaluation (DC-A-12); DM-E-68 `runbooks_supplied` (DC-A-03); DM-V-12 (DC-A-16); DM-R-48 and DM-R-49 (DC-A-02); DM-O-11 closed. |
 | 1.3 | 12 Oct 2026 | Round 5 amendments (`50-architecture` Section 23.2, CTX-D-025): new entity DM-E-83 Tenant alias, terms Active and Dormant tenant, DM-C-02 and DM-C-07 (AR-A-09); DM-E-15 `source_key`, DM-E-21 `sequence` (AR-A-10); DM-E-11 purpose `webhook_url` and locator form, DM-E-77 `credential_ref_id` and Teams `address` (AR-A-11); DM-E-50 `wake_pending`, `wake_reason`, DM-E-51 `failed_attempts`, `retry_due_at`, DM-R-67 (AR-A-20); new rule DM-R-70 (AR-A-23); DM-R-56 (8), DM-O-04, DM-O-05, DM-O-06, DM-O-08, DM-O-12, DM-O-13 closed, DM-ASM-06 confirmed (AR-A-18). |
 | 1.4 | 21 Oct 2026 | Build amendment `60-build-plan` BP-A-25 (owner decision CTX-D-047): DM-C-11 for fields without a `*_truncated` field and for an over-long alert key; DM-E-16 display name and creation of `unclassified`. |
+| 1.5 | 22 Oct 2026 | Build amendments `60-build-plan` BP-A-26 (owner decision CTX-D-048): DM-C-11 for an entry whose stored text holds the character U+0000; BP-A-27 (owner decision CTX-D-049): DM-E-34 `alert_snapshot` adds `alert_key`, `alert_type_name`, `first_identity_pair`; DM-E32-R2 exception for a change of only the hypothesis computation. |
