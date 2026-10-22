@@ -77,10 +77,11 @@ Interfaces of `vigil-setup` for later packages (P-11):
 - Test support: `SeedBundles` (the demo bundle built from `docs/31-demo-data/` with test placeholder values, `zip` of any entries, `form` for a multipart body) and `LogLines` (the application's ECS log lines in captured output).
 - P-12 (built): part 5 (`vigil-servicemap`) is registered (`ServiceMapAdapter`), with its key check of the owner team keys against part 2 (`ServiceMapTeamCheck`, DM-R-60).
 - P-13 (built): part 6 (`vigil-intake`) is registered (`IntakeAdapter`), with the first connection tests of its sources in `afterCommit` (AR-B-11).
+- P-14 (built): part 9 (`vigil-incidents`) is registered (`IncidentsAdapter`).
 
 Interfaces of `vigil-intake` for later packages (P-13):
 
-- P-14, P-21, P-22: `IntakeService.alertTypes` (display names).
+- P-16 (the alert type names in the incident alert copy, BP-A-27), P-21, P-22: `IntakeService.alertTypes` (display names).
 - P-16: `IntakeService.alertsAfter`, `alert`; `AlertReceived` (wakes the worker).
 - P-17: `AlertStateChanged`, `SourceHealthChanged` (wakes).
 - P-23: `IntakeService.alert`, `sources`, `healthyThroughout`.
@@ -95,6 +96,19 @@ Interfaces of `vigil-servicemap` for later packages (P-12):
 - P-18: `ServiceMapService.target`; the key check of part 5 against part 4 (target keys in the service map against runner grants, DM-R-60).
 - P-24: `ServiceMapService.target`.
 - P-38: `ServiceMapService.currentGeneration`, `services`, `components`, `importFile`; the reaction of `vigil-setup` to `ServiceMapImported`.
+
+Interfaces of `vigil-incidents` for later packages (P-14):
+
+- P-15: `IncidentService.setAssignment`, `incident`, `members`.
+- P-22: `IncidentService.recordEscalation` (the Escalation step).
+- P-16: `IncidentService.create`, `addAlert`, `merge`, `setHypothesisAndImpact`, `open`, `reopen`, `incidents`, `incidentOfAlert`, `members`, `settings` (the alert copy carries `alertKey`, `alertTypeName`, `firstIdentityPair`, BP-A-27).
+- P-17: `IncidentCreated`, `IncidentAcknowledged`, `IncidentStateChanged`; `IncidentService.incident`.
+- P-18, P-20, P-23, P-24: `IncidentService.addEvidence` with their kinds.
+- P-20: `IncidentService.setAiStatus`, `evidence`.
+- P-21, P-22: `IncidentService.incident`, `evidenceSummary`, `recordNotifiedTeam`.
+- P-23: `IncidentService.resolve`, `members`, and for DM-R-53 `acknowledgements`, `transitions`, `incidents`.
+- P-25: `IncidentChanged`; `IncidentService.acknowledge` (refusal keys `not_open`, `already_acknowledged`, `not_notified`) and the reads.
+- Test support: `IncidentFixture`.
 
 ## Local installation
 

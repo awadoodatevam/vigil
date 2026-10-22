@@ -29,6 +29,12 @@ import vigil.audit.api.AuditEventView;
 import vigil.audit.api.AuditQuery;
 import vigil.audit.api.AuditService;
 import vigil.identity.api.IdentityService;
+import vigil.incidents.api.IncidentAcknowledged;
+import vigil.incidents.api.IncidentChanged;
+import vigil.incidents.api.IncidentCreated;
+import vigil.incidents.api.IncidentService;
+import vigil.incidents.api.IncidentSettingsView;
+import vigil.incidents.api.IncidentStateChanged;
 import vigil.intake.api.AlertReceived;
 import vigil.intake.api.AlertStateChanged;
 import vigil.intake.api.AlertTypeView;
@@ -94,6 +100,7 @@ class SeedImportIT {
   private static final RecordingCheck RECORDING_CHECK = new RecordingCheck();
   private static final List<ServiceMapImported> SERVICE_MAP_EVENTS = new CopyOnWriteArrayList<>();
   private static final List<Object> INTAKE_EVENTS = new CopyOnWriteArrayList<>();
+  private static final List<Object> INCIDENT_EVENTS = new CopyOnWriteArrayList<>();
   private static final LatchImporter LATCH = new LatchImporter();
 
   private static App main;
@@ -233,8 +240,8 @@ class SeedImportIT {
   }
 
   /**
-   * Records every {@code ServiceMapImported} and intake event the main app publishes, in or out of
-   * a transaction.
+   * Records every {@code ServiceMapImported}, intake and incident event the main app publishes, in
+   * or out of a transaction.
    */
   static class ServiceMapListener {
 
@@ -256,6 +263,26 @@ class SeedImportIT {
     @EventListener
     void on(SourceHealthChanged event) {
       INTAKE_EVENTS.add(event);
+    }
+
+    @EventListener
+    void on(IncidentCreated event) {
+      INCIDENT_EVENTS.add(event);
+    }
+
+    @EventListener
+    void on(IncidentAcknowledged event) {
+      INCIDENT_EVENTS.add(event);
+    }
+
+    @EventListener
+    void on(IncidentStateChanged event) {
+      INCIDENT_EVENTS.add(event);
+    }
+
+    @EventListener
+    void on(IncidentChanged event) {
+      INCIDENT_EVENTS.add(event);
     }
   }
 
@@ -355,7 +382,7 @@ class SeedImportIT {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
           .isEqualTo(
-              number <= 3 || number == 5 || number == 6
+              number <= 3 || number == 5 || number == 6 || number == 9
                   ? PartOutcome.SUCCEEDED
                   : PartOutcome.NOT_STARTED);
     }
@@ -459,6 +486,7 @@ class SeedImportIT {
         .isEqualTo(Map.of("services", 4, "components", 12, "identity_keys", 15, "dependencies", 6));
     assertThat(part(view, 6).counts())
         .isEqualTo(Map.of("monitoring_sources", 2, "alert_types", 18, "alert_type_mappings", 9));
+    assertThat(part(view, 9).counts()).isEqualTo(Map.of("incident_settings", 1));
     assertThat(view.parts()).allSatisfy(part -> assertThat(part.error()).isNull());
   }
 
@@ -825,5 +853,54 @@ class SeedImportIT {
       assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
+  }
+
+  @Test
+  @DisplayName("DD-F-07 incident_settings of 07-settings.yaml is imported as seed part 9")
+  void incidentsPart() {
+    SeedImportView view = main.imported(SeedTests.demoBundle());
+    assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
+    IncidentService incidents = main.app().context().getBean(IncidentService.class);
+    assertThat(incidents.settings(view.tenantId()))
+        .contains(new IncidentSettingsView(Duration.ofSeconds(300), Duration.ofSeconds(30)));
+    assertThat(INCIDENT_EVENTS)
+        .noneMatch(
+            event ->
+                switch (event) {
+                  case IncidentCreated e -> e.tenantId().equals(view.tenantId());
+                  case IncidentAcknowledged e -> e.tenantId().equals(view.tenantId());
+                  case IncidentStateChanged e -> e.tenantId().equals(view.tenantId());
+                  case IncidentChanged e -> e.tenantId().equals(view.tenantId());
+                  default -> false;
+                });
+  }
+
+  @Test
+  @DisplayName("AR-B-11 the incidents part is refused with the module's problems")
+  void incidentsPartRefused() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                SETTINGS,
+                SeedTests.replacing(
+                    "closure_check_interval_s: 30", "closure_check_interval_s: 90")));
+    assertFailedPart(
+        view, 9, "Part incidents refused. incident_settings: closure_check_interval_s: 1 to 60");
+    for (int number : List.of(1, 2, 3, 5, 6)) {
+      assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    }
+    assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
+  }
+
+  @Test
+  @DisplayName("BP-R-29 part 9 is registered; parts 7, 8 and 10 to 17 are not started")
+  void incidentsPartRegistered() {
+    SeedImportView view = main.imported(SeedTests.demoBundle());
+    assertThat(part(view, 9).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    for (int number : List.of(7, 8, 10, 11, 12, 13, 14, 15, 16, 17)) {
+      assertThat(part(view, number).outcome())
+          .as("part %s", number)
+          .isEqualTo(PartOutcome.NOT_STARTED);
+    }
   }
 }
