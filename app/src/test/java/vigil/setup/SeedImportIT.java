@@ -51,14 +51,11 @@ import vigil.intake.api.AlertTypeView;
 import vigil.intake.api.IntakeService;
 import vigil.intake.api.SourceHealthChanged;
 import vigil.intake.api.SourceView;
+import vigil.routing.RoutingFixture;
 import vigil.routing.api.EscalationLevel;
 import vigil.routing.api.EvaluationView;
 import vigil.routing.api.NotAppliedReason;
-import vigil.routing.api.OwnerMode;
 import vigil.routing.api.RequestedBy;
-import vigil.routing.api.RoutingCondition;
-import vigil.routing.api.RoutingField;
-import vigil.routing.api.RoutingOperator;
 import vigil.routing.api.RoutingResult;
 import vigil.routing.api.RoutingRule;
 import vigil.routing.api.RoutingService;
@@ -942,30 +939,7 @@ class SeedImportIT {
     RoutingService routing = main.app().context().getBean(RoutingService.class);
     RuleSetView ruleSet = routing.ruleSet(view.tenantId()).orElseThrow();
     assertThat(ruleSet.revision()).isEqualTo(1);
-    assertThat(ruleSet.rules().stream().map(RoutingRule::ruleKey).toList())
-        .containsExactly("critical-service", "high-service", "default");
-    RoutingRule critical = ruleSet.rules().getFirst();
-    assertThat(critical.name()).isEqualTo("Critical service affected");
-    assertThat(critical.conditions())
-        .containsExactly(
-            new RoutingCondition(
-                RoutingField.HIGHEST_SERVICE_CRITICALITY,
-                RoutingOperator.AT_LEAST,
-                List.of("critical")));
-    assertThat(critical.severity()).isEqualTo(Severity.P1);
-    assertThat(critical.ownerMode()).isEqualTo(OwnerMode.HYPOTHESIS_COMPONENT_OWNER);
-    assertThat(critical.ownerTeamKey()).isEqualTo("noc-l1");
-    assertThat(critical.informedTeamKeys()).isEmpty();
-    assertThat(critical.informAffectedServiceOwners()).isTrue();
-    RoutingRule high = ruleSet.rules().get(1);
-    assertThat(high.name()).isEqualTo("High-criticality service affected");
-    assertThat(high.conditions().getFirst().values()).containsExactly("high");
-    assertThat(high.severity()).isEqualTo(Severity.P2);
-    RoutingRule fallback = ruleSet.rules().get(2);
-    assertThat(fallback.name()).isEqualTo("Default");
-    assertThat(fallback.conditions()).isEmpty();
-    assertThat(fallback.severity()).isEqualTo(Severity.P4);
-    assertThat(fallback.informAffectedServiceOwners()).isFalse();
+    assertThat(ruleSet.rules()).isEqualTo(RoutingFixture.demoRules());
     assertThat(routing.escalationPolicy(view.tenantId()).orElseThrow().levels())
         .containsExactly(
             new EscalationLevel(1, List.of("noc-shift-lead")),

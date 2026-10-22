@@ -120,7 +120,8 @@ class RoutingImporter implements RoutingImport {
     } else if (!keys.add(rule.ruleKey())) {
       problems.add(at + ".rule_key: used more than once");
     }
-    if (rule.name() != null && rule.name().codePointCount(0, rule.name().length()) > 100) {
+    if (rule.name() != null
+        && rule.name().codePointCount(0, rule.name().length()) > Routing.NAME_MAX) {
       problems.add(at + ".name: at most 100 characters");
     }
     List<RoutingCondition> conditions = new ArrayList<>();
