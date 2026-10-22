@@ -4,8 +4,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import vigil.incidents.api.AffectedServiceCopy;
 import vigil.incidents.api.AiStatus;
 import vigil.incidents.api.AiUnavailableReason;
@@ -22,7 +24,8 @@ import vigil.incidents.api.Severity;
 final class IncidentTexts {
 
   /** Orders texts by Unicode code points (DM-C-01). */
-  static final Comparator<String> CODE_POINTS = IncidentTexts::compareCodePoints;
+  static final Comparator<String> CODE_POINTS =
+      Comparator.comparing(text -> text.codePoints().toArray(), Arrays::compare);
 
   private static final DateTimeFormatter OUTBOUND =
       DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss 'UTC'").withZone(ZoneOffset.UTC);
@@ -41,14 +44,9 @@ final class IncidentTexts {
     return "INC-" + String.format("%04d", number);
   }
 
+  /** The state name of DC-TX-01: the key with a capital first letter. */
   static String state(IncidentState state) {
-    return switch (state) {
-      case FORMING -> "Forming";
-      case OPEN -> "Open";
-      case RESOLVED -> "Resolved";
-      case CLOSED -> "Closed";
-      case MERGED -> "Merged";
-    };
+    return state.key().substring(0, 1).toUpperCase(Locale.ROOT) + state.key().substring(1);
   }
 
   static String sourceKind(String sourceKind) {
@@ -93,21 +91,6 @@ final class IncidentTexts {
 
   static int length(String text) {
     return text.codePointCount(0, text.length());
-  }
-
-  static int compareCodePoints(String a, String b) {
-    int i = 0;
-    int j = 0;
-    while (i < a.length() && j < b.length()) {
-      int ca = a.codePointAt(i);
-      int cb = b.codePointAt(j);
-      if (ca != cb) {
-        return Integer.compare(ca, cb);
-      }
-      i += Character.charCount(ca);
-      j += Character.charCount(cb);
-    }
-    return Boolean.compare(i < a.length(), j < b.length());
   }
 
   // Timeline texts (DC-TX-04).
@@ -196,13 +179,7 @@ final class IncidentTexts {
   }
 
   static String notifiedTeamAdded(String team, NotifiedPurpose purpose) {
-    String purposeText =
-        switch (purpose) {
-          case INCIDENT_NOTIFICATION -> "incident notification";
-          case ESCALATION -> "escalation";
-          case APPROVAL_REQUEST -> "approval request";
-        };
-    return team + " notified (" + purposeText + ").";
+    return team + " notified (" + purpose.key().replace('_', ' ') + ").";
   }
 
   static String titleChanged(String title) {
