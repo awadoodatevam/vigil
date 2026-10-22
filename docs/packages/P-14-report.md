@@ -6,7 +6,7 @@
 | Branch | `p-14-incidents` |
 | Pin date (BP-R-08) | 22 October 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (setup version 1, Temurin 25.0.4.1, Docker 29.9.1) |
-| State | Built; GATE_STATE |
+| State | Built; the gate command passes in this session (without the lab tests, CTX-D-036); the `ci.yml` job `gate` runs on the pull request |
 
 ## 1. What was built
 
@@ -81,11 +81,13 @@ Assumption of spec 11: `pg_advisory_xact_lock` with `hashtext` serialises the te
 
 ## 9. Lines of production code added and changed (P14-DC-01)
 
-`tools/loc.sh origin/main HEAD` prints **LOC_COUNT** (at most 3,500).
+`tools/loc.sh origin/main HEAD` prints **3,484** (at most 3,500).
 
 ## 10. Gate command result
 
-GATE_RESULT
+Cloud session (`tools/check-all.sh`): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 2: `vigil-app` 107 unit tests and 282 `*IT` (every earlier test passes; `WebhookIT`, `SeedImportIT`, `SeedImportRestartIT` and `TenancyIT` changed only as spec 6.11 and Section 7), `demo-control` 1 and 2; the web build, lint, type check and Vitest pass; step 3: `ruff` clean, 81 Python tests passed, 1 skipped and 35 deselected (no file under `demo/`, `deploy/`, `dev/`, `spikes/`, `tools/` or `docs/31-demo-data/` changed, so the lab tests did not run, CTX-D-036); step 4: `shellcheck`; step 5: 49 data checks, 0 failed; step 6: compose file valid; step 7: `trace.py --check`.
+
+GitHub: the `ci.yml` job `gate` runs on the pull request.
 
 Environment note: during this session `repo.maven.apache.org` answered every request with 429 (Too Many Requests), so the Maven wrapper could not download Maven or the dependencies. The session used `https://repo1.maven.org/maven2` (the same Maven Central content) through `MVNW_REPOURL` and a mirror in `~/.m2/settings.xml` of the container; nothing in the repository changed for it.
 
