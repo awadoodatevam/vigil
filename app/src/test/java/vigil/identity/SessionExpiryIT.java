@@ -185,8 +185,18 @@ class SessionExpiryIT {
     tenants.setAlias(HOST, tenantA, "installation token");
     awaitTrue(() -> sweeps.scheduledTenants().contains(tenantA));
     assertThat(sweeps.scheduledTenants()).containsExactly(tenantA);
+    awaitTrue(
+        () -> {
+          List<FixedDelayTask> tasks = List.copyOf(SweepRecordingScheduler.TASKS);
+          List<FixedDelayTask> since = tasks.subList(before, tasks.size());
+          return since.stream().anyMatch(t -> t.delay().equals(Duration.ofSeconds(60)))
+              && since.stream().anyMatch(t -> t.delay().equals(Duration.ofSeconds(1)));
+        });
+    List<FixedDelayTask> tasks = List.copyOf(SweepRecordingScheduler.TASKS);
     List<FixedDelayTask> added =
-        SweepRecordingScheduler.TASKS.subList(before, SweepRecordingScheduler.TASKS.size());
+        tasks.subList(before, tasks.size()).stream()
+            .filter(t -> t.delay().equals(Duration.ofSeconds(60)))
+            .toList();
     assertThat(added).hasSize(1);
     FixedDelayTask task = added.getFirst();
     assertThat(task.delay()).isEqualTo(Duration.ofSeconds(60));

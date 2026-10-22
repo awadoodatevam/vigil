@@ -90,11 +90,12 @@ class SeedImportRestartIT {
       SeedImportView second = seedImports.seedImport(finished.id()).orElseThrow();
       assertThat(second.state()).isEqualTo(SeedImportState.FAILED);
       assertThat(second.finishedAt()).isNotNull();
-      assertThat(second.parts().get(4).outcome()).isEqualTo(PartOutcome.FAILED);
-      assertThat(second.parts().get(4).error()).isEqualTo("interrupted by restart");
+      assertThat(second.parts().get(5).outcome()).isEqualTo(PartOutcome.FAILED);
+      assertThat(second.parts().get(5).error()).isEqualTo("interrupted by restart");
       assertThat(second.parts().get(0).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
       assertThat(second.parts().get(1).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
       assertThat(second.parts().get(2).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+      assertThat(second.parts().get(4).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
       assertThat(tenants.tenant(finished.tenantId()).orElseThrow().state())
           .isEqualTo(TenantState.READY);
     }

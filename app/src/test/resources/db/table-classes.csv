@@ -18,3 +18,13 @@ servicemap.business_service,immutable,yes
 servicemap.component,immutable,yes
 servicemap.component_identity_key,immutable,yes
 servicemap.dependency,immutable,yes
+intake.monitoring_source,configuration,yes
+intake.alert_type_definition,configuration,yes
+intake.alert_type_mapping,configuration,yes
+intake.webhook_call,immutable,yes
+intake.raw_alert,immutable,yes
+intake.normalised_alert,immutable,yes
+intake.alert,stateful,yes
+intake.alert_state_change,immutable,yes
+intake.source_health_change,immutable,yes
+intake.alert_counter,technical_rw,yes
