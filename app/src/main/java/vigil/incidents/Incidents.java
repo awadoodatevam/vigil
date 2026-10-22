@@ -135,6 +135,10 @@ class Incidents implements IncidentService {
       this.now = now;
     }
 
+    void timeline(UUID incidentId, TimelineEntryType type, String text) {
+      timeline(incidentId, type, text, null, null);
+    }
+
     void timeline(UUID incidentId, TimelineEntryType type, String text, String refType, UUID id) {
       records.insertTimeline(
           tenantId, incidentId, now, actor, type, IncidentTexts.cut(text, TEXT_MAX), refType, id);
@@ -176,7 +180,7 @@ class Incidents implements IncidentService {
       row.state = to;
       row.stateChangedAt = now;
       row.updatedAt = now;
-      timeline(row.id, TimelineEntryType.STATE_CHANGED, text, null, null);
+      timeline(row.id, TimelineEntryType.STATE_CHANGED, text);
       audit(
           AuditEventType.INCIDENT_STATE_CHANGED,
           INCIDENT,
@@ -207,10 +211,7 @@ class Incidents implements IncidentService {
       UUID groupingDecisionId,
       AlertCopy alert,
       GroupingReason reason) {
-    required(tenantId, "tenantId");
-    required(groupingDecisionId, "groupingDecisionId");
-    required(alert, "alert");
-    required(reason, "reason");
+    required(tenantId, groupingDecisionId, alert, reason);
     decision(reason, "created_incident");
     requireModule(actor, "create", CORRELATION);
     Change change = new Change(tenantId, actor);
@@ -247,7 +248,7 @@ class Incidents implements IncidentService {
         actor,
         IncidentTexts.cut(text, TEXT_MAX));
     logTransition(tenantId, row.id, null, IncidentState.FORMING);
-    change.timeline(row.id, TimelineEntryType.CREATED, text, null, null);
+    change.timeline(row.id, TimelineEntryType.CREATED, text);
     change.audit(AuditEventType.INCIDENT_CREATED, INCIDENT, row.id, row.id, text);
     change.events.add(new IncidentCreated(tenantId, row.id));
     change.changed(row.id);
@@ -264,11 +265,7 @@ class Incidents implements IncidentService {
       UUID groupingDecisionId,
       AlertCopy alert,
       GroupingReason reason) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
-    required(groupingDecisionId, "groupingDecisionId");
-    required(alert, "alert");
-    required(reason, "reason");
+    required(tenantId, incidentId, groupingDecisionId, alert, reason);
     decision(reason, "joined");
     requireModule(actor, "addAlert", CORRELATION);
     Change change = new Change(tenantId, actor);
@@ -300,9 +297,7 @@ class Incidents implements IncidentService {
   @Override
   @Transactional(propagation = Propagation.REQUIRED)
   public void merge(TenantId tenantId, Actor actor, UUID survivorId, List<UUID> absorbedIds) {
-    required(tenantId, "tenantId");
-    required(survivorId, "survivorId");
-    required(absorbedIds, "absorbedIds");
+    required(tenantId, survivorId, absorbedIds);
     if (absorbedIds.isEmpty()
         || absorbedIds.stream().anyMatch(id -> id == null || id.equals(survivorId))
         || new HashSet<>(absorbedIds).size() != absorbedIds.size()) {
@@ -352,8 +347,7 @@ class Incidents implements IncidentService {
     boolean titleChanged = derive(tenantId, survivor);
     records.updateIncident(tenantId, survivor);
     for (int n : moved) {
-      change.timeline(
-          survivor.id, TimelineEntryType.MERGED_IN, IncidentTexts.mergedIn(n), null, null);
+      change.timeline(survivor.id, TimelineEntryType.MERGED_IN, IncidentTexts.mergedIn(n));
     }
     titleEntry(change, survivor, titleChanged);
     change.changed(survivor.id);
@@ -369,9 +363,7 @@ class Incidents implements IncidentService {
       HypothesisCopy hypothesis,
       UUID hypothesisComputationId,
       List<AffectedServiceCopy> affectedServices) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
-    required(affectedServices, "affectedServices");
+    required(tenantId, incidentId, affectedServices);
     if (affectedServices.stream().anyMatch(Objects::isNull)) {
       throw new IllegalArgumentException("affectedServices: no null entries");
     }
@@ -412,17 +404,11 @@ class Incidents implements IncidentService {
       change.timeline(
           row.id,
           TimelineEntryType.HYPOTHESIS_CHANGED,
-          IncidentTexts.hypothesisChanged(old == null ? null : old.name(), hypothesis.name()),
-          null,
-          null);
+          IncidentTexts.hypothesisChanged(old == null ? null : old.name(), hypothesis.name()));
     }
     if (impactChanged) {
       change.timeline(
-          row.id,
-          TimelineEntryType.IMPACT_CHANGED,
-          IncidentTexts.impactChanged(services),
-          null,
-          null);
+          row.id, TimelineEntryType.IMPACT_CHANGED, IncidentTexts.impactChanged(services));
     }
     titleEntry(change, row, titleChanged);
     change.changed(row.id);
@@ -433,9 +419,7 @@ class Incidents implements IncidentService {
   @Transactional(propagation = Propagation.REQUIRED)
   public void open(
       TenantId tenantId, Actor actor, UUID incidentId, Map<UUID, FinalReason> finalReasons) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
-    required(finalReasons, "finalReasons");
+    required(tenantId, incidentId, finalReasons);
     if (finalReasons.entrySet().stream()
         .anyMatch(entry -> entry.getKey() == null || entry.getValue() == null)) {
       throw new IllegalArgumentException("finalReasons: no null keys or values");
@@ -476,11 +460,7 @@ class Incidents implements IncidentService {
       UUID groupingDecisionId,
       AlertCopy alert,
       GroupingReason reason) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
-    required(groupingDecisionId, "groupingDecisionId");
-    required(alert, "alert");
-    required(reason, "reason");
+    required(tenantId, incidentId, groupingDecisionId, alert, reason);
     decision(reason, "reopened");
     requireModule(actor, "reopen", CORRELATION);
     Change change = new Change(tenantId, actor);
@@ -524,13 +504,9 @@ class Incidents implements IncidentService {
       Set<Key> informedTeamKeys,
       UUID routingEvaluationId,
       String ruleName) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
-    required(severity, "severity");
-    required(ownerTeamKey, "ownerTeamKey");
+    required(tenantId, incidentId, severity, ownerTeamKey);
     keys(informedTeamKeys, "informedTeamKeys");
-    required(routingEvaluationId, "routingEvaluationId");
-    required(ruleName, "ruleName");
+    required(routingEvaluationId, ruleName);
     if (ruleName.isEmpty() || IncidentTexts.length(ruleName) > RULE_NAME_MAX) {
       throw new IllegalArgumentException("ruleName: 1 to 100 characters");
     }
@@ -556,9 +532,7 @@ class Incidents implements IncidentService {
     change.timeline(
         row.id,
         TimelineEntryType.ASSIGNMENT_CHANGED,
-        IncidentTexts.assignmentChanged(severity, owner, informed, ruleName),
-        null,
-        null);
+        IncidentTexts.assignmentChanged(severity, owner, informed, ruleName));
     change.audit(
         AuditEventType.ASSIGNMENT_CHANGED,
         INCIDENT,
@@ -580,10 +554,9 @@ class Incidents implements IncidentService {
       EscalationCause cause,
       Duration timer,
       long policyRevision) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
+    required(tenantId, incidentId);
     keys(teamKeys, "teamKeys");
-    required(cause, "cause");
+    required(cause);
     if (level < 1) {
       throw new IllegalArgumentException("level: 1 or more");
     }
@@ -618,10 +591,7 @@ class Incidents implements IncidentService {
   @Transactional(propagation = Propagation.REQUIRED)
   public void recordNotifiedTeam(
       TenantId tenantId, Actor actor, UUID incidentId, Key teamKey, NotifiedPurpose purpose) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
-    required(teamKey, "teamKey");
-    required(purpose, "purpose");
+    required(tenantId, incidentId, teamKey, purpose);
     requireModule(actor, "recordNotifiedTeam", NOTIFICATIONS);
     Change change = new Change(tenantId, actor);
     IncidentRow row = lock(tenantId, incidentId);
@@ -656,15 +626,16 @@ class Incidents implements IncidentService {
       String summary,
       String contentJson,
       DataCategory dataCategory) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
-    required(kind, "kind");
-    required(producerRecordId, "producerRecordId");
-    required(sourceSystem, "sourceSystem");
-    required(collectedAt, "collectedAt");
-    required(summary, "summary");
-    required(contentJson, "contentJson");
-    required(dataCategory, "dataCategory");
+    required(
+        tenantId,
+        incidentId,
+        kind,
+        producerRecordId,
+        sourceSystem,
+        collectedAt,
+        summary,
+        contentJson,
+        dataCategory);
     if (summary.isEmpty()) {
       throw new IllegalArgumentException("summary: 1 or more characters");
     }
@@ -739,10 +710,7 @@ class Incidents implements IncidentService {
       AiStatus status,
       AiUnavailableReason reason,
       UUID requestGroupId) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
-    required(status, "status");
-    required(requestGroupId, "requestGroupId");
+    required(tenantId, incidentId, status, requestGroupId);
     if (status == AiStatus.NOT_RUN || (status == AiStatus.UNAVAILABLE) != (reason != null)) {
       throw new IllegalArgumentException(
           "status: available or unavailable, with a reason only for unavailable");
@@ -767,9 +735,7 @@ class Incidents implements IncidentService {
       change.timeline(
           row.id,
           TimelineEntryType.AI_STATUS_CHANGED,
-          IncidentTexts.aiStatusChanged(status, reason),
-          null,
-          null);
+          IncidentTexts.aiStatusChanged(status, reason));
     }
     change.changed(row.id);
     change.publish();
@@ -778,9 +744,7 @@ class Incidents implements IncidentService {
   @Override
   @Transactional(propagation = Propagation.REQUIRED)
   public void resolve(TenantId tenantId, Actor actor, UUID incidentId, UUID verificationId) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
-    required(verificationId, "verificationId");
+    required(tenantId, incidentId, verificationId);
     requireModule(actor, "resolve", RECOVERY);
     Change change = new Change(tenantId, actor);
     IncidentRow row = lock(tenantId, incidentId);
@@ -830,9 +794,7 @@ class Incidents implements IncidentService {
   @Override
   @Transactional(propagation = Propagation.REQUIRED)
   public AcknowledgementView acknowledge(TenantId tenantId, UUID incidentId, UUID userId) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
-    required(userId, "userId");
+    required(tenantId, incidentId, userId);
     Change change = new Change(tenantId, Actor.user(userId));
     IncidentRow row = lock(tenantId, incidentId);
     if (!identity.hasPermission(tenantId, userId, Permission.ACKNOWLEDGE)) {
@@ -894,15 +856,13 @@ class Incidents implements IncidentService {
 
   @Override
   public Optional<IncidentView> incident(TenantId tenantId, UUID incidentId) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
+    required(tenantId, incidentId);
     return records.incident(tenantId, incidentId).map(IncidentRow::view);
   }
 
   @Override
   public List<IncidentView> incidents(TenantId tenantId, Set<IncidentState> states) {
-    required(tenantId, "tenantId");
-    required(states, "states");
+    required(tenantId, states);
     if (states.isEmpty() || states.stream().anyMatch(Objects::isNull)) {
       throw new IllegalArgumentException("states: at least one");
     }
@@ -911,36 +871,31 @@ class Incidents implements IncidentService {
 
   @Override
   public Optional<UUID> incidentOfAlert(TenantId tenantId, UUID alertId) {
-    required(tenantId, "tenantId");
-    required(alertId, "alertId");
+    required(tenantId, alertId);
     return records.activeMembership(tenantId, alertId).map(IncidentRecords.Membership::incidentId);
   }
 
   @Override
   public List<MembershipView> members(TenantId tenantId, UUID incidentId) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
+    required(tenantId, incidentId);
     return records.memberships(tenantId, incidentId, true);
   }
 
   @Override
   public List<MembershipView> memberships(TenantId tenantId, UUID incidentId) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
+    required(tenantId, incidentId);
     return records.memberships(tenantId, incidentId, false);
   }
 
   @Override
   public List<TransitionView> transitions(TenantId tenantId, UUID incidentId) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
+    required(tenantId, incidentId);
     return List.copyOf(records.transitions(tenantId, incidentId));
   }
 
   @Override
   public Optional<AcknowledgementView> acknowledgement(TenantId tenantId, UUID incidentId) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
+    required(tenantId, incidentId);
     return records.incident(tenantId, incidentId).flatMap(row -> current(tenantId, row));
   }
 
@@ -952,29 +907,25 @@ class Incidents implements IncidentService {
 
   @Override
   public List<AcknowledgementView> acknowledgements(TenantId tenantId, UUID incidentId) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
+    required(tenantId, incidentId);
     return List.copyOf(records.acknowledgements(tenantId, incidentId));
   }
 
   @Override
   public List<EscalationView> escalations(TenantId tenantId, UUID incidentId) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
+    required(tenantId, incidentId);
     return List.copyOf(records.escalations(tenantId, incidentId));
   }
 
   @Override
   public List<NotifiedTeamView> notifiedTeams(TenantId tenantId, UUID incidentId) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
+    required(tenantId, incidentId);
     return List.copyOf(records.notifiedTeams(tenantId, incidentId));
   }
 
   @Override
   public List<EvidenceView> evidence(TenantId tenantId, UUID incidentId) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
+    required(tenantId, incidentId);
     return List.copyOf(records.evidence(tenantId, incidentId));
   }
 
@@ -985,14 +936,13 @@ class Incidents implements IncidentService {
 
   @Override
   public List<TimelineView> timeline(TenantId tenantId, UUID incidentId) {
-    required(tenantId, "tenantId");
-    required(incidentId, "incidentId");
+    required(tenantId, incidentId);
     return List.copyOf(records.timeline(tenantId, incidentId));
   }
 
   @Override
   public Optional<IncidentSettingsView> settings(TenantId tenantId) {
-    required(tenantId, "tenantId");
+    required(tenantId);
     return records.settings(tenantId);
   }
 
@@ -1024,11 +974,7 @@ class Incidents implements IncidentService {
   private static void titleEntry(Change change, IncidentRow row, boolean titleChanged) {
     if (titleChanged) {
       change.timeline(
-          row.id,
-          TimelineEntryType.TITLE_CHANGED,
-          IncidentTexts.titleChanged(row.title),
-          null,
-          null);
+          row.id, TimelineEntryType.TITLE_CHANGED, IncidentTexts.titleChanged(row.title));
     }
   }
 
@@ -1061,7 +1007,7 @@ class Incidents implements IncidentService {
   }
 
   private static void requireModule(Actor actor, String request, String module) {
-    required(actor, "actor");
+    required(actor);
     if (actor.kind() != Actor.Kind.MODULE || !module.equals(actor.module())) {
       throw new IllegalArgumentException(request + " is accepted only from " + module);
     }
@@ -1074,7 +1020,7 @@ class Incidents implements IncidentService {
   }
 
   private static void keys(Set<Key> keys, String name) {
-    required(keys, name);
+    required(keys);
     if (keys.stream().anyMatch(Objects::isNull)) {
       throw new IllegalArgumentException(name + ": no null entries");
     }
@@ -1098,9 +1044,11 @@ class Incidents implements IncidentService {
         to.key());
   }
 
-  private static void required(Object value, String name) {
-    if (value == null) {
-      throw new IllegalArgumentException(name + ": required");
+  private static void required(Object... values) {
+    for (Object value : values) {
+      if (value == null) {
+        throw new IllegalArgumentException("a required argument is missing");
+      }
     }
   }
 }
