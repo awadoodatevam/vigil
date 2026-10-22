@@ -145,11 +145,6 @@ class Incidents implements IncidentService {
     }
 
     void audit(
-        AuditEventType type, String subjectType, UUID subjectId, UUID incidentId, String text) {
-      audit(type, subjectType, subjectId, incidentId, text, null);
-    }
-
-    void audit(
         AuditEventType type,
         String subjectType,
         UUID subjectId,
@@ -249,7 +244,7 @@ class Incidents implements IncidentService {
         IncidentTexts.cut(text, TEXT_MAX));
     logTransition(tenantId, row.id, null, IncidentState.FORMING);
     change.timeline(row.id, TimelineEntryType.CREATED, text);
-    change.audit(AuditEventType.INCIDENT_CREATED, INCIDENT, row.id, row.id, text);
+    change.audit(AuditEventType.INCIDENT_CREATED, INCIDENT, row.id, row.id, text, null);
     change.events.add(new IncidentCreated(tenantId, row.id));
     change.changed(row.id);
     change.publish();
@@ -538,7 +533,8 @@ class Incidents implements IncidentService {
         INCIDENT,
         row.id,
         row.id,
-        IncidentTexts.auditAssignmentChanged(severity, owner, informed, ruleName));
+        IncidentTexts.auditAssignmentChanged(severity, owner, informed, ruleName),
+        null);
     change.changed(row.id);
     change.publish();
   }
@@ -581,7 +577,7 @@ class Incidents implements IncidentService {
         IncidentTexts.escalated(
             level, keys.stream().map(key -> teamName(tenantId, key)).toList(), cause, timer);
     change.timeline(row.id, TimelineEntryType.ESCALATED, text, ESCALATION, escalationId);
-    change.audit(AuditEventType.INCIDENT_ESCALATED, ESCALATION, escalationId, row.id, text);
+    change.audit(AuditEventType.INCIDENT_ESCALATED, ESCALATION, escalationId, row.id, text, null);
     change.changed(row.id);
     change.publish();
     return escalationId;
@@ -626,16 +622,8 @@ class Incidents implements IncidentService {
       String summary,
       String contentJson,
       DataCategory dataCategory) {
-    required(
-        tenantId,
-        incidentId,
-        kind,
-        producerRecordId,
-        sourceSystem,
-        collectedAt,
-        summary,
-        contentJson,
-        dataCategory);
+    required(tenantId, incidentId, kind, producerRecordId, sourceSystem);
+    required(collectedAt, summary, contentJson, dataCategory);
     if (summary.isEmpty()) {
       throw new IllegalArgumentException("summary: 1 or more characters");
     }
@@ -845,7 +833,7 @@ class Incidents implements IncidentService {
     records.updateIncident(tenantId, row);
     String text = IncidentTexts.acknowledged(userName(tenantId, userId));
     change.timeline(row.id, TimelineEntryType.ACKNOWLEDGED, text, ACKNOWLEDGEMENT, id);
-    change.audit(AuditEventType.INCIDENT_ACKNOWLEDGED, ACKNOWLEDGEMENT, id, row.id, text);
+    change.audit(AuditEventType.INCIDENT_ACKNOWLEDGED, ACKNOWLEDGEMENT, id, row.id, text, null);
     change.events.add(new IncidentAcknowledged(tenantId, row.id, row.episode()));
     change.changed(row.id);
     change.publish();
