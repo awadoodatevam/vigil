@@ -516,7 +516,7 @@ class TenancyIT {
           tenants.setAlias(host, tenant, "installation token");
           List<Map<String, Object>> added = new ArrayList<>(publications(host));
           added.removeAll(before);
-          assertThat(added).hasSize(2);
+          assertThat(added).hasSize(3);
           assertThat(added)
               .allSatisfy(
                   row ->
@@ -524,9 +524,13 @@ class TenancyIT {
                           .isEqualTo(TenantAliasChanged.class.getName()));
           assertThat(added.stream().map(row -> (String) row.get("listener_id")))
               .anySatisfy(id -> assertThat(id).contains("vigil.identity.TenantAliasListener"))
-              .anySatisfy(id -> assertThat(id).contains("vigil.intake.IntakeAliasListener"));
-          assertThat(added.get(0).get("serialized_event"))
-              .isEqualTo(added.get(1).get("serialized_event"));
+              .anySatisfy(id -> assertThat(id).contains("vigil.intake.IntakeAliasListener"))
+              .anySatisfy(id -> assertThat(id).contains("vigil.incidents.IncidentsAliasListener"));
+          assertThat(added)
+              .allSatisfy(
+                  publication ->
+                      assertThat(publication.get("serialized_event"))
+                          .isEqualTo(added.get(0).get("serialized_event")));
           Map<String, Object> row = added.getFirst();
           return JsonMapper.builder().build().readTree((String) row.get("serialized_event"));
         });

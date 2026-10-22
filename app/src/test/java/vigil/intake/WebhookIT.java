@@ -797,4 +797,75 @@ class WebhookIT {
         output.getAll(),
         List.of(token(IntakeFixture.ZABBIX, ""), wrong, "Bearer", recording.body(), marker));
   }
+
+  /** An Alertmanager message with the alerts {@code alerts}, in order. */
+  private byte[] alertmanagerMessage(List<ObjectNode> alerts) {
+    ObjectNode message = (ObjectNode) firstOf(IntakeFixture.ALERTMANAGER, "firing").tree();
+    ArrayNode array = message.putArray("alerts");
+    alerts.forEach(array::add);
+    return IntakeFixture.JSON.writeValueAsBytes(message);
+  }
+
+  /** The recorded firing alert with a fingerprint of its own. */
+  private ObjectNode ownAlert(String prefix) {
+    ObjectNode alert = alertmanagerAlert();
+    alert.put("fingerprint", prefix + UUID.randomUUID());
+    return alert;
+  }
+
+  /** Posts the alerts to tenant B; returns the normalised entries of the call. */
+  private List<Map<String, Object>> postToB(List<ObjectNode> alerts) {
+    Response answer =
+        postBody(HOST_B, "-b", IntakeFixture.ALERTMANAGER, alertmanagerMessage(alerts));
+    assertThat(answer.status()).as(answer.text()).isEqualTo(200);
+    assertThat(answer.json())
+        .isEqualTo(IntakeFixture.JSON.readTree("{\"entries\":" + alerts.size() + "}"));
+    return normalised(lastCall(tenantB));
+  }
+
+  private static void assertNulFailed(Map<String, Object> entry) {
+    assertThat(entry.get("outcome")).isEqualTo("failed");
+    assertThat(entry.get("failure_reason")).isEqualTo("the entry holds the character U+0000");
+    assertThat(entry.get("application")).isEqualTo("not_applied");
+    assertThat(entry.get("applied_to_alert_id")).isNull();
+  }
+
+  @Test
+  @Order(21)
+  @DisplayName("DM-C-11 an entry whose stored text holds U+0000 is failed; the call is stored")
+  void entryWithNul() {
+    String nul = String.valueOf((char) 0);
+    ObjectNode withNul = ownAlert("nul-");
+    ((ObjectNode) withNul.get("annotations")).put("summary", "a" + nul + "b");
+    ObjectNode ordinary = ownAlert("nul-");
+    long alertsBefore = alerts(tenantB);
+    List<Map<String, Object>> entries = postToB(List.of(withNul, ordinary));
+    assertNulFailed(entries.getFirst());
+    assertThat(entries.get(1).get("outcome")).isEqualTo("normalised");
+    assertThat(entries.get(1).get("application")).isEqualTo("created_alert");
+    assertThat(alerts(tenantB)).isEqualTo(alertsBefore + 1);
+    List<Map<String, Object>> raws = raws(lastCall(tenantB));
+    assertThat(raws).hasSize(2);
+    assertThat((String) raws.getFirst().get("payload")).contains("a\\u0000b");
+    assertThat(callRow(lastCall(tenantB)).get("entry_count")).isEqualTo(2L);
+  }
+
+  @Test
+  @Order(22)
+  @DisplayName("BP-A-26 U+0000 in an identity value or the alert key; the length check first")
+  void nulInOtherTexts() {
+    String nul = String.valueOf((char) 0);
+    ObjectNode inInstance = ownAlert("nul-");
+    ((ObjectNode) inInstance.get("labels")).put("instance", "lab-db-01" + nul);
+    assertNulFailed(postToB(List.of(inInstance)).getFirst());
+    ObjectNode inKey = alertmanagerAlert();
+    inKey.put("fingerprint", "nul-" + nul + UUID.randomUUID());
+    assertNulFailed(postToB(List.of(inKey)).getFirst());
+    ObjectNode longKey = alertmanagerAlert();
+    longKey.put("fingerprint", nul + "k".repeat(200));
+    Map<String, Object> failed = postToB(List.of(longKey)).getFirst();
+    assertThat(failed.get("outcome")).isEqualTo("failed");
+    assertThat(failed.get("failure_reason"))
+        .isEqualTo("the alert key is longer than 200 characters");
+  }
 }

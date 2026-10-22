@@ -2,6 +2,7 @@ package vigil.intake;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,6 +48,7 @@ class Intake implements IntakeService {
   private static final int PAIR_VALUE_MAX = 200;
   private static final int PAGE_MAX = 100;
   static final String KEY_TOO_LONG = "the alert key is longer than 200 characters";
+  static final String HOLDS_NUL = "the entry holds the character U+0000";
 
   private final IntakeRecords records;
   private final ConnectorService connectors;
@@ -147,6 +149,9 @@ class Intake implements IntakeService {
     if (Texts.length(normalised.alertKey()) > ALERT_KEY_MAX) {
       return failed(rawId, KEY_TOO_LONG);
     }
+    if (holdsNul(normalised)) {
+      return failed(rawId, HOLDS_NUL);
+    }
     List<IdentityPair> pairs =
         normalised.identityPairs().stream()
             .map(pair -> new IdentityPair(pair.name(), Texts.cut(pair.value(), PAIR_VALUE_MAX)))
@@ -164,6 +169,25 @@ class Intake implements IntakeService {
         Texts.cut(normalised.title(), TITLE_MAX),
         normalised.sourceTime(),
         Texts.cut(normalised.sourceSeverity(), SEVERITY_MAX));
+  }
+
+  /**
+   * True when a text of the entry that would be stored holds U+0000, which PostgreSQL refuses
+   * (DM-C-11 as amended by BP-A-26).
+   */
+  private static boolean holdsNul(ParsedEntry.Normalised entry) {
+    List<String> texts = new ArrayList<>();
+    texts.add(entry.alertKey());
+    texts.add(entry.title());
+    texts.add(entry.sourceSeverity());
+    entry
+        .identityPairs()
+        .forEach(
+            pair -> {
+              texts.add(pair.name());
+              texts.add(pair.value());
+            });
+    return texts.stream().anyMatch(text -> text != null && text.indexOf(0) >= 0);
   }
 
   private static IntakeRecords.Normalised failed(UUID rawId, String reason) {

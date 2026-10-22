@@ -28,3 +28,12 @@ intake.alert,stateful,yes
 intake.alert_state_change,immutable,yes
 intake.source_health_change,immutable,yes
 intake.alert_counter,technical_rw,yes
+incidents.incident,stateful,yes
+incidents.incident_state_transition,immutable,yes
+incidents.incident_alert_membership,stateful,yes
+incidents.acknowledgement,immutable,yes
+incidents.incident_escalation,immutable,yes
+incidents.notified_team,immutable,yes
+incidents.evidence_entry,immutable,yes
+incidents.timeline_entry,immutable,yes
+incidents.incident_settings,configuration,yes
