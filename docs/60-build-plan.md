@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.13 |
+| Version | 1.14 |
 | Date | 22 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
@@ -339,7 +339,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | S; P-14; none |
+| Size; depends on; owner tasks | M; P-14; none |
 | Builds | `vigil-routing`: DM-E-41 to DM-E-43; fields and operators of DM-R-25 and DM-R-26 (routing fields); evaluation (DM-E43-R1, DM-E41-R2), applied only while forming (DM-R-17); dry run (DM-R-28, request only); rule set validation (DM-E41-R1) and change summary (DC-TX-10); escalation policy; seed import part 11. |
 | Requirements built | PM-M10-01 (storage and validation), PM-M10-02 to PM-M10-04; DD-F-05 (import); DM-E-41 to DM-E-43 with their rules; DM-R-17, DM-R-25, DM-R-26, DM-R-27, DM-R-28; SL-A1-04 (assignment), SL-B-09. |
 | Tests | DD-K-05 expectations; same inputs give the same result; frozen assignment not applied; each refusal of DM-E41-R1; each operator of DM-R-26 on its value type. |
@@ -615,7 +615,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 ### 7.7 Size summary
 
-5 packages S, 24 packages M, 11 packages L (P-05 became L in v1.7, P-13 in v1.12). With one cloud session for S, one to two for M and two to three for L, the estimate is about 65 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
+4 packages S, 25 packages M, 11 packages L (P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14). With one cloud session for S, one to two for M and two to three for L, the estimate is about 65 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
 
 ## 8. Phases, order and checkpoints
 
@@ -968,6 +968,7 @@ Written into the named documents at the close of this round, 12 Oct 2026: `00-co
 | BP-A-25 | `20-domain-model` DM-C-11, DM-E-16 | Owner decision CTX-D-047 (21 Oct 2026, for P-13). DM-C-11: where an entity has no matching `*_truncated` field (DM-E-18 `content_type`; DM-E-20 `title`, `source_severity`, `failure_reason` and identity pair values, and their copies in DM-E-21), only the first part up to the limit is stored; an alert key longer than 200 characters is not cut, and the entry's normalised alert is `failed` with the reason "the alert key is longer than 200 characters". DM-E-16: every tenant has the definition `unclassified` with display name "Unclassified", created by the import of seed part 6, which refuses a part that lists it. Written on 21 October 2026 (`20-domain-model` v1.4). |
 | BP-A-26 | `20-domain-model` DM-C-11 | Owner decision CTX-D-048 (22 Oct 2026, from the P-13 report, follow-up 6). A text of an alert entry that Vigil stores (alert key, title, source severity, identity pair names and values) that holds the character U+0000, which PostgreSQL cannot store in `varchar` or `jsonb`, makes the entry's normalised alert `failed` with the reason "the entry holds the character U+0000"; it changes no alert, and the webhook call and the raw alert are stored as received, so the call is answered 200 instead of failing as a whole (500, nothing stored, and Alertmanager re-sending the group). Built in `vigil-intake` by P-14. Written on 22 October 2026 (`20-domain-model` v1.5). |
 | BP-A-27 | `20-domain-model` DM-E-34, DM-E32-R2 | Owner decision CTX-D-049 (22 Oct 2026, for P-14). (1) DM-E-34 `alert_snapshot` adds `alert_key`, `alert_type_name` (the alert type's display name) and `first_identity_pair` (`{name, value}` or empty), passed by `vigil-correlation` with each membership, because `vigil-incidents` computes the title of DM-R-20 (PM-M09-01) and may not request `vigil-intake` (AR-M-10). (2) DM-E32-R2: a change of only `hypothesis_computation_id` and `hypothesis_snapshot`, while `hypothesis_component_key`, `affected_services` and `title` stay the same, publishes "incident changed" without a timeline entry (as DC-A-13 for the AI status), so a recomputation after every new member does not write "Hypothesis changed from X to X.". Written on 22 October 2026 (`20-domain-model` v1.5). |
+| BP-A-28 | `40-demo-cut` DC-TX-10, DC-TX-11; `20-domain-model` DM-E-41 | Owner decision CTX-D-051 (22 Oct 2026, for P-15). (1) DC-TX-11 routing rules refusals: `{name}` is the rule's position in the list (1, 2, …) when its name is empty. (2) DC-TX-10 `configuration_changed`, routing rules: a save in which no rule differs from the previous revision is saved as the next revision with the change summary "no rules changed". (3) DM-E-41 `inform_affected_service_owners`: an affected service's owner team key that is empty or not the key of an active team is left out of the informed parties, as for the hypothesis component's owner. Written on 22 October 2026 (`40-demo-cut` v1.3, `20-domain-model` v1.6). |
 
 ### 17.3 Assumptions (complete list)
 
@@ -1032,3 +1033,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.11 | 21 Oct 2026 | For the P-12 spec (BP-L-1, CTX-D-045): amendment BP-A-24 (service map parser messages, any tag refused, seed part 5; `50-architecture` v1.8); the P-12 entry is size M and names the team key check and the two items carried from the final P-11 spec. |
 | 1.12 | 21 Oct 2026 | For the P-13 spec (BP-L-1, CTX-D-047): amendment BP-A-25 (`20-domain-model` DM-C-11 and DM-E-16, v1.4); the P-13 entry is size L. |
 | 1.13 | 22 Oct 2026 | From the P-13 report (BP-L-8, CTX-D-048): amendment BP-A-26 (`20-domain-model` DM-C-11, v1.5, an entry text with U+0000); the P-14 entry builds it in `vigil-intake`. For the P-14 spec (BP-L-1, CTX-D-049): amendment BP-A-27 (DM-E-34 alert copy, DM-E32-R2 exception). |
+| 1.14 | 22 Oct 2026 | For the P-15 spec (BP-L-1, CTX-D-051): amendment BP-A-28 (`40-demo-cut` DC-TX-10, DC-TX-11 v1.3; `20-domain-model` DM-E-41); the P-15 entry is size M. |

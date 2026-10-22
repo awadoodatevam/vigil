@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 20-domain-model (ID prefix `DM-`) |
-| Version | 1.5 |
+| Version | 1.6 |
 | Date | 22 October 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 2 closed. Amended by Round 3 (`30-jazz-storyboard` SB-A-01, SB-A-06, SB-A-07, SB-A-08), Round 4 (`40-demo-cut` Section 14.2) and Round 5 (`50-architecture` Section 23.2), and during the build (`60-build-plan` BP-A-25 to BP-A-27). |
+| Status | Baseline (owner reviewed). Round 2 closed. Amended by Round 3 (`30-jazz-storyboard` SB-A-01, SB-A-06, SB-A-07, SB-A-08), Round 4 (`40-demo-cut` Section 14.2) and Round 5 (`50-architecture` Section 23.2), and during the build (`60-build-plan` BP-A-25 to BP-A-28). |
 
 ## 1. Purpose
 
@@ -924,7 +924,7 @@ A Routing rule is (complete list of parts):
 | `owner_mode` | Enum{fixed_team, hypothesis_component_owner} | Y | |
 | `owner_team_key` | Key | Y | For `fixed_team`: the owner. For `hypothesis_component_owner`: used when there is no hypothesis, or the hypothesis component's `owner_team_key` is empty or not the key of an active team. |
 | `informed_team_keys` | Set<Key> | Y | Empty set allowed. |
-| `inform_affected_service_owners` | Boolean | Y | When true, the owner teams of the affected services are added to the informed parties. |
+| `inform_affected_service_owners` | Boolean | Y | When true, the owner teams of the affected services are added to the informed parties; an owner team key that is empty or not the key of an active team is left out (amendment `60-build-plan` BP-A-28). |
 
 - **DM-E41-R1** A revision MUST be refused unless (complete list): the last rule has an empty condition list (the default rule) and no other rule does; every team key exists as an active team (PM-I-13); every comparison uses a routing field and an operator allowed for it (Section 8.7) with a value of the field's type (PM-M10-03).
 - **DM-E41-R2** The owner team MUST NOT appear in the informed parties; if a rule would produce it there, it is removed from the informed parties.
@@ -2264,4 +2264,5 @@ Open items carried from earlier documents and still open after Round 2 (`50-arch
 | 1.2 | 10 Oct 2026 | Round 4 amendments (`40-demo-cut` Section 14.2, CTX-D-022): DM-E-02 `product_display_name` (DC-A-09); DM-E-20 title rule (DC-A-19); DM-E-32 AI attempt fields and DM-E32-R2 exception, DM-E32-R3 and number format (DC-A-13, DC-A-06); DM-E-36 `timer` (DC-A-10); DM-E-41 `change_summary` wording (DC-A-19); DM-E-47 change list order (DC-A-14); DM-E-49 `failure_reason`, DM-E49-R2 (DC-A-15); DM-E-62 last evaluation (DC-A-12); DM-E-68 `runbooks_supplied` (DC-A-03); DM-V-12 (DC-A-16); DM-R-48 and DM-R-49 (DC-A-02); DM-O-11 closed. |
 | 1.3 | 12 Oct 2026 | Round 5 amendments (`50-architecture` Section 23.2, CTX-D-025): new entity DM-E-83 Tenant alias, terms Active and Dormant tenant, DM-C-02 and DM-C-07 (AR-A-09); DM-E-15 `source_key`, DM-E-21 `sequence` (AR-A-10); DM-E-11 purpose `webhook_url` and locator form, DM-E-77 `credential_ref_id` and Teams `address` (AR-A-11); DM-E-50 `wake_pending`, `wake_reason`, DM-E-51 `failed_attempts`, `retry_due_at`, DM-R-67 (AR-A-20); new rule DM-R-70 (AR-A-23); DM-R-56 (8), DM-O-04, DM-O-05, DM-O-06, DM-O-08, DM-O-12, DM-O-13 closed, DM-ASM-06 confirmed (AR-A-18). |
 | 1.4 | 21 Oct 2026 | Build amendment `60-build-plan` BP-A-25 (owner decision CTX-D-047): DM-C-11 for fields without a `*_truncated` field and for an over-long alert key; DM-E-16 display name and creation of `unclassified`. |
-| 1.5 | 22 Oct 2026 | Build amendments `60-build-plan` BP-A-26 (owner decision CTX-D-048): DM-C-11 for an entry whose stored text holds the character U+0000; BP-A-27 (owner decision CTX-D-049): DM-E-34 `alert_snapshot` adds `alert_key`, `alert_type_name`, `first_identity_pair`; DM-E32-R2 exception for a change of only the hypothesis computation. |
+| 1.5 | 22 Oct 2026 | Build amendments `60-build-plan` BP-A-26 (owner decision CTX-D-048): DM-C-11 for an entry whose stored text holds the character U+0000; BP-A-27 (owner decision CTX-D-049): DM-E-34 `alert_snapshot` adds `alert_key`, `alert_type_name`, `first_identity_pair`; DM-E32-R2 exception for a change of only the hypothesis computation |
+| 1.6 | 22 Oct 2026 | Build amendment `60-build-plan` BP-A-28 (owner decision CTX-D-051): DM-E-41 leaves an empty or inactive service owner team out of the informed parties. |
