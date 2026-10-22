@@ -78,6 +78,7 @@ Interfaces of `vigil-setup` for later packages (P-11):
 - P-12 (built): part 5 (`vigil-servicemap`) is registered (`ServiceMapAdapter`), with its key check of the owner team keys against part 2 (`ServiceMapTeamCheck`, DM-R-60).
 - P-13 (built): part 6 (`vigil-intake`) is registered (`IntakeAdapter`), with the first connection tests of its sources in `afterCommit` (AR-B-11).
 - P-14 (built): part 9 (`vigil-incidents`) is registered (`IncidentsAdapter`).
+- P-15 (built): part 11 (`vigil-routing`) is registered (`RoutingAdapter`), with its key checks against part 2 (`RoutingTeamCheck`) and part 5 (`RoutingKeyCheck`, DM-R-60).
 
 Interfaces of `vigil-intake` for later packages (P-13):
 
@@ -91,7 +92,7 @@ Interfaces of `vigil-intake` for later packages (P-13):
 
 Interfaces of `vigil-servicemap` for later packages (P-12):
 
-- P-15: `ServiceMapService.component`, `service` (owners, criticality).
+- P-15 (built): `ServiceMapService.component`, `service` (owners, criticality).
 - P-16: `ServiceMapService.match`, `relation`, `dependents`, `affectedServices`, `component`, `currentGeneration`.
 - P-18: `ServiceMapService.target`; the key check of part 5 against part 4 (target keys in the service map against runner grants, DM-R-60).
 - P-24: `ServiceMapService.target`.
@@ -99,7 +100,7 @@ Interfaces of `vigil-servicemap` for later packages (P-12):
 
 Interfaces of `vigil-incidents` for later packages (P-14):
 
-- P-15: `IncidentService.setAssignment`, `incident`, `members`.
+- P-15 (built): `IncidentService.setAssignment`, `incident`, `members`.
 - P-22: `IncidentService.recordEscalation` (the Escalation step).
 - P-16: `IncidentService.create`, `addAlert`, `merge`, `setHypothesisAndImpact`, `open`, `reopen`, `incidents`, `incidentOfAlert`, `members`, `settings` (the alert copy carries `alertKey`, `alertTypeName`, `firstIdentityPair`, BP-A-27).
 - P-17: `IncidentCreated`, `IncidentAcknowledged`, `IncidentStateChanged`; `IncidentService.incident`.
@@ -109,6 +110,16 @@ Interfaces of `vigil-incidents` for later packages (P-14):
 - P-23: `IncidentService.resolve`, `members`, and for DM-R-53 `acknowledgements`, `transitions`, `incidents`.
 - P-25: `IncidentChanged`; `IncidentService.acknowledge` (refusal keys `not_open`, `already_acknowledged`, `not_notified`) and the reads.
 - Test support: `IncidentFixture`.
+
+Interfaces of `vigil-routing` for later packages (P-15):
+
+- P-16: `RoutingService.evaluate` with `CORRELATION` before `open` (DM-R-15).
+- P-17: `evaluate` with `WORKFLOWS` before a live run (PM-I-16).
+- P-22: `escalationPolicy` (the Escalation step).
+- P-25, P-29: `evaluation`, `evaluations` (the rule of an assignment).
+- P-36: `evaluate` with `TEST_REPLAY`, `ruleSetRevision` (DM-R-28).
+- P-38: `ruleSet`, `saveRuleSet` (`FORBIDDEN`, `CONFLICT`, `INVALID` with `problems` and `places`; `IllegalArgumentException` → 400 `bad_request`), `escalationPolicy`, `RoutingField` (`displayName`, `allowedValues`, `operators`).
+- Test support: `RoutingFixture`.
 
 ## Local installation
 

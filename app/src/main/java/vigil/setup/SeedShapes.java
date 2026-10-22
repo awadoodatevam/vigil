@@ -158,7 +158,7 @@ final class SeedShapes {
   }
 
   /** The text of a single value: a string as written, a number or boolean as Jackson writes it. */
-  private static String text(JsonNode node) {
+  static String text(JsonNode node) {
     if (node.isNull()) {
       return null;
     }
