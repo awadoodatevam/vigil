@@ -516,7 +516,7 @@ class TenancyIT {
           tenants.setAlias(host, tenant, "installation token");
           List<Map<String, Object>> added = new ArrayList<>(publications(host));
           added.removeAll(before);
-          assertThat(added).hasSize(3);
+          assertThat(added).hasSize(4);
           assertThat(added)
               .allSatisfy(
                   row ->
@@ -525,7 +525,9 @@ class TenancyIT {
           assertThat(added.stream().map(row -> (String) row.get("listener_id")))
               .anySatisfy(id -> assertThat(id).contains("vigil.identity.TenantAliasListener"))
               .anySatisfy(id -> assertThat(id).contains("vigil.intake.IntakeAliasListener"))
-              .anySatisfy(id -> assertThat(id).contains("vigil.incidents.IncidentsAliasListener"));
+              .anySatisfy(id -> assertThat(id).contains("vigil.incidents.IncidentsAliasListener"))
+              .anySatisfy(
+                  id -> assertThat(id).contains("vigil.correlation.CorrelationAliasListener"));
           assertThat(added)
               .allSatisfy(
                   publication ->

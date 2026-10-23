@@ -79,11 +79,13 @@ Interfaces of `vigil-setup` for later packages (P-11):
 - P-13 (built): part 6 (`vigil-intake`) is registered (`IntakeAdapter`), with the first connection tests of its sources in `afterCommit` (AR-B-11).
 - P-14 (built): part 9 (`vigil-incidents`) is registered (`IncidentsAdapter`).
 - P-15 (built): part 11 (`vigil-routing`) is registered (`RoutingAdapter`), with its key checks against part 2 (`RoutingTeamCheck`) and part 5 (`RoutingKeyCheck`, DM-R-60).
+- P-16 (built): part 10 (`vigil-correlation`) is registered (`CorrelationAdapter`).
 
 Interfaces of `vigil-intake` for later packages (P-13):
 
-- P-16 (the alert type names in the incident alert copy, BP-A-27), P-21, P-22: `IntakeService.alertTypes` (display names).
-- P-16: `IntakeService.alertsAfter`, `alert`; `AlertReceived` (wakes the worker).
+- P-16 (built): `IntakeService.alertTypes` (the alert type names in the incident alert copy, BP-A-27).
+- P-21, P-22: `IntakeService.alertTypes` (display names).
+- P-16 (built): `IntakeService.alertsAfter`, `alert`; `AlertReceived` (wakes the worker).
 - P-17: `AlertStateChanged`, `SourceHealthChanged` (wakes).
 - P-23: `IntakeService.alert`, `sources`, `healthyThroughout`.
 - P-25: the topics `alerts` (AR-E-01, AR-E-02) and `sources` (AR-E-03).
@@ -93,7 +95,7 @@ Interfaces of `vigil-intake` for later packages (P-13):
 Interfaces of `vigil-servicemap` for later packages (P-12):
 
 - P-15 (built): `ServiceMapService.component`, `service` (owners, criticality).
-- P-16: `ServiceMapService.match`, `relation`, `dependents`, `affectedServices`, `component`, `currentGeneration`.
+- P-16 (built): `ServiceMapService.match`, `relation`, `dependents`, `affectedServices`, `component`, `service`, `currentGeneration`.
 - P-18: `ServiceMapService.target`; the key check of part 5 against part 4 (target keys in the service map against runner grants, DM-R-60).
 - P-24: `ServiceMapService.target`.
 - P-38: `ServiceMapService.currentGeneration`, `services`, `components`, `importFile`; the reaction of `vigil-setup` to `ServiceMapImported`.
@@ -102,7 +104,7 @@ Interfaces of `vigil-incidents` for later packages (P-14):
 
 - P-15 (built): `IncidentService.setAssignment`, `incident`, `members`.
 - P-22: `IncidentService.recordEscalation` (the Escalation step).
-- P-16: `IncidentService.create`, `addAlert`, `merge`, `setHypothesisAndImpact`, `open`, `reopen`, `incidents`, `incidentOfAlert`, `members`, `settings` (the alert copy carries `alertKey`, `alertTypeName`, `firstIdentityPair`, BP-A-27).
+- P-16 (built): `IncidentService.create`, `addAlert`, `merge`, `setHypothesisAndImpact`, `open`, `reopen`, `incidents`, `members`, `settings` (the alert copy carries `alertKey`, `alertTypeName`, `firstIdentityPair`, BP-A-27).
 - P-17: `IncidentCreated`, `IncidentAcknowledged`, `IncidentStateChanged`; `IncidentService.incident`.
 - P-18, P-20, P-23, P-24: `IncidentService.addEvidence` with their kinds.
 - P-20: `IncidentService.setAiStatus`, `evidence`.
@@ -113,13 +115,20 @@ Interfaces of `vigil-incidents` for later packages (P-14):
 
 Interfaces of `vigil-routing` for later packages (P-15):
 
-- P-16: `RoutingService.evaluate` with `CORRELATION` before `open` (DM-R-15).
+- P-16 (built): `RoutingService.evaluate` with `CORRELATION` before `open` (DM-R-15).
 - P-17: `evaluate` with `WORKFLOWS` before a live run (PM-I-16).
 - P-22: `escalationPolicy` (the Escalation step).
 - P-25, P-29: `evaluation`, `evaluations` (the rule of an assignment).
 - P-36: `evaluate` with `TEST_REPLAY`, `ruleSetRevision` (DM-R-28).
 - P-38: `ruleSet`, `saveRuleSet` (`FORBIDDEN`, `CONFLICT`, `INVALID` with `problems` and `places`; `IllegalArgumentException` → 400 `bad_request`), `escalationPolicy`, `RoutingField` (`displayName`, `allowedValues`, `operators`).
 - Test support: `RoutingFixture`.
+
+Interfaces of `vigil-correlation` for later packages (P-16):
+
+- P-23: `CorrelationService.alertsOfComponent` (DM-R-35).
+- P-29: `CorrelationService.decisions`, `hypothesisComputations`, `latestHypothesisComputation`, `settings` (DC-TX-02, DC-S03-03, DC-S03-05).
+- P-26, P-27: the health indicator `correlation` in `deploy/status.sh` (they set `management.endpoint.health.show-details` so its details show).
+- Test support: `CorrelationFixture`, `IntakeFixture` (public).
 
 ## Local installation
 

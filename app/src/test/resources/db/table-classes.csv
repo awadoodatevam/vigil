@@ -40,3 +40,7 @@ incidents.incident_settings,configuration,yes
 routing.routing_rule_set_revision,revisioned,yes
 routing.escalation_policy_revision,revisioned,yes
 routing.routing_evaluation,immutable,yes
+correlation.grouping_decision,immutable,yes
+correlation.hypothesis_computation,immutable,yes
+correlation.correlation_settings,configuration,yes
+correlation.cursor,technical_rw,yes

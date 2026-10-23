@@ -53,14 +53,14 @@ import vigil.testsupport.VigilTestApp;
  * credentials, the WireMock stubs of the two connection tests, the intake part of {@code
  * 03-monitoring.yaml}, the recordings and an event recorder.
  */
-final class IntakeFixture {
+public final class IntakeFixture {
 
   static final JsonMapper JSON = JsonMapper.builder().build();
   static final String ZABBIX_PATH = "/api_jsonrpc.php";
   static final String ALERTMANAGER_PATH = "/api/v2/status";
-  static final String ZABBIX = "zabbix-lab";
-  static final String ALERTMANAGER = "alertmanager-lab";
-  static final Duration WAIT = Duration.ofSeconds(5);
+  public static final String ZABBIX = "zabbix-lab";
+  public static final String ALERTMANAGER = "alertmanager-lab";
+  public static final Duration WAIT = Duration.ofSeconds(5);
   private static final Path MONITORING = Path.of("../docs/31-demo-data/03-monitoring.yaml");
   private static final Path RECORDINGS = Path.of("src/test/resources/recordings/monitoring");
 
@@ -71,7 +71,7 @@ final class IntakeFixture {
    * webhook-zabbix{suffix}} and {@code webhook-alertmanager{suffix}} of each suffix ({@code ""},
    * {@code "-b"}, {@code "-c"}).
    */
-  static TestSecrets secrets(VigilDatabase database, String... suffixes) {
+  public static TestSecrets secrets(VigilDatabase database, String... suffixes) {
     Map<String, String> values = new LinkedHashMap<>();
     values.put("installation-token", TestSecrets.randomToken());
     values.put("zabbix-api", TestSecrets.randomToken());
@@ -84,7 +84,7 @@ final class IntakeFixture {
   }
 
   /** The two connection tests pass. */
-  static void stub(WireMockServer wiremock) {
+  public static void stub(WireMockServer wiremock) {
     wiremock.stubFor(
         post(urlEqualTo(ZABBIX_PATH))
             .willReturn(
@@ -95,7 +95,7 @@ final class IntakeFixture {
   }
 
   /** The connector part of the fixture; the webhook secrets carry {@code suffix}. */
-  static ConnectorsPart connectorsPart(String address, String suffix) {
+  public static ConnectorsPart connectorsPart(String address, String suffix) {
     return new ConnectorsPart(
         List.of(
             new CredentialReferencePart(
@@ -127,7 +127,7 @@ final class IntakeFixture {
   /**
    * The intake part of {@code 03-monitoring.yaml}, each value's text as the seed import reads it.
    */
-  static IntakePart demoPart() {
+  public static IntakePart demoPart() {
     JsonNode file;
     try {
       file =
@@ -211,7 +211,7 @@ final class IntakeFixture {
   }
 
   /** Imports the connector part and {@code part} into the tenant; returns the connector handles. */
-  static Map<String, UUID> importInto(
+  public static Map<String, UUID> importInto(
       VigilTestApp app, TenantId tenant, String address, String suffix, IntakePart part) {
     Map<String, UUID> handles =
         app.context()
@@ -222,7 +222,7 @@ final class IntakeFixture {
   }
 
   /** A {@code ready} tenant with an alias for {@code host} (so active) and the fixture imported. */
-  static TenantId create(
+  public static TenantId create(
       VigilTestApp app, String name, String host, String address, String suffix) {
     TenantId tenant = new TestTenants(app).tenant(name).host(host).create().id();
     importInto(app, tenant, address, suffix, demoPart());
@@ -238,7 +238,7 @@ final class IntakeFixture {
         });
   }
 
-  static void await(BooleanSupplier condition) {
+  public static void await(BooleanSupplier condition) {
     long deadline = System.nanoTime() + WAIT.toNanos();
     while (!condition.getAsBoolean()) {
       assertThat(System.nanoTime()).as("condition met within %s", WAIT).isLessThan(deadline);
@@ -246,7 +246,7 @@ final class IntakeFixture {
     }
   }
 
-  static void sleep(Duration duration) {
+  public static void sleep(Duration duration) {
     try {
       Thread.sleep(duration);
     } catch (InterruptedException e) {
@@ -256,19 +256,19 @@ final class IntakeFixture {
   }
 
   /** One recorded call: its file name, source key, content type and body. */
-  record Recording(String name, String sourceKey, String contentType, String body) {
+  public record Recording(String name, String sourceKey, String contentType, String body) {
 
-    byte[] bytes() {
+    public byte[] bytes() {
       return body.getBytes(StandardCharsets.UTF_8);
     }
 
-    JsonNode tree() {
+    public JsonNode tree() {
       return JSON.readTree(body);
     }
   }
 
   /** The 254 recordings in name order. */
-  static List<Recording> recordings() {
+  public static List<Recording> recordings() {
     try (Stream<Path> files = Files.list(RECORDINGS)) {
       List<Recording> recordings = new ArrayList<>();
       for (Path file :
@@ -287,12 +287,12 @@ final class IntakeFixture {
     }
   }
 
-  static Recording recording(String name) {
+  public static Recording recording(String name) {
     return recordings().stream().filter(r -> r.name().equals(name)).findFirst().orElseThrow();
   }
 
   /** A recorded Alertmanager message whose one alert gets {@code fingerprint}. */
-  static byte[] withFingerprint(Recording recording, String fingerprint) {
+  public static byte[] withFingerprint(Recording recording, String fingerprint) {
     ObjectNode message = (ObjectNode) recording.tree();
     ((ObjectNode) message.get("alerts").get(0)).put("fingerprint", fingerprint);
     return JSON.writeValueAsBytes(message);
