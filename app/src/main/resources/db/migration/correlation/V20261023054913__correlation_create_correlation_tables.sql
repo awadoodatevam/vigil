@@ -58,4 +58,5 @@ CREATE TABLE correlation.cursor (
   tenant_id uuid PRIMARY KEY,
   last_sequence bigint NOT NULL CHECK (last_sequence >= 0)
 );
+CREATE INDEX cursor_tenant_idx ON correlation.cursor (tenant_id);
 GRANT SELECT, INSERT, UPDATE ON correlation.cursor TO vigil_app;
