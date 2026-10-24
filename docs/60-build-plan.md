@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.15 |
-| Date | 22 October 2026 |
+| Version | 1.16 |
+| Date | 24 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
 
@@ -355,21 +355,31 @@ Cross-cutting items have no package of their own; every package whose code they 
 | Tests | The 126 storm alerts and the SL-F-3 alert of the lab catalogue (DD-F-03, DD-F-02) fed in 20 random orders: always one storm incident with hypothesis `srv-db-01`, the impact of DD-K-06 and a separate SL-F-3 incident; merge of forming incidents; reopen inside and after the window; worker retry and health `DOWN`; one decision per alert on duplicate delivery. |
 | Runs in | BP-E-01, BP-E-02 |
 
-#### P-17 Engine and workflow runs
+#### P-17 Engine
 
 | Item | Content |
 | --- | --- |
 | Size; depends on; owner tasks | L; P-16; none |
-| Builds | `vigil-engine`: DM-E-50 to DM-E-52; run executors, hand-offs, durable wakes, retries and cancellation (AR-R-20 to AR-R-22, AR-R-27); timer poll (AR-R-23); restart step 4; Trigger, Condition (DM-R-25, DM-R-26 condition fields) and Wait/timer steps; the Action step guard (DM-R-31) and the start of reconciliation (PM-M12-10) through requests that P-24 implements; events AR-E-10. `vigil-workflows`: DM-E-44, DM-E-45, DM-E-47 (versions from seed); step type catalogue; starting live runs on AR-E-05 and AR-E-07 including reopen; seed import part 16. Other modules' step handlers are tested here with test handlers. |
-| Requirements built | PM-M11-01, PM-M11-02, PM-M11-07; PM-M12-01 to PM-M12-08, PM-M12-10, PM-M12-11; PM-S-01, PM-S-02, PM-S-11 to PM-S-14; DM-E-44, DM-E-45, DM-E-47, DM-E-50 to DM-E-52 with their rules; DM-S-01, DM-S-02, DM-S-11, DM-S-12; DM-R-16, DM-R-22, DM-R-25, DM-R-26, DM-R-31, DM-R-64 (engine side), DM-R-66, DM-R-67, DM-R-70; DM-SM-07 to DM-SM-09; AR-R-20 to AR-R-22, AR-R-27, AR-E-10, AR-TM-05; SL-B-03 (execution), SL-B-04 (engine guard), SL-B-11 (engine side). |
+| Builds | `vigil-engine`: DM-E-50 to DM-E-52; run executors, hand-offs, durable wakes, retries and cancellation (AR-R-20 to AR-R-22, AR-R-27); timer poll (AR-R-23); restart step 4; Trigger, Condition (DM-R-25, DM-R-26 condition fields) and Wait/timer steps; the Action step guard (DM-R-31) and the start of reconciliation (PM-M12-10); events AR-E-10; the step handler interfaces of the seven step-implementing modules, and `ActionRuns` and `ApprovalDecided` in `vigil-actions`, implemented by P-18 to P-24 (CTX-D-055); in `vigil-correlation`, the two worker fixes of CTX-D-054 (3). Runs are started by the tests through the engine's start request; other modules' step handlers are tested here with test handlers. |
+| Requirements built | PM-M12-01 to PM-M12-08, PM-M12-10, PM-M12-11; PM-S-01, PM-S-02, PM-S-11 to PM-S-14; DM-E-50 to DM-E-52 with their rules (DM-E50-R1 engine side); DM-S-01, DM-S-02, DM-S-11, DM-S-12; DM-R-16 and DM-R-22 (engine side), DM-R-25, DM-R-26, DM-R-31, DM-R-64 (engine side), DM-R-66, DM-R-67, DM-R-70; DM-SM-07 to DM-SM-09; AR-R-19 (engine side), AR-R-20 to AR-R-24 (AR-R-23 timer poll, AR-R-24 step 4), AR-R-27, AR-E-10, AR-TM-05, AR-Q-05, AR-Q-11 (a to d, f); DC-TX-11 (engine guard refusal reasons); SL-B-03 (execution), SL-B-04 (engine guard), SL-B-11 (engine side); AR-R-17 and AR-R-26 (the correlation fixes, CTX-D-054 (3)). |
 | Tests | AR-Q-11 cases (a) to (d) and (f); workflow version 1 of DD-F-06 on the P1 path and the otherwise path with test handlers; no step after the Trigger while the incident is forming; one live run per incident and episode; restart in every state of AR-R-24 step 4. |
+| Runs in | BP-E-01, BP-E-02 |
+
+#### P-41 Workflow definitions and live-run start
+
+| Item | Content |
+| --- | --- |
+| Size; depends on; owner tasks | M; P-17; none |
+| Builds | `vigil-workflows`: DM-E-44 (step type catalogue), DM-E-45, DM-E-47 (version 1 from seed); seed import part 16 with its key checks against parts 2 and 5 (DM-R-60); starting live runs on AR-E-05 (after the routing evaluation of PM-I-16) and on AR-E-07 for a reopen (DM-R-22). Split from P-17 by owner decision (CTX-D-055 (1)); built after P-17 and before P-18. |
+| Requirements built | PM-M11-01, PM-M11-02, PM-M11-07; DM-E-44, DM-E-45, DM-E-47 with their rules; DM-E50-R1, DM-R-16 and DM-R-22 (workflows side); DM-R-66 and DM-R-70 (workflows side); AR-Q-05 (the new listener); DD-F-06 (import), DM-R-57, DM-R-60 and AR-B-11 (part 16), BP-R-29; SL-B-03 (versioned definitions). |
+| Tests | Part 16 import and every refusal; the step type catalogue; the demo workflow end to end with test handlers: a run on creation after a `WORKFLOWS` evaluation, waiting while forming, the P1 path, a merged incident's run cancelled, a new episode run on reopen; one run per incident and episode on double delivery. |
 | Runs in | BP-E-01, BP-E-02 |
 
 #### P-18 Runner and diagnostics
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | M; P-17, P-03; none |
+| Size; depends on; owner tasks | M; P-41, P-03; none |
 | Builds | `vigil-runner`: DM-E-12 to DM-E-14; the `linux_server` target connector over SSH with host key pinning, quoting and the five parsers (AR-K-03, AR-K-11 to AR-K-13, AR-T-12); request IDs (DM-E14-R1); restart step 1; seed import part 4. `vigil-diagnostics`: DM-E-53, DM-E-54; the Diagnostic step (DM-S-03) with evidence and summaries (DC-TX-03); seed import part 12. |
 | Requirements built | PM-M05-01 to PM-M05-04, PM-M13-01 to PM-M13-03; PM-K-03; PM-S-03; DM-E-12 to DM-E-14, DM-E-53, DM-E-54 with their rules; DM-SM-10; DM-S-03; AR-K-00b, AR-K-03, AR-K-11 to AR-K-13, AR-T-12; SL-A1-03, SL-B-05. |
 | Tests | Against the `demo-lab` image in the `test` profile (BP-R-06): each operation of DD-F-04; parameter refusals (DM-V-06 path prefix, ranges); action refused without an action grant; wrong host key refused; timeout outcomes; same request ID returns the earlier run; after an injection like SL-F-1 the three diagnostics give summaries in the forms of DD-F-04 (exact `demo` values are checked in P-27's Mac run and P-32). |
@@ -615,7 +625,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 ### 7.7 Size summary
 
-4 packages S, 23 packages M, 13 packages L (P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14 and L in v1.15, from its line count; P-16 became L in v1.15). With one cloud session for S, one to two for M and two to three for L, the estimate is about 65 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
+4 packages S, 24 packages M, 13 packages L, 41 packages in all (P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14 and L in v1.15, from its line count; P-16 became L in v1.15; P-17 was split into P-17 and P-41 in v1.16). With one cloud session for S, one to two for M and two to three for L, the estimate is about 65 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
 
 ## 8. Phases, order and checkpoints
 
@@ -624,7 +634,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 | Phase | Packages | Ends at | Order and parallel work (BP-R-18) |
 | --- | --- | --- | --- |
 | A Foundations and risk spikes | P-01 to P-07 | All Phase A packages merged | P-02 and P-03 start after P-01; P-04 after P-03; P-05 after P-01; P-06 and P-07 after P-05. Phase A packages that change only `demo/`, `deploy/`, `spikes/` or `dev/` run alongside Phase B. |
-| B Product core | P-08 to P-27 | P-27 merged: the storm runs headless from intake to a resolved incident on the local installation | Starts when P-02 is merged. One product package at a time, in order (PM-R-03); P-10 and P-26 also wait for P-04, P-18 for P-03, P-19 and P-21 for P-06, P-22 for P-07 (BP-R-19, BP-R-20). |
+| B Product core | P-08 to P-17, P-41, P-18 to P-27 | P-27 merged: the storm runs headless from intake to a resolved incident on the local installation | Starts when P-02 is merged. One product package at a time, in order (PM-R-03; P-41 comes after P-17 and before P-18); P-10 and P-26 also wait for P-04, P-18 for P-03, P-19 and P-21 for P-06, P-22 for P-07 (BP-R-19, BP-R-20). |
 | C Screens and demo operations | P-28 to P-32 | SL-CP-1 | P-31 alongside P-28 to P-30. |
 | D Primary demo complete | P-33, P-34 | SL-CP-2 | None. |
 | E Deep dives | P-35 to P-40 | SL-CP-3 | None. |
@@ -778,7 +788,7 @@ The placeholders of AR-B-07 as amended by BP-A-01, with these values in `deploy/
 | SL-A1-05 | P-21, P-22, P-30 |
 | SL-A1-06 | P-20, P-24, P-29, P-30 |
 | SL-A1-07 | P-21, P-23, P-29 |
-| SL-A1-08 | P-09, P-17, P-25, P-29 |
+| SL-A1-08 | P-09, P-17, P-41, P-25, P-29 |
 | SL-A1-09 | P-23, P-25, P-33 |
 | SL-A2-01 | P-13, P-38 |
 | SL-A2-02 | P-19, P-39 |
@@ -810,7 +820,7 @@ The placeholders of AR-B-07 as amended by BP-A-01, with these values in `deploy/
 | SL-WE-10 | P-29 |
 | SL-B-01 | P-02, P-08 |
 | SL-B-02 | P-02, P-13 |
-| SL-B-03 | P-17, P-35 |
+| SL-B-03 | P-17, P-41, P-35 |
 | SL-B-04 | P-17, P-24 |
 | SL-B-05 | P-18 |
 | SL-B-06 | P-02, P-08 |
@@ -861,7 +871,7 @@ The placeholders of AR-B-07 as amended by BP-A-01, with these values in `deploy/
 | `vigil-diagnostics` | P-18 |
 | `vigil-actions` | P-24 |
 | `vigil-engine` | P-17, P-36 (test mode) |
-| `vigil-workflows` | P-17, P-35, P-36 |
+| `vigil-workflows` | P-41, P-35, P-36 |
 | `vigil-reporting` | P-23; screen P-33 |
 | `vigil-setup` | P-11, P-38 |
 | `vigil-api` | P-09, P-11, P-13, P-25, P-35, P-36, P-38, P-39 |
@@ -1035,3 +1045,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.13 | 22 Oct 2026 | From the P-13 report (BP-L-8, CTX-D-048): amendment BP-A-26 (`20-domain-model` DM-C-11, v1.5, an entry text with U+0000); the P-14 entry builds it in `vigil-intake`. For the P-14 spec (BP-L-1, CTX-D-049): amendment BP-A-27 (DM-E-34 alert copy, DM-E32-R2 exception). |
 | 1.14 | 22 Oct 2026 | For the P-15 spec (BP-L-1, CTX-D-051): amendment BP-A-28 (`40-demo-cut` DC-TX-10, DC-TX-11 v1.3; `20-domain-model` DM-E-41); the P-15 entry is size M. |
 | 1.15 | 22 Oct 2026 | From the P-15 report (BP-L-8, CTX-D-052): the P-15 entry is size L (`tools/loc.sh` 2,070). For the P-16 spec (BP-L-1, CTX-D-053): the P-16 entry is size L. |
+| 1.16 | 24 Oct 2026 | For the P-17 spec (BP-L-1, CTX-D-054, CTX-D-055): P-17 is split by owner decision into P-17 Engine (L) and the new package P-41 Workflow definitions and live-run start (M), built after P-17 and before P-18 (P-18 now depends on P-41; Sections 7.7, 8.1, 13.1 and 13.2); the P-17 entry names the step handler interfaces, `ActionRuns` and `ApprovalDecided` that P-17 defines and P-18 to P-24 implement, and the `vigil-correlation` worker fixes. No behaviour of Vigil changes. |
