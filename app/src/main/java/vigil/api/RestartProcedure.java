@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.modulith.events.IncompleteEventPublications;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
+import vigil.correlation.api.CorrelationScheduling;
 import vigil.identity.api.SessionExpiry;
 import vigil.incidents.api.IncidentScheduling;
 import vigil.intake.api.IntakeScheduling;
@@ -32,6 +33,7 @@ class RestartProcedure implements ApplicationRunner {
   private final SeedImports seedImports;
   private final IntakeScheduling intakeScheduling;
   private final IncidentScheduling incidentScheduling;
+  private final CorrelationScheduling correlationScheduling;
 
   RestartProcedure(
       IncompleteEventPublications incompletePublications,
@@ -40,7 +42,8 @@ class RestartProcedure implements ApplicationRunner {
       SessionExpiry sessionExpiry,
       SeedImports seedImports,
       IntakeScheduling intakeScheduling,
-      IncidentScheduling incidentScheduling) {
+      IncidentScheduling incidentScheduling,
+      CorrelationScheduling correlationScheduling) {
     this.incompletePublications = incompletePublications;
     this.taskScheduler = taskScheduler;
     this.readyGate = readyGate;
@@ -48,6 +51,7 @@ class RestartProcedure implements ApplicationRunner {
     this.seedImports = seedImports;
     this.intakeScheduling = intakeScheduling;
     this.incidentScheduling = incidentScheduling;
+    this.correlationScheduling = correlationScheduling;
   }
 
   @Override
@@ -84,8 +88,9 @@ class RestartProcedure implements ApplicationRunner {
     // Filled by P-17 (vigil-engine).
   }
 
+  /** Starts the correlation workers of the active tenants from their cursors. */
   void step5StartCorrelationWorkers() {
-    // Filled by P-16 (vigil-correlation).
+    correlationScheduling.matchActiveTenants();
   }
 
   /** Starts the per-installation task (AR-R-23); modules add the tasks of the active tenants. */

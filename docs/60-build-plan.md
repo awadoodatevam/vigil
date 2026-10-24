@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.14 |
+| Version | 1.15 |
 | Date | 22 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
@@ -339,7 +339,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | M; P-14; none |
+| Size; depends on; owner tasks | L; P-14; none |
 | Builds | `vigil-routing`: DM-E-41 to DM-E-43; fields and operators of DM-R-25 and DM-R-26 (routing fields); evaluation (DM-E43-R1, DM-E41-R2), applied only while forming (DM-R-17); dry run (DM-R-28, request only); rule set validation (DM-E41-R1) and change summary (DC-TX-10); escalation policy; seed import part 11. |
 | Requirements built | PM-M10-01 (storage and validation), PM-M10-02 to PM-M10-04; DD-F-05 (import); DM-E-41 to DM-E-43 with their rules; DM-R-17, DM-R-25, DM-R-26, DM-R-27, DM-R-28; SL-A1-04 (assignment), SL-B-09. |
 | Tests | DD-K-05 expectations; same inputs give the same result; frozen assignment not applied; each refusal of DM-E41-R1; each operator of DM-R-26 on its value type. |
@@ -349,7 +349,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | M; P-15; none |
+| Size; depends on; owner tasks | L; P-15; none |
 | Builds | `vigil-correlation`: DM-E-29 to DM-E-31; the per-tenant worker with cursor and retries (AR-R-17, AR-R-18, AR-R-26); decisions, merge, stability, hypothesis, impact, reopen and final reasons; the `correlation` health indicator (AR-H-12); restart step 5; seed import part 10. |
 | Requirements built | PM-M08-01 to PM-M08-10; DM-E-29 to DM-E-31; DM-R-08 to DM-R-19, DM-R-21, DM-R-58, DM-R-61, DM-R-62; AR-R-17, AR-R-18, AR-R-26; SL-A1-02 (Vigil side). |
 | Tests | The 126 storm alerts and the SL-F-3 alert of the lab catalogue (DD-F-03, DD-F-02) fed in 20 random orders: always one storm incident with hypothesis `srv-db-01`, the impact of DD-K-06 and a separate SL-F-3 incident; merge of forming incidents; reopen inside and after the window; worker retry and health `DOWN`; one decision per alert on duplicate delivery. |
@@ -615,7 +615,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 ### 7.7 Size summary
 
-4 packages S, 25 packages M, 11 packages L (P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14). With one cloud session for S, one to two for M and two to three for L, the estimate is about 65 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
+4 packages S, 23 packages M, 13 packages L (P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14 and L in v1.15, from its line count; P-16 became L in v1.15). With one cloud session for S, one to two for M and two to three for L, the estimate is about 65 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
 
 ## 8. Phases, order and checkpoints
 
@@ -1034,3 +1034,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.12 | 21 Oct 2026 | For the P-13 spec (BP-L-1, CTX-D-047): amendment BP-A-25 (`20-domain-model` DM-C-11 and DM-E-16, v1.4); the P-13 entry is size L. |
 | 1.13 | 22 Oct 2026 | From the P-13 report (BP-L-8, CTX-D-048): amendment BP-A-26 (`20-domain-model` DM-C-11, v1.5, an entry text with U+0000); the P-14 entry builds it in `vigil-intake`. For the P-14 spec (BP-L-1, CTX-D-049): amendment BP-A-27 (DM-E-34 alert copy, DM-E32-R2 exception). |
 | 1.14 | 22 Oct 2026 | For the P-15 spec (BP-L-1, CTX-D-051): amendment BP-A-28 (`40-demo-cut` DC-TX-10, DC-TX-11 v1.3; `20-domain-model` DM-E-41); the P-15 entry is size M. |
+| 1.15 | 22 Oct 2026 | From the P-15 report (BP-L-8, CTX-D-052): the P-15 entry is size L (`tools/loc.sh` 2,070). For the P-16 spec (BP-L-1, CTX-D-053): the P-16 entry is size L. |

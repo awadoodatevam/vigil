@@ -29,6 +29,9 @@ import vigil.audit.api.AuditEventType;
 import vigil.audit.api.AuditEventView;
 import vigil.audit.api.AuditQuery;
 import vigil.audit.api.AuditService;
+import vigil.correlation.CorrelationFixture;
+import vigil.correlation.api.CorrelationService;
+import vigil.correlation.api.CorrelationSettingsView;
 import vigil.identity.api.IdentityService;
 import vigil.incidents.api.AffectedServiceCopy;
 import vigil.incidents.api.AlertCopy;
@@ -402,7 +405,12 @@ class SeedImportIT {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
           .isEqualTo(
-              number <= 3 || number == 5 || number == 6 || number == 9 || number == 11
+              number <= 3
+                      || number == 5
+                      || number == 6
+                      || number == 9
+                      || number == 10
+                      || number == 11
                   ? PartOutcome.SUCCEEDED
                   : PartOutcome.NOT_STARTED);
     }
@@ -507,6 +515,7 @@ class SeedImportIT {
     assertThat(part(view, 6).counts())
         .isEqualTo(Map.of("monitoring_sources", 2, "alert_types", 18, "alert_type_mappings", 9));
     assertThat(part(view, 9).counts()).isEqualTo(Map.of("incident_settings", 1));
+    assertThat(part(view, 10).counts()).isEqualTo(Map.of("correlation_settings", 1));
     assertThat(part(view, 11).counts()).isEqualTo(Map.of("rules", 3, "escalation_levels", 2));
     assertThat(view.parts()).allSatisfy(part -> assertThat(part.error()).isNull());
   }
@@ -914,11 +923,11 @@ class SeedImportIT {
   }
 
   @Test
-  @DisplayName("BP-R-29 part 9 is registered; parts 7, 8, 10 and 12 to 17 are not started")
+  @DisplayName("BP-R-29 part 9 is registered; parts 7, 8 and 12 to 17 are not started")
   void incidentsPartRegistered() {
     SeedImportView view = main.imported(SeedTests.demoBundle());
     assertThat(part(view, 9).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
-    for (int number : List.of(7, 8, 10, 12, 13, 14, 15, 16, 17)) {
+    for (int number : List.of(7, 8, 12, 13, 14, 15, 16, 17)) {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
           .isEqualTo(PartOutcome.NOT_STARTED);
@@ -1083,7 +1092,7 @@ class SeedImportIT {
         11,
         "Part routing refused. routing_rule_set_revision_1: Rule 'Critical service affected':"
             + " 'noc-l9' is not an active team.");
-    for (int number : List.of(1, 2, 3, 5, 6, 9)) {
+    for (int number : List.of(1, 2, 3, 5, 6, 9, 10)) {
       assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
@@ -1152,5 +1161,47 @@ class SeedImportIT {
     assertThat(main.app().context().getBeansOfType(SeedKeyCheck.class).values())
         .anyMatch(check -> check.referringPart() == 11 && check.targetPart() == 2)
         .anyMatch(check -> check.referringPart() == 11 && check.targetPart() == 5);
+  }
+
+  @Test
+  @DisplayName("DD-F-07 correlation_settings of 07-settings.yaml is imported as seed part 10")
+  void correlationPart() {
+    SeedImportView view = main.imported(SeedTests.demoBundle());
+    assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
+    CorrelationService correlation = main.app().context().getBean(CorrelationService.class);
+    assertThat(correlation.settings(view.tenantId()))
+        .contains(
+            new CorrelationSettingsView(
+                Duration.ofSeconds(300),
+                Duration.ofSeconds(40),
+                Duration.ofSeconds(300),
+                Duration.ofSeconds(5)));
+    assertThat(CorrelationFixture.isRunning(main.app(), view.tenantId())).isFalse();
+  }
+
+  @Test
+  @DisplayName("AR-B-11 the correlation part is refused with the module's problems")
+  void correlationPartRefused() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                SETTINGS,
+                SeedTests.replacing(
+                    "stability_check_interval_s: 5", "stability_check_interval_s: 6")));
+    assertFailedPart(
+        view,
+        10,
+        "Part correlation refused. correlation_settings: stability_check_interval_s: 1 to 5");
+    for (int number : List.of(1, 2, 3, 5, 6, 9)) {
+      assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    }
+    assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
+  }
+
+  @Test
+  @DisplayName("BP-R-29 part 10 is registered")
+  void correlationPartRegistered() {
+    SeedImportView view = main.imported(SeedTests.demoBundle());
+    assertThat(part(view, 10).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
   }
 }
