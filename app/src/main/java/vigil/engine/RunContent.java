@@ -49,7 +49,7 @@ final class RunContent {
 
   /**
    * Reads content; {@code IllegalArgumentException} when it is not a JSON object whose {@code
-   * steps} is a list.
+   * steps} is a list, or when a step has no {@code step_id} or shares it with another step.
    */
   static RunContent parse(String json) {
     JsonNode root;
@@ -64,8 +64,14 @@ final class RunContent {
     Map<String, Step> steps = new LinkedHashMap<>();
     for (JsonNode step : root.get("steps")) {
       String stepId = text(step.get("step_id"));
+      if (stepId == null) {
+        throw new IllegalArgumentException("a step has no step_id");
+      }
+      if (steps.containsKey(stepId)) {
+        throw new IllegalArgumentException("two steps share the step_id " + stepId);
+      }
       JsonNode parameters = step.get("parameters");
-      steps.putIfAbsent(
+      steps.put(
           stepId,
           new Step(
               stepId,

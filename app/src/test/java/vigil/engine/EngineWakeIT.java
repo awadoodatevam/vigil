@@ -7,9 +7,11 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -402,5 +404,75 @@ class EngineWakeIT {
     Set<TenantId> before = app.context().getBean(EngineWork.class).scheduledTenants();
     doubleDelivery(() -> alias.on(new TenantAliasChanged(HOST_C, c.tenant, null)));
     assertThat(app.context().getBean(EngineWork.class).scheduledTenants()).isEqualTo(before);
+  }
+
+  private long waitingForLocks() {
+    return postgres
+        .sql(
+            "SELECT count(*) FROM pg_locks l JOIN pg_stat_activity a ON a.pid = l.pid"
+                + " WHERE NOT l.granted AND a.datname = current_database()")
+        .query(Long.class)
+        .single();
+  }
+
+  @Test
+  @Order(7)
+  @DisplayName("AR-R-20 a wake is not lost while another transaction stores the run as waiting")
+  void wakeWhileStored() throws InterruptedException {
+    handlers.reset();
+    handlers.failAlways(StepType.RECOVERY_CHECK);
+    UUID run = c.start(openIncident(c), TestContents.linear("recovery_check"));
+    EngineFixture.await(
+        () -> c.steps(run).contains("s-1") && c.execution(run, "s-1").failedAttempts() == 1);
+    handlers.reset();
+    UUID step = c.execution(run, "s-1").id();
+    JdbcClient jdbc = app.context().getBean(JdbcClient.class);
+    AtomicReference<Throwable> failure = new AtomicReference<>();
+    List<Thread> marking = new ArrayList<>();
+    tx.executeWithoutResult(
+        status -> {
+          jdbc.sql("SELECT id FROM engine.workflow_run WHERE tenant_id = :t AND id = :r FOR UPDATE")
+              .param("t", c.tenant.value())
+              .param("r", run)
+              .query(UUID.class)
+              .single();
+          jdbc.sql(
+                  "UPDATE engine.step_execution SET state = 'waiting', step_state = '{}',"
+                      + " wake_events = '[\"alert_state_changed\"]', retry_due_at = NULL,"
+                      + " failed_attempts = 0 WHERE tenant_id = :t AND id = :s")
+              .param("t", c.tenant.value())
+              .param("s", step)
+              .update();
+          jdbc.sql(
+                  "UPDATE engine.workflow_run SET state = 'waiting', wait_reason = 'step_waiting'"
+                      + " WHERE tenant_id = :t AND id = :r")
+              .param("t", c.tenant.value())
+              .param("r", run)
+              .update();
+          marking.add(
+              Thread.ofVirtual()
+                  .start(
+                      () -> {
+                        try {
+                          deliver(
+                              () ->
+                                  listener(EngineIntakeListener.class)
+                                      .onAlertStateChanged(
+                                          new AlertStateChanged(
+                                              c.tenant, Ids.newId(), AlertStatus.FIRING)));
+                        } catch (Throwable e) {
+                          failure.set(e);
+                        }
+                      }));
+          EngineFixture.await(() -> waitingForLocks() > 0);
+        });
+    assertThat(marking.getFirst().join(Duration.ofSeconds(10))).isTrue();
+    assertThat(failure.get()).isNull();
+    c.awaitRunState(run, RunState.FINISHED);
+    List<TestHandlers.Call> calls = handlers.calls(run);
+    assertThat(calls).hasSize(2);
+    assertThat(calls.get(1).operation).isEqualTo("evaluate");
+    assertThat(calls.get(1).call.wakeReason().value()).isEqualTo("event:alert_state_changed");
+    assertThat(c.run(run).wakeReason()).isEqualTo("event:alert_state_changed");
   }
 }

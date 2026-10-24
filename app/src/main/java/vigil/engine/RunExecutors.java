@@ -29,7 +29,7 @@ class RunExecutors {
   private final TaskScheduler taskScheduler;
   private final Map<UUID, Executor> executors = new HashMap<>();
   private boolean accepting;
-  private boolean closed;
+  private volatile boolean closed;
 
   RunExecutors(RunSteps steps, TaskScheduler taskScheduler) {
     this.steps = steps;
@@ -97,7 +97,7 @@ class RunExecutors {
           signals--;
         }
         try {
-          steps.process(tenantId, runId);
+          steps.process(tenantId, runId, () -> closed);
         } catch (RuntimeException | Error e) {
           LOG.error("run executor of run {} for tenant {} failed", runId, tenantId.value(), e);
           scheduleHandOff(tenantId, runId, FAILURE_WAIT);

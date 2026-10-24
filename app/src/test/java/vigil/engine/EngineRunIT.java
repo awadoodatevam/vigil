@@ -33,6 +33,7 @@ import org.springframework.test.util.AopTestUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import vigil.engine.api.EndReason;
 import vigil.engine.api.RunFinished;
 import vigil.engine.api.RunMode;
@@ -453,7 +454,7 @@ class EngineRunIT {
   @DisplayName("DM-R-22 a reopen start cancels the unfinished live run in the same transaction")
   void reopenStart() {
     handlers.reset();
-    handlers.answer(StepType.RECOVERY_CHECK, call -> waiting(WakeEvent.SOURCE_HEALTH_CHANGED));
+    handlers.answer(StepType.RECOVERY_CHECK, call -> waiting());
     i4 = a.openIncident(CLOCK, "nowhere-r", "i-1", ALERTNAME);
     String content = TestContents.linear("recovery_check");
     r4 = a.start(i4, content);
@@ -527,6 +528,27 @@ class EngineRunIT {
                 a.engine.startLiveRun(
                     a.tenant, EngineFixture.WORKFLOWS, i4, 3, Ids.newId(), twoTriggers, true))
         .isInstanceOf(IllegalArgumentException.class);
+    String noStepId =
+        TestContents.with(
+            content,
+            root -> {
+              ((ObjectNode) root.get("steps").get(1)).remove("step_id");
+              return root;
+            });
+    String sharedStepId =
+        TestContents.with(
+            content,
+            root -> {
+              ((ObjectNode) root.get("steps").get(1)).put("step_id", "s-trigger");
+              return root;
+            });
+    for (String refused : List.of(noStepId, sharedStepId)) {
+      assertThatThrownBy(
+              () ->
+                  a.engine.startLiveRun(
+                      a.tenant, EngineFixture.WORKFLOWS, i4, 3, Ids.newId(), refused, true))
+          .isInstanceOf(IllegalArgumentException.class);
+    }
     assertThat(a.engine.runs(a.tenant, i4)).hasSize(before);
     assertThat(a.engine.hasLiveRun(a.tenant, i4, 2)).isTrue();
     assertThat(a.engine.hasLiveRun(a.tenant, i4, 3)).isFalse();

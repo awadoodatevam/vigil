@@ -19,7 +19,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import vigil.engine.EngineRecords.FiredTimer;
 import vigil.engine.api.EngineScheduling;
-import vigil.engine.api.RunState;
 import vigil.shared.TenantId;
 import vigil.shared.Timestamps;
 import vigil.tenancy.api.TenantService;
@@ -113,31 +112,38 @@ class EngineWork implements EngineScheduling {
   }
 
   /**
-   * Restart step (4) for one tenant: overdue timers fire (DM-E52-R1), waiting runs get a wake
-   * (DM-R-66), retries count from zero; then every unfinished run is handed off.
+   * Restart step (4) for one tenant: the unfinished runs locked in id order; overdue timers fire
+   * (DM-E52-R1), waiting runs get a wake (DM-R-66), retries count from zero; then every unfinished
+   * run is handed off.
    */
   private void resume(TenantId tenantId) {
     tx.executeWithoutResult(
         status -> {
           Instant now = Timestamps.now(clock);
+          List<UUID> unfinished = records.lockUnfinishedRuns(tenantId);
           records.fireDueTimers(tenantId, now);
           records.wakeWaitingRuns(tenantId, now);
           records.resetRetries(tenantId, now);
-          for (RunState state : List.of(RunState.RUNNING, RunState.WAITING)) {
-            records.runIds(tenantId, state).forEach(id -> handOffs.afterCommit(tenantId, id));
-          }
+          unfinished.forEach(id -> handOffs.afterCommit(tenantId, id));
         });
   }
 
-  /** The timer poll (AR-R-23): due timers fire in due order and wake their runs. */
+  /**
+   * The timer poll (AR-R-23): the runs of the due timers locked in id order; then each timer, in
+   * due order, fires when it is still pending and wakes its run.
+   */
   private void poll(TenantId tenantId) {
     try {
       tx.executeWithoutResult(
           status -> {
             Instant now = Timestamps.now(clock);
-            for (FiredTimer timer : records.fireDueTimers(tenantId, now)) {
-              for (UUID runId : records.markTimer(tenantId, timer, now)) {
-                handOffs.afterCommit(tenantId, runId);
+            List<FiredTimer> due = records.dueTimers(tenantId, now);
+            records.lockRuns(tenantId, due.stream().map(FiredTimer::runId).distinct().toList());
+            for (FiredTimer timer : due) {
+              if (records.fireTimer(tenantId, timer.id(), now)) {
+                for (UUID runId : records.markTimer(tenantId, timer, now)) {
+                  handOffs.afterCommit(tenantId, runId);
+                }
               }
             }
           });

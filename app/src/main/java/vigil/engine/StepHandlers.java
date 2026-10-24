@@ -64,11 +64,6 @@ class StepHandlers {
     this.actionRuns = actionRuns;
   }
 
-  /** Whether the engine answers the step type itself (PM-M12-02). */
-  static boolean ownStep(StepType type) {
-    return type == StepType.TRIGGER || type == StepType.CONDITION || type == StepType.WAIT;
-  }
-
   /** The handler of the step type; empty for the engine's own steps and for an absent bean. */
   Optional<Handler> handler(StepType type) {
     return switch (type) {

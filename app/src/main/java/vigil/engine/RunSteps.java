@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.BooleanSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -90,14 +91,17 @@ class RunSteps {
     this.clock = clock;
   }
 
-  /** Processes one hand-off of the run; after a {@code Completed} answer it goes on. */
-  void process(TenantId tenantId, UUID runId) {
-    Call call = tx.execute(status -> begin(tenantId, runId));
+  /**
+   * Processes one hand-off of the run; after a {@code Completed} answer it goes on. No part (1)
+   * starts once {@code closed} is true.
+   */
+  void process(TenantId tenantId, UUID runId, BooleanSupplier closed) {
+    Call call = closed.getAsBoolean() ? null : tx.execute(status -> begin(tenantId, runId));
     while (call != null) {
       Call current = call;
       Result result = invoke(current);
       boolean next = Boolean.TRUE.equals(tx.execute(status -> store(current, result)));
-      call = next ? tx.execute(status -> begin(tenantId, runId)) : null;
+      call = next && !closed.getAsBoolean() ? tx.execute(status -> begin(tenantId, runId)) : null;
     }
   }
 

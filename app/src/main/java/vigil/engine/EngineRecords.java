@@ -213,17 +213,6 @@ class EngineRecords {
         > 0;
   }
 
-  /** The ids of the tenant's runs in the state. */
-  List<UUID> runIds(TenantId tenantId, RunState state) {
-    return jdbc.sql(
-            "SELECT id FROM engine.workflow_run WHERE tenant_id = :tenantId AND state = :state"
-                + " ORDER BY id")
-        .param("tenantId", tenantId.value())
-        .param("state", state.key())
-        .query(UUID.class)
-        .list();
-  }
-
   void insertRun(RunRow row, Instant now) {
     Map<String, Object> params = runParams(row, now);
     params.put("incident_id", row.incidentId);
@@ -302,25 +291,32 @@ class EngineRecords {
     return row;
   }
 
-  // Wakes (AR-R-20): one UPDATE marks the runs the wake is for.
+  // Wakes (AR-R-20): the candidate runs are locked in id order, then one UPDATE, a new statement
+  // that sees what the transactions holding those locks committed, marks the runs the wake is for.
 
+  private static final String CANDIDATES =
+      "SELECT r.id FROM engine.workflow_run r WHERE r.tenant_id = :tenantId"
+          + " AND r.state IN ('running', 'waiting') AND (%s) ORDER BY r.id FOR UPDATE";
   private static final String MARK =
       "UPDATE engine.workflow_run r SET wake_pending = true, wake_reason = :reason,"
-          + " updated_at = :now WHERE r.tenant_id = :tenantId AND r.state IN ('running', 'waiting')"
-          + " AND (%s) AND (r.state = 'running' OR (r.wait_reason = 'step_waiting' AND EXISTS"
+          + " updated_at = :now WHERE r.tenant_id = :tenantId AND r.id IN (:ids)"
+          + " AND r.state IN ('running', 'waiting') AND (%s) AND (r.state = 'running'"
+          + " OR (r.wait_reason = 'step_waiting' AND EXISTS"
           + " (SELECT 1 FROM engine.step_execution s WHERE s.tenant_id = r.tenant_id"
           + " AND s.id = r.current_step_execution_id AND %s))"
           + " OR (r.wait_reason = 'incident_forming' AND :event = 'incident_state_changed'))"
           + " RETURNING r.id";
   private static final String LISTED = "s.wake_events @> jsonb_build_array(CAST(:event AS text))";
+  private static final String LIVE = "r.mode = 'live'";
+  private static final String ANY = "true";
 
   /** Marks the tenant's unfinished live runs whose current step is a Recovery check step. */
   List<UUID> markRecoveryChecks(TenantId tenantId, WakeEvent event, Instant now) {
     return mark(
         tenantId,
-        "r.mode = 'live' AND EXISTS (SELECT 1 FROM engine.step_execution c"
-            + " WHERE c.tenant_id = r.tenant_id AND c.id = r.current_step_execution_id"
-            + " AND c.step_type = 'recovery_check')",
+        LIVE,
+        "EXISTS (SELECT 1 FROM engine.step_execution c WHERE c.tenant_id = r.tenant_id"
+            + " AND c.id = r.current_step_execution_id AND c.step_type = 'recovery_check')",
         LISTED,
         Map.of(),
         "event:" + event.key(),
@@ -332,7 +328,8 @@ class EngineRecords {
   List<UUID> markIncidentRuns(TenantId tenantId, UUID incidentId, WakeEvent event, Instant now) {
     return mark(
         tenantId,
-        "r.mode = 'live' AND r.incident_id = :incidentId",
+        LIVE + " AND r.incident_id = :incidentId",
+        ANY,
         LISTED,
         Map.of("incidentId", incidentId),
         "event:" + event.key(),
@@ -346,6 +343,7 @@ class EngineRecords {
     return mark(
         tenantId,
         "r.id = :runId",
+        ANY,
         LISTED + " AND s.id = :stepExecutionId",
         Map.of("runId", runId, "stepExecutionId", stepExecutionId),
         "event:" + event,
@@ -358,6 +356,7 @@ class EngineRecords {
     return mark(
         tenantId,
         "r.id = :runId",
+        ANY,
         "s.timer_id = :timerId",
         Map.of("runId", timer.runId(), "timerId", timer.id()),
         "timer",
@@ -365,20 +364,62 @@ class EngineRecords {
         now);
   }
 
+  /**
+   * Locks the runs that {@code candidates} selects, then marks those that {@code runs} selects and
+   * that are {@code running}, or waiting at a step that {@code step} selects or for the incident.
+   */
   private List<UUID> mark(
       TenantId tenantId,
+      String candidates,
       String runs,
       String step,
       Map<String, Object> params,
       String reason,
       String event,
       Instant now) {
+    List<UUID> locked =
+        jdbc.sql(String.format(CANDIDATES, candidates))
+            .param("tenantId", tenantId.value())
+            .params(params)
+            .query(UUID.class)
+            .list();
+    if (locked.isEmpty()) {
+      return List.of();
+    }
     return jdbc.sql(String.format(MARK, runs, step))
         .param("tenantId", tenantId.value())
+        .param("ids", locked)
         .param("reason", reason)
         .param("event", event)
         .param("now", Timestamp.from(now))
         .params(params)
+        .query(UUID.class)
+        .list();
+  }
+
+  /** Locks the runs, in id order; returns the ids of those that exist in the tenant. */
+  List<UUID> lockRuns(TenantId tenantId, List<UUID> ids) {
+    if (ids.isEmpty()) {
+      return List.of();
+    }
+    return jdbc.sql(
+            "SELECT id FROM engine.workflow_run WHERE tenant_id = :tenantId AND id IN (:ids)"
+                + " ORDER BY id FOR UPDATE")
+        .param("tenantId", tenantId.value())
+        .param("ids", ids)
+        .query(UUID.class)
+        .list();
+  }
+
+  /**
+   * Locks the tenant's {@code running} and {@code waiting} runs, in id order; returns their ids.
+   */
+  List<UUID> lockUnfinishedRuns(TenantId tenantId) {
+    return jdbc.sql(
+            "SELECT id FROM engine.workflow_run WHERE tenant_id = :tenantId AND "
+                + UNFINISHED
+                + " ORDER BY id FOR UPDATE")
+        .param("tenantId", tenantId.value())
         .query(UUID.class)
         .list();
   }
@@ -598,29 +639,39 @@ class EngineRecords {
         .update();
   }
 
-  /** DM-SM09-T2: the tenant's {@code pending} timers due at or before now fire, in due order. */
-  List<FiredTimer> fireDueTimers(TenantId tenantId, Instant now) {
-    List<FiredTimer> due =
-        jdbc.sql(
-                "SELECT id, run_id FROM engine.durable_timer WHERE tenant_id = :tenantId"
-                    + " AND state = 'pending' AND due_at <= :now ORDER BY due_at, id FOR UPDATE")
+  /** The tenant's {@code pending} timers due at or before now, in due order (not locked). */
+  List<FiredTimer> dueTimers(TenantId tenantId, Instant now) {
+    return jdbc.sql(
+            "SELECT id, run_id FROM engine.durable_timer WHERE tenant_id = :tenantId"
+                + " AND state = 'pending' AND due_at <= :now ORDER BY due_at, id")
+        .param("tenantId", tenantId.value())
+        .param("now", Timestamp.from(now))
+        .query(
+            (rs, n) ->
+                new FiredTimer(rs.getObject("id", UUID.class), rs.getObject("run_id", UUID.class)))
+        .list();
+  }
+
+  /** DM-SM09-T2: the timer fires when it is still {@code pending}; false when it is not. */
+  boolean fireTimer(TenantId tenantId, UUID id, Instant now) {
+    return jdbc.sql(
+                "UPDATE engine.durable_timer SET state = 'fired', updated_at = :now"
+                    + " WHERE tenant_id = :tenantId AND id = :id AND state = 'pending'")
             .param("tenantId", tenantId.value())
+            .param("id", id)
             .param("now", Timestamp.from(now))
-            .query(
-                (rs, n) ->
-                    new FiredTimer(
-                        rs.getObject("id", UUID.class), rs.getObject("run_id", UUID.class)))
-            .list();
-    for (FiredTimer timer : due) {
-      jdbc.sql(
-              "UPDATE engine.durable_timer SET state = 'fired', updated_at = :now"
-                  + " WHERE tenant_id = :tenantId AND id = :id")
-          .param("tenantId", tenantId.value())
-          .param("id", timer.id())
-          .param("now", Timestamp.from(now))
-          .update();
-    }
-    return due;
+            .update()
+        == 1;
+  }
+
+  /** DM-E52-R1: every {@code pending} timer of the tenant due at or before now fires. */
+  void fireDueTimers(TenantId tenantId, Instant now) {
+    jdbc.sql(
+            "UPDATE engine.durable_timer SET state = 'fired', updated_at = :now"
+                + " WHERE tenant_id = :tenantId AND state = 'pending' AND due_at <= :now")
+        .param("tenantId", tenantId.value())
+        .param("now", Timestamp.from(now))
+        .update();
   }
 
   private static Timestamp timestamp(Instant instant) {
