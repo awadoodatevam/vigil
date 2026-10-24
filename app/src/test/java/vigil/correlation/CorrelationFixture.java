@@ -121,7 +121,7 @@ public final class CorrelationFixture {
   }
 
   /** The fixture of a tenant created earlier, for an application started again. */
-  static CorrelationFixture of(
+  public static CorrelationFixture of(
       VigilTestApp app, TestSecrets secrets, TenantId tenant, String suffix) {
     return new CorrelationFixture(app, secrets, tenant, suffix);
   }
@@ -185,11 +185,11 @@ public final class CorrelationFixture {
 
   // Posting alerts through vigil-intake.
 
-  int post(Recording recording) {
+  public int post(Recording recording) {
     return post(recording.sourceKey(), recording.bytes());
   }
 
-  int post(String sourceKey, byte[] body) {
+  public int post(String sourceKey, byte[] body) {
     String secret =
         sourceKey.equals(IntakeFixture.ZABBIX) ? "webhook-zabbix" : "webhook-alertmanager";
     return intake.receiveWebhook(
@@ -197,7 +197,7 @@ public final class CorrelationFixture {
   }
 
   /** The 127 firing recordings: the 126 storm alerts and the SL-F-3 alert. */
-  static List<Recording> storm() {
+  public static List<Recording> storm() {
     return IntakeFixture.recordings().stream().filter(CorrelationFixture::firing).toList();
   }
 
@@ -213,7 +213,7 @@ public final class CorrelationFixture {
   }
 
   /** An Alertmanager message with one new alert on {@code component} fired now. */
-  byte[] alertmanager(String component, String instance, String alertname) {
+  public byte[] alertmanager(String component, String instance, String alertname) {
     ObjectNode message = (ObjectNode) first(IntakeFixture.ALERTMANAGER).tree();
     ObjectNode alert = (ObjectNode) message.get("alerts").get(0);
     alert.put("fingerprint", UUID.randomUUID().toString());
@@ -227,7 +227,7 @@ public final class CorrelationFixture {
   }
 
   /** A Zabbix message with a new event on {@code component} and {@code host} fired now. */
-  byte[] zabbix(String component, String host, String eventName) {
+  public byte[] zabbix(String component, String host, String eventName) {
     ObjectNode message = (ObjectNode) first(IntakeFixture.ZABBIX).tree();
     message.put("event_id", Long.toString(EVENT_IDS.getAndIncrement()));
     message.put("host", host);
@@ -244,14 +244,14 @@ public final class CorrelationFixture {
   }
 
   /** Posts an Alertmanager alert and returns it once created. */
-  AlertView postAlertmanager(String component, String instance, String alertname) {
+  public AlertView postAlertmanager(String component, String instance, String alertname) {
     long before = highestSequence();
     post(IntakeFixture.ALERTMANAGER, alertmanager(component, instance, alertname));
     return alertAt(before + 1);
   }
 
   /** Posts a Zabbix alert and returns it once created. */
-  AlertView postZabbix(String component, String host, String eventName) {
+  public AlertView postZabbix(String component, String host, String eventName) {
     long before = highestSequence();
     post(IntakeFixture.ZABBIX, zabbix(component, host, eventName));
     return alertAt(before + 1);
@@ -264,7 +264,7 @@ public final class CorrelationFixture {
   }
 
   /** The tenant's alerts in sequence order. */
-  List<AlertView> alerts() {
+  public List<AlertView> alerts() {
     List<AlertView> all = new ArrayList<>();
     long after = 0;
     while (true) {
@@ -277,27 +277,27 @@ public final class CorrelationFixture {
     }
   }
 
-  long highestSequence() {
+  public long highestSequence() {
     List<AlertView> alerts = alerts();
     return alerts.isEmpty() ? 0 : alerts.getLast().sequence();
   }
 
   /** Waits until the cursor is the tenant's highest alert sequence. */
-  void awaitDecided(Duration wait) {
+  public void awaitDecided(Duration wait) {
     long highest = highestSequence();
     await(() -> correlation.cursor(tenant) == highest, wait);
   }
 
-  void awaitDecided() {
+  public void awaitDecided() {
     awaitDecided(WAIT);
   }
 
-  void awaitState(UUID incidentId, IncidentState state) {
+  public void awaitState(UUID incidentId, IncidentState state) {
     await(() -> incidents.incident(tenant, incidentId).orElseThrow().state() == state, WAIT);
   }
 
   /** Resolves the open incident with a new verification's evidence entry, from vigil-recovery. */
-  void resolve(UUID incidentId) {
+  public void resolve(UUID incidentId) {
     UUID verificationId = Ids.newId();
     incidents.addEvidence(
         tenant,

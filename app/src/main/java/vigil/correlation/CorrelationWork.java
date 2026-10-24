@@ -47,6 +47,7 @@ class CorrelationWork implements CorrelationScheduling {
   private final Map<TenantId, Worker> workers = new ConcurrentHashMap<>();
   private final Map<TenantId, Worker> ending = new ConcurrentHashMap<>();
   private final Map<TenantId, PendingRetry> retries = new ConcurrentHashMap<>();
+  private boolean closed;
 
   CorrelationWork(
       TenantService tenants, CorrelationRecords records, CorrelationDecisions decisions) {
@@ -57,6 +58,9 @@ class CorrelationWork implements CorrelationScheduling {
 
   @Override
   public synchronized void matchActiveTenants() {
+    if (closed) {
+      return;
+    }
     Set<TenantId> active = tenants.activeTenants();
     for (Worker worker : List.copyOf(workers.values())) {
       if (!active.contains(worker.tenantId)) {
@@ -113,9 +117,13 @@ class CorrelationWork implements CorrelationScheduling {
     return List.copyOf(pending);
   }
 
-  /** Stops every worker when the application context closes and waits for each to end. */
+  /**
+   * Stops every worker when the application context closes and waits for each to end; no worker
+   * starts afterwards.
+   */
   @PreDestroy
-  void stopAll() {
+  synchronized void stopAll() {
+    closed = true;
     List<Worker> all = new ArrayList<>(workers.values());
     all.addAll(ending.values());
     workers.clear();
@@ -185,7 +193,7 @@ class CorrelationWork implements CorrelationScheduling {
             }
             decisions.checkStability(tenantId, () -> stopped);
             awaitWake(decisions.settings(tenantId).stabilityCheckInterval());
-          } catch (RuntimeException e) {
+          } catch (Throwable e) {
             LOG.error("correlation worker of tenant {} failed", tenantId.value(), e);
             pause(FAILURE_WAIT);
           }
@@ -221,7 +229,7 @@ class CorrelationWork implements CorrelationScheduling {
           decisions.decide(tenantId, alert);
           retries.remove(tenantId);
           return true;
-        } catch (RuntimeException e) {
+        } catch (Throwable e) {
           retries.put(tenantId, new PendingRetry(tenantId, alert.id(), attempt));
           LOG.error(
               "correlation decision of alert {} for tenant {} failed (attempt {})",
