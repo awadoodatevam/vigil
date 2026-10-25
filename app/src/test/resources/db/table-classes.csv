@@ -47,3 +47,5 @@ correlation.cursor,technical_rw,yes
 engine.workflow_run,stateful,yes
 engine.step_execution,stateful,yes
 engine.durable_timer,stateful,yes
+workflows.workflow,configuration,yes
+workflows.workflow_version,immutable,yes

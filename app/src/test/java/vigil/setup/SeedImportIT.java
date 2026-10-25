@@ -86,6 +86,9 @@ import vigil.testsupport.SeedBundles;
 import vigil.testsupport.TestSecrets;
 import vigil.testsupport.VigilDatabase;
 import vigil.testsupport.VigilTestApp;
+import vigil.workflows.api.WorkflowService;
+import vigil.workflows.api.WorkflowVersionView;
+import vigil.workflows.api.WorkflowView;
 
 class SeedImportIT {
 
@@ -411,6 +414,7 @@ class SeedImportIT {
                       || number == 9
                       || number == 10
                       || number == 11
+                      || number == 16
                   ? PartOutcome.SUCCEEDED
                   : PartOutcome.NOT_STARTED);
     }
@@ -517,6 +521,7 @@ class SeedImportIT {
     assertThat(part(view, 9).counts()).isEqualTo(Map.of("incident_settings", 1));
     assertThat(part(view, 10).counts()).isEqualTo(Map.of("correlation_settings", 1));
     assertThat(part(view, 11).counts()).isEqualTo(Map.of("rules", 3, "escalation_levels", 2));
+    assertThat(part(view, 16).counts()).isEqualTo(Map.of("workflows", 1, "workflow_versions", 1));
     assertThat(view.parts()).allSatisfy(part -> assertThat(part.error()).isNull());
   }
 
@@ -923,11 +928,11 @@ class SeedImportIT {
   }
 
   @Test
-  @DisplayName("BP-R-29 part 9 is registered; parts 7, 8 and 12 to 17 are not started")
+  @DisplayName("BP-R-29 part 9 is registered; parts 7, 8, 12 to 15 and 17 are not started")
   void incidentsPartRegistered() {
     SeedImportView view = main.imported(SeedTests.demoBundle());
     assertThat(part(view, 9).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
-    for (int number : List.of(7, 8, 12, 13, 14, 15, 16, 17)) {
+    for (int number : List.of(7, 8, 12, 13, 14, 15, 17)) {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
           .isEqualTo(PartOutcome.NOT_STARTED);
@@ -1203,5 +1208,86 @@ class SeedImportIT {
   void correlationPartRegistered() {
     SeedImportView view = main.imported(SeedTests.demoBundle());
     assertThat(part(view, 10).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+  }
+
+  private static final String WORKFLOW = "06-workflow.yaml";
+  private static final String APPROVE =
+      "label: \"DB Ops approval\",            position: {x: 1980, y: 100},"
+          + " parameters: {eligible_teams: [db-ops], expiry_s: 900}}";
+
+  @Test
+  @DisplayName("DD-F-06 06-workflow.yaml is imported as seed part 16")
+  void workflowPart() {
+    SeedImportView view = main.imported(SeedTests.demoBundle());
+    assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
+    WorkflowService workflows = main.app().context().getBean(WorkflowService.class);
+    WorkflowView workflow = workflows.workflow(view.tenantId()).orElseThrow();
+    assertThat(workflow.name()).isEqualTo("Incident handling");
+    WorkflowVersionView version = workflows.activeVersion(view.tenantId()).orElseThrow();
+    assertThat(version.id()).isEqualTo(workflow.activeVersionId());
+    assertThat(version.number()).isEqualTo(1);
+    assertThat(JSON.readTree(version.contentJson()).get("steps")).hasSize(19);
+    assertThat(events(main, view.tenantId()))
+        .noneMatch(event -> event.actor().equals(Actor.module("vigil-workflows")));
+  }
+
+  @Test
+  @DisplayName("AR-B-11 the workflows part is refused with the module's problems")
+  void workflowPartRefused() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                WORKFLOW,
+                SeedTests.replacing(
+                    APPROVE, APPROVE.replace("expiry_s: 900}}", "expiry_s: 30}}"))));
+    assertFailedPart(
+        view,
+        16,
+        "Part workflows refused. workflow.version_1.steps[9].parameters.expiry_s:"
+            + " 60 to 86400 seconds");
+    for (int number : List.of(1, 2, 3, 5, 6, 9, 10, 11)) {
+      assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    }
+    assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
+  }
+
+  @Test
+  @DisplayName("DM-R-60 a team of a workflow step that part 2 does not define fails part 16")
+  void workflowTeamCheck() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                WORKFLOW, SeedTests.replacing("named_teams: [noc-l1]", "named_teams: [noc-l9]")));
+    assertFailedPart(
+        view, 16, "Key check failed: workflow step 's-notify': team 'noc-l9' does not exist");
+    assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
+  }
+
+  @Test
+  @DisplayName("DM-R-60 a component compared in a workflow step that part 5 does not define fails")
+  void workflowComponentCheck() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                WORKFLOW,
+                SeedTests.replacing(
+                    "{label: p1, comparisons: [{field: severity, operator: equals, value: P1}]}",
+                    "{label: p1, comparisons: [{field: hypothesis_component, operator: equals,"
+                        + " value: srv-nowhere}]}")));
+    assertFailedPart(
+        view,
+        16,
+        "Key check failed: workflow step 's-severity': component 'srv-nowhere' does not exist");
+    assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
+  }
+
+  @Test
+  @DisplayName("BP-R-29 part 16 is registered, with its key checks against parts 2 and 5")
+  void workflowPartRegistered() {
+    SeedImportView view = main.imported(SeedTests.demoBundle());
+    assertThat(part(view, 16).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    assertThat(main.app().context().getBeansOfType(SeedKeyCheck.class).values())
+        .anyMatch(check -> check.referringPart() == 16 && check.targetPart() == 2)
+        .anyMatch(check -> check.referringPart() == 16 && check.targetPart() == 5);
   }
 }
