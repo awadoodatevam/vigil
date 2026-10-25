@@ -44,3 +44,6 @@ correlation.grouping_decision,immutable,yes
 correlation.hypothesis_computation,immutable,yes
 correlation.correlation_settings,configuration,yes
 correlation.cursor,technical_rw,yes
+engine.workflow_run,stateful,yes
+engine.step_execution,stateful,yes
+engine.durable_timer,stateful,yes

@@ -86,7 +86,7 @@ Interfaces of `vigil-intake` for later packages (P-13):
 - P-16 (built): `IntakeService.alertTypes` (the alert type names in the incident alert copy, BP-A-27).
 - P-21, P-22: `IntakeService.alertTypes` (display names).
 - P-16 (built): `IntakeService.alertsAfter`, `alert`; `AlertReceived` (wakes the worker).
-- P-17: `AlertStateChanged`, `SourceHealthChanged` (wakes).
+- P-17 (built): `AlertStateChanged`, `SourceHealthChanged` (wakes).
 - P-23: `IntakeService.alert`, `sources`, `healthyThroughout`.
 - P-25: the topics `alerts` (AR-E-01, AR-E-02) and `sources` (AR-E-03).
 - P-38: `IntakeService.sources`, `testSource`; `SourceHealthChanged`.
@@ -105,7 +105,8 @@ Interfaces of `vigil-incidents` for later packages (P-14):
 - P-15 (built): `IncidentService.setAssignment`, `incident`, `members`.
 - P-22: `IncidentService.recordEscalation` (the Escalation step).
 - P-16 (built): `IncidentService.create`, `addAlert`, `merge`, `setHypothesisAndImpact`, `open`, `reopen`, `incidents`, `members`, `settings` (the alert copy carries `alertKey`, `alertTypeName`, `firstIdentityPair`, BP-A-27).
-- P-17: `IncidentCreated`, `IncidentAcknowledged`, `IncidentStateChanged`; `IncidentService.incident`.
+- P-17 (built): `IncidentAcknowledged`, `IncidentStateChanged`; `IncidentService.incident`.
+- P-41: `IncidentCreated`, `IncidentStateChanged` (the start of live runs).
 - P-18, P-20, P-23, P-24: `IncidentService.addEvidence` with their kinds.
 - P-20: `IncidentService.setAiStatus`, `evidence`.
 - P-21, P-22: `IncidentService.incident`, `evidenceSummary`, `recordNotifiedTeam`.
@@ -116,7 +117,7 @@ Interfaces of `vigil-incidents` for later packages (P-14):
 Interfaces of `vigil-routing` for later packages (P-15):
 
 - P-16 (built): `RoutingService.evaluate` with `CORRELATION` before `open` (DM-R-15).
-- P-17: `evaluate` with `WORKFLOWS` before a live run (PM-I-16).
+- P-41: `evaluate` with `WORKFLOWS` before a live run (PM-I-16).
 - P-22: `escalationPolicy` (the Escalation step).
 - P-25, P-29: `evaluation`, `evaluations` (the rule of an assignment).
 - P-36: `evaluate` with `TEST_REPLAY`, `ruleSetRevision` (DM-R-28).
@@ -128,7 +129,20 @@ Interfaces of `vigil-correlation` for later packages (P-16):
 - P-23: `CorrelationService.alertsOfComponent` (DM-R-35).
 - P-29: `CorrelationService.decisions`, `hypothesisComputations`, `latestHypothesisComputation`, `settings` (DC-TX-02, DC-S03-03, DC-S03-05).
 - P-26, P-27: the health indicator `correlation` in `deploy/status.sh` (they set `management.endpoint.health.show-details` so its details show).
-- Test support: `CorrelationFixture`, `IntakeFixture` (public).
+- Test support: `CorrelationFixture` (with public posting and waiting helpers), `IntakeFixture` (public).
+
+Interfaces of `vigil-engine` for later packages (P-17):
+
+- P-41: `EngineService.startLiveRun`, `hasLiveRun`.
+- P-18: `DiagnosticsStepHandler`.
+- P-20: `InvestigationStepHandler`.
+- P-21: `TicketingStepHandler`.
+- P-22: `NotificationsStepHandler`, `RoutingStepHandler`.
+- P-23: `RecoveryStepHandler` (the recovery check key comes in `StepCall`).
+- P-24: `ActionsStepHandler`, `ActionRuns` (an absent bean means no proposal), `ApprovalDecided` (published in the decision's transaction).
+- P-25, P-29: `RunStarted`, `StepChanged`, `RunFinished`; `EngineService.run`, `runs`, `stepExecutions`.
+- P-36: test-mode runs.
+- Test support: `EngineFixture`, `TestHandlers`, `TestContents`.
 
 ## Local installation
 

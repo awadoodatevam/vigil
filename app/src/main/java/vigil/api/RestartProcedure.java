@@ -10,6 +10,7 @@ import org.springframework.modulith.events.IncompleteEventPublications;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import vigil.correlation.api.CorrelationScheduling;
+import vigil.engine.api.EngineScheduling;
 import vigil.identity.api.SessionExpiry;
 import vigil.incidents.api.IncidentScheduling;
 import vigil.intake.api.IntakeScheduling;
@@ -34,6 +35,7 @@ class RestartProcedure implements ApplicationRunner {
   private final IntakeScheduling intakeScheduling;
   private final IncidentScheduling incidentScheduling;
   private final CorrelationScheduling correlationScheduling;
+  private final EngineScheduling engineScheduling;
 
   RestartProcedure(
       IncompleteEventPublications incompletePublications,
@@ -43,7 +45,8 @@ class RestartProcedure implements ApplicationRunner {
       SeedImports seedImports,
       IntakeScheduling intakeScheduling,
       IncidentScheduling incidentScheduling,
-      CorrelationScheduling correlationScheduling) {
+      CorrelationScheduling correlationScheduling,
+      EngineScheduling engineScheduling) {
     this.incompletePublications = incompletePublications;
     this.taskScheduler = taskScheduler;
     this.readyGate = readyGate;
@@ -52,6 +55,7 @@ class RestartProcedure implements ApplicationRunner {
     this.intakeScheduling = intakeScheduling;
     this.incidentScheduling = incidentScheduling;
     this.correlationScheduling = correlationScheduling;
+    this.engineScheduling = engineScheduling;
   }
 
   @Override
@@ -84,8 +88,9 @@ class RestartProcedure implements ApplicationRunner {
     incompletePublications.resubmitIncompletePublications(publication -> true);
   }
 
+  /** Run executors accept hand-offs; every unfinished run of an active tenant is handed off. */
   void step4StartRunExecutors() {
-    // Filled by P-17 (vigil-engine).
+    engineScheduling.resumeRuns();
   }
 
   /** Starts the correlation workers of the active tenants from their cursors. */
@@ -102,6 +107,7 @@ class RestartProcedure implements ApplicationRunner {
     sessionExpiry.matchActiveTenants();
     intakeScheduling.matchActiveTenants();
     incidentScheduling.matchActiveTenants();
+    engineScheduling.matchActiveTenants();
   }
 
   void step7SetReady() {
