@@ -68,11 +68,11 @@ None (no owner-run step).
 
 ## 9. Lines of production code added and changed (P41-DC-01)
 
-`tools/loc.sh origin/main HEAD` prints **LOC** (size M; at most 2,000).
+`tools/loc.sh origin/main HEAD` prints **1,476** (size M; at most 2,000).
 
 ## 10. Gate command result
 
-GATE
+Cloud session (`tools/check-all.sh`): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 2: `vigil-app` 132 unit tests and 424 `*IT` (every earlier test passes; `SeedImportIT` and `SeedImportRestartIT` changed only as spec 6.7), `demo-control` 1 and 2; the web build, lint, type check and Vitest pass; step 3: `ruff` clean, 81 Python tests passed, 1 skipped and 35 deselected (no file under `demo/`, `deploy/`, `dev/`, `spikes/`, `tools/` or `docs/31-demo-data/` changed, so the lab tests did not run, CTX-D-036); step 4: `shellcheck`; step 5: 49 data checks, 0 failed; step 6: compose validation; step 7: `tools/trace.py --check`.
 
 GitHub: the `ci.yml` job `gate` runs on the pull request.
 
