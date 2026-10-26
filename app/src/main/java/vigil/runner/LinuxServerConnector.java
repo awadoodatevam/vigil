@@ -91,7 +91,6 @@ class LinuxServerConnector implements TargetConnector {
       throw new IllegalArgumentException(
           "connector instance " + instance.name() + " is not a linux_server instance");
     }
-    Deadline deadline = new Deadline(System.nanoTime(), timeout);
     JsonNode settings = instance.settings();
     JsonNode port = settings == null ? null : settings.get("port");
     JsonNode hostKey = settings == null ? null : settings.get("host_key_sha256");
@@ -124,7 +123,12 @@ class LinuxServerConnector implements TargetConnector {
     if (key == null) {
       return new TargetResult.NotStarted("the private key for " + target + " could not be read");
     }
-    return connectAndRun(deadline, target, credential.get("username").stringValue(), key, command);
+    return connectAndRun(
+        new Deadline(System.nanoTime(), timeout),
+        target,
+        credential.get("username").stringValue(),
+        key,
+        command);
   }
 
   private TargetResult connectAndRun(
