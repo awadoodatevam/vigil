@@ -2,6 +2,7 @@ package vigil.setup;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static org.assertj.core.api.Assertions.tuple;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -32,6 +33,8 @@ import vigil.audit.api.AuditService;
 import vigil.correlation.CorrelationFixture;
 import vigil.correlation.api.CorrelationService;
 import vigil.correlation.api.CorrelationSettingsView;
+import vigil.diagnostics.api.DiagnosticDefinitionView;
+import vigil.diagnostics.api.DiagnosticsService;
 import vigil.identity.api.IdentityService;
 import vigil.incidents.api.AffectedServiceCopy;
 import vigil.incidents.api.AlertCopy;
@@ -63,6 +66,10 @@ import vigil.routing.api.RoutingResult;
 import vigil.routing.api.RoutingRule;
 import vigil.routing.api.RoutingService;
 import vigil.routing.api.RuleSetView;
+import vigil.runner.api.GrantView;
+import vigil.runner.api.OperationView;
+import vigil.runner.api.PermissionKind;
+import vigil.runner.api.RunnerService;
 import vigil.servicemap.api.Counts;
 import vigil.servicemap.api.GenerationView;
 import vigil.servicemap.api.ServiceMapImported;
@@ -205,7 +212,10 @@ class SeedImportIT {
     }
   }
 
-  /** The latch importer: part 4; a held tenant waits until its latch is released. */
+  /**
+   * The latch importer: part 17, which no package has registered yet; a held tenant waits until its
+   * latch is released.
+   */
   static final class LatchImporter implements SeedPartImporter {
 
     final Map<TenantId, CountDownLatch> latches = new ConcurrentHashMap<>();
@@ -221,12 +231,12 @@ class SeedImportIT {
     }
 
     void awaitEntered(TenantId tenantId) throws InterruptedException {
-      assertThat(entered.get(tenantId).await(60, TimeUnit.SECONDS)).as("part 4 reached").isTrue();
+      assertThat(entered.get(tenantId).await(60, TimeUnit.SECONDS)).as("part 17 reached").isTrue();
     }
 
     @Override
     public int part() {
-      return 4;
+      return 17;
     }
 
     @Override
@@ -408,13 +418,7 @@ class SeedImportIT {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
           .isEqualTo(
-              number <= 3
-                      || number == 5
-                      || number == 6
-                      || number == 9
-                      || number == 10
-                      || number == 11
-                      || number == 16
+              number <= 6 || (number >= 9 && number <= 12) || number == 16
                   ? PartOutcome.SUCCEEDED
                   : PartOutcome.NOT_STARTED);
     }
@@ -486,8 +490,8 @@ class SeedImportIT {
     release.countDown();
     SeedImportView view = latch.await(started);
     assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
-    assertThat(part(view, 4).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
-    assertThat(part(view, 4).counts()).isEmpty();
+    assertThat(part(view, 17).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    assertThat(part(view, 17).counts()).isEmpty();
   }
 
   @Test
@@ -514,6 +518,9 @@ class SeedImportIT {
         .isEqualTo(Map.of("teams", 9, "users", 5, "memberships", 3, "permission_grants", 5));
     assertThat(part(view, 3).counts())
         .isEqualTo(Map.of("credential_references", 19, "connector_instances", 11));
+    assertThat(part(view, 4).counts())
+        .isEqualTo(Map.of("operations", 5, "target_access_grants", 2));
+    assertThat(part(view, 12).counts()).isEqualTo(Map.of("diagnostic_definitions", 3));
     assertThat(part(view, 5).counts())
         .isEqualTo(Map.of("services", 4, "components", 12, "identity_keys", 15, "dependencies", 6));
     assertThat(part(view, 6).counts())
@@ -611,7 +618,7 @@ class SeedImportIT {
     assertThat(part(unreadable, 6).outcome()).isEqualTo(PartOutcome.FAILED);
     assertThat(part(unreadable, 6).error())
         .startsWith("Part intake refused. 03-monitoring.yaml could not be read: ");
-    assertThat(part(unreadable, 4).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
+    assertThat(part(unreadable, 4).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     assertThat(part(unreadable, 5).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     assertThat(main.state(unreadable.tenantId())).isEqualTo(TenantState.FAILED);
 
@@ -814,16 +821,6 @@ class SeedImportIT {
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
   }
 
-  @Test
-  @DisplayName("BP-R-29 part 5 is registered; its check against part 4 waits for P-18")
-  void serviceMapTargetCheckWaits() {
-    SeedImportView view = main.imported(SeedTests.demoBundle());
-    assertThat(part(view, 5).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
-    assertThat(part(view, 4).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
-    assertThat(main.app().context().getBeansOfType(SeedKeyCheck.class).values())
-        .noneMatch(check -> check.referringPart() == 5 && check.targetPart() == 4);
-  }
-
   private static final String MONITORING = "03-monitoring.yaml";
 
   @Test
@@ -928,11 +925,11 @@ class SeedImportIT {
   }
 
   @Test
-  @DisplayName("BP-R-29 part 9 is registered; parts 7, 8, 12 to 15 and 17 are not started")
+  @DisplayName("BP-R-29 part 9 is registered; parts 7, 8, 13 to 15 and 17 are not started")
   void incidentsPartRegistered() {
     SeedImportView view = main.imported(SeedTests.demoBundle());
     assertThat(part(view, 9).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
-    for (int number : List.of(7, 8, 12, 13, 14, 15, 17)) {
+    for (int number : List.of(7, 8, 13, 14, 15, 17)) {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
           .isEqualTo(PartOutcome.NOT_STARTED);
@@ -1245,7 +1242,7 @@ class SeedImportIT {
         16,
         "Part workflows refused. workflow.version_1.steps[9].parameters.expiry_s:"
             + " 60 to 86400 seconds");
-    for (int number : List.of(1, 2, 3, 5, 6, 9, 10, 11)) {
+    for (int number : List.of(1, 2, 3, 4, 5, 6, 9, 10, 11, 12)) {
       assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
@@ -1282,12 +1279,182 @@ class SeedImportIT {
   }
 
   @Test
-  @DisplayName("BP-R-29 part 16 is registered, with its key checks against parts 2 and 5")
+  @DisplayName("BP-R-29 part 16 is registered, with its key checks against parts 2, 5 and 12")
   void workflowPartRegistered() {
     SeedImportView view = main.imported(SeedTests.demoBundle());
     assertThat(part(view, 16).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     assertThat(main.app().context().getBeansOfType(SeedKeyCheck.class).values())
         .anyMatch(check -> check.referringPart() == 16 && check.targetPart() == 2)
-        .anyMatch(check -> check.referringPart() == 16 && check.targetPart() == 5);
+        .anyMatch(check -> check.referringPart() == 16 && check.targetPart() == 5)
+        .anyMatch(check -> check.referringPart() == 16 && check.targetPart() == 12);
+  }
+
+  private static final String OPERATIONS = "04-operations-actions-recovery.yaml";
+
+  @Test
+  @DisplayName("DD-F-04 seed parts 4 and 12 are imported from 04-operations-actions-recovery.yaml")
+  void operationsParts() {
+    SeedImportView view = main.imported(SeedTests.demoBundle());
+    assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
+    TenantId tenant = view.tenantId();
+    RunnerService runner = main.app().context().getBean(RunnerService.class);
+    for (String key : List.of("fs_usage", "largest_dirs", "recent_growth", "fs_used_pct")) {
+      OperationView operation = runner.operation(tenant, key).orElseThrow();
+      assertThat(operation.active()).isTrue();
+      assertThat(operation.permissionKind()).isEqualTo(PermissionKind.DIAGNOSTIC);
+    }
+    OperationView purge = runner.operation(tenant, "purge_old_archives").orElseThrow();
+    assertThat(purge.active()).isTrue();
+    assertThat(purge.permissionKind()).isEqualTo(PermissionKind.ACTION);
+    UUID instance =
+        main.postgres()
+            .sql(
+                "SELECT id FROM connectors.connector_instance"
+                    + " WHERE tenant_id = :t AND name = 'Subscriber DB server (lab)'")
+            .param("t", tenant.value())
+            .query(UUID.class)
+            .single();
+    List<GrantView> grants = runner.grants(tenant);
+    assertThat(grants)
+        .extracting(GrantView::targetKey, GrantView::permissionKind, GrantView::connectorInstanceId)
+        .containsExactly(
+            tuple("lab-db-01", PermissionKind.ACTION, instance),
+            tuple("lab-db-01", PermissionKind.DIAGNOSTIC, instance));
+    assertThat(grants.get(0).credentialRefId()).isEqualTo(credential(tenant, "lab-db-01-action"));
+    assertThat(grants.get(1).credentialRefId()).isEqualTo(credential(tenant, "lab-db-01-diag"));
+    assertThat(
+            main.app().context().getBean(DiagnosticsService.class).definitions(tenant).stream()
+                .map(DiagnosticDefinitionView::diagnosticKey))
+        .containsExactly("disk_growth", "disk_usage", "largest_folders");
+    assertThat(events(main, tenant))
+        .noneMatch(
+            event ->
+                event.actor().equals(Actor.module("vigil-runner"))
+                    || event.actor().equals(Actor.module("vigil-diagnostics")));
+  }
+
+  private UUID credential(TenantId tenant, String secret) {
+    return main.postgres()
+        .sql(
+            "SELECT id FROM connectors.credential_reference"
+                + " WHERE tenant_id = :t AND locator = :locator")
+        .param("t", tenant.value())
+        .param("locator", "secret:" + secret)
+        .query(UUID.class)
+        .single();
+  }
+
+  @Test
+  @DisplayName("AR-B-11 the runner part is refused with the module's problems")
+  void runnerPartRefused() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                OPERATIONS, SeedTests.replacing("    timeout_s: 120", "    timeout_s: 0")));
+    assertFailedPart(view, 4, "Part runner refused. operations[4].timeout_s: 1 to 3600 seconds");
+    for (int number = 1; number <= 3; number++) {
+      assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    }
+    assertThat(part(view, 5).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
+  }
+
+  @Test
+  @DisplayName("AR-B-11 the diagnostics part is refused with the module's problems")
+  void diagnosticsPartRefused() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                OPERATIONS,
+                SeedTests.replacing("    name: \"Disk usage of /data\"", "    name: \"\"")));
+    assertFailedPart(
+        view, 12, "Part diagnostics refused. diagnostic_definitions[0].name: 1 to 100 characters");
+    for (int number : List.of(1, 2, 3, 4, 5, 6, 9, 10, 11)) {
+      assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    }
+  }
+
+  @Test
+  @DisplayName("DM-R-60 a target of the service map that part 4 does not grant fails part 5")
+  void serviceMapTargetCheck() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                SERVICE_MAP,
+                SeedTests.replacing("target_key: lab-db-01}", "target_key: lab-db-09}")));
+    assertFailedPart(
+        view, 5, "Key check failed: components 'srv-db-01': target 'lab-db-09' does not exist");
+  }
+
+  @Test
+  @DisplayName("DM-R-60 an operation of a diagnostic definition that part 4 does not define fails")
+  void diagnosticOperationMissing() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                OPERATIONS,
+                SeedTests.replacing(
+                    "    operation_key: fs_usage", "    operation_key: fs_nowhere")));
+    assertFailedPart(
+        view,
+        12,
+        "Key check failed: diagnostic definition 'disk_usage': operation 'fs_nowhere' does not"
+            + " exist");
+  }
+
+  @Test
+  @DisplayName("DM-R-60 a diagnostic definition on an action operation fails part 12")
+  void diagnosticOperationAction() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                OPERATIONS,
+                SeedTests.replacing(
+                    "    operation_key: fs_usage", "    operation_key: purge_old_archives")));
+    assertFailedPart(
+        view,
+        12,
+        "Key check failed: diagnostic definition 'disk_usage': operation 'purge_old_archives'"
+            + " is not a diagnostic operation");
+  }
+
+  @Test
+  @DisplayName(
+      "DM-R-60 parameter values of a diagnostic definition the runner refuses fail part 12")
+  void diagnosticParameterValues() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(OPERATIONS, SeedTests.replacing("count: 4}", "count: 12}")));
+    assertFailedPart(
+        view,
+        12,
+        "Key check failed: diagnostic definition 'largest_folders': parameter count: 2 to 11");
+  }
+
+  @Test
+  @DisplayName("DM-R-60 a diagnostic of a workflow step that part 12 does not define fails part 16")
+  void workflowDiagnosticCheck() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                WORKFLOW,
+                SeedTests.replacing(
+                    "diagnostics: [disk_usage, largest_folders, disk_growth]",
+                    "diagnostics: [disk_usage, largest_folders, disk_wear]")));
+    assertFailedPart(
+        view,
+        16,
+        "Key check failed: workflow step 's-diagnose': diagnostic 'disk_wear' does not exist");
+  }
+
+  @Test
+  @DisplayName("BP-R-29 parts 4 and 12 are registered, with the three key checks")
+  void operationsPartsRegistered() {
+    SeedImportView view = main.imported(SeedTests.demoBundle());
+    assertThat(part(view, 4).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    assertThat(part(view, 12).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    assertThat(main.app().context().getBeansOfType(SeedKeyCheck.class).values())
+        .anyMatch(check -> check.referringPart() == 5 && check.targetPart() == 4)
+        .anyMatch(check -> check.referringPart() == 12 && check.targetPart() == 4)
+        .anyMatch(check -> check.referringPart() == 16 && check.targetPart() == 12);
   }
 }

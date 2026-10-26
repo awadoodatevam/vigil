@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.16 |
-| Date | 24 October 2026 |
+| Version | 1.17 |
+| Date | 26 October 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
 
@@ -379,10 +379,10 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | M; P-41, P-03; none |
-| Builds | `vigil-runner`: DM-E-12 to DM-E-14; the `linux_server` target connector over SSH with host key pinning, quoting and the five parsers (AR-K-03, AR-K-11 to AR-K-13, AR-T-12); request IDs (DM-E14-R1); restart step 1; seed import part 4. `vigil-diagnostics`: DM-E-53, DM-E-54; the Diagnostic step (DM-S-03) with evidence and summaries (DC-TX-03); seed import part 12. |
-| Requirements built | PM-M05-01 to PM-M05-04, PM-M13-01 to PM-M13-03; PM-K-03; PM-S-03; DM-E-12 to DM-E-14, DM-E-53, DM-E-54 with their rules; DM-SM-10; DM-S-03; AR-K-00b, AR-K-03, AR-K-11 to AR-K-13, AR-T-12; SL-A1-03, SL-B-05. |
-| Tests | Against the `demo-lab` image in the `test` profile (BP-R-06): each operation of DD-F-04; parameter refusals (DM-V-06 path prefix, ranges); action refused without an action grant; wrong host key refused; timeout outcomes; same request ID returns the earlier run; after an injection like SL-F-1 the three diagnostics give summaries in the forms of DD-F-04 (exact `demo` values are checked in P-27's Mac run and P-32). |
+| Size; depends on; owner tasks | L (CTX-D-058 (1)); P-41, P-03; none |
+| Builds | `vigil-runner`: DM-E-12 to DM-E-14; the `linux_server` target connector over SSH with host key pinning, quoting and the five parsers (AR-K-03, AR-K-11 to AR-K-13, AR-T-12); request IDs (DM-E14-R1); restart step 1; seed import part 4; the target connector type interface in `vigil-connectors` (AR-K-00b). `vigil-diagnostics`: DM-E-53, DM-E-54; the Diagnostic step (DM-S-03) with evidence and summaries (DC-TX-03); seed import part 12. `vigil-setup`: the key checks of part 5 against part 4, part 12 against part 4 and part 16 against part 12 (DM-R-60). The P-41 follow-ups of CTX-D-057 (4). |
+| Requirements built | PM-M05-01 to PM-M05-04, PM-M13-01 to PM-M13-03; PM-K-03; PM-S-03; DM-E-12 to DM-E-14, DM-E-53, DM-E-54 with their rules; DM-SM-10; DM-S-03; DM-R-60 (the three key checks), DM-R-64; AR-K-00b, AR-K-03, AR-K-11 to AR-K-13, AR-T-12; AR-R-24 step (1); SL-A1-03, SL-B-05. |
+| Tests | Against the `demo-lab` image in the `test` profile (BP-R-06): each operation of DD-F-04; parameter refusals (DM-V-06 path prefix, ranges); action refused without an action grant; wrong host key: the connection is refused before authentication and the run ends `failed` (CTX-D-058 (4)); timeout outcomes; same request ID returns the earlier run; after an injection like SL-F-1 the three diagnostics give summaries in the forms of DD-F-04 (exact `demo` values are checked in P-27's Mac run and P-32). |
 | Runs in | BP-E-01, BP-E-02 |
 
 #### P-19 AI gateway and AI connectors
@@ -625,7 +625,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 ### 7.7 Size summary
 
-4 packages S, 24 packages M, 13 packages L, 41 packages in all (P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14 and L in v1.15, from its line count; P-16 became L in v1.15; P-17 was split into P-17 and P-41 in v1.16). With one cloud session for S, one to two for M and two to three for L, the estimate is about 65 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
+4 packages S, 23 packages M, 14 packages L, 41 packages in all (P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14 and L in v1.15, from its line count; P-16 became L in v1.15; P-17 was split into P-17 and P-41 in v1.16; P-18 became L in v1.17). With one cloud session for S, one to two for M and two to three for L, the estimate is about 65 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
 
 ## 8. Phases, order and checkpoints
 
@@ -1046,3 +1046,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.14 | 22 Oct 2026 | For the P-15 spec (BP-L-1, CTX-D-051): amendment BP-A-28 (`40-demo-cut` DC-TX-10, DC-TX-11 v1.3; `20-domain-model` DM-E-41); the P-15 entry is size M. |
 | 1.15 | 22 Oct 2026 | From the P-15 report (BP-L-8, CTX-D-052): the P-15 entry is size L (`tools/loc.sh` 2,070). For the P-16 spec (BP-L-1, CTX-D-053): the P-16 entry is size L. |
 | 1.16 | 24 Oct 2026 | For the P-17 spec (BP-L-1, CTX-D-054, CTX-D-055): P-17 is split by owner decision into P-17 Engine (L) and the new package P-41 Workflow definitions and live-run start (M), built after P-17 and before P-18 (P-18 now depends on P-41; Sections 7.7, 8.1, 13.1 and 13.2); the P-17 entry names the step handler interfaces, `ActionRuns` and `ApprovalDecided` that P-17 defines and P-18 to P-24 implement, and the `vigil-correlation` worker fixes. No behaviour of Vigil changes. |
+| 1.17 | 26 Oct 2026 | For the P-18 spec (BP-L-1, CTX-D-057, CTX-D-058): P-18 becomes L by owner decision (Section 7.7); its entry adds the target connector type interface, the three key checks of DM-R-60, the P-41 follow-ups, DM-R-64 and AR-R-24 step (1), and the wrong-host-key test says the run ends `failed`. No behaviour of Vigil changes. |

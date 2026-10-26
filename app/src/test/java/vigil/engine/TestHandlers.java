@@ -14,6 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Function;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import vigil.actions.api.ActionRuns;
 import vigil.actions.api.ActionsStepHandler;
@@ -79,6 +80,7 @@ public final class TestHandlers {
     }
 
     @Bean
+    @Primary
     DiagnosticsStepHandler testDiagnosticsHandler(TestHandlers handlers) {
       return new DiagnosticsStepHandler() {
         public StepAnswer start(StepCall call) {
@@ -96,6 +98,7 @@ public final class TestHandlers {
     }
 
     @Bean
+    @Primary
     InvestigationStepHandler testInvestigationHandler(TestHandlers handlers) {
       return new InvestigationStepHandler() {
         public StepAnswer start(StepCall call) {
@@ -113,6 +116,7 @@ public final class TestHandlers {
     }
 
     @Bean
+    @Primary
     ActionsStepHandler testActionsHandler(TestHandlers handlers) {
       return new ActionsStepHandler() {
         public StepAnswer start(StepCall call) {
@@ -130,6 +134,7 @@ public final class TestHandlers {
     }
 
     @Bean
+    @Primary
     RecoveryStepHandler testRecoveryHandler(TestHandlers handlers) {
       return new RecoveryStepHandler() {
         public StepAnswer start(StepCall call) {
@@ -147,6 +152,7 @@ public final class TestHandlers {
     }
 
     @Bean
+    @Primary
     RoutingStepHandler testRoutingHandler(TestHandlers handlers) {
       return new RoutingStepHandler() {
         public StepAnswer start(StepCall call) {
@@ -164,6 +170,7 @@ public final class TestHandlers {
     }
 
     @Bean
+    @Primary
     NotificationsStepHandler testNotificationsHandler(TestHandlers handlers) {
       return new NotificationsStepHandler() {
         public StepAnswer start(StepCall call) {
@@ -181,6 +188,7 @@ public final class TestHandlers {
     }
 
     @Bean
+    @Primary
     TicketingStepHandler testTicketingHandler(TestHandlers handlers) {
       return new TicketingStepHandler() {
         public StepAnswer start(StepCall call) {
@@ -198,6 +206,7 @@ public final class TestHandlers {
     }
 
     @Bean
+    @Primary
     ActionRuns testActionRuns(TestHandlers handlers) {
       return new ActionRuns() {
         public Optional<UUID> proposal(TenantId tenantId, UUID runId) {

@@ -10,8 +10,8 @@ import vigil.workflows.api.WorkflowService;
 
 /**
  * The keys that the tenant's active workflow version uses (DM-R-60): the parameters {@code
- * eligible_teams} and {@code named_teams}, and the values of Condition comparisons by field, in
- * step order, then value order.
+ * eligible_teams}, {@code named_teams} and {@code diagnostics} (Diagnostic steps), and the values
+ * of Condition comparisons by field, in step order, then value order.
  */
 final class WorkflowKeys {
 
@@ -32,7 +32,7 @@ final class WorkflowKeys {
     for (JsonNode step : content.get().path("steps")) {
       String stepId = step.path("step_id").asString();
       JsonNode parameters = step.path("parameters");
-      for (String name : List.of("eligible_teams", "named_teams")) {
+      for (String name : List.of("eligible_teams", "named_teams", "diagnostics")) {
         for (JsonNode key : parameters.path(name)) {
           uses.add(new Use(stepId, name, key.asString()));
         }

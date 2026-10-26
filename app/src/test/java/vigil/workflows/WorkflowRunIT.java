@@ -47,10 +47,10 @@ import vigil.intake.api.AlertView;
 import vigil.routing.api.EvaluationView;
 import vigil.routing.api.RequestedBy;
 import vigil.routing.api.RoutingService;
-import vigil.shared.Ids;
 import vigil.shared.StepCall.StepType;
 import vigil.shared.TenantId;
 import vigil.shared.Waiting;
+import vigil.tenancy.api.TenantService;
 import vigil.testsupport.DoubleDelivery;
 import vigil.testsupport.MutableClock;
 import vigil.testsupport.TestSecrets;
@@ -86,7 +86,6 @@ class WorkflowRunIT {
   private VigilTestApp app;
   private WorkflowFixture a;
   private WorkflowFixture b;
-  private TenantId d;
   private TestHandlers handlers;
   private TransactionTemplate tx;
   private EngineService engine;
@@ -109,10 +108,6 @@ class WorkflowRunIT {
     String address = "http://127.0.0.1:" + wiremock.port();
     a = WorkflowFixture.create(app, secrets, "Tenant A", HOST_A, address, "", true);
     b = WorkflowFixture.create(app, secrets, "Tenant B", HOST_B, address, "-b", false);
-    d = new TestTenants(app).tenant("Tenant D").create().id();
-    app.context()
-        .getBean(WorkflowImport.class)
-        .importPart(d, WorkflowFixture.demoPart(), Instant.now(), Map.of());
     handlers = app.context().getBean(TestHandlers.class);
     tx = new TransactionTemplate(app.context().getBean(PlatformTransactionManager.class));
     engine = app.context().getBean(EngineService.class);
@@ -381,6 +376,7 @@ class WorkflowRunIT {
 
   private UUID i6;
   private UUID i7;
+  private UUID i8;
 
   @Test
   @Order(7)
@@ -392,12 +388,16 @@ class WorkflowRunIT {
     correlation.awaitState(i6, IncidentState.OPEN);
     correlation.resolve(i6);
     i7 = incident(b, correlation.postAlertmanager("nowhere-x", "i-1", ALERTNAME));
+    i8 = incident(b, correlation.postAlertmanager("nowhere-y", "i-1", ALERTNAME));
     assertThat(i7).isNotEqualTo(i6);
+    assertThat(i8).isNotEqualTo(i7);
     assertThat(incidents.incident(b.tenant, i7).orElseThrow().state())
         .isEqualTo(IncidentState.FORMING);
-    EngineFixture.await(() -> publicationCompleted(i6) && publicationCompleted(i7));
+    EngineFixture.await(
+        () -> publicationCompleted(i6) && publicationCompleted(i7) && publicationCompleted(i8));
     assertThat(engine.runs(b.tenant, i6)).isEmpty();
     assertThat(engine.runs(b.tenant, i7)).isEmpty();
+    assertThat(engine.runs(b.tenant, i8)).isEmpty();
     app.context()
         .getBean(WorkflowImport.class)
         .importPart(b.tenant, WorkflowFixture.demoPart(), Instant.now(), Map.of());
@@ -415,11 +415,6 @@ class WorkflowRunIT {
   @DisplayName("DM-R-70 vigil-workflows starts runs only for active tenants")
   void activeTenantsOnly() {
     WorkflowsIncidentListener listener = listener();
-    UUID incidentD = Ids.newId();
-    assertThat(workflows.workflow(d)).isPresent();
-    deliver(() -> listener.onCreated(new IncidentCreated(d, incidentD)));
-    assertThat(engine.runs(d, incidentD)).isEmpty();
-    assertThat(routing.evaluations(d, incidentD)).isEmpty();
     List<EvaluationView> before = routing.evaluations(b.tenant, i6);
     deliver(() -> listener.onCreated(new IncidentCreated(b.tenant, i6)));
     assertThat(incidents.incident(b.tenant, i6).orElseThrow().state())
@@ -427,5 +422,22 @@ class WorkflowRunIT {
     assertThat(engine.runs(b.tenant, i6)).isEmpty();
     assertThat(routing.evaluations(b.tenant, i6)).isEqualTo(before);
     assertThat(workflowEvaluations(b.tenant, i6)).isEmpty();
+    TenantId e = new TestTenants(app).tenant("Tenant E").create().id();
+    TenantService tenants = app.context().getBean(TenantService.class);
+    tenants.setAlias(HOST_B, e, "test");
+    EngineFixture.await(
+        () ->
+            !tenants.isActive(b.tenant)
+                && !EngineFixture.isScheduled(app, b.tenant)
+                && !CorrelationFixture.isRunning(app, b.tenant));
+    assertThat(workflows.workflow(b.tenant)).isPresent();
+    assertThat(incidents.incident(b.tenant, i8).orElseThrow().state())
+        .isEqualTo(IncidentState.FORMING);
+    assertThat(engine.runs(b.tenant, i8)).isEmpty();
+    List<EvaluationView> recorded = routing.evaluations(b.tenant, i8);
+    deliver(() -> listener.onCreated(new IncidentCreated(b.tenant, i8)));
+    assertThat(engine.runs(b.tenant, i8)).isEmpty();
+    assertThat(routing.evaluations(b.tenant, i8)).isEqualTo(recorded);
+    assertThat(workflowEvaluations(b.tenant, i8)).isEmpty();
   }
 }

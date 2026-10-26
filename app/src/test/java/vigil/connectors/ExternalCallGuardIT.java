@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -22,8 +23,10 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import tools.jackson.databind.json.JsonMapper;
 import vigil.connectors.api.ConnectionTestResult;
 import vigil.connectors.api.ConnectorImport;
 import vigil.connectors.api.ConnectorInstanceView;
@@ -32,7 +35,18 @@ import vigil.connectors.api.ConnectorService;
 import vigil.connectors.api.ConnectorsPart;
 import vigil.connectors.api.MonitoringSourceConnector;
 import vigil.connectors.api.ParseResult;
+import vigil.connectors.api.TargetConnector;
+import vigil.connectors.api.TargetResult;
+import vigil.diagnostics.api.DiagnosticsStepHandler;
+import vigil.runner.api.OperationRunState;
+import vigil.runner.api.OperationRunView;
+import vigil.runner.api.PermissionKind;
+import vigil.runner.api.RunRequest;
+import vigil.runner.api.RunnerService;
+import vigil.shared.Actor;
 import vigil.shared.Ids;
+import vigil.shared.Key;
+import vigil.shared.StepCall;
 import vigil.shared.TenantId;
 import vigil.testsupport.TestSecrets;
 import vigil.testsupport.VigilDatabase;
@@ -158,5 +172,91 @@ class ExternalCallGuardIT {
       assertThat(connectors.parse(ConnectorKind.ZABBIX, body, contentType)).isEqualTo(expected);
     }
     assertThat(inside).isEqualTo(expected);
+  }
+
+  private static RunRequest guardRequest(String requestId) {
+    return new RunRequest(
+        requestId, PermissionKind.DIAGNOSTIC, "fs_usage", "lab-db-01", "{\"mount\":\"/data\"}");
+  }
+
+  private static ConnectorInstanceView guardInstance() {
+    return new ConnectorInstanceView(
+        tenantA,
+        Ids.newId(),
+        "guard",
+        ConnectorKind.LINUX_SERVER,
+        "nowhere.invalid",
+        JsonMapper.builder().build().readTree("{\"port\":22,\"host_key_sha256\":\"SHA256:x\"}"),
+        null,
+        true);
+  }
+
+  @Test
+  @DisplayName("AR-Q-04 the runner and diagnostics entry points refuse to run inside a transaction")
+  void runnerEntryPoints() {
+    RunnerService runner = app.context().getBean(RunnerService.class);
+    TargetConnector target = app.context().getBean(TargetConnector.class);
+    DiagnosticsStepHandler diagnostics = app.context().getBean(DiagnosticsStepHandler.class);
+    StepCall call =
+        new StepCall(
+            tenantA,
+            Ids.newId(),
+            Ids.newId(),
+            Ids.newId(),
+            new Key("s-diagnose"),
+            StepCall.StepType.DIAGNOSTIC,
+            "{\"diagnostics\": [\"disk_usage\"], \"target\": \"hypothesis_component\"}",
+            1,
+            null,
+            new StepCall.WakeReason("start"),
+            null,
+            null);
+    Map<String, Supplier<Object>> entryPoints = new LinkedHashMap<>();
+    entryPoints.put(
+        "RunnerService.run",
+        () -> runner.run(tenantA, Actor.module("vigil-diagnostics"), guardRequest("guard-1")));
+    entryPoints.put(
+        "TargetConnector.run",
+        () -> target.run(tenantA, guardInstance(), Ids.newId(), "true", Duration.ofSeconds(1)));
+    entryPoints.put("DiagnosticsStepHandler.start", () -> diagnostics.start(call));
+    entryPoints.put("DiagnosticsStepHandler.evaluate", () -> diagnostics.evaluate(call));
+    for (Map.Entry<String, Supplier<Object>> entry : entryPoints.entrySet()) {
+      assertThatThrownBy(() -> transaction.execute(status -> entry.getValue().get()))
+          .as(entry.getKey())
+          .isInstanceOf(IllegalStateException.class)
+          .hasMessage("external call inside a transaction");
+    }
+    JdbcClient jdbc = app.context().getBean(JdbcClient.class);
+    assertThat(
+            jdbc.sql("SELECT count(*) FROM runner.operation_run WHERE request_id = 'guard-1'")
+                .query(Long.class)
+                .single())
+        .isZero();
+    assertThat(
+            jdbc.sql(
+                    "SELECT count(*) FROM diagnostics.diagnostic_result"
+                        + " WHERE step_execution_id = :s")
+                .param("s", call.stepExecutionId())
+                .query(Long.class)
+                .single())
+        .isZero();
+  }
+
+  @Test
+  @DisplayName("AR-R-09 outside a transaction the runner entry points make their calls")
+  void runnerOutsideTransaction() {
+    OperationRunView run =
+        app.context()
+            .getBean(RunnerService.class)
+            .run(tenantA, Actor.module("vigil-diagnostics"), guardRequest("guard-2"));
+    assertThat(run.state()).isEqualTo(OperationRunState.REFUSED);
+    assertThat(run.error()).isEqualTo("operation fs_usage is not an active operation");
+    UUID credential = Ids.newId();
+    assertThat(
+            app.context()
+                .getBean(TargetConnector.class)
+                .run(tenantA, guardInstance(), credential, "true", Duration.ofSeconds(1)))
+        .isEqualTo(
+            new TargetResult.NotStarted("Credential reference " + credential + " not found."));
   }
 }
