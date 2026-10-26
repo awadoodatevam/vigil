@@ -80,6 +80,7 @@ Interfaces of `vigil-setup` for later packages (P-11):
 - P-14 (built): part 9 (`vigil-incidents`) is registered (`IncidentsAdapter`).
 - P-15 (built): part 11 (`vigil-routing`) is registered (`RoutingAdapter`), with its key checks against part 2 (`RoutingTeamCheck`) and part 5 (`RoutingKeyCheck`, DM-R-60).
 - P-16 (built): part 10 (`vigil-correlation`) is registered (`CorrelationAdapter`).
+- P-41 (built): part 16 (`vigil-workflows`) is registered (`WorkflowsAdapter`), with its key checks against part 2 (`WorkflowTeamCheck`) and part 5 (`WorkflowKeyCheck`); its check against part 12 (diagnostic keys) is P-18's.
 
 Interfaces of `vigil-intake` for later packages (P-13):
 
@@ -106,7 +107,7 @@ Interfaces of `vigil-incidents` for later packages (P-14):
 - P-22: `IncidentService.recordEscalation` (the Escalation step).
 - P-16 (built): `IncidentService.create`, `addAlert`, `merge`, `setHypothesisAndImpact`, `open`, `reopen`, `incidents`, `members`, `settings` (the alert copy carries `alertKey`, `alertTypeName`, `firstIdentityPair`, BP-A-27).
 - P-17 (built): `IncidentAcknowledged`, `IncidentStateChanged`; `IncidentService.incident`.
-- P-41: `IncidentCreated`, `IncidentStateChanged` (the start of live runs).
+- P-41 (built): `IncidentCreated`, `IncidentStateChanged` (the start of live runs).
 - P-18, P-20, P-23, P-24: `IncidentService.addEvidence` with their kinds.
 - P-20: `IncidentService.setAiStatus`, `evidence`.
 - P-21, P-22: `IncidentService.incident`, `evidenceSummary`, `recordNotifiedTeam`.
@@ -117,7 +118,7 @@ Interfaces of `vigil-incidents` for later packages (P-14):
 Interfaces of `vigil-routing` for later packages (P-15):
 
 - P-16 (built): `RoutingService.evaluate` with `CORRELATION` before `open` (DM-R-15).
-- P-41: `evaluate` with `WORKFLOWS` before a live run (PM-I-16).
+- P-41 (built): `evaluate` with `WORKFLOWS` before a live run (PM-I-16).
 - P-22: `escalationPolicy` (the Escalation step).
 - P-25, P-29: `evaluation`, `evaluations` (the rule of an assignment).
 - P-36: `evaluate` with `TEST_REPLAY`, `ruleSetRevision` (DM-R-28).
@@ -133,7 +134,7 @@ Interfaces of `vigil-correlation` for later packages (P-16):
 
 Interfaces of `vigil-engine` for later packages (P-17):
 
-- P-41: `EngineService.startLiveRun`, `hasLiveRun`.
+- P-41 (built): `EngineService.startLiveRun`, `hasLiveRun`.
 - P-18: `DiagnosticsStepHandler`.
 - P-20: `InvestigationStepHandler`.
 - P-21: `TicketingStepHandler`.
@@ -143,6 +144,14 @@ Interfaces of `vigil-engine` for later packages (P-17):
 - P-25, P-29: `RunStarted`, `StepChanged`, `RunFinished`; `EngineService.run`, `runs`, `stepExecutions`.
 - P-36: test-mode runs.
 - Test support: `EngineFixture`, `TestHandlers`, `TestContents`.
+
+Interfaces of `vigil-workflows` for later packages (P-41):
+
+- P-18: the key check of part 16 against part 12 (diagnostic keys).
+- P-29: `WorkflowService.version`.
+- P-35: `WorkflowService.workflow`, `version`, `activeVersion`.
+- P-37: `WorkflowService.stepTypes`.
+- Test support: `WorkflowFixture`.
 
 ## Local installation
 
