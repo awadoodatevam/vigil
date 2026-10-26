@@ -49,3 +49,8 @@ engine.step_execution,stateful,yes
 engine.durable_timer,stateful,yes
 workflows.workflow,configuration,yes
 workflows.workflow_version,immutable,yes
+runner.operation,configuration,yes
+runner.target_access_grant,configuration,yes
+runner.operation_run,stateful,yes
+diagnostics.diagnostic_definition,configuration,yes
+diagnostics.diagnostic_result,immutable,yes

@@ -14,6 +14,7 @@ import vigil.engine.api.EngineScheduling;
 import vigil.identity.api.SessionExpiry;
 import vigil.incidents.api.IncidentScheduling;
 import vigil.intake.api.IntakeScheduling;
+import vigil.runner.api.RunnerRestart;
 import vigil.setup.api.SeedImports;
 
 /**
@@ -27,6 +28,7 @@ class RestartProcedure implements ApplicationRunner {
   private static final Logger LOG = LoggerFactory.getLogger(RestartProcedure.class);
   static final Duration RESUBMISSION_INTERVAL = Duration.ofSeconds(60);
 
+  private final RunnerRestart runnerRestart;
   private final IncompleteEventPublications incompletePublications;
   private final TaskScheduler taskScheduler;
   private final ReadyGate readyGate;
@@ -38,6 +40,7 @@ class RestartProcedure implements ApplicationRunner {
   private final EngineScheduling engineScheduling;
 
   RestartProcedure(
+      RunnerRestart runnerRestart,
       IncompleteEventPublications incompletePublications,
       TaskScheduler taskScheduler,
       ReadyGate readyGate,
@@ -47,6 +50,7 @@ class RestartProcedure implements ApplicationRunner {
       IncidentScheduling incidentScheduling,
       CorrelationScheduling correlationScheduling,
       EngineScheduling engineScheduling) {
+    this.runnerRestart = runnerRestart;
     this.incompletePublications = incompletePublications;
     this.taskScheduler = taskScheduler;
     this.readyGate = readyGate;
@@ -77,7 +81,7 @@ class RestartProcedure implements ApplicationRunner {
   }
 
   void step1MarkInterruptedOperationRuns() {
-    // Filled by P-18 (vigil-runner).
+    runnerRestart.markInterruptedRuns();
   }
 
   void step2FailInterruptedSeedImports() {

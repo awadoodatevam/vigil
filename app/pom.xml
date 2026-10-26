@@ -27,6 +27,7 @@
     <json-schema-validator.version>3.0.6</json-schema-validator.version>
     <wiremock.version>3.13.2</wiremock.version>
     <snakeyaml-engine.version>3.0.1</snakeyaml-engine.version>
+    <sshd.version>2.20.0</sshd.version>
   </properties>
 
   <dependencyManagement>
@@ -100,6 +101,17 @@
       <groupId>org.snakeyaml</groupId>
       <artifactId>snakeyaml-engine</artifactId>
       <version>${snakeyaml-engine.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sshd</groupId>
+      <artifactId>sshd-core</artifactId>
+      <version>${sshd.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>jcl-over-slf4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

@@ -55,7 +55,7 @@ Interfaces of `vigil-connectors` for later packages (P-10):
 
 - P-11: `ConnectorImport` (its problems list becomes the part's `error`; its handle map goes to the later parts), `Secrets.readSeedPassword`, `Secrets.verifyInstallationToken`.
 - P-13: `ConnectorService.parse`, `testConnection`, `instance` (to check that a source's connector instance has the source's kind), `credentialReference` (to check that a webhook token reference has purpose `webhook_token`), `Secrets.verify`.
-- P-18: `Secrets.read`, `ConnectorService.instance`, `credentialReference`; the target type interface and its registration (AR-K-00b).
+- P-18 (built): `Secrets.read`, `ConnectorService.instance`, `credentialReference`; the target type interface and its registration (AR-K-00b).
 - P-19, P-21, P-22: their type interfaces, kinds' implementations and registries, following `MonitoringConnectors`, and their entry points added to `ExternalCallGuardIT`.
 - P-38: the address change of an instance.
 - Test support: `TestSecrets` (a secret folder with generated values, changed with `replace` and `remove`) and `VigilTestApp.start(database, secretsFolder, extraArgs, configurations)`.
@@ -81,6 +81,7 @@ Interfaces of `vigil-setup` for later packages (P-11):
 - P-15 (built): part 11 (`vigil-routing`) is registered (`RoutingAdapter`), with its key checks against part 2 (`RoutingTeamCheck`) and part 5 (`RoutingKeyCheck`, DM-R-60).
 - P-16 (built): part 10 (`vigil-correlation`) is registered (`CorrelationAdapter`).
 - P-41 (built): part 16 (`vigil-workflows`) is registered (`WorkflowsAdapter`), with its key checks against part 2 (`WorkflowTeamCheck`) and part 5 (`WorkflowKeyCheck`); its check against part 12 (diagnostic keys) is P-18's.
+- P-18 (built): parts 4 (`vigil-runner`, `RunnerAdapter`) and 12 (`vigil-diagnostics`, `DiagnosticsAdapter`) are registered, with the key checks of part 5 against part 4 (`ServiceMapTargetCheck`), part 12 against part 4 (`DiagnosticOperationCheck`) and part 16 against part 12 (`WorkflowDiagnosticCheck`).
 
 Interfaces of `vigil-intake` for later packages (P-13):
 
@@ -97,7 +98,7 @@ Interfaces of `vigil-servicemap` for later packages (P-12):
 
 - P-15 (built): `ServiceMapService.component`, `service` (owners, criticality).
 - P-16 (built): `ServiceMapService.match`, `relation`, `dependents`, `affectedServices`, `component`, `service`, `currentGeneration`.
-- P-18: `ServiceMapService.target`; the key check of part 5 against part 4 (target keys in the service map against runner grants, DM-R-60).
+- P-18 (built): `ServiceMapService.target`; the key check of part 5 against part 4 (target keys in the service map against runner grants, DM-R-60).
 - P-24: `ServiceMapService.target`.
 - P-38: `ServiceMapService.currentGeneration`, `services`, `components`, `importFile`; the reaction of `vigil-setup` to `ServiceMapImported`.
 
@@ -108,7 +109,8 @@ Interfaces of `vigil-incidents` for later packages (P-14):
 - P-16 (built): `IncidentService.create`, `addAlert`, `merge`, `setHypothesisAndImpact`, `open`, `reopen`, `incidents`, `members`, `settings` (the alert copy carries `alertKey`, `alertTypeName`, `firstIdentityPair`, BP-A-27).
 - P-17 (built): `IncidentAcknowledged`, `IncidentStateChanged`; `IncidentService.incident`.
 - P-41 (built): `IncidentCreated`, `IncidentStateChanged` (the start of live runs).
-- P-18, P-20, P-23, P-24: `IncidentService.addEvidence` with their kinds.
+- P-18 (built): `IncidentService.addEvidence` (`diagnostic_result`).
+- P-20, P-23, P-24: `IncidentService.addEvidence` with their kinds.
 - P-20: `IncidentService.setAiStatus`, `evidence`.
 - P-21, P-22: `IncidentService.incident`, `evidenceSummary`, `recordNotifiedTeam`.
 - P-23: `IncidentService.resolve`, `members`, and for DM-R-53 `acknowledgements`, `transitions`, `incidents`.
@@ -135,7 +137,7 @@ Interfaces of `vigil-correlation` for later packages (P-16):
 Interfaces of `vigil-engine` for later packages (P-17):
 
 - P-41 (built): `EngineService.startLiveRun`, `hasLiveRun`.
-- P-18: `DiagnosticsStepHandler`.
+- P-18 (built): `DiagnosticsStepHandler` (`vigil-diagnostics`).
 - P-20: `InvestigationStepHandler`.
 - P-21: `TicketingStepHandler`.
 - P-22: `NotificationsStepHandler`, `RoutingStepHandler`.
@@ -143,15 +145,27 @@ Interfaces of `vigil-engine` for later packages (P-17):
 - P-24: `ActionsStepHandler`, `ActionRuns` (an absent bean means no proposal), `ApprovalDecided` (published in the decision's transaction).
 - P-25, P-29: `RunStarted`, `StepChanged`, `RunFinished`; `EngineService.run`, `runs`, `stepExecutions`.
 - P-36: test-mode runs.
-- Test support: `EngineFixture`, `TestHandlers`, `TestContents`.
+- Test support: `EngineFixture`, `TestHandlers` (its adapter beans are `@Primary`), `TestContents`.
 
 Interfaces of `vigil-workflows` for later packages (P-41):
 
-- P-18: the key check of part 16 against part 12 (diagnostic keys).
+- P-18 (built): the key check of part 16 against part 12 (diagnostic keys).
 - P-29: `WorkflowService.version`.
 - P-35: `WorkflowService.workflow`, `version`, `activeVersion`.
 - P-37: `WorkflowService.stepTypes`.
 - Test support: `WorkflowFixture`.
+
+Interfaces of `vigil-runner` for later packages (P-18):
+
+- P-24: `RunnerService.run` with `PermissionKind.ACTION` (and `DIAGNOSTIC` for state checks) and the request IDs of DM-E14-R1 (an action that timed out or lost its connection after its command was sent ends `unknown`); `operation`, `operationRun`; output values as an ordered array of `{name, value}` (state checks, DM-V-08); the key checks of part 14 against part 4.
+- Test support: `LabTarget` (`lab-db-01` of the `demo-lab` image, started once per test JVM), `RunnerFixture`.
+
+Interfaces of `vigil-diagnostics` for later packages (P-18):
+
+- P-29: the `diagnostic_result` evidence content (`values` in parser order).
+- P-35, P-37: `DiagnosticsService.definitions`, `definition` (`parameter_valid`, DM-A-27; DC-M-13).
+- P-36: `DiagnosticsService.results` (DM-R-49).
+- Test support: `DiagnosticsFixture`.
 
 ## Local installation
 
