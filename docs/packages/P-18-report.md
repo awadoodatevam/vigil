@@ -102,11 +102,13 @@ None (no owner-run step). The exact `demo` values of DD-F-10 `expected_diagnosti
 
 ## 9. Lines of production code added and changed (P18-DC-01)
 
-`tools/loc.sh origin/main HEAD` prints **LOC_COUNT** (size L; at most 3,500).
+`tools/loc.sh origin/main HEAD` prints **3,250** (size L; at most 3,500).
 
 ## 10. Gate command result
 
-GATE_RESULT
+Cloud session (`tools/check-all.sh`): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 1a built the local images, `vigil/demo-lab:local` among them. Step 2: `vigil-app` 140 unit tests and 479 `*IT` (every earlier test passes; the changed tests only as spec 6.10 and spec 7), among them `RunnerLabIT` and `DiagnosticStepIT` on `vigil/demo-lab:local` in the `test` profile; `demo-control` 1 and 2; the web build, lint, type check and Vitest pass. Step 3: `ruff` clean, 81 Python tests passed, 1 skipped and 35 deselected (no file under `demo/`, `deploy/`, `dev/`, `spikes/`, `tools/` or `docs/31-demo-data/` changed, so the lab tests did not run, CTX-D-036). Step 4: `shellcheck`. Step 5: 49 data checks, 0 failed. Step 6: compose validation. Step 7: `tools/trace.py --check`.
+
+The gate ran on the tree of commit `276bbb9`. Commit `e17c9e4` changes only where `LinuxServerConnector` starts counting the operation's timeout: at the start of the connection attempt (step (4) of spec 6.6) instead of at the start of `run`. After it, `RunnerLabIT`, `RunnerRequestIT` and `ExternalCallGuardIT` were run again and pass (29 tests).
 
 GitHub: the `ci.yml` job `gate` runs on the pull request.
 
