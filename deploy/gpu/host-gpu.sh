@@ -96,7 +96,7 @@ attempt=0
 while true; do
   attempt=$((attempt + 1))
   status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 60 -X POST -H 'Content-Type: application/json' \
-    -d '{"model":"gemma4:12b","messages":[{"role":"user","content":"Reply with OK."}],"stream":false}' \
+    -d '{"model":"gemma4:12b","messages":[{"role":"user","content":"Reply with OK."}],"stream":false,"keep_alive":-1,"options":{"num_ctx":16384}}' \
     "http://$ADDRESS:11434/api/chat" < /dev/null || true)
   if [ "$status" = 200 ]; then
     break

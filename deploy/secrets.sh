@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Writes the secret files of the units of the deployed compose file from Parameter Store (AR-S-04, AR-S-13; P-05 spec
-# Section 6.7). Runs on the main host as root, from {VIGIL_ROOT}/deploy/; never prints a secret value.
+# Section 6.7; the jira expiry check: P-06 spec Section 6.8). Runs on the main host as root, from
+# {VIGIL_ROOT}/deploy/; never prints a secret value.
 #   deploy/secrets.sh {installation}              the secrets of deploy/units.yaml (zabbix-api is left unchanged)
 #   deploy/secrets.sh {installation} --generated  copies the generated zabbix-api and writes values/derived.yaml
 set -euo pipefail
@@ -99,6 +100,52 @@ open_folder() {
   own "$1" "$2"
 }
 
+# The expiry date of the fetched jira secret (AR-H-07, BP-A-29): prints it, or stops before the secret is written. Reads
+# expires_on with python3 and prints nothing of the value.
+jira_checked=no
+check_jira_expiry() {
+  local result date days
+  if [ "$jira_checked" = yes ]; then
+    return 0
+  fi
+  result=$(printf '%s' "$PARAMETER_JSON" | python3 -c '
+import datetime
+import json
+import re
+import sys
+
+try:
+    value = json.loads(json.load(sys.stdin)["Parameter"]["Value"])
+except Exception:
+    value = None
+date = value.get("expires_on") if isinstance(value, dict) else None
+if not isinstance(date, str) or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", date):
+    print("invalid")
+    sys.exit(0)
+try:
+    day = datetime.date.fromisoformat(date)
+except ValueError:
+    print("invalid")
+    sys.exit(0)
+print(date, (day - datetime.datetime.now(datetime.timezone.utc).date()).days)
+' 2> /dev/null) || result=invalid
+  if [ -z "$result" ] || [ "$result" = invalid ]; then
+    echo "The jira secret has no valid expires_on (AR-S-13)."
+    exit 1
+  fi
+  date=${result%% *}
+  days=${result#* }
+  if [ "$days" -lt 0 ]; then
+    echo "The Jira API token expired on $date; renew it (AR-H-07)."
+    exit 1
+  fi
+  echo "jira token expires on $date ($days days left)"
+  if [ "$days" -lt 30 ]; then
+    echo "Renew the Jira API token before $date (AR-H-07)."
+  fi
+  jira_checked=yes
+}
+
 if printf '%s\n' "$served" | grep -q '^lab-zabbix-provision '; then
   mkdir -p "$VIGIL_ROOT/generated"
   own "$VIGIL_ROOT/generated" 10001
@@ -128,6 +175,11 @@ if [ "$generated" = no ]; then
         alertmanager-web-config)
           fetch alertmanager-password
           value | python3 "$HERE/web_config.py" | put_file "$folder" "$name" "$user"
+          ;;
+        jira)
+          fetch jira
+          check_jira_expiry
+          value | put_file "$folder" "$name" "$user"
           ;;
         *)
           fetch "$name"

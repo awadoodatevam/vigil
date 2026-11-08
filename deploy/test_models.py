@@ -1,6 +1,7 @@
 """Tests of deploy/gpu.sh, deploy/gpu/host-gpu.sh and deploy/models.sh (P-05 spec Section 7)."""
 
 import base64
+import json
 import re
 
 from conftest import tags_json, write_lock
@@ -100,8 +101,23 @@ def test_gpu_start(harness):
     chat = curls[1]
     assert chat[chat.index("--max-time") + 1] == "60"
     assert chat[chat.index("-d") + 1] == (
-        '{"model":"gemma4:12b","messages":[{"role":"user","content":"Reply with OK."}],"stream":false}'
+        '{"model":"gemma4:12b","messages":[{"role":"user","content":"Reply with OK."}],"stream":false,'
+        '"keep_alive":-1,"options":{"num_ctx":16384}}'
     )
+
+
+def test_gpu_start_warm_up_body(harness):
+    """AR-G-31 the warm-up body holds keep_alive -1 and options.num_ctx 16384, the settings of local-llm."""
+    write_lock(harness.root / "deploy" / "models.lock", EMBED, LLM)
+    harness.seed(instances=gpu_host("running"))
+    gpu_table(harness, chat=[("200", 0)])
+    result = harness.run("deploy/gpu.sh", "start")
+    assert result.returncode == 0, result.stdout + result.stderr
+    chat = [call["args"] for call in harness.fake_calls("curl") if call["args"][-1].endswith("/api/chat")][0]
+    body = json.loads(chat[chat.index("-d") + 1])
+    assert body["keep_alive"] == -1
+    assert body["options"] == {"num_ctx": 16384}
+    assert body["model"] == "gemma4:12b"
 
 
 def test_gpu_start_warm_up_fails(harness):

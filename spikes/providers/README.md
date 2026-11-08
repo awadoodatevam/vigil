@@ -1,0 +1,36 @@
+# Provider spikes (P-06)
+
+Owner-run spikes against the real services (`docs/packages/P-06.md` Sections 6 and 6.11), run on the owner's Mac with `spikes/providers/run.sh {spike}`. Each spike writes one result file `spikes/results/P-06-{name}.json` and the requests and answers it saw, without secrets or personal data, under `dev/fakes/recordings/` (each folder's `README.md` describes its files); P-19 and P-21 test their connectors on these recordings. The gate runs only the tests (`test_*.py`), against fakes; it never calls a real service.
+
+| Command | Proves | Result file | Recordings |
+| --- | --- | --- | --- |
+| `spikes/providers/run.sh jira` | SB-T-07: a Jira Cloud issue is created with a label, found by that label within the lag rule of AR-K-14 (at most 4 searches, 5 s apart), its ADF description (AR-K-15) reads back with a working link, it takes a comment, and it is resolved and reopened by status name (PM-ASM-03, DM-ASM-07, DM-ASM-09, AR-ASM-08, AR-ASM-11); the token expiry date of the secret `jira` | `P-06-SB-T-07.json` | `jira/` |
+| `spikes/providers/run.sh claude` | AR-G-20: Claude answers the SL-T-1 and SL-T-2 structured-output requests with `stop_reason` `end_turn` and the usage of AR-G-14; a truncated answer ends with `max_tokens`; an invalid key gets 401 | `P-06-claude.json` | `claude/` |
+| `spikes/providers/run.sh openai` | AR-G-21 and AR-G-22: OpenAI Responses answers SL-T-1 and SL-T-2 with status `completed` and usage; a truncated answer is `incomplete`; the embeddings call returns two vectors of 1,536 numbers with `prompt_tokens` (AR-ASM-10); an invalid key gets 401 | `P-06-openai.json` | `openai/` |
+| `spikes/providers/run.sh similarity` | SB-T-03 runtime part: `embeddinggemma` on `vigil-embed` gives the same vectors twice (SL-ASM-04) and the storm's best match is PI-1001 with 1.00 (DD-ASM-04) | `P-06-SB-T-03.json` | `local-embed/` |
+| `spikes/providers/run.sh local-model` | SB-T-04 local model part: `gemma4:12b` on `vigil-llm` answers five SL-T-1 calls, each within 45 s (AR-G-32), with the whole model on the GPU (AR-ASM-12) | `P-06-SB-T-04.json` | `local-llm/` |
+
+## Prerequisites (P-06 spec Section 6.11 step 1)
+
+- Prepaid credit on the Anthropic and OpenAI accounts, and their keys stored as `claude` and `openai`; the secret `jira` stored again with `expires_on` (the date the token shows at Atlassian): the commands of `deploy/edge.md` "Operator secrets".
+- The AWS Session Manager plugin (`brew install --cask session-manager-plugin`), for `similarity` and `local-model`.
+- `python3.12` from Homebrew (BP-OT-10). A python.org build needs its "Install Certificates.command" run first, or every HTTPS call fails with `CERTIFICATE_VERIFY_FAILED`.
+- `aws login --profile vigil` and `export AWS_PROFILE=vigil`.
+- For `similarity`: the main host running with `vigil-embed` (`deploy/edge.md`). For `local-model`: the GPU host started with `deploy/gpu.sh start`.
+
+## What `run.sh` does
+
+It checks the AWS identity and `python3.12`, creates the virtual environment `spikes/providers/.venv` with `spikes/providers/requirements.txt` (PyYAML) when it does not exist, and runs the spike there. `jira`, `claude` and `openai` call the services directly. `similarity` and `local-model` open a Systems Manager port forward (`AWS-StartPortForwardingSessionToRemoteHost`) from a free local port to port 11434 of `vigil-embed` (its `vigil-net` address, found by `host-address.sh` on the main host) or of `vigil-llm` (`10.40.1.20`), wait until `/api/tags` answers through it, run the spike with `--address http://127.0.0.1:{port}`, and end the forward when they end. Measured times therefore include the port forward from the Mac (well under one second).
+
+Each spike reads its secrets with `aws ssm get-parameter` and keeps them in memory; a missing or invalid secret stops it before any file changes. It removes the `*.json` files of its recording folder, makes its calls (writing each recording as soon as the call ends), prints one line per check (`{check}: passed` or `{check}: FAILED ({detail})`) and `result: {path}`, and exits 0 when every check passed, 1 otherwise, 2 for wrong arguments. A file that would hold a secret, the Jira account's email or its account ID is not written: the spike stops with "A secret would be written to {path}; nothing written.".
+
+The Python modules can also be run directly (Python 3.12 with PyYAML): `jira_spike.py [--address {url}]`, `ai_spike.py claude|openai [--address {url}]`, `similarity_spike.py --address {url}`, `local_model_spike.py --address {url}`. `VIGIL_SPIKE_RESULTS` and `VIGIL_SPIKE_RECORDINGS` change the result and recording folders (the tests use temporary folders).
+
+## Result files
+
+Every result file is a JSON object with `spike`, `run_id` (the UTC start time `YYYYMMDDTHHMMSSZ`), `started_at`, `finished_at`, `passed` and `checks` (`{name, passed, detail}` in the order run; `detail` "not run" for a check whose answer does not exist), plus:
+
+- `P-06-SB-T-07.json`: `token_expires_on`, `token_days_left`, `issue_key`, `search` (`attempts`, `seconds_after_create`). Checks: `token-expiry`, `myself`, `create`, `search`, `read-description`, `comment`, `status-before`, `resolve`, `reopen`.
+- `P-06-claude.json` and `P-06-openai.json`: `calls`, per call `{call, status, duration_ms, input_units, output_units, reasoning_units, cost_usd}` (AR-G-14; `cost_usd` a string with 6 decimals), with `cites_rb_db_01` for `sl-t-1` and `summary_length` for `sl-t-2`.
+- `P-06-SB-T-03.json`: `dimensions`, `calls` (`{call, prompt_eval_count, duration_ms}`), `scores` (the five highest rounded cosine scores, best first). Checks: `past-1`, `storm-1`, `past-2`, `storm-2`, `same-vectors`, `best-match`.
+- `P-06-SB-T-04.json`: `durations_ms`, `max_duration_ms`, `prompt_eval_counts`, `eval_counts`, `load_durations_ns`, `prompt_eval_durations_ns`, `eval_durations_ns`, `ps` (the `/api/ps` entry of the model), `cites_rb_db_01` (five entries each). Checks: `model-present`, `warm-up`, `chat-1` to `chat-5`, `gpu-fit`.

@@ -14,16 +14,22 @@ JSON file named by FAKE_AWS_STATE, which each test seeds (complete list of keys,
 
 A start sets an instance "pending" and a stop "stopping"; the next describe-instances call returns "running" or
 "stopped". A running instance is Online in describe-instance-information unless seeded otherwise. ssm send-command
-runs the command locally with sh (the same environment, as the test's user). Every call whose region (--region or
-AWS_REGION) is not us-east-1 is refused with exit 255.
+runs the command locally with sh (the same environment, as the test's user). ssm start-session with the document
+AWS-StartPortForwardingSessionToRemoteHost (P-06 spec Section 6.10) records the call (with the fake's process ID as
+"pid"), then listens on 127.0.0.1:{localPortNumber} and forwards each connection to the address in the environment
+variable FAKE_AWS_FORWARD (host:port) until the process is ended. Every call whose region (--region or AWS_REGION) is
+not us-east-1 is refused with exit 255.
 """
 
 import base64
 import json
 import os
 import secrets
+import socket
+import socketserver
 import subprocess
 import sys
+import threading
 from pathlib import Path
 
 FLAGS = {"--with-decryption", "--recursive", "--quiet", "--only-show-errors"}
@@ -274,6 +280,8 @@ def answer(state, service, operation, options, positional, state_path):
             return handlers[operation](state, options)
         if operation == "send-command":
             return send_command(state, options, state_path)
+        if operation == "start-session":
+            return start_session(state, options, state_path)
     if (service, operation) == ("ecr", "describe-images"):
         return describe_images(state, options)
     if (service, operation) == ("ecr", "get-login-password"):
@@ -281,6 +289,54 @@ def answer(state, service, operation, options, positional, state_path):
     if (service, operation) == ("s3", "cp"):
         return s3_copy(state, options, positional)
     raise Fail("UnsupportedCall", f"fake aws: no answer for {service} {operation}")
+
+
+def pipe(source, target):
+    """Copies bytes from one socket to the other until the source ends, then ends the target's sending side."""
+    try:
+        while True:
+            data = source.recv(65536)
+            if not data:
+                break
+            target.sendall(data)
+    except OSError:
+        pass
+    finally:
+        try:
+            target.shutdown(socket.SHUT_WR)
+        except OSError:
+            pass
+
+
+class Forward(socketserver.BaseRequestHandler):
+    def handle(self):
+        host, port = os.environ["FAKE_AWS_FORWARD"].rsplit(":", 1)
+        with socket.create_connection((host, int(port))) as remote:
+            back = threading.Thread(target=pipe, args=(remote, self.request), daemon=True)
+            back.start()
+            pipe(self.request, remote)
+            back.join()
+
+
+class ForwardServer(socketserver.ThreadingTCPServer):
+    daemon_threads = True
+    allow_reuse_address = True
+
+
+def start_session(state, options, state_path):
+    """Port forwarding: records the call, then forwards connections until the process is ended."""
+    if one(options, "document-name") != "AWS-StartPortForwardingSessionToRemoteHost":
+        raise Fail("UnsupportedCall", "fake aws: start-session without the port forwarding document")
+    parameters = json.loads(one(options, "parameters"))
+    local_port = int(parameters["localPortNumber"][0])
+    state["calls"][-1]["pid"] = os.getpid()
+    save(state_path, state)
+    with ForwardServer(("127.0.0.1", local_port), Forward) as server:
+        sys.stdout.write(f"Starting session with SessionId: fake-{secrets.token_hex(8)}\n")
+        sys.stdout.write(f"Port {local_port} opened for sessionId fake.\n")
+        sys.stdout.flush()
+        server.serve_forever()
+    return None
 
 
 def load(path):
