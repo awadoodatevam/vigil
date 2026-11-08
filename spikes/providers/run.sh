@@ -73,15 +73,16 @@ else
 fi
 
 port=$(python3.12 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()')
-log=$(mktemp)
+work=$(temp_folder)
+log="$work/forward.log"
 set -m
 aws ssm start-session --target "$HOST_ID" --document-name AWS-StartPortForwardingSessionToRemoteHost \
   --parameters "{\"host\":[\"$address\"],\"portNumber\":[\"11434\"],\"localPortNumber\":[\"$port\"]}" \
   < /dev/null > "$log" 2>&1 &
 forward=$!
 set +m
-# shellcheck disable=SC2064 # the process group and the file are fixed now
-trap "kill -TERM -- -$forward 2> /dev/null || true; rm -f '$log'" EXIT
+# shellcheck disable=SC2064 # the process group and the folder are fixed now
+trap "kill -TERM -- -$forward 2> /dev/null || true; rm -rf '$work'" EXIT
 
 attempt=0
 until "$PY" -c '
