@@ -6,7 +6,7 @@
 | Branch | `p-07-spikes-teams-email` |
 | Pin date (BP-R-08) | 10 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (Temurin 25.0.4.1+1) |
-| State | Built; the gate command passes in the build session (Section 10). The owner-run steps of spec Section 6.8 are not done yet (Section 8); then a session "Record the owner-run results of P-07" fills Section 8. |
+| State | Built; the gate command passes in the build session (Section 10); pull request opened. The owner-run steps of spec Section 6.8 are not done yet (Section 8); then a session "Record the owner-run results of P-07" fills Section 8. |
 
 ## 1. What was built
 
@@ -114,7 +114,11 @@ Not yet run. The owner's steps (spec Section 6.8), on the Mac (BP-E-03), on this
 
 ## 10. Gate command result
 
-GATE_RESULT
+Cloud session (`tools/check-all.sh`): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 1a built the local images. Step 2: `vigil-app` 172 unit tests and 576 `*IT`, `demo-control` 1 and 2, all passing; the web build, lint, type check and Vitest pass. Step 3: `ruff` clean; 275 Python tests passed and 1 skipped, the pytest lab tests included (this package changes `spikes/` and `deploy/`, CTX-D-036). Step 4: `shellcheck`. Step 5: 49 data checks, 0 failed. Step 6: compose validation. Step 7: `tools/trace.py --check`. `gitleaks git --log-opts=origin/main..HEAD`: no leaks found.
+
+The gate ran on the tree of commit `15843c0` (the Python step started after that commit); the later commit changes only this report. GitHub: the `ci.yml` job `gate` runs on the pull request.
+
+Done-check (spec Section 8): (1) BP-DC-01 to BP-DC-07: every part 4 row with proof `test` has a test that names it; the rows checked by review wait for the owner-run results (Section 8); nothing beyond the spec (no product code, no API operation, no setting); no migration, OpenAPI operation or seed import part; `README.md` and `CLAUDE.md` name `run.sh teams|email`; this report. (2) The owner-run steps of spec Section 6.8: not yet done (Section 8). (3) The `ci.yml` job `gate` after the owner's commit of the results and recordings: to follow.
 
 ## 11. Follow-up items for later packages
 
