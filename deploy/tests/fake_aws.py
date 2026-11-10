@@ -15,8 +15,9 @@ JSON file named by FAKE_AWS_STATE, which each test seeds (complete list of keys,
 A start sets an instance "pending" and a stop "stopping"; the next describe-instances call returns "running" or
 "stopped". A running instance is Online in describe-instance-information unless seeded otherwise. ssm send-command
 runs the command locally with sh (the same environment, as the test's user). ssm start-session with the document
-AWS-StartPortForwardingSessionToRemoteHost (P-06 spec Section 6.10) records the call (with the fake's process ID as
-"pid"), then listens on 127.0.0.1:{localPortNumber} and forwards each connection to the address in the environment
+AWS-StartPortForwardingSessionToRemoteHost (P-06 spec Section 6.10) starts a child process in its own process group
+(standing in for session-manager-plugin), records the call (with the fake's process ID as "pid" and the child's as
+"child_pid"), then listens on 127.0.0.1:{localPortNumber} and forwards each connection to the address in the environment
 variable FAKE_AWS_FORWARD (host:port) until the process is ended. Every call whose region (--region or AWS_REGION) is
 not us-east-1 is refused with exit 255.
 """
@@ -329,7 +330,14 @@ def start_session(state, options, state_path):
         raise Fail("UnsupportedCall", "fake aws: start-session without the port forwarding document")
     parameters = json.loads(one(options, "parameters"))
     local_port = int(parameters["localPortNumber"][0])
+    child = subprocess.Popen(
+        [sys.executable, "-c", "import time; time.sleep(3600)"],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
     state["calls"][-1]["pid"] = os.getpid()
+    state["calls"][-1]["child_pid"] = child.pid
     save(state_path, state)
     with ForwardServer(("127.0.0.1", local_port), Forward) as server:
         sys.stdout.write(f"Starting session with SessionId: fake-{secrets.token_hex(8)}\n")

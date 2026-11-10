@@ -30,7 +30,8 @@ if ! command -v python3.12 > /dev/null 2>&1; then
 fi
 VENV=spikes/providers/.venv
 PY="$VENV/bin/python"
-if [ ! -e "$PY" ]; then
+if [ ! -e "$PY" ] || ! "$PY" -c 'import yaml' > /dev/null 2>&1; then
+  rm -rf "$VENV"
   if ! python3.12 -m venv "$VENV" || ! "$VENV/bin/pip" install --disable-pip-version-check -r spikes/providers/requirements.txt; then
     rm -rf "$VENV"
     echo "Installing spikes/providers/requirements.txt failed."
@@ -97,7 +98,7 @@ except Exception:
     sys.exit(1)
 ' "http://127.0.0.1:$port/api/tags"; do
   attempt=$((attempt + 1))
-  if [ "$attempt" -ge 60 ]; then
+  if ! kill -0 "$forward" 2> /dev/null || [ "$attempt" -ge 60 ]; then
     cat "$log"
     echo "The port forward to $unit did not open."
     exit 1

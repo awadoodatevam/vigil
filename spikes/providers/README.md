@@ -13,8 +13,10 @@ Owner-run spikes against the real services (`docs/packages/P-06.md` Sections 6 a
 ## Prerequisites (P-06 spec Section 6.11 step 1)
 
 - Prepaid credit on the Anthropic and OpenAI accounts, and their keys stored as `claude` and `openai`; the secret `jira` stored again with `expires_on` (the date the token shows at Atlassian): the commands of `deploy/edge.md` "Operator secrets".
+- The Claude key MUST be created inside a workspace (Claude Console, API keys, Create key, then choose a workspace such as Default). An organisation-level key is refused with "This API key is not scoped to a workspace, so this request must include the anthropic-workspace-id header".
+- The Jira token is made with "Create API token", not "Create API token with scopes" (a scoped token fails basic authentication against the site address), with the longest expiry Atlassian allows.
 - The AWS Session Manager plugin (`brew install --cask session-manager-plugin`), for `similarity` and `local-model`.
-- `python3.12` from Homebrew (BP-OT-10). A python.org build needs its "Install Certificates.command" run first, or every HTTPS call fails with `CERTIFICATE_VERIFY_FAILED`.
+- `python3.12` (BP-OT-10): Homebrew's, or python.org's after its "Install Certificates.command" was run (otherwise every HTTPS call fails with `CERTIFICATE_VERIFY_FAILED`).
 - `aws login --profile vigil` and `export AWS_PROFILE=vigil`.
 - For `similarity`: the main host running with `vigil-embed` (`deploy/edge.md`). For `local-model`: the GPU host started with `deploy/gpu.sh start`.
 

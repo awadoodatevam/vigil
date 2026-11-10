@@ -169,3 +169,19 @@ def test_usage(tmp_path, monkeypatch, capsys):
     spike_fakes.prepare(tmp_path, monkeypatch)
     assert local_model_spike.main([]) == 2
     assert capsys.readouterr().out == "Usage: local_model_spike.py --address {url}\n"
+
+
+def test_no_proxy_for_port_forward(tmp_path, monkeypatch, capsys):
+    """SB-T-04 a proxy set in the environment is not used for 127.0.0.1, the address of run.sh's port forward."""
+    proxy = spike_fakes.FakeServer(lambda request: json_answer(502, {"error": "proxy"}))
+    for name in ("no_proxy", "NO_PROXY", "all_proxy", "ALL_PROXY"):
+        monkeypatch.delenv(name, raising=False)
+    for name in ("http_proxy", "HTTP_PROXY", "https_proxy", "HTTPS_PROXY"):
+        monkeypatch.setenv(name, proxy.address)
+    with proxy:
+        setup, server, code = run(tmp_path, monkeypatch, FakeOllama())
+    capsys.readouterr()
+    assert code == 0
+    assert proxy.requests == []
+    assert len(server.requests) == 8
+    assert setup.result("SB-T-04")["passed"] is True

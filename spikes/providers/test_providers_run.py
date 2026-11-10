@@ -134,7 +134,7 @@ def refused(port):
 
 
 def check_forward(root, address):
-    """The start-session call, its process group ended and its port closed after run.sh ended."""
+    """The start-session call, its process group (the fake and its child) ended, its port closed after run.sh ended."""
     sessions = root.sessions()
     assert len(sessions) == 1
     args = sessions[0]["args"]
@@ -152,6 +152,7 @@ def check_forward(root, address):
     port = int(parameters["localPortNumber"][0])
     assert sessions[0]["region"] == "us-east-1"
     assert ended(sessions[0]["pid"])
+    assert ended(sessions[0]["child_pid"])
     assert refused(port)
     return args[3]
 
@@ -281,3 +282,64 @@ def test_host_address(tmp_path):
     second = subprocess.run(["bash", str(script), "vigil-embed"], env=environment, capture_output=True, text=True)
     assert second.returncode == 1
     assert second.stdout == "Start vigil-embed first: deploy/deploy.sh.\n"
+
+
+VENV_FAKE = """#!/bin/sh
+# python3.12 of the tests: "-m venv {folder}" makes a virtual environment whose python is the gate's Python and whose
+# pip records its arguments in $FAKE_PIP_LOG and exits with $FAKE_PIP_CODE (default 0).
+if [ "$1" = -m ] && [ "$2" = venv ]; then
+  mkdir -p "$3/bin"
+  printf '#!/bin/sh\\nexec "%s" "$@"\\n' "PYTHON" > "$3/bin/python"
+  printf '#!/bin/sh\\necho "$*" >> "$FAKE_PIP_LOG"\\nexit "${FAKE_PIP_CODE:-0}"\\n' > "$3/bin/pip"
+  chmod +x "$3/bin/python" "$3/bin/pip"
+  exit 0
+fi
+exec "PYTHON" "$@"
+"""
+
+
+def test_venv_rebuilt(tmp_path):
+    """SB-T-03 a virtual environment whose python cannot import yaml is removed, created and installed again."""
+    root = Root(tmp_path)
+    executable(root.fakes / "python3.12", VENV_FAKE.replace("PYTHON", sys.executable))
+    venv = root.root / "spikes" / "providers" / ".venv"
+    executable(venv / "bin" / "python", "#!/bin/sh\nexit 1\n")
+    (venv / "stale").write_text("old")
+    pip_log = tmp_path / "pip.log"
+    result = root.run("jira", FAKE_PIP_LOG=str(pip_log))
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert result.stdout == "Missing secret /vigil/demo/jira (AR-S-13).\n"
+    assert not (venv / "stale").exists()
+    assert sys.executable in (venv / "bin" / "python").read_text()
+    assert pip_log.read_text() == "install --disable-pip-version-check -r spikes/providers/requirements.txt\n"
+
+    result = root.run("jira", FAKE_PIP_LOG=str(pip_log))
+    assert result.returncode == 1
+    assert pip_log.read_text().count("install") == 1
+
+
+def test_venv_install_fails(tmp_path):
+    """SB-T-03 a failed install removes the virtual environment and stops with its message."""
+    root = Root(tmp_path)
+    executable(root.fakes / "python3.12", VENV_FAKE.replace("PYTHON", sys.executable))
+    venv = root.root / "spikes" / "providers" / ".venv"
+    shutil.rmtree(venv)
+    result = root.run("claude", FAKE_PIP_LOG=str(tmp_path / "pip.log"), FAKE_PIP_CODE="1")
+    assert result.returncode == 1
+    assert result.stdout == "Installing spikes/providers/requirements.txt failed.\n"
+    assert not venv.exists()
+
+
+def test_forward_ended(tmp_path):
+    """SB-T-04 when the port forward process ends, run.sh prints its output and stops at once, not after 60 tries."""
+    root = Root(tmp_path)
+    root.seed(instances=INSTANCES, errors={"ssm start-session": "TargetNotConnected"})
+    started = time.monotonic()
+    result = root.run("local-model", VIGIL_TEST_FAST="0")
+    elapsed = time.monotonic() - started
+    assert result.returncode == 1
+    lines = result.stdout.splitlines()
+    assert lines[-1] == "The port forward to vigil-llm did not open."
+    assert any("TargetNotConnected" in line for line in lines[:-1])
+    assert elapsed < 30
+    assert len(root.sessions()) == 1

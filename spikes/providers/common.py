@@ -214,11 +214,16 @@ def call_http(call, base, method, path, headers, body, timeout):
     request = urllib.request.Request(base + path, data=data, method=method)
     for name, value in headers:
         request.add_header(name, value)
+    if urllib.parse.urlsplit(base).hostname == "127.0.0.1":
+        # The port forwards of run.sh: never through a proxy of the environment, as run.sh's readiness probe.
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    else:
+        opener = urllib.request.build_opener()
     answer = Answer(call, method, path, headers, body, utc_now())
     start = monotonic()
     try:
         try:
-            response = urllib.request.urlopen(request, timeout=timeout)
+            response = opener.open(request, timeout=timeout)
         except urllib.error.HTTPError as error:
             response = error
         with response:
