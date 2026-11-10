@@ -117,7 +117,11 @@ Pass (CTX-D-064 (2)): Claude's and OpenAI's `sl-t-1-accepted` passed, and at lea
 
 ## 10. Gate command result
 
-GATE_RESULT
+Cloud session (`tools/check-all.sh`): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 1a built the local images. Step 2: `vigil-app` 172 unit tests and 576 `*IT` (every earlier test passes; the changed tests only as spec 6.13, spec 7 and deviation 6); `demo-control` 1 and 2; the web build, lint, type check and Vitest pass. Step 3: `ruff` clean; 242 Python tests passed and 1 skipped, the pytest lab tests included (this package changes `spikes/`, CTX-D-036). Step 4: `shellcheck`. Step 5: 49 data checks, 0 failed. Step 6: compose validation. Step 7: `tools/trace.py --check`.
+
+The gate ran on the tree of commit `0de0e8f`; the later commits change only this report. GitHub: the `ci.yml` job `gate` runs on the pull request.
+
+Done-check (spec Section 8): (1) BP-DC-01 to BP-DC-07: every part 4 row with proof `test` has a test that names it; the rows checked by review are listed in Section 1; nothing beyond the spec (no API operation, no screen, no setting); AR-Q-01 to AR-Q-09 pass, the new entry points are in `ExternalCallGuardIT`, the two listeners in the double-delivery test of `ReembeddingIT`; two migrations named as AR-P-05; no OpenAPI operation; the `README.md` and `CLAUDE.md` lines of spec 6.13; this report. (2) `ApplicationModules.verify()` passes with every module's dependencies unchanged (`ModuleStructureTest`). (3) `git diff origin/main -- dev/fakes/recordings spikes/results/P-06-*.json` is empty. (4) **Open:** the three owner-run result files are not yet on the branch (Section 8). (5) Section 9.
 
 ## 11. Follow-up items for later packages
 
