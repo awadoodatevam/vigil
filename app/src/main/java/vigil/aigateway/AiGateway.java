@@ -25,6 +25,7 @@ import vigil.aigateway.api.CompletionRequest;
 import vigil.aigateway.api.CompletionResult;
 import vigil.aigateway.api.EmbeddingRequest;
 import vigil.aigateway.api.EmbeddingResult;
+import vigil.aigateway.api.ProviderView;
 import vigil.aigateway.api.UnavailableReason;
 import vigil.aigateway.api.UsageOutcome;
 import vigil.connectors.api.AiCompletion;
@@ -235,6 +236,18 @@ class AiGateway implements AiGatewayService {
           embedded.inputUnits());
     }
     return new EmbeddingResult.Unavailable(call.outcome());
+  }
+
+  @Override
+  public Optional<ProviderView> provider(TenantId tenantId, String providerKey) {
+    if (tenantId == null || providerKey == null) {
+      throw new IllegalArgumentException("a required argument is missing");
+    }
+    return Optional.ofNullable(records.configurations(tenantId).get(providerKey))
+        .map(
+            c ->
+                new ProviderView(
+                    c.providerKey(), c.providerKind(), c.location(), c.modelName(), c.active()));
   }
 
   /**

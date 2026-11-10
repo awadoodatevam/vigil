@@ -113,6 +113,12 @@ public interface IncidentService {
       AiUnavailableReason reason,
       UUID requestGroupId);
 
+  /**
+   * AR-R-29, from vigil-investigation: the request group of an SL-T-1 attempt, recorded before the
+   * call; no timeline entry.
+   */
+  void recordAiRequestGroup(TenantId tenantId, Actor actor, UUID incidentId, UUID requestGroupId);
+
   /** DM-SM05-T4, PM-M09-06, from vigil-recovery, with the verification's evidence entry. */
   void resolve(TenantId tenantId, Actor actor, UUID incidentId, UUID verificationId);
 

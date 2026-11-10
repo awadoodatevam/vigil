@@ -59,3 +59,10 @@ ai_gateway.allowed_provider,configuration,yes
 ai_gateway.task_assignment,configuration,yes
 ai_gateway.data_routing_rule,configuration,yes
 ai_gateway.ai_usage_record,immutable,yes
+knowledge.runbook,configuration,yes
+knowledge.past_incident,configuration,yes
+knowledge.incident_embedding,immutable,yes
+knowledge.similarity_search_result,immutable,yes
+knowledge.knowledge_settings,configuration,yes
+investigation.ai_investigation_result,immutable,yes
+investigation.incident_summary,immutable,yes

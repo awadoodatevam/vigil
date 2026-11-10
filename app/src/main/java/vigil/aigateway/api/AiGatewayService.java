@@ -1,5 +1,8 @@
 package vigil.aigateway.api;
 
+import java.util.Optional;
+import vigil.shared.TenantId;
+
 /** The requests of other modules to vigil-ai-gateway (PM-M18). */
 public interface AiGatewayService {
 
@@ -17,4 +20,7 @@ public interface AiGatewayService {
    * <p>external call: not inside a transaction
    */
   EmbeddingResult embed(EmbeddingRequest request);
+
+  /** The provider configuration with this key (DM-E-70). */
+  Optional<ProviderView> provider(TenantId tenantId, String providerKey);
 }

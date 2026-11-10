@@ -2,6 +2,7 @@
 
 import json
 
+import common
 import local_model_spike
 import request_data as rd
 import spike_fakes
@@ -91,6 +92,7 @@ def test_local_model_run(tmp_path, monkeypatch, capsys):
     assert result["prompt_eval_durations_ns"] == [4_000_000_000] * 5
     assert result["eval_durations_ns"] == [6_000_000_000] * 5
     assert result["cites_rb_db_01"] == [True] * 5
+    assert result["rejection_reasons"] == [[]] * 5
     assert result["ps"] == {"name": "gemma4:12b", "size": MODEL_SIZE, "size_vram": MODEL_SIZE, "context_length": 16384}
     assert setup.recording_files("local-llm") == [f"{k:04d}-chat-{k}.json" for k in range(1, 6)]
     recording = setup.recording("local-llm", "0002-chat-2.json")
@@ -141,8 +143,10 @@ def test_length_and_gpu_fit(tmp_path, monkeypatch, capsys):
     result = setup.result("SB-T-04")
     checks = {check["name"]: check for check in result["checks"]}
     assert checks["chat-2"]["detail"] == "done_reason is length"
+    assert checks["accepted-2"]["detail"] == "no likely cause"
     assert checks["gpu-fit"]["detail"] == f"size_vram {MODEL_SIZE - 1} is not size {MODEL_SIZE}"
     assert result["cites_rb_db_01"] == [True, None, True, True, True]
+    assert result["rejection_reasons"] == [[], ["no likely cause"], [], [], []]
 
 
 def test_model_missing(tmp_path, monkeypatch, capsys):
@@ -159,9 +163,61 @@ def test_model_missing(tmp_path, monkeypatch, capsys):
     }
     assert all(check["detail"] == "not run" for check in result["checks"][1:])
     assert result["durations_ms"] == [None] * 5
+    assert result["rejection_reasons"] == [None] * 5
     assert result["ps"] is None
     assert setup.recording_files("local-llm") == []
     assert "model-present: FAILED (gemma4:12b is not in vigil-llm; run deploy/gpu.sh start)" in output
+
+
+def test_accepted_checks(tmp_path, monkeypatch, capsys):
+    """PM-M17-03 accepted-k after each chat-k by the product's output checks; the reasons per call, null and "not run"
+    for a call without an answer."""
+    rejected = dict(OUTPUT, hypothesis_verdict="not_applicable", evidence_labels=["E1", "E2", "1", "2"])
+    # chat-3 never reaches the fake, so chat-4 is the fake's third chat.
+    fake = FakeOllama(overrides={3: {"message": {"role": "assistant", "content": json.dumps(rejected)}}})
+    call_http = common.call_http
+
+    def unanswered_chat_3(call, *arguments):
+        if call == "chat-3":
+            answer = common.Answer(call, "POST", "/api/chat", [], None, common.utc_now())
+            answer.error = "Connection refused"
+            answer.duration_ms = 0
+            return answer
+        return call_http(call, *arguments)
+
+    monkeypatch.setattr(common, "call_http", unanswered_chat_3)
+    setup, server, code = run(tmp_path, monkeypatch, fake)
+    capsys.readouterr()
+    assert code == 1
+    result = setup.result("SB-T-04")
+    assert result["passed"] is False
+    assert [check["name"] for check in result["checks"]] == [
+        "model-present",
+        "warm-up",
+        "chat-1",
+        "accepted-1",
+        "chat-2",
+        "accepted-2",
+        "chat-3",
+        "accepted-3",
+        "chat-4",
+        "accepted-4",
+        "chat-5",
+        "accepted-5",
+        "gpu-fit",
+    ]
+    checks = {check["name"]: check for check in result["checks"]}
+    reasons = [
+        "does not say whether it confirms or disputes the hypothesis",
+        "refers to evidence that is not on the incident",
+    ]
+    assert checks["chat-3"]["detail"] == "Connection refused"
+    assert checks["accepted-3"] == {"name": "accepted-3", "passed": False, "detail": "not run"}
+    assert checks["chat-4"]["passed"]
+    assert checks["accepted-4"] == {"name": "accepted-4", "passed": False, "detail": "; ".join(reasons)}
+    assert all(checks[f"accepted-{k}"]["passed"] for k in (1, 2, 5))
+    assert result["rejection_reasons"] == [[], [], None, reasons, []]
+    assert fake.chats == 4
 
 
 def test_usage(tmp_path, monkeypatch, capsys):

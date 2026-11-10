@@ -12,5 +12,8 @@ Result files of the spikes under `spikes/`, committed to the package branch that
 | `P-06-openai.json` | `spikes/providers/run.sh openai` (AR-G-21, AR-G-22) | The owner (P-06 spec Section 6.11 step 10) |
 | `P-06-SB-T-03.json` | `spikes/providers/run.sh similarity` (SB-T-03, runtime part) | The owner (P-06 spec Section 6.11 step 10) |
 | `P-06-SB-T-04.json` | `spikes/providers/run.sh local-model` (SB-T-04, local model part) | The owner (P-06 spec Section 6.11 step 10) |
+| `P-20-claude.json` | `spikes/providers/run.sh claude --package P-20` | The owner (P-20 spec Section 6.14) |
+| `P-20-openai.json` | `spikes/providers/run.sh openai --package P-20` | The owner (P-20 spec Section 6.14) |
+| `P-20-SB-T-04.json` | `spikes/providers/run.sh local-model --package P-20` | The owner (P-20 spec Section 6.14) |
 
-The format of a storm timing result file is described in `spikes/storm-timing/README.md`, that of `P-05-AR-SP-01.json` in `spikes/sse-probe/README.md`, those of the `P-06-*.json` files in `spikes/providers/README.md`.
+The format of a storm timing result file is described in `spikes/storm-timing/README.md`, that of `P-05-AR-SP-01.json` in `spikes/sse-probe/README.md`, those of the `P-06-*.json` and `P-20-*.json` files in `spikes/providers/README.md`.

@@ -100,7 +100,7 @@ public final class AiFixture {
   }
 
   /** The part with the configuration {@code providerKey} changed. */
-  static AiGatewayPart configuration(
+  public static AiGatewayPart configuration(
       AiGatewayPart part, String providerKey, UnaryOperator<ProviderConfigurationPart> change) {
     List<ProviderConfigurationPart> configurations = new ArrayList<>();
     boolean found = false;
@@ -115,14 +115,14 @@ public final class AiFixture {
   }
 
   /** The part with its configurations replaced. */
-  static AiGatewayPart configurations(
+  public static AiGatewayPart configurations(
       AiGatewayPart part, List<ProviderConfigurationPart> configurations) {
     return new AiGatewayPart(
         configurations, part.allowedProviders(), part.taskAssignments(), part.dataRoutingRules());
   }
 
   /** The part with the allowed providers changed. */
-  static AiGatewayPart allowed(
+  public static AiGatewayPart allowed(
       AiGatewayPart part, UnaryOperator<Map<String, List<String>>> change) {
     return new AiGatewayPart(
         part.providerConfigurations(),
@@ -132,7 +132,7 @@ public final class AiFixture {
   }
 
   /** The part with the task assignments changed. */
-  static AiGatewayPart assignments(
+  public static AiGatewayPart assignments(
       AiGatewayPart part, UnaryOperator<Map<String, List<String>>> change) {
     return new AiGatewayPart(
         part.providerConfigurations(),
@@ -142,7 +142,8 @@ public final class AiFixture {
   }
 
   /** The part with the data routing rules changed. */
-  static AiGatewayPart rules(AiGatewayPart part, UnaryOperator<Map<String, List<String>>> change) {
+  public static AiGatewayPart rules(
+      AiGatewayPart part, UnaryOperator<Map<String, List<String>>> change) {
     return new AiGatewayPart(
         part.providerConfigurations(),
         part.allowedProviders(),

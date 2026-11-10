@@ -99,6 +99,7 @@ class SeedImportRestartIT {
       assertThat(second.parts().get(4).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
       assertThat(second.parts().get(5).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
       assertThat(second.parts().get(6).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+      assertThat(second.parts().get(7).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
       assertThat(second.parts().get(8).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
       assertThat(second.parts().get(11).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
       assertThat(tenants.tenant(finished.tenantId()).orElseThrow().state())

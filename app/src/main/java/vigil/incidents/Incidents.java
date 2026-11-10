@@ -731,6 +731,30 @@ class Incidents implements IncidentService {
 
   @Override
   @Transactional(propagation = Propagation.REQUIRED)
+  public void recordAiRequestGroup(
+      TenantId tenantId, Actor actor, UUID incidentId, UUID requestGroupId) {
+    required(tenantId, incidentId, requestGroupId);
+    requireModule(actor, "recordAiRequestGroup", INVESTIGATION);
+    Change change = new Change(tenantId, actor);
+    IncidentRow row = lock(tenantId, incidentId);
+    guard(
+        row,
+        "recordAiRequestGroup",
+        IncidentState.OPEN,
+        IncidentState.RESOLVED,
+        IncidentState.CLOSED);
+    if (requestGroupId.equals(row.aiLastRequestGroupId)) {
+      return;
+    }
+    row.aiLastRequestGroupId = requestGroupId;
+    row.updatedAt = change.now;
+    records.updateIncident(tenantId, row);
+    change.changed(row.id);
+    change.publish();
+  }
+
+  @Override
+  @Transactional(propagation = Propagation.REQUIRED)
   public void resolve(TenantId tenantId, Actor actor, UUID incidentId, UUID verificationId) {
     required(tenantId, incidentId, verificationId);
     requireModule(actor, "resolve", RECOVERY);

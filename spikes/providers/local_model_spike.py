@@ -1,7 +1,8 @@
 """SB-T-04 local model part: the GPU host spike (P-06 spec Section 6.7; AR-G-23, AR-G-32, AR-ASM-12).
 
 Checks that vigil-llm has gemma4:12b, warms it up with the product's options, sends five SL-T-1 calls (each within
-45 s) and checks that the whole model is on the GPU. Usage: local_model_spike.py --address {url}
+45 s, each answer also checked by the product's output checks, P-20 spec Section 6.14) and checks that the whole model
+is on the GPU. Usage: local_model_spike.py --address {url}
 """
 
 import json
@@ -15,7 +16,11 @@ TIMEOUT = 120
 LIMIT_MS = 45000
 NUM_CTX = 16384
 MEASUREMENTS = 5
-CHECKS = ["model-present", "warm-up"] + [f"chat-{k}" for k in range(1, MEASUREMENTS + 1)] + ["gpu-fit"]
+CHECKS = (
+    ["model-present", "warm-up"]
+    + [name for k in range(1, MEASUREMENTS + 1) for name in (f"chat-{k}", f"accepted-{k}")]
+    + ["gpu-fit"]
+)
 MISSING = "gemma4:12b is not in vigil-llm; run deploy/gpu.sh start"
 
 
@@ -60,6 +65,7 @@ class LocalModelSpike:
                 "prompt_eval_durations_ns",
                 "eval_durations_ns",
                 "cites_rb_db_01",
+                "rejection_reasons",
             )
         }
         self.ps = None
@@ -92,6 +98,7 @@ class LocalModelSpike:
         index = k - 1
         if not answer.answered:
             self.run.check(name, False, answer.error)
+            self.run.not_run(f"accepted-{k}")
             return
         self.lists["durations_ms"][index] = answer.duration_ms
         parsed = answer.json()
@@ -124,6 +131,15 @@ class LocalModelSpike:
         elif answer.duration_ms > LIMIT_MS:
             detail = f"{answer.duration_ms} ms, more than {LIMIT_MS} ms (AR-G-32)"
         self.run.check(name, not detail, detail)
+        reasons = request_data.rejection_reasons(
+            content,
+            request_data.finish_complete("local_model", parsed),
+            request_data.EVIDENCE_LABELS,
+            request_data.RUNBOOK_KEYS,
+            True,
+        )
+        self.lists["rejection_reasons"][index] = reasons
+        self.run.check(f"accepted-{k}", not reasons, "; ".join(reasons))
 
     def gpu_fit(self):
         answer = self.call("ps", "GET", "/api/ps")
@@ -163,6 +179,7 @@ class LocalModelSpike:
             own[key] = self.lists[key]
         own["ps"] = self.ps
         own["cites_rb_db_01"] = self.lists["cites_rb_db_01"]
+        own["rejection_reasons"] = self.lists["rejection_reasons"]
         return own
 
 

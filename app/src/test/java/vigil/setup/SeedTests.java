@@ -39,8 +39,10 @@ final class SeedTests {
   static List<Map.Entry<String, byte[]>> demoEntries() {
     byte[] key = new byte[32];
     new java.security.SecureRandom().nextBytes(key);
-    return SeedBundles.demoEntries(
-        SeedBundles.testValues("SHA256:" + java.util.Base64.getEncoder().encodeToString(key)));
+    java.util.Map<String, String> values =
+        SeedBundles.testValues("SHA256:" + java.util.Base64.getEncoder().encodeToString(key));
+    values.put("endpoint.local_embedding", vigil.testsupport.TestEmbedding.shared().address());
+    return SeedBundles.demoEntries(values);
   }
 
   /** The demo bundle. */

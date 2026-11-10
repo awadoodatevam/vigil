@@ -18,16 +18,25 @@ SL_T_1_OUTPUT = {
 SL_T_2_OUTPUT = {"summary": "The Subscriber DB server's /data is full; three services fail."}
 
 
-def output_for(body):
+def output_for(body, sl_t_1=None):
     system = body.get("system") or body.get("instructions")
-    return SL_T_1_OUTPUT if system == rd.SYSTEM_SL_T_1 else SL_T_2_OUTPUT
+    return (sl_t_1 or SL_T_1_OUTPUT) if system == rd.SYSTEM_SL_T_1 else SL_T_2_OUTPUT
+
+
+def accepted_parts_2(provider_name):
+    """The SL-T-2 parts after the accepted SL_T_1_OUTPUT: with Investigation and E4."""
+    requests = rd.Requests()
+    e4 = f"AI investigation by {provider_name}: confirms the hypothesis Subscriber DB server; cites RB-DB-01."
+    assert requests.investigation_text(provider_name, SL_T_1_OUTPUT) == e4
+    return requests.parts_sl_t_2(SL_T_1_OUTPUT["likely_cause"], SL_T_1_OUTPUT["uncertainty"], e4)
 
 
 class FakeClaude:
-    def __init__(self, key, stop_reason="end_turn", text=None):
+    def __init__(self, key, stop_reason="end_turn", text=None, sl_t_1=None):
         self.key = key
         self.stop_reason = stop_reason
         self.text = text
+        self.sl_t_1 = sl_t_1
 
     def __call__(self, request):
         if request.headers.get("x-api-key") != self.key:
@@ -39,7 +48,7 @@ class FakeClaude:
                 200,
                 {"content": content, "stop_reason": "max_tokens", "usage": {"input_tokens": 9000, "output_tokens": 16}},
             )
-        text = self.text if self.text is not None else json.dumps(output_for(body))
+        text = self.text if self.text is not None else json.dumps(output_for(body, self.sl_t_1))
         usage = {"input_tokens": 12000, "output_tokens": 301}
         content = [{"type": "thinking", "thinking": "..."}, {"type": "text", "text": text}]
         return json_answer(200, {"content": content, "stop_reason": self.stop_reason, "usage": usage})
@@ -114,7 +123,7 @@ def test_claude_run(tmp_path, monkeypatch, capsys):
         "output_config": {"format": {"type": "json_schema", "schema": rd.SCHEMA_SL_T_1}},
     }
     assert requests[0].body == json.dumps(body_1)
-    parts_2 = rd.Requests().parts_sl_t_2(SL_T_1_OUTPUT["likely_cause"], SL_T_1_OUTPUT["uncertainty"])
+    parts_2 = accepted_parts_2("Claude")
     body_2 = {
         "model": "claude-sonnet-5-5",
         "max_tokens": 600,
@@ -132,6 +141,7 @@ def test_claude_run(tmp_path, monkeypatch, capsys):
         "sl-t-1-status",
         "sl-t-1-stop",
         "sl-t-1-output",
+        "sl-t-1-accepted",
         "sl-t-1-usage",
         "sl-t-2-status",
         "sl-t-2-stop",
@@ -150,6 +160,7 @@ def test_claude_run(tmp_path, monkeypatch, capsys):
             "reasoning_units": None,
             "cost_usd": "0.027010",
             "cites_rb_db_01": True,
+            "rejection_reasons": [],
         },
         {
             "call": "sl-t-2",
@@ -206,6 +217,7 @@ def test_claude_refusal(tmp_path, monkeypatch, capsys):
     checks = {check["name"]: check for check in setup.result("claude")["checks"]}
     assert checks["sl-t-1-stop"]["detail"] == "stop_reason is refusal"
     assert checks["sl-t-1-output"]["detail"] == "not JSON"
+    assert checks["sl-t-1-accepted"] == {"name": "sl-t-1-accepted", "passed": False, "detail": "no likely cause"}
     assert checks["sl-t-1-status"]["passed"] and checks["sl-t-1-usage"]["passed"]
     for name in ("sl-t-2-status", "sl-t-2-stop", "sl-t-2-output", "sl-t-2-usage"):
         assert checks[name] == {"name": name, "passed": False, "detail": "not run"}
@@ -216,6 +228,41 @@ def test_claude_refusal(tmp_path, monkeypatch, capsys):
     calls = setup.result("claude")["calls"]
     assert [call["call"] for call in calls] == ["sl-t-1", "truncated", "bad-key"]
     assert calls[0]["cites_rb_db_01"] is None
+    assert calls[0]["rejection_reasons"] == ["no likely cause"]
+
+
+def test_claude_rejected_answer(tmp_path, monkeypatch, capsys):
+    """PM-M17-03 an answer valid for the schema but rejected by the product's checks: sl-t-1-accepted fails with the
+    reasons, sl-t-1-output passes, and SL-T-2 is sent without the parts Investigation and E4."""
+    rejected = dict(SL_T_1_OUTPUT, hypothesis_verdict="not_applicable", evidence_labels=["E1", "7"])
+    setup, _, server, code = run(tmp_path, monkeypatch, "claude", FakeClaude, sl_t_1=rejected)
+    output = capsys.readouterr().out
+    assert code == 1
+    result = setup.result("claude")
+    assert result["passed"] is False
+    checks = {check["name"]: check for check in result["checks"]}
+    reasons = [
+        "does not say whether it confirms or disputes the hypothesis",
+        "refers to evidence that is not on the incident",
+    ]
+    assert checks["sl-t-1-output"]["passed"] and checks["sl-t-1-usage"]["passed"]
+    assert checks["sl-t-1-accepted"] == {"name": "sl-t-1-accepted", "passed": False, "detail": "; ".join(reasons)}
+    assert f"sl-t-1-accepted: FAILED ({'; '.join(reasons)})" in output
+    assert all(checks[name]["passed"] for name in ("sl-t-2-status", "sl-t-2-stop", "sl-t-2-output", "sl-t-2-usage"))
+    calls = {call["call"]: call for call in result["calls"]}
+    assert calls["sl-t-1"]["rejection_reasons"] == reasons
+    assert calls["sl-t-1"]["cites_rb_db_01"] is True
+    parts_2 = rd.Requests().parts_sl_t_2(rejected["likely_cause"], rejected["uncertainty"], None)
+    assert [label for label, _, _ in parts_2] == [
+        "Title",
+        "Alerts",
+        "Customer impact",
+        "Hypothesis",
+        "E1",
+        "E2",
+        "E3",
+    ]
+    assert server.requests[1].json()["messages"] == [{"role": "user", "content": rd.render(parts_2)}]
 
 
 def test_cost():
@@ -246,7 +293,7 @@ def test_openai_run(tmp_path, monkeypatch, capsys):
         "text": {"format": {"type": "json_schema", "name": "sl_t_1", "schema": rd.SCHEMA_SL_T_1, "strict": True}},
     }
     assert requests[0].body == json.dumps(body_1)
-    parts_2 = rd.Requests().parts_sl_t_2(SL_T_1_OUTPUT["likely_cause"], SL_T_1_OUTPUT["uncertainty"])
+    parts_2 = accepted_parts_2("OpenAI")
     body_2 = {
         "model": "gpt-6.1-sol",
         "instructions": rd.SYSTEM_SL_T_2,
@@ -263,6 +310,7 @@ def test_openai_run(tmp_path, monkeypatch, capsys):
         "sl-t-1-status",
         "sl-t-1-complete",
         "sl-t-1-output",
+        "sl-t-1-accepted",
         "sl-t-1-usage",
         "sl-t-2-status",
         "sl-t-2-complete",
@@ -278,6 +326,7 @@ def test_openai_run(tmp_path, monkeypatch, capsys):
     assert calls["sl-t-1"]["reasoning_units"] == 120
     assert calls["sl-t-1"]["cost_usd"] == "0.026200"
     assert calls["sl-t-1"]["cites_rb_db_01"] is True
+    assert calls["sl-t-1"]["rejection_reasons"] == []
     assert calls["sl-t-2"]["summary_length"] == len(SL_T_2_OUTPUT["summary"])
     assert setup.recording_files("openai") == [
         "0001-sl-t-1.json",

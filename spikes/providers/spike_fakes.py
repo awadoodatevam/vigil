@@ -46,6 +46,7 @@ class Setup:
         for key in list(os.environ):
             if key.startswith(("AWS_", "FAKE_")):
                 monkeypatch.delenv(key, raising=False)
+        monkeypatch.delenv("VIGIL_SPIKE_PACKAGE", raising=False)
         monkeypatch.setenv("VIGIL_SPIKE_RESULTS", str(self.results))
         monkeypatch.setenv("VIGIL_SPIKE_RECORDINGS", str(self.recordings))
         monkeypatch.setenv("VIGIL_TEST_FAST", "1")

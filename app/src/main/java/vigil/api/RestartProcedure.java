@@ -14,6 +14,7 @@ import vigil.engine.api.EngineScheduling;
 import vigil.identity.api.SessionExpiry;
 import vigil.incidents.api.IncidentScheduling;
 import vigil.intake.api.IntakeScheduling;
+import vigil.knowledge.api.KnowledgeScheduling;
 import vigil.runner.api.RunnerRestart;
 import vigil.setup.api.SeedImports;
 
@@ -36,6 +37,7 @@ class RestartProcedure implements ApplicationRunner {
   private final SeedImports seedImports;
   private final IntakeScheduling intakeScheduling;
   private final IncidentScheduling incidentScheduling;
+  private final KnowledgeScheduling knowledgeScheduling;
   private final CorrelationScheduling correlationScheduling;
   private final EngineScheduling engineScheduling;
 
@@ -48,6 +50,7 @@ class RestartProcedure implements ApplicationRunner {
       SeedImports seedImports,
       IntakeScheduling intakeScheduling,
       IncidentScheduling incidentScheduling,
+      KnowledgeScheduling knowledgeScheduling,
       CorrelationScheduling correlationScheduling,
       EngineScheduling engineScheduling) {
     this.runnerRestart = runnerRestart;
@@ -58,6 +61,7 @@ class RestartProcedure implements ApplicationRunner {
     this.seedImports = seedImports;
     this.intakeScheduling = intakeScheduling;
     this.incidentScheduling = incidentScheduling;
+    this.knowledgeScheduling = knowledgeScheduling;
     this.correlationScheduling = correlationScheduling;
     this.engineScheduling = engineScheduling;
   }
@@ -111,6 +115,7 @@ class RestartProcedure implements ApplicationRunner {
     sessionExpiry.matchActiveTenants();
     intakeScheduling.matchActiveTenants();
     incidentScheduling.matchActiveTenants();
+    knowledgeScheduling.matchActiveTenants();
     engineScheduling.matchActiveTenants();
   }
 

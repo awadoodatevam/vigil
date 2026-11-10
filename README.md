@@ -71,7 +71,6 @@ Interfaces of `vigil-api` for later packages (P-09):
 Interfaces of `vigil-setup` for later packages (P-11):
 
 - P-12 to P-24: a `SeedPartImporter` for their part (with `afterCommit` where AR-B-11 needs it, P-13), their `SeedKeyCheck`s, and their part's checks in `SeedImportIT`.
-- P-20: the checks of `08-runbooks.md` and `09-past-incidents.csv`.
 - P-26: AR-Q-10 with all 17 parts (BP-R-29 ends).
 - P-26, P-31: AR-I-95 to AR-I-98 with `Authorization: Bearer {installation-token}`; `bundle.yaml` written as `SeedBundles.demoEntries` writes it (quoted values); poll AR-I-97 until `state` is not `running`; a 422 refusal's `message` and a failed part's `error` are the texts to show (DC-S12-05).
 - Test support: `SeedBundles` (the demo bundle built from `docs/31-demo-data/` with test placeholder values, `zip` of any entries, `form` for a multipart body) and `LogLines` (the application's ECS log lines in captured output).
@@ -82,6 +81,7 @@ Interfaces of `vigil-setup` for later packages (P-11):
 - P-16 (built): part 10 (`vigil-correlation`) is registered (`CorrelationAdapter`).
 - P-41 (built): part 16 (`vigil-workflows`) is registered (`WorkflowsAdapter`), with its key checks against part 2 (`WorkflowTeamCheck`) and part 5 (`WorkflowKeyCheck`); its check against part 12 (diagnostic keys) is P-18's.
 - P-18 (built): parts 4 (`vigil-runner`, `RunnerAdapter`) and 12 (`vigil-diagnostics`, `DiagnosticsAdapter`) are registered, with the key checks of part 5 against part 4 (`ServiceMapTargetCheck`), part 12 against part 4 (`DiagnosticOperationCheck`) and part 16 against part 12 (`WorkflowDiagnosticCheck`).
+- P-20 (built): part 8 (`vigil-knowledge`, `KnowledgeAdapter`, reading `08-runbooks.md` and `09-past-incidents.csv`) is registered, with the key checks of part 8 against parts 6 (`KnowledgeAlertTypeCheck`), 5 (`KnowledgeServiceMapCheck`) and 7 (`KnowledgeProviderCheck`); its embedding call reaches `TestEmbedding` in tests.
 
 Interfaces of `vigil-intake` for later packages (P-13):
 
@@ -110,8 +110,8 @@ Interfaces of `vigil-incidents` for later packages (P-14):
 - P-17 (built): `IncidentAcknowledged`, `IncidentStateChanged`; `IncidentService.incident`.
 - P-41 (built): `IncidentCreated`, `IncidentStateChanged` (the start of live runs).
 - P-18 (built): `IncidentService.addEvidence` (`diagnostic_result`).
-- P-20, P-23, P-24: `IncidentService.addEvidence` with their kinds.
-- P-20: `IncidentService.setAiStatus`, `evidence`.
+- P-20 (built): `IncidentService.addEvidence` (`ai_investigation`, `similarity_match`), `setAiStatus`, `recordAiRequestGroup`, `evidence`.
+- P-23, P-24: `IncidentService.addEvidence` with their kinds.
 - P-21, P-22: `IncidentService.incident`, `evidenceSummary`, `recordNotifiedTeam`.
 - P-23: `IncidentService.resolve`, `members`, and for DM-R-53 `acknowledgements`, `transitions`, `incidents`.
 - P-25: `IncidentChanged`; `IncidentService.acknowledge` (refusal keys `not_open`, `already_acknowledged`, `not_notified`) and the reads.
@@ -138,7 +138,7 @@ Interfaces of `vigil-engine` for later packages (P-17):
 
 - P-41 (built): `EngineService.startLiveRun`, `hasLiveRun`.
 - P-18 (built): `DiagnosticsStepHandler` (`vigil-diagnostics`).
-- P-20: `InvestigationStepHandler`.
+- P-20 (built): `InvestigationStepHandler` (`vigil-investigation`).
 - P-21: `TicketingStepHandler`.
 - P-22: `NotificationsStepHandler`, `RoutingStepHandler`.
 - P-23: `RecoveryStepHandler` (the recovery check key comes in `StepCall`).
@@ -166,6 +166,21 @@ Interfaces of `vigil-diagnostics` for later packages (P-18):
 - P-35, P-37: `DiagnosticsService.definitions`, `definition` (`parameter_valid`, DM-A-27; DC-M-13).
 - P-36: `DiagnosticsService.results` (DM-R-49).
 - Test support: `DiagnosticsFixture`.
+
+Interfaces of `vigil-knowledge` for later packages (P-20):
+
+- P-23: `KnowledgeService.pastIncidents` (the seeded history, DM-R-52, DM-R-53).
+- P-24: `KnowledgeService.latestSearchResult` (DM-E66-R2) and `pastIncident`; the key check of part 8 against part 14 (action keys).
+- P-36: `KnowledgeService.latestSearchResult` (DM-R-48).
+- P-39: `TaskProviderChanged` starts re-embedding; `KnowledgeService.settings` (the embedding state).
+- Test support: `TestEmbedding`, `KnowledgeFixture`.
+
+Interfaces of `vigil-investigation` for later packages (P-20):
+
+- P-21, P-22: `InvestigationService.summaryForMessage` (DM-E69-R2).
+- P-25, P-29: `InvestigationService.latestAccepted`, `results`, `latestSummary` (DC-S03-09).
+- P-39: `InvestigationService.requestRerun` (refusals `NOT_FOUND`, `REFUSED` `not_rerunnable`).
+- Test support: `InvestigationFixture`.
 
 ## Local installation
 
@@ -201,6 +216,6 @@ The demo installation runs on AWS in `us-east-1` (`docs/50-architecture.md` Sect
 - `deploy/models.sh update {model}`: pulls a model again and writes its new digest into `deploy/models.lock`, which the operator commits.
 - `tests/acceptance/p05_aws_check.sh {installation}`: records the resources and the HTTPS checks in `tests/acceptance/results/P-05-aws.txt` (owner-run step of P-05).
 - `tests/acceptance/p06_log.sh {command} [{argument} ...]`: runs the command and appends its output and `exit {code}` to `tests/acceptance/results/P-06-gpu.txt` (owner-run steps of P-06).
-- `spikes/providers/run.sh jira|claude|openai|similarity|local-model`: the provider spikes of P-06 against Jira Cloud, the Claude and OpenAI APIs, `vigil-embed` and `vigil-llm` (owner-run; see `spikes/providers/README.md`). They write `spikes/results/P-06-*.json` and the recordings under `dev/fakes/recordings/`.
+- `spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20]`: the provider spikes of P-06 against Jira Cloud, the Claude and OpenAI APIs, `vigil-embed` and `vigil-llm` (owner-run; see `spikes/providers/README.md`). They write `spikes/results/P-06-*.json` and the recordings under `dev/fakes/recordings/`; with `--package P-20` they write `spikes/results/P-20-*.json` and keep their recordings in a temporary folder (P-20's owner-run step).
 
 The tests of these scripts (`deploy/test_*.py`) run in the gate with fakes of the AWS CLI, Docker, `curl` and `ssh-keygen` (`deploy/tests/`); nothing in the gate calls AWS.

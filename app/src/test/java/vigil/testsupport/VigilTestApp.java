@@ -30,12 +30,14 @@ public final class VigilTestApp implements AutoCloseable {
       new CompletableFuture<>();
   private final CompletableFuture<ConfigurableApplicationContext> started =
       new CompletableFuture<>();
+  private final VigilDatabase database;
 
   private VigilTestApp(
       VigilDatabase database,
       Path secretsFolder,
       List<String> extraArgs,
       Class<?>... configurations) {
+    this.database = database;
     List<Class<?>> sources = new ArrayList<>();
     sources.add(VigilApplication.class);
     sources.addAll(List.of(configurations));
@@ -98,6 +100,11 @@ public final class VigilTestApp implements AutoCloseable {
       List<String> extraArgs,
       Class<?>... configurations) {
     return new VigilTestApp(database, secretsFolder, extraArgs, configurations);
+  }
+
+  /** The database the app runs on (its {@code postgres} client for test writes and reads). */
+  public VigilDatabase database() {
+    return database;
   }
 
   /** The HTTP port, as soon as the web server is up. */

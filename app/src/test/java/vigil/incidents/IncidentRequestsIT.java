@@ -545,4 +545,36 @@ class IncidentRequestsIT {
             "ai_status_changed",
             "state_changed");
   }
+
+  @Test
+  @Order(14)
+  @DisplayName("AR-R-29 recordAiRequestGroup sets the request group with no timeline entry")
+  void recordAiRequestGroup() {
+    UUID open = f.create(f.alert("cpu_high", "CPU high", "srv-db-01", CLOCK.instant()));
+    f.open(open);
+    int timeline = incidents.timeline(f.tenant, open).size();
+    int before = events();
+    UUID group = Ids.newId();
+    incidents.recordAiRequestGroup(f.tenant, IncidentFixture.INVESTIGATION, open, group);
+    IncidentView view = incidents.incident(f.tenant, open).orElseThrow();
+    assertThat(view.aiLastRequestGroupId()).isEqualTo(group);
+    assertThat(view.aiStatus()).isEqualTo(AiStatus.NOT_RUN);
+    assertThat(incidents.timeline(f.tenant, open)).hasSize(timeline);
+    assertThat(IncidentFixture.Events.RECEIVED.subList(before, events()))
+        .containsExactly(new IncidentChanged(f.tenant, open));
+    Map<String, Long> rows = rows();
+    int again = events();
+    incidents.recordAiRequestGroup(f.tenant, IncidentFixture.INVESTIGATION, open, group);
+    assertThat(rows()).isEqualTo(rows);
+    assertThat(events()).isEqualTo(again);
+    assertThat(incidents.incident(f.tenant, open).orElseThrow().updatedAt())
+        .isEqualTo(view.updatedAt());
+    UUID forming = f.create(f.alert("cpu_high", "CPU high", "srv-db-01", CLOCK.instant()));
+    assertThatThrownBy(
+            () ->
+                incidents.recordAiRequestGroup(
+                    f.tenant, IncidentFixture.INVESTIGATION, forming, Ids.newId()))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessage("recordAiRequestGroup is not allowed in state forming");
+  }
 }
