@@ -1,0 +1,99 @@
+{
+  "spike": "claude",
+  "run_id": "20261110T044300Z",
+  "started_at": "2026-11-10T04:43:00.391Z",
+  "finished_at": "2026-11-10T04:43:12.017Z",
+  "passed": true,
+  "checks": [
+    {
+      "name": "sl-t-1-status",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-1-stop",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-1-output",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-1-usage",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-2-status",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-2-stop",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-2-output",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-2-usage",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "truncated",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "bad-key",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "calls": [
+    {
+      "call": "sl-t-1",
+      "status": 200,
+      "duration_ms": 5594,
+      "input_units": 8969,
+      "output_units": 472,
+      "reasoning_units": null,
+      "cost_usd": "0.022658",
+      "cites_rb_db_01": true
+    },
+    {
+      "call": "sl-t-2",
+      "status": 200,
+      "duration_ms": 3366,
+      "input_units": 1082,
+      "output_units": 243,
+      "reasoning_units": null,
+      "cost_usd": "0.004594",
+      "summary_length": 613
+    },
+    {
+      "call": "truncated",
+      "status": 200,
+      "duration_ms": 2086,
+      "input_units": 8969,
+      "output_units": 16,
+      "reasoning_units": null,
+      "cost_usd": "0.018098"
+    },
+    {
+      "call": "bad-key",
+      "status": 401,
+      "duration_ms": 390,
+      "input_units": null,
+      "output_units": null,
+      "reasoning_units": null,
+      "cost_usd": null
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "spike": "SB-T-04",
+  "run_id": "20261110T062103Z",
+  "started_at": "2026-11-10T06:21:03.145Z",
+  "finished_at": "2026-11-10T06:22:34.665Z",
+  "passed": true,
+  "checks": [
+    {
+      "name": "model-present",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "warm-up",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "chat-1",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "chat-2",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "chat-3",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "chat-4",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "chat-5",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "gpu-fit",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "durations_ms": [
+    15847,
+    16658,
+    16363,
+    16315,
+    16465
+  ],
+  "max_duration_ms": 16658,
+  "prompt_eval_counts": [
+    5704,
+    5704,
+    5704,
+    5704,
+    5704
+  ],
+  "eval_counts": [
+    951,
+    982,
+    953,
+    951,
+    951
+  ],
+  "load_durations_ns": [
+    1034755,
+    969680,
+    1003923,
+    944709,
+    1137583
+  ],
+  "prompt_eval_durations_ns": [
+    3675410000,
+    3732347000,
+    3763805000,
+    3765948000,
+    3776877000
+  ],
+  "eval_durations_ns": [
+    11609340000,
+    12036681000,
+    11689411000,
+    11621763000,
+    11629179000
+  ],
+  "ps": {
+    "name": "gemma4:12b",
+    "size": 1471330384,
+    "size_vram": 1471330384,
+    "context_length": 16384
+  },
+  "cites_rb_db_01": [
+    true,
+    true,
+    true,
+    true,
+    true
+  ]
+}

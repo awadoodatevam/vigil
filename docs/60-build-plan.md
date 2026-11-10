@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.17 |
-| Date | 26 October 2026 |
+| Version | 1.18 |
+| Date | 3 November 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
 
@@ -245,8 +245,8 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | M; P-05; BP-OT-05, BP-OT-06, BP-OT-09, BP-OT-14 (Jira part) |
-| Builds | `spikes/` scripts (Python 3.12, standard library and `requests`): SB-T-07 (create with label, search by label with the lag rule of AR-K-14, comment with the ADF of AR-K-15, resolve, reopen); structured-output calls to Claude (AR-G-20) and OpenAI (AR-G-21, AR-G-22); the first start of the GPU host with `deploy/gpu.sh` and the `gemma4:12b` digest in `deploy/models.lock` (`deploy/models.sh`, built by P-05); the Jira token expiry that `deploy/secrets.sh` prints (AR-H-07); on the main host against `vigil-embed`: SB-T-03 runtime part (the search texts of the 50 past incidents and the storm incident, built by DM-R-51 from `docs/31-demo-data`, embedded twice: same vectors, PI-1001 best with 1.00); on the GPU host: SB-T-04 local model part (5 SL-T-1 calls with a request built from the data files, each within 45 s, AR-G-32). Each spike stores the requests and answers it saw, with secrets removed, under `dev/fakes/recordings/`. |
+| Size; depends on; owner tasks | M; P-05; BP-OT-05, BP-OT-06, BP-OT-09, BP-OT-10 (Python 3.12 on the Mac), BP-OT-14 (Jira part); the AWS Session Manager plugin on the owner's Mac (CTX-D-060) |
+| Builds | `spikes/` scripts (Python 3.12, standard library and PyYAML, which reads the data files): SB-T-07 (create with label, search by label with the lag rule of AR-K-14, comment with the ADF of AR-K-15, resolve, reopen); structured-output calls to Claude (AR-G-20) and OpenAI (AR-G-21, AR-G-22); the first start of the GPU host with `deploy/gpu.sh` and the `gemma4:12b` digest in `deploy/models.lock` (`deploy/models.sh`, built by P-05); the Jira token expiry that `deploy/secrets.sh` prints from the secret's `expires_on` (AR-H-07, BP-A-29); on the main host against `vigil-embed`, reached from the owner's Mac through a Systems Manager port forward: SB-T-03 runtime part (the search texts of the 50 past incidents and the storm incident, built by DM-R-51 from `docs/31-demo-data`, embedded twice: same vectors, PI-1001 best with 1.00); on the GPU host, reached the same way: SB-T-04 local model part (5 SL-T-1 calls with a request built from the data files, each within 45 s, AR-G-32). Each spike stores the requests and answers it saw, with secrets removed, under `dev/fakes/recordings/`. |
 | Requirements built | None in the product. Proves PM-ASM-03, DM-ASM-07, DM-ASM-09, SL-ASM-04 (runtime part), AR-ASM-06, AR-ASM-08, AR-ASM-10, AR-ASM-11, AR-ASM-12, AR-G-32 (measurement). |
 | Tests | Owner-run: SB-T-07; SB-T-03 (runtime part); SB-T-04 (local model part); the Claude and OpenAI calls. |
 | Done-check | Every listed spike passes, or the report records the failure with an owner decision item; every recording passes the secret scanner. |
@@ -667,8 +667,8 @@ Each review is done in the Claude project with the package reports of the phase 
 | AR-SP-03 | P-32 | BP-E-04 |
 | SB-T-01 | P-04 (development run), P-32 (final, main host through the load balancer) | BP-E-01, BP-E-03; BP-E-04 |
 | SB-T-02 | P-27 (driver; mode `immediate` with dev fakes; mode `script` on the Mac), P-32 (first pass, real services), P-34 (five runs) | BP-E-01, BP-E-02, BP-E-03; BP-E-04 |
-| SB-T-03 | P-06 (runtime), P-34 (in the product) | BP-E-04 |
-| SB-T-04 | P-06 (local model), P-34 (all step times) | BP-E-04, BP-E-05 |
+| SB-T-03 | P-06 (runtime), P-34 (in the product) | BP-E-04 (P-06: from BP-E-03 through a Systems Manager port forward) |
+| SB-T-04 | P-06 (local model), P-34 (all step times) | BP-E-04, BP-E-05 (P-06: from BP-E-03 through a Systems Manager port forward) |
 | SB-T-05 | P-04 (lab clear), P-31 (local reset), P-32 (main host) | BP-E-01; BP-E-04 |
 | SB-T-06 | P-07 | BP-E-03 |
 | SB-T-07 | P-06 | BP-E-03 |
@@ -773,7 +773,7 @@ The placeholders of AR-B-07 as amended by BP-A-01, with these values in `deploy/
 | BP-OT-11 | Obtain the senior manager's confirmation that the Jazz name and logo may be shown, because the demo login page shows the customer name before login (CTX-O-05). | P-32 | CTX-O-05 |
 | BP-OT-12 | Rehearsals with the senior manager (SB-T-08) and the backup videos (SL-A3-08). | P-34, P-40 | SB-T-08; SL-A3-08 |
 | BP-OT-13 | Review and merge every package pull request (BP-L-7); run the owner-run steps (BP-L-5); take part in the checkpoint reviews. | Every package | BP-L-5, BP-L-7 |
-| BP-OT-14 | Store the operator-made secrets of AR-S-13 in Parameter Store under `/vigil/demo/`: `jira`; `smtp` (create the SES SMTP credentials first); the nine `teams-team-{key}` and `teams-user-{username}` webhook addresses. Fill `deploy/values/demo.yaml` with the Jira address and the nine mailbox addresses (committed: they are not secrets). | P-06 (Jira), P-07 (Teams, SMTP), P-32 (values) | AR-S-13, AR-B-07 |
+| BP-OT-14 | Store the operator-made secrets of AR-S-13 in Parameter Store under `/vigil/demo/`: `jira`; `smtp` (create the SES SMTP credentials first); the nine `teams-team-{key}` and `teams-user-{username}` webhook addresses. Fill `deploy/values/demo.yaml` with the Jira address (written by P-06, CTX-D-060) and the nine mailbox addresses (committed: they are not secrets). | P-06 (Jira), P-07 (Teams, SMTP), P-32 (values) | AR-S-13, AR-B-07 |
 
 ## 13. Traceability
 
@@ -979,6 +979,7 @@ Written into the named documents at the close of this round, 12 Oct 2026: `00-co
 | BP-A-26 | `20-domain-model` DM-C-11 | Owner decision CTX-D-048 (22 Oct 2026, from the P-13 report, follow-up 6). A text of an alert entry that Vigil stores (alert key, title, source severity, identity pair names and values) that holds the character U+0000, which PostgreSQL cannot store in `varchar` or `jsonb`, makes the entry's normalised alert `failed` with the reason "the entry holds the character U+0000"; it changes no alert, and the webhook call and the raw alert are stored as received, so the call is answered 200 instead of failing as a whole (500, nothing stored, and Alertmanager re-sending the group). Built in `vigil-intake` by P-14. Written on 22 October 2026 (`20-domain-model` v1.5). |
 | BP-A-27 | `20-domain-model` DM-E-34, DM-E32-R2 | Owner decision CTX-D-049 (22 Oct 2026, for P-14). (1) DM-E-34 `alert_snapshot` adds `alert_key`, `alert_type_name` (the alert type's display name) and `first_identity_pair` (`{name, value}` or empty), passed by `vigil-correlation` with each membership, because `vigil-incidents` computes the title of DM-R-20 (PM-M09-01) and may not request `vigil-intake` (AR-M-10). (2) DM-E32-R2: a change of only `hypothesis_computation_id` and `hypothesis_snapshot`, while `hypothesis_component_key`, `affected_services` and `title` stay the same, publishes "incident changed" without a timeline entry (as DC-A-13 for the AI status), so a recomputation after every new member does not write "Hypothesis changed from X to X.". Written on 22 October 2026 (`20-domain-model` v1.5). |
 | BP-A-28 | `40-demo-cut` DC-TX-10, DC-TX-11; `20-domain-model` DM-E-41 | Owner decision CTX-D-051 (22 Oct 2026, for P-15). (1) DC-TX-11 routing rules refusals: `{name}` is the rule's position in the list (1, 2, …) when its name is empty. (2) DC-TX-10 `configuration_changed`, routing rules: a save in which no rule differs from the previous revision is saved as the next revision with the change summary "no rules changed". (3) DM-E-41 `inform_affected_service_owners`: an affected service's owner team key that is empty or not the key of an active team is left out of the informed parties, as for the hypothesis component's owner. Written on 22 October 2026 (`40-demo-cut` v1.3, `20-domain-model` v1.6). |
+| BP-A-29 | `50-architecture` AR-S-13, AR-K-04, AR-H-07 | Owner decision CTX-D-060 (3 Nov 2026, for P-06). (1) The secret `jira` is JSON `{"email", "api_token", "expires_on"}`; `expires_on` is the token's expiry date as the operator chose it when creating the token, written `YYYY-MM-DD`, because Atlassian offers no API that reports a token's expiry. (2) The `jira_cloud` connector reads only `email` and `api_token`. (3) `deploy/secrets.sh` prints the date when it writes the secret `jira`, and stops (exit 1, before writing it) when `expires_on` is missing or not a valid date, or the date has passed; when fewer than 30 days are left it adds a line asking for the renewal (AR-H-07). |
 
 ### 17.3 Assumptions (complete list)
 
@@ -1047,3 +1048,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.15 | 22 Oct 2026 | From the P-15 report (BP-L-8, CTX-D-052): the P-15 entry is size L (`tools/loc.sh` 2,070). For the P-16 spec (BP-L-1, CTX-D-053): the P-16 entry is size L. |
 | 1.16 | 24 Oct 2026 | For the P-17 spec (BP-L-1, CTX-D-054, CTX-D-055): P-17 is split by owner decision into P-17 Engine (L) and the new package P-41 Workflow definitions and live-run start (M), built after P-17 and before P-18 (P-18 now depends on P-41; Sections 7.7, 8.1, 13.1 and 13.2); the P-17 entry names the step handler interfaces, `ActionRuns` and `ApprovalDecided` that P-17 defines and P-18 to P-24 implement, and the `vigil-correlation` worker fixes. No behaviour of Vigil changes. |
 | 1.17 | 26 Oct 2026 | For the P-18 spec (BP-L-1, CTX-D-057, CTX-D-058): P-18 becomes L by owner decision (Section 7.7); its entry adds the target connector type interface, the three key checks of DM-R-60, the P-41 follow-ups, DM-R-64 and AR-R-24 step (1), and the wrong-host-key test says the run ends `failed`. No behaviour of Vigil changes. |
+| 1.18 | 3 Nov 2026 | For the P-06 spec (BP-L-1, CTX-D-060): amendment BP-A-29 (`50-architecture` v1.9: the `jira` secret carries `expires_on`); the P-06 entry reads the data files with PyYAML instead of using `requests`, reaches `vigil-embed` and `vigil-llm` through Systems Manager port forwards from the owner's Mac, and adds BP-OT-10 and the Session Manager plugin to its owner tasks; Section 9 rows SB-T-03 and SB-T-04 name the port forward from BP-E-03; BP-OT-14 notes that P-06 writes the Jira address. |

@@ -67,6 +67,61 @@ and run `deploy/edge.sh demo` again.
 
 SES starts in sandbox mode. In the SES console (region `us-east-1`), open "Account dashboard" and choose "Request production access": mail type "Transactional", website `https://demo.vigil.solviclabs.com`, and as use case: notifications to nine internal mailboxes, under 1,000 messages a month (AR-H-08). The request is made in P-07; until it is granted, each of the nine mailboxes is verified there.
 
+## Operator secrets (BP-OT-05, BP-OT-14)
+
+The operator stores the secrets made outside Vigil (AR-S-13) in Parameter Store under `/vigil/demo/{name}`, as `SecureString` parameters, without showing them on the screen, keeping them in the shell history or passing them on a command line. In the block's line `NAME=claude`, set `NAME` to `claude`, `openai` or `jira`, then paste the whole block into a terminal signed in with `aws login --profile vigil` (`export AWS_PROFILE=vigil`). It works in zsh (the macOS default shell) and in macOS's bash 3.2: the braces make the shell read the whole block before the first value is asked for, and each value is read without echo. The folder from `mktemp -d` has mode 0700 and the value file mode 0600. When a value is empty, nothing is stored:
+
+```bash
+{
+NAME=claude
+folder=$(mktemp -d)
+empty=no
+if [ "$NAME" = jira ]; then
+  printf '%s' "Jira account email: "; read -rs JIRA_EMAIL; echo
+  printf '%s' "Jira API token: "; read -rs JIRA_TOKEN; echo
+  printf '%s' "Token expiry date as chosen at Atlassian (YYYY-MM-DD): "; read -rs JIRA_EXPIRES; echo
+  if [ -z "$JIRA_EMAIL" ] || [ -z "$JIRA_TOKEN" ] || [ -z "$JIRA_EXPIRES" ]; then
+    empty=yes
+  else
+    JIRA_EMAIL="$JIRA_EMAIL" JIRA_TOKEN="$JIRA_TOKEN" JIRA_EXPIRES="$JIRA_EXPIRES" python3 -c '
+import json, os, sys
+value = json.dumps({"email": os.environ["JIRA_EMAIL"], "api_token": os.environ["JIRA_TOKEN"], "expires_on": os.environ["JIRA_EXPIRES"]})
+with os.fdopen(os.open(sys.argv[1], os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "w") as file:
+    file.write(value)
+' "$folder/value"
+  fi
+else
+  printf '%s' "Value of $NAME: "; read -rs SECRET_VALUE; echo
+  if [ -z "$SECRET_VALUE" ]; then
+    empty=yes
+  else
+    SECRET_VALUE="$SECRET_VALUE" python3 -c '
+import os, sys
+with os.fdopen(os.open(sys.argv[1], os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "w") as file:
+    file.write(os.environ["SECRET_VALUE"])
+' "$folder/value"
+  fi
+fi
+if [ "$empty" = yes ]; then
+  echo "Empty value; nothing stored."
+else
+  aws ssm put-parameter --name "/vigil/demo/$NAME" --type SecureString --tier Standard --overwrite \
+    --value "file://$folder/value" > /dev/null
+fi
+rm -rf "$folder"
+unset JIRA_EMAIL JIRA_TOKEN JIRA_EXPIRES SECRET_VALUE folder empty
+}
+```
+
+The names (complete list for this section):
+
+- `claude` and `openai` (BP-OT-05): the API keys of the Anthropic and OpenAI accounts, each with prepaid credit. The Claude key MUST be created inside a workspace (Claude Console, API keys, Create key, then choose a workspace such as Default). An organisation-level key is refused with "This API key is not scoped to a workspace, so this request must include the anthropic-workspace-id header".
+- `jira` (BP-OT-14): the JSON object `{"email", "api_token", "expires_on"}` of the Vigil account at the Jira site (BP-A-29). The token is made at Atlassian with "Create API token", not "Create API token with scopes": a scoped token fails basic authentication against the site address. Give it the longest expiry Atlassian allows. `expires_on` is the token's expiry date as chosen at Atlassian when the token was made, written `YYYY-MM-DD`: Atlassian offers no API that reports it. `deploy/secrets.sh` prints it at every deployment (`jira token expires on {date} ({n} days left)`), asks for the renewal when fewer than 30 days are left, and stops when the date has passed or is missing (AR-H-07).
+
+Renewing the Jira API token, before `expires_on`: create a new API token for the Vigil account at Atlassian with "Create API token" (not "Create API token with scopes"), with the longest expiry Atlassian allows, store `jira` again with the block above and the new date, then deploy again (`deploy/deploy.sh demo {release}`), so `vigil-app` gets the new secret.
+
+The spikes of P-06 (`spikes/providers/run.sh similarity` and `local-model`) reach `vigil-embed` and `vigil-llm` through Systems Manager port forwards, which need the AWS Session Manager plugin on the Mac: `brew install --cask session-manager-plugin`.
+
 ## Starting and stopping the main host until P-32
 
 Until P-32 the main host runs only for the owner-run steps that need it (CTX-D-041); stop it after each such step and start it before the next. Its instance ID is in the line `main host: {instance id} {state}` that `deploy/edge.sh demo` and `deploy/status.sh demo` print.

@@ -1,3 +1,7 @@
 # False positives of gitleaks (one fingerprint per line, as gitleaks prints it).
 # P-05: the assertions of deploy/test_new_installation.py on the first and last line of a generated key, not a key.
 a2dddaa6582e3819bbea437a9f982b72315fb00b:deploy/test_new_installation.py:private-key:66
+# P-06: the fixed invalid key "invalid-key-p06-spike" of the bad-key calls (spec 6.5), not a key.
+419c28c2e32987419477b3ac063fca7f0a8d354f:spikes/providers/ai_spike.py:generic-api-key:20
+419c28c2e32987419477b3ac063fca7f0a8d354f:spikes/providers/test_ai_spike.py:generic-api-key:107
+3826413e161161f8b204067830a5f1f6e92c27b7:docs/packages/P-06.md:generic-api-key:171

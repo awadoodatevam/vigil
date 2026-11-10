@@ -200,5 +200,7 @@ The demo installation runs on AWS in `us-east-1` (`docs/50-architecture.md` Sect
 - `deploy/gpu.sh start|stop|status`: starts the GPU host and waits until `vigil-llm` answers, stops it, or shows it.
 - `deploy/models.sh update {model}`: pulls a model again and writes its new digest into `deploy/models.lock`, which the operator commits.
 - `tests/acceptance/p05_aws_check.sh {installation}`: records the resources and the HTTPS checks in `tests/acceptance/results/P-05-aws.txt` (owner-run step of P-05).
+- `tests/acceptance/p06_log.sh {command} [{argument} ...]`: runs the command and appends its output and `exit {code}` to `tests/acceptance/results/P-06-gpu.txt` (owner-run steps of P-06).
+- `spikes/providers/run.sh jira|claude|openai|similarity|local-model`: the provider spikes of P-06 against Jira Cloud, the Claude and OpenAI APIs, `vigil-embed` and `vigil-llm` (owner-run; see `spikes/providers/README.md`). They write `spikes/results/P-06-*.json` and the recordings under `dev/fakes/recordings/`.
 
 The tests of these scripts (`deploy/test_*.py`) run in the gate with fakes of the AWS CLI, Docker, `curl` and `ssh-keygen` (`deploy/tests/`); nothing in the gate calls AWS.

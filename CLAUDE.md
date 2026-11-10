@@ -49,6 +49,7 @@ Under `docs/` you MAY change only: your package report; the values your spec nam
 | Requirement IDs with and without tests | `tools/trace.py` |
 | Lab only: lab hosts (from P-03); Zabbix, Prometheus, Alertmanager, `demo-faults` and the webhook recorder (from P-04) | `deploy/local.sh up --lab-only [--profile test|demo] [--project NAME]`, `deploy/local.sh down [--volumes] [--project NAME]` |
 | Storm timing spike (from P-04; needs the lab) | `spikes/storm-timing/run.sh [--storms N] [--extra LIST] [--save-recordings] [--foreground] [--project NAME]` |
+| Provider spikes (owner-run, from the Mac; from P-06) | `spikes/providers/run.sh jira|claude|openai|similarity|local-model` |
 | Local installation: Vigil, lab, dev fakes (from P-26) | `deploy/local.sh up`, `deploy/local.sh down`, `deploy/local.sh reset`, `deploy/local.sh logs` |
 | Build the local images that tests use (from P-03) | `deploy/images.sh --test` (the gate command runs it) |
 | Storm driver (from P-27) | `docker compose -f deploy/local/compose.yaml --profile acceptance run --rm storm-driver --mode immediate` |

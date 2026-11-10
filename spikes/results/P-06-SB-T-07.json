@@ -1,0 +1,61 @@
+{
+  "spike": "SB-T-07",
+  "run_id": "20261110T044230Z",
+  "started_at": "2026-11-10T04:42:30.848Z",
+  "finished_at": "2026-11-10T04:42:50.014Z",
+  "passed": true,
+  "checks": [
+    {
+      "name": "token-expiry",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "myself",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "create",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "search",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "read-description",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "comment",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "status-before",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "resolve",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "reopen",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "token_expires_on": "2027-11-03",
+  "token_days_left": 358,
+  "issue_key": "NOC-1",
+  "search": {
+    "attempts": 1,
+    "seconds_after_create": 2.4
+  }
+}

@@ -1,5 +1,7 @@
-"""Tests of deploy/secrets.sh (P-05 spec Section 7)."""
+"""Tests of deploy/secrets.sh (P-05 spec Section 7; the jira expiry check: P-06 spec Section 7)."""
 
+import datetime
+import json
 import os
 import secrets
 import shutil
@@ -7,6 +9,7 @@ import stat
 import subprocess
 
 import pytest
+import yaml
 from conftest import REPOSITORY, keygen, search_path
 
 ROOT = os.geteuid() == 0
@@ -148,3 +151,96 @@ def test_alertmanager_web_config(harness, tmp_path):
     hashed = content.split("vigil: ", 1)[1].strip()
     assert bcrypt.checkpw(values["alertmanager-password"].encode(), hashed.encode())
     assert (folder / "webhook-alertmanager").read_text() == values["webhook-alertmanager"]
+
+
+def prepare_jira(harness, tmp_path, jira_value):
+    """vigil-app served, with every secret it reads seeded; the secret jira holds jira_value as it is."""
+    deploy, _, _ = prepare(harness, tmp_path, ["vigil-app"])
+    with open(deploy / "units.yaml") as file:
+        names = yaml.safe_load(file)["units"]["vigil-app"]["secrets"]
+    values = {name: secrets.token_urlsafe(16) for name in names if name != "zabbix-api"}
+    values["jira"] = jira_value
+    harness.update_state(
+        parameters={f"/vigil/demo/{name}": {"Value": value, "Type": "SecureString"} for name, value in values.items()}
+    )
+    return values
+
+
+def jira_secret(expires_on, **extra):
+    value = {"email": "operator@example.invalid", "api_token": secrets.token_urlsafe(24), "expires_on": expires_on}
+    value.update(extra)
+    return json.dumps(value)
+
+
+def today():
+    return datetime.datetime.now(datetime.timezone.utc).date()
+
+
+def test_jira_expiry_valid(harness, tmp_path):
+    """AR-H-07 a valid expires_on prints the expiry line and the secret jira is written unchanged."""
+    expires = today() + datetime.timedelta(days=200)
+    value = jira_secret(expires.isoformat())
+    prepare_jira(harness, tmp_path, value)
+    result = harness.run(str(harness.vigil_root / "deploy" / "secrets.sh"), "demo")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert f"jira token expires on {expires.isoformat()} (200 days left)" in result.stdout.splitlines()
+    assert "Renew the Jira API token" not in result.stdout
+    assert result.stdout.count("jira token expires on") == 1
+    assert (harness.vigil_root / "secrets" / "vigil-app" / "jira").read_text() == value
+    assert json.loads(value)["api_token"] not in result.stdout + result.stderr
+
+
+def test_jira_secret_unchanged(harness, tmp_path):
+    """AR-S-13 the secret jira with expires_on is written to vigil-app's folder unchanged, all three keys."""
+    expires = today() + datetime.timedelta(days=29)
+    value = jira_secret(expires.isoformat())
+    prepare_jira(harness, tmp_path, value)
+    result = harness.run(str(harness.vigil_root / "deploy" / "secrets.sh"), "demo")
+    assert result.returncode == 0, result.stdout + result.stderr
+    lines = result.stdout.splitlines()
+    index = lines.index(f"jira token expires on {expires.isoformat()} (29 days left)")
+    assert lines[index + 1] == f"Renew the Jira API token before {expires.isoformat()} (AR-H-07)."
+    written = harness.vigil_root / "secrets" / "vigil-app" / "jira"
+    assert written.read_text() == value
+    assert sorted(json.loads(written.read_text())) == ["api_token", "email", "expires_on"]
+    assert mode(written) == 0o400
+
+    expires = today()
+    value = jira_secret(expires.isoformat())
+    state = harness.state()
+    state["parameters"]["/vigil/demo/jira"]["Value"] = value
+    harness.seed(**state)
+    result = harness.run(str(harness.vigil_root / "deploy" / "secrets.sh"), "demo")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert f"jira token expires on {expires.isoformat()} (0 days left)" in result.stdout.splitlines()
+    assert written.read_text() == value
+
+
+@pytest.mark.parametrize(
+    "value, message",
+    [
+        (lambda: jira_secret((today() - datetime.timedelta(days=1)).isoformat()), "expired"),
+        (lambda: json.dumps({"email": "operator@example.invalid", "api_token": "x" * 24}), "invalid"),
+        (lambda: jira_secret(20271105), "invalid"),
+        (lambda: jira_secret("2027-02-30"), "invalid"),
+        (lambda: jira_secret("5 Nov 2027"), "invalid"),
+        (lambda: jira_secret("20271105"), "invalid"),
+        (lambda: json.dumps(["2027-11-05"]), "invalid"),
+        (lambda: "not json at all", "invalid"),
+    ],
+)
+def test_jira_expiry_refused(harness, tmp_path, value, message):
+    """AR-H-07 a past, missing or invalid expires_on, or a value that is no JSON object, exits 1 before writing jira."""
+    secret = value()
+    prepare_jira(harness, tmp_path, secret)
+    result = harness.run(str(harness.vigil_root / "deploy" / "secrets.sh"), "demo")
+    assert result.returncode == 1
+    last = result.stdout.splitlines()[-1]
+    if message == "expired":
+        date = (today() - datetime.timedelta(days=1)).isoformat()
+        assert last == f"The Jira API token expired on {date}; renew it (AR-H-07)."
+    else:
+        assert last == "The jira secret has no valid expires_on (AR-S-13)."
+    assert "Traceback" not in result.stdout + result.stderr
+    assert not (harness.vigil_root / "secrets" / "vigil-app" / "jira").exists()
+    assert secret not in result.stdout + result.stderr

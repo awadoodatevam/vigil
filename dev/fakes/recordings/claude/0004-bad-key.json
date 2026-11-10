@@ -1,0 +1,25 @@
+{
+  "seq": 4,
+  "call": "bad-key",
+  "started_at": "2026-11-10T04:43:11.623Z",
+  "duration_ms": 390,
+  "request": {
+    "method": "POST",
+    "url": "${endpoint.claude}/v1/messages",
+    "headers": {
+      "x-api-key": "<redacted>",
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+      "User-Agent": "vigil-p06-spike"
+    },
+    "body": "{\"model\": \"claude-sonnet-5-5\", \"max_tokens\": 600, \"system\": \"Write a summary of at most 600 characters for NOC staff in summary, in plain sentences, using only the supplied parts. Answer only with the JSON object.\", \"messages\": [{\"role\": \"user\", \"content\": \"### Title (Incident record)\\nSubscriber DB server: Disk full \\u2014 3 services affected\\n\\n### Investigation (Incident record)\\nLikely cause: The /data volume on the Subscriber DB server (lab-db-01 / srv-db-01) is 100% full because /data/txlog_archive holds 8.5 GiB, with 8.5 GiB written across 34 files in the last 15 minutes. This pattern fits a catch-up run writing many archived transaction logs back at once, not normal database growth. The database refuses writes below 256 MiB free, so write errors occurred on all six schemas. The balance and bundle API errors, USSD gateway timeouts, failed synthetic USSD sessions and SMS queue growth are downstream symptoms.\\nUncertainty: The diagnostics do not show why the archives built up, for example a failed nightly shipping or purge, or why a catch-up run happened. It is not confirmed that the archive files are older than 24 hours and so eligible for purge. It is unknown whether the database has already switched to read-only mode. There is no direct evidence that the SMS queue growth comes from the DB write failures, though the timing and the sms_delivery schema errors are consistent with it. The API, USSD and SMS alerts are inferred to be symptoms from alert correlation and the runbooks, not from separate diagnostics.\\n\\n### Alerts (Alert data)\\n126 alerts of 7 types: balance_api_errors, bundle_api_errors, db_write_errors, disk_full, sms_queue_growth, ussd_synthetic_failed, ussd_timeouts\\n\\n### Customer impact (Service context)\\nBalance Check (USSD) (svc-balance-check), criticality critical, through api-balance, db-subscriber, ussd-gw\\nBundle Purchase (svc-bundle-purchase), criticality critical, through api-bundle, db-subscriber, ussd-gw\\nSMS Notifications (svc-sms-notifications), criticality high, through sms-queue\\n\\n### Hypothesis (Service context)\\nSubscriber DB server (srv-db-01), kind server, criticality critical; 6 other affected components depend on it\\n\\n### E1 (Diagnostic output)\\n/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)\\n\\n### E2 (Diagnostic output)\\nLargest folder under /data: /data/txlog_archive (8.5 GiB)\\n\\n### E3 (Diagnostic output)\\n8.5 GiB written to 34 files under /data in the last 15 minutes\"}], \"output_config\": {\"format\": {\"type\": \"json_schema\", \"schema\": {\"type\": \"object\", \"properties\": {\"summary\": {\"type\": \"string\"}}, \"required\": [\"summary\"], \"additionalProperties\": false}}}}"
+  },
+  "response": {
+    "status": 401,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CgtdqHuZLAHjkJQm5Rn5Q\"}"
+  },
+  "error": null
+}
