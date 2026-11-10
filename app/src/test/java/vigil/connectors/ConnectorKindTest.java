@@ -141,5 +141,9 @@ class ConnectorKindTest {
     ConnectorTimings timings = new ConnectorConfiguration().connectorTimings();
     assertThat(timings.connect()).isEqualTo(Duration.ofSeconds(5));
     assertThat(timings.monitoringTest()).isEqualTo(Duration.ofSeconds(10));
+    assertThat(timings.chat()).isEqualTo(Duration.ofSeconds(90));
+    assertThat(timings.localChat()).isEqualTo(Duration.ofSeconds(120));
+    assertThat(timings.embedOne()).isEqualTo(Duration.ofSeconds(30));
+    assertThat(timings.embedBatch()).isEqualTo(Duration.ofSeconds(90));
   }
 }

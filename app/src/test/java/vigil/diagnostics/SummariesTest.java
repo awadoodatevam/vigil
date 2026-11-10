@@ -76,4 +76,16 @@ class SummariesTest {
     assertThat(Summaries.fill(template("disk_growth"), growth))
         .isEqualTo("8.5 GiB written to 34 files under /data in the last 15 minutes");
   }
+
+  @Test
+  @DisplayName("DC-TX-03 a placeholder inside a value of a summary is not filled")
+  void placeholderInsideValue() {
+    assertThat(
+            Summaries.fill(
+                "{path} holds {size}",
+                values(
+                    "[{\"name\":\"path\",\"value\":\"/data/{size}\"},"
+                        + "{\"name\":\"size\",\"value\":\"8.5 GiB\"}]")))
+        .isEqualTo("/data/{size} holds 8.5 GiB");
+  }
 }

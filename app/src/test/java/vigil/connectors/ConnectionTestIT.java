@@ -77,8 +77,19 @@ class ConnectionTestIT {
     @Bean
     @Primary
     ConnectorTimings testConnectorTimings() {
-      return new ConnectorTimings(Duration.ofSeconds(1), Duration.ofSeconds(2));
+      return shortTimings();
     }
+  }
+
+  /** Connect 1 s, monitoring test 2 s; the AI timeouts as in production. */
+  static ConnectorTimings shortTimings() {
+    return new ConnectorTimings(
+        Duration.ofSeconds(1),
+        Duration.ofSeconds(2),
+        Duration.ofSeconds(90),
+        Duration.ofSeconds(120),
+        Duration.ofSeconds(30),
+        Duration.ofSeconds(90));
   }
 
   @BeforeAll

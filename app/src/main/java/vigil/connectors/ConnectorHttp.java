@@ -4,6 +4,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -39,10 +40,18 @@ class ConnectorHttp implements AutoCloseable {
    * timed-out or interrupted wait aborts the exchange.
    */
   HttpResponse<byte[]> send(HttpRequest request) throws Exception {
+    return send(request, timings.monitoringTest());
+  }
+
+  /**
+   * Sends the request and waits at most {@code timeout} for the complete answer; a timed-out or
+   * interrupted wait aborts the exchange.
+   */
+  HttpResponse<byte[]> send(HttpRequest request, Duration timeout) throws Exception {
     CompletableFuture<HttpResponse<byte[]>> answer =
         client.sendAsync(request, BodyHandlers.ofByteArray());
     try {
-      return answer.get(timings.monitoringTest().toMillis(), TimeUnit.MILLISECONDS);
+      return answer.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
     } catch (TimeoutException e) {
       answer.cancel(true);
       throw e;

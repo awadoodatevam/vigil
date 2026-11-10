@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import java.net.http.HttpConnectTimeoutException;
 import java.net.http.HttpTimeoutException;
 import java.nio.channels.UnresolvedAddressException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -23,6 +24,19 @@ final class FailureReasons {
    * of {@code hidden}.
    */
   static String of(Throwable failure, URI uri, ConnectorTimings timings, List<String> hidden) {
+    return of(failure, uri, timings, timings.monitoringTest(), hidden);
+  }
+
+  /**
+   * The reason for {@code failure} of a call to {@code uri} whose whole-call timeout is {@code
+   * callTimeout}; never a message that contains a value of {@code hidden}.
+   */
+  static String of(
+      Throwable failure,
+      URI uri,
+      ConnectorTimings timings,
+      Duration callTimeout,
+      List<String> hidden) {
     List<Throwable> chain = chain(failure);
     String host = uri.getHost();
     if (any(chain, HttpConnectTimeoutException.class)) {
@@ -35,7 +49,7 @@ final class FailureReasons {
           + " s.";
     }
     if (any(chain, HttpTimeoutException.class) || any(chain, TimeoutException.class)) {
-      return "No answer within " + timings.monitoringTest().toSeconds() + " s.";
+      return "No answer within " + callTimeout.toSeconds() + " s.";
     }
     if (any(chain, UnresolvedAddressException.class) || any(chain, UnknownHostException.class)) {
       return "Host " + host + " not found.";

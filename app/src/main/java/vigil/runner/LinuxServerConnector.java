@@ -66,8 +66,11 @@ class LinuxServerConnector implements TargetConnector {
   private static final AttributeKey<HostKeyCheck> HOST_KEY = new AttributeKey<>();
   private static final String NO_EXIT_STATUS = "the command ended without an exit status";
 
+  private static final String CLOSING = "the application is closing";
+
   private final Secrets secrets;
   private SshClient client;
+  private boolean stopped;
 
   LinuxServerConnector(Secrets secrets) {
     this.secrets = secrets;
@@ -103,6 +106,9 @@ class LinuxServerConnector implements TargetConnector {
         || !hostKey.isString()) {
       return new TargetResult.NotStarted(
           "connector instance " + instance.name() + " has no valid port or host_key_sha256");
+    }
+    if (isStopped()) {
+      return new TargetResult.NotStarted(CLOSING);
     }
     Target target = new Target(instance.address(), port.intValue(), hostKey.stringValue());
     String secret;
@@ -143,9 +149,14 @@ class LinuxServerConnector implements TargetConnector {
       }
       SocketAddress socket =
           new InetSocketAddress(InetAddress.getByAddress(address.getAddress()), target.port());
+      SshClient ssh;
+      try {
+        ssh = client();
+      } catch (IllegalStateException e) {
+        return new TargetResult.NotStarted(CLOSING);
+      }
       ConnectFuture connect =
-          client()
-              .connect(username, socket, AttributeRepository.ofKeyValuePair(HOST_KEY, check), null);
+          ssh.connect(username, socket, AttributeRepository.ofKeyValuePair(HOST_KEY, check), null);
       if (!connect.await(millisUntil(connectEnd)) || !connect.isConnected()) {
         connect.cancel();
         return notConnected(deadline, target);
@@ -283,7 +294,11 @@ class LinuxServerConnector implements TargetConnector {
     return false;
   }
 
+  /** The client, started at first use; none is started once {@link #stop()} was called. */
   private synchronized SshClient client() {
+    if (stopped) {
+      throw new IllegalStateException(CLOSING);
+    }
     if (client == null) {
       SshClient created = SshClient.setUpDefaultClient();
       created.setHostConfigEntryResolver(HostConfigEntryResolver.EMPTY);
@@ -298,8 +313,13 @@ class LinuxServerConnector implements TargetConnector {
     return client;
   }
 
+  private synchronized boolean isStopped() {
+    return stopped;
+  }
+
   @PreDestroy
   synchronized void stop() {
+    stopped = true;
     if (client != null) {
       client.stop();
       client = null;
@@ -307,7 +327,15 @@ class LinuxServerConnector implements TargetConnector {
   }
 
   private static long millisUntil(long end) {
-    return Math.max(1, TimeUnit.NANOSECONDS.toMillis(end - System.nanoTime()));
+    return waitMillis(end - System.nanoTime());
+  }
+
+  /** A remaining wait rounded up to whole milliseconds, at least 1 ms (CTX-D-059 (2) (c)). */
+  static long waitMillis(long remainingNanos) {
+    if (remainingNanos <= 0) {
+      return 1;
+    }
+    return Math.max(1, Math.ceilDiv(remainingNanos, TimeUnit.MILLISECONDS.toNanos(1)));
   }
 
   /** The address, port and pinned host key of an instance. */

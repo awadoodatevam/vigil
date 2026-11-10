@@ -84,4 +84,25 @@ class ParametersTest {
                 .get("max_bytes"))
         .isEqualTo("12884901888");
   }
+
+  @Test
+  @DisplayName("DM-E-12 a non-finite decimal value, min or max is not a number")
+  void nonFiniteDecimals() {
+    JsonNode definitions =
+        RunnerFixture.JSON.readTree(
+            "[{\"name\":\"ratio\",\"value_type\":\"decimal\",\"required\":true,\"min\":0}]");
+    assertThat(Parameters.valueProblems("custom", definitions, "{\"ratio\": 1e400}"))
+        .containsExactly("parameter ratio: not a number");
+    assertThat(Parameters.valueProblems("custom", definitions, "{\"ratio\": -1e400}"))
+        .containsExactly("parameter ratio: not a number");
+    assertThat(
+            Parameters.definitionProblems(
+                "operations[0].parameters",
+                RunnerFixture.JSON.readTree(
+                    "[{\"name\":\"ratio\",\"value_type\":\"decimal\",\"required\":true,"
+                        + "\"min\":1e400,\"max\":-1e400}]")))
+        .containsExactly(
+            "operations[0].parameters[0].min: not a number",
+            "operations[0].parameters[0].max: not a number");
+  }
 }
