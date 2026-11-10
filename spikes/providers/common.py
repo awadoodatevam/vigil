@@ -1,10 +1,11 @@
-"""Shared parts of the provider spikes of P-06 (spec Sections 6.1 and 6.2): secrets, HTTP calls, recordings, results.
+"""Shared parts of the provider spikes of P-06 (spec Sections 6.1 and 6.2) and P-07 (spec Sections 6.1 and 6.6):
+secrets, HTTP calls, recordings, results, the owner's questions.
 
 Every spike runs in this order: read and check its arguments, inputs and secrets (a failure raises Stop and changes no
 file); remove the *.json files of its recording folder; make its calls, writing each recording as soon as the call
 ends; write its result file {package}-{spike}.json ({package} P-06, or P-20 with run.sh --package P-20; P-20 spec
-Section 6.14). No secret value is printed, logged or written: every file is checked before it is written (SecretInFile
-stops the spike, and nothing more is written).
+Section 6.14; P-07 for the spikes of P-07). No secret value is printed, logged or written: every file is checked
+before it is written (SecretInFile stops the spike, and nothing more is written).
 """
 
 import base64
@@ -210,12 +211,12 @@ class Answer:
             return None
 
 
-def call_http(call, base, method, path, headers, body, timeout):
+def call_http(call, base, method, path, headers, body, timeout, user_agent=USER_AGENT):
     """Makes one HTTP call with urllib; any HTTP status is an answer, a connection failure or timeout is an error.
 
-    headers is a list of (name, value) as the spike sets them; User-Agent is added. body is a text or None.
+    headers is a list of (name, value) as the spike sets them; User-Agent (user_agent) is added. body is a text or None.
     """
-    headers = list(headers) + [("User-Agent", USER_AGENT)]
+    headers = list(headers) + [("User-Agent", user_agent)]
     data = None if body is None else body.encode("utf-8")
     request = urllib.request.Request(base + path, data=data, method=method)
     for name, value in headers:
@@ -273,6 +274,14 @@ class Guard:
                 raise SecretInFile(path)
         if self.email and self.email.lower() in text.lower():
             raise SecretInFile(path)
+
+    def redact(self, text):
+        """The text with every value the guard holds (secrets, the email and the account forms) as <redacted>."""
+        for value in sorted(self.secrets + self.account_forms(), key=len, reverse=True):
+            text = text.replace(value, "<redacted>")
+        if self.email:
+            text = re.sub(re.escape(self.email), "<redacted>", text, flags=re.IGNORECASE)
+        return text
 
     def clean(self, text):
         """Rule 3: the Jira site, the account's email and its account ID replaced in a body text."""
@@ -345,7 +354,7 @@ class Recorder:
                 text = json.dumps(redact_personal(parsed), ensure_ascii=False)
         return self.guard.clean(text)
 
-    def record(self, answer):
+    def record(self, answer, url=None):
         self.count += 1
         response = None
         if answer.answered:
@@ -361,7 +370,7 @@ class Recorder:
             "duration_ms": answer.duration_ms,
             "request": {
                 "method": answer.method,
-                "url": self.placeholder + answer.path,
+                "url": url if url is not None else self.placeholder + answer.path,
                 "headers": recorded_headers(answer.headers),
                 "body": self.body(answer.body),
             },
@@ -375,9 +384,10 @@ class Recorder:
 class Run:
     """The checks and the result file of one spike run."""
 
-    def __init__(self, spike, guard):
+    def __init__(self, spike, guard, package=None):
         self.spike = spike
         self.guard = guard
+        self.package = package
         self.started = utc_now()
         self.run_id = run_id(self.started)
         self.checks = []
@@ -408,10 +418,47 @@ class Run:
             "checks": self.checks,
         }
         content.update(own)
-        path = results_folder() / f"{result_package()}-{self.spike}.json"
+        path = results_folder() / f"{self.package or result_package()}-{self.spike}.json"
         write_checked(path, json.dumps(content, indent=2, ensure_ascii=False) + "\n", self.guard)
         print(f"result: {path}", flush=True)
         return 0 if self.all_passed else 1
+
+
+# ---------------------------------------------------------------- the owner's questions (P-07 spec Section 6.6)
+class NoAnswer(Exception):
+    """Standard input ended at a question: the spike asks and sends nothing more."""
+
+
+PROMPTS = {"yes_no": "(y or n) ", "enter_or_no": "(Enter, or n) ", "enter": "(Enter) ", "text": "> "}
+
+
+def ask(question, lines=(), *, kind):
+    """Prints the question and its lines, then reads the answer of its kind from standard input.
+
+    yes_no: true for y or yes, false for n or no; enter_or_no: true for an empty answer, false for n or no; enter: true
+    for any answer; text: the answer stripped. Any other answer to yes_no or enter_or_no prints the prompt again. An end
+    of input raises NoAnswer.
+    """
+    prompt = PROMPTS[kind]
+    print(question, flush=True)
+    for line in lines:
+        print(f"  {line}", flush=True)
+    while True:
+        try:
+            answer = input(prompt)
+        except EOFError:
+            raise NoAnswer() from None
+        word = answer.strip().lower()
+        if kind == "enter":
+            return True
+        if kind == "text":
+            return answer.strip()
+        if kind == "yes_no" and word in ("y", "yes"):
+            return True
+        if word in ("n", "no"):
+            return False
+        if kind == "enter_or_no" and word == "":
+            return True
 
 
 def main_wrapper(body, arguments):

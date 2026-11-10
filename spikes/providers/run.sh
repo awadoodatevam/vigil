@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Runs one provider spike of P-06 on the Mac (spec Section 6.9): jira, claude and openai directly; similarity and
-# local-model through a Systems Manager port forward to vigil-embed on the main host or vigil-llm on the GPU host.
-#   spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20]
+# local-model through a Systems Manager port forward to vigil-embed on the main host or vigil-llm on the GPU host; the
+# P-07 spikes teams and email directly (P-07 spec Section 6.7), with standard input passed on for the owner's answers.
+#   spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20] | teams | email
 # --package P-20 (P-20 spec Section 6.14) writes spikes/results/P-20-{spike}.json and keeps the recordings in a temporary
 # folder, removed at the end, so dev/fakes/recordings/ and the P-06-*.json result files stay as they are.
 # Runs with macOS's bash 3.2; the spikes run in the virtual environment spikes/providers/.venv (Python 3.12).
@@ -12,7 +13,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 . deploy/lib/aws.sh
 
 usage() {
-  echo "Usage: spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20]"
+  echo "Usage: spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20] | teams | email"
   exit 2
 }
 
@@ -21,6 +22,11 @@ if [ "$#" -ne 1 ] && { [ "$#" -ne 3 ] || [ "$2" != --package ] || [ "$3" != P-20
 fi
 case "$1" in
   jira | claude | openai | similarity | local-model) ;;
+  teams | email)
+    if [ "$#" -ne 1 ]; then
+      usage
+    fi
+    ;;
   *) usage ;;
 esac
 spike=$1
@@ -56,6 +62,10 @@ case "$spike" in
     ;;
   claude | openai)
     "$PY" spikes/providers/ai_spike.py "$spike" || code=$?
+    exit "$code"
+    ;;
+  teams | email)
+    "$PY" "spikes/providers/${spike}_spike.py" || code=$?
     exit "$code"
     ;;
 esac
