@@ -112,5 +112,7 @@ def test_connection_failure_is_recorded(tmp_path, monkeypatch, capsys):
     checks = {check["name"]: check for check in result["checks"]}
     assert checks["sl-t-1-status"]["detail"] == recording["error"]
     assert checks["sl-t-1-stop"]["detail"] == "not run"
+    assert checks["sl-t-1-accepted"]["detail"] == "not run"
     assert result["calls"][0]["status"] is None
+    assert result["calls"][0]["rejection_reasons"] is None
     assert result["started_at"].endswith("Z") and len(result["run_id"]) == 16

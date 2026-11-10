@@ -1,7 +1,8 @@
 """The Claude and OpenAI spike (P-06 spec Section 6.5; AR-G-20 to AR-G-22, AR-G-14).
 
 Sends the SL-T-1 and SL-T-2 structured-output requests, a truncated request, (OpenAI) the embeddings call, and a call
-with an invalid key, and checks the answers and their usage fields. Usage: ai_spike.py claude|openai [--address {url}]
+with an invalid key, and checks the answers and their usage fields; the SL-T-1 answer also by the product's output
+checks (P-20 spec Section 6.14). Usage: ai_spike.py claude|openai [--address {url}]
 """
 
 import copy
@@ -15,6 +16,7 @@ import yaml
 USAGE = "Usage: ai_spike.py claude|openai [--address {url}]"
 BASES = {"claude": "https://api.anthropic.com", "openai": "https://api.openai.com"}
 PLACEHOLDERS = {"claude": "${endpoint.claude}", "openai": "${endpoint.openai}"}
+PROVIDER_NAMES = {"claude": "Claude", "openai": "OpenAI"}
 CHAT_TIMEOUT = 90
 EMBED_TIMEOUT = 30
 INVALID_KEY = "invalid-key-p06-spike"
@@ -149,14 +151,20 @@ class AiSpike:
         self.calls.append(entry)
 
     def task_checks(self, task, answer, schema):
-        """The four checks of an SL-T-1 or SL-T-2 call; returns the accepted output or None."""
+        """The checks of an SL-T-1 (five) or SL-T-2 (four) call.
+
+        Returns the output valid for the schema (or None) and, for SL-T-1, the rejection reasons of the product's
+        output checks (None without an answer; P-20 spec Section 6.14).
+        """
         run = self.run
         second = "stop" if self.provider == "claude" else "complete"
-        names = [f"{task}-status", f"{task}-{second}", f"{task}-output", f"{task}-usage"]
+        names = [f"{task}-status", f"{task}-{second}", f"{task}-output"]
+        names += [f"{task}-accepted"] if task == "sl-t-1" else []
+        names += [f"{task}-usage"]
         if not answer.answered:
             run.check(names[0], False, answer.error)
             run.not_run(*names[1:])
-            return None
+            return None, None
         run.check(names[0], answer.status == 200, f"status {answer.status}")
         parsed = answer.json()
         parsed_dict = parsed if isinstance(parsed, dict) else {}
@@ -172,13 +180,23 @@ class AiSpike:
         result = request_data.valid_output(text, schema) if text is not None else "no output text"
         accepted = request_data.is_valid(result)
         run.check(names[2], accepted, "" if accepted else result)
+        reasons = None
+        if task == "sl-t-1":
+            reasons = request_data.rejection_reasons(
+                text,
+                request_data.finish_complete(self.provider, parsed),
+                request_data.EVIDENCE_LABELS,
+                request_data.RUNBOOK_KEYS,
+                True,
+            )
+            run.check(names[3], not reasons, "; ".join(reasons))
         input_units, output_units, _ = self.units(parsed)
         run.check(
-            names[3],
+            names[-1],
             common.positive_integer(input_units) and common.positive_integer(output_units),
             "usage.input_tokens and usage.output_tokens are not positive integers",
         )
-        return result if accepted else None
+        return (result if accepted else None), reasons
 
     # ---------------------------------------------------------------- the run
     def execute(self):
@@ -186,18 +204,24 @@ class AiSpike:
         requests = self.requests
         body_1 = self.chat_body("sl-t-1", requests.parts_sl_t_1(), request_data.MAX_UNITS_SL_T_1)
         answer = self.send("sl-t-1", self.path(), body_1)
-        output_1 = self.task_checks("sl-t-1", answer, request_data.SCHEMA_SL_T_1)
-        self.note(answer, cites_rb_db_01=request_data.cites_rb_db_01(output_1) if output_1 else None)
+        output_1, reasons = self.task_checks("sl-t-1", answer, request_data.SCHEMA_SL_T_1)
+        self.note(
+            answer,
+            cites_rb_db_01=request_data.cites_rb_db_01(output_1) if output_1 else None,
+            rejection_reasons=reasons,
+        )
 
         body_2 = None
         second = "stop" if self.provider == "claude" else "complete"
         if output_1 is None:
             run.not_run("sl-t-2-status", f"sl-t-2-{second}", "sl-t-2-output", "sl-t-2-usage")
         else:
-            parts = requests.parts_sl_t_2(output_1["likely_cause"], output_1["uncertainty"])
+            # Investigation and E4 only for an accepted answer, as the product sends them (P-20 spec Section 6.14).
+            investigation = None if reasons else requests.investigation_text(PROVIDER_NAMES[self.provider], output_1)
+            parts = requests.parts_sl_t_2(output_1["likely_cause"], output_1["uncertainty"], investigation)
             body_2 = self.chat_body("sl-t-2", parts, request_data.MAX_UNITS_SL_T_2)
             answer = self.send("sl-t-2", self.path(), body_2)
-            output_2 = self.task_checks("sl-t-2", answer, request_data.SCHEMA_SL_T_2)
+            output_2, _ = self.task_checks("sl-t-2", answer, request_data.SCHEMA_SL_T_2)
             self.note(answer, summary_length=len(output_2["summary"]) if output_2 else None)
 
         truncated_body = self.truncate(body_1)

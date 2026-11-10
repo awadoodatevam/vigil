@@ -26,6 +26,7 @@ INSTANCES = {
     "i-0gpu": {"Name": "vigil-demo-gpu", "State": "running"},
 }
 EMBED_ADDRESS = "172.30.0.7"
+USAGE = "Usage: spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20]\n"
 
 
 def executable(path, text):
@@ -163,7 +164,7 @@ def test_usage_and_identity(tmp_path):
     for arguments in ([], ["teams"], ["jira", "claude"]):
         result = root.run(*arguments)
         assert result.returncode == 2
-        assert result.stdout == "Usage: spikes/providers/run.sh jira|claude|openai|similarity|local-model\n"
+        assert result.stdout == USAGE
     root.seed(instances=INSTANCES, errors={"sts get-caller-identity": "ExpiredToken"})
     result = root.run("jira")
     assert result.returncode == 1
@@ -218,6 +219,69 @@ def test_local_model_through_forward(tmp_path):
     assert check_forward(root, "10.40.1.20") == "i-0gpu"
     assert json.loads((root.results / "P-06-SB-T-04.json").read_text())["passed"] is True
     assert fake.chats == 5
+
+
+def test_package_p20(tmp_path):
+    """AR-G-12 run.sh local-model --package P-20 writes P-20-SB-T-04.json, no P-06 result file and no recording under
+    dev/fakes/recordings/ or the recording folder of the environment; its temporary recording folder is removed."""
+    root = Root(tmp_path)
+    temporary = tmp_path / "tmp"
+    temporary.mkdir()
+    fake = test_local_model_spike.FakeOllama()
+    with spike_fakes.FakeServer(fake) as server:
+        result = root.run(
+            "local-model",
+            "--package",
+            "P-20",
+            FAKE_AWS_FORWARD=server.address.removeprefix("http://"),
+            TMPDIR=str(temporary),
+        )
+    assert result.returncode == 0, result.stdout + result.stderr
+    path = root.results / "P-20-SB-T-04.json"
+    assert result.stdout.splitlines()[-1] == f"result: {path}"
+    assert sorted(item.name for item in root.results.iterdir()) == ["P-20-SB-T-04.json"]
+    content = json.loads(path.read_text())
+    assert content["passed"] is True
+    assert content["rejection_reasons"] == [[]] * 5
+    assert fake.chats == 5
+    assert not root.recordings.exists()
+    assert not (root.root / "dev").exists()
+    assert list(temporary.iterdir()) == []
+    check_forward(root, "10.40.1.20")
+
+
+def test_package_p20_direct_spike(tmp_path):
+    """AR-G-12 run.sh jira --package P-20 sets the package and a temporary recording folder, removed when it stops."""
+    root = Root(tmp_path)
+    temporary = tmp_path / "tmp"
+    temporary.mkdir()
+    result = root.run("jira", "--package", "P-20", TMPDIR=str(temporary))
+    assert result.returncode == 1
+    assert result.stdout == "Missing secret /vigil/demo/jira (AR-S-13).\n"
+    assert list(temporary.iterdir()) == []
+    assert not root.results.exists() and not root.recordings.exists()
+
+
+def test_package_wrong_values(tmp_path):
+    """AR-G-12 run.sh with another package value or count of arguments prints the usage line and exits 2."""
+    root = Root(tmp_path)
+    temporary = tmp_path / "tmp"
+    temporary.mkdir()
+    for arguments in (
+        ["claude", "--package"],
+        ["claude", "--package", "P-21"],
+        ["claude", "--package", "p-20"],
+        ["claude", "--pkg", "P-20"],
+        ["claude", "P-20"],
+        ["--package", "P-20", "claude"],
+        ["claude", "--package", "P-20", "extra"],
+        ["teams", "--package", "P-20"],
+    ):
+        result = root.run(*arguments, TMPDIR=str(temporary))
+        assert result.returncode == 2, arguments
+        assert result.stdout == USAGE
+    assert list(temporary.iterdir()) == []
+    assert root.state().get("calls", []) == []
 
 
 def embed_answers(request):

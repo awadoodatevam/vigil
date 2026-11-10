@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Runs one provider spike of P-06 on the Mac (spec Section 6.9): jira, claude and openai directly; similarity and
 # local-model through a Systems Manager port forward to vigil-embed on the main host or vigil-llm on the GPU host.
-#   spikes/providers/run.sh jira|claude|openai|similarity|local-model
+#   spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20]
+# --package P-20 (P-20 spec Section 6.14) writes spikes/results/P-20-{spike}.json and keeps the recordings in a temporary
+# folder, removed at the end, so dev/fakes/recordings/ and the P-06-*.json result files stay as they are.
 # Runs with macOS's bash 3.2; the spikes run in the virtual environment spikes/providers/.venv (Python 3.12).
 set -euo pipefail
 
@@ -10,11 +12,11 @@ cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 . deploy/lib/aws.sh
 
 usage() {
-  echo "Usage: spikes/providers/run.sh jira|claude|openai|similarity|local-model"
+  echo "Usage: spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20]"
   exit 2
 }
 
-if [ "$#" -ne 1 ]; then
+if [ "$#" -ne 1 ] && { [ "$#" -ne 3 ] || [ "$2" != --package ] || [ "$3" != P-20 ]; }; then
   usage
 fi
 case "$1" in
@@ -22,6 +24,13 @@ case "$1" in
   *) usage ;;
 esac
 spike=$1
+recordings=
+if [ "$#" -eq 3 ]; then
+  recordings=$(mktemp -d)
+  # shellcheck disable=SC2064 # the folder is fixed now
+  trap "rm -rf '$recordings'" EXIT
+  export VIGIL_SPIKE_PACKAGE=P-20 VIGIL_SPIKE_RECORDINGS="$recordings"
+fi
 check_identity
 
 if ! command -v python3.12 > /dev/null 2>&1; then
@@ -82,8 +91,12 @@ aws ssm start-session --target "$HOST_ID" --document-name AWS-StartPortForwardin
   < /dev/null > "$log" 2>&1 &
 forward=$!
 set +m
-# shellcheck disable=SC2064 # the process group and the folder are fixed now
-trap "kill -TERM -- -$forward 2> /dev/null || true; rm -rf '$work'" EXIT
+remove="rm -rf '$work'"
+if [ -n "$recordings" ]; then
+  remove="$remove '$recordings'"
+fi
+# shellcheck disable=SC2064 # the process group and the folders are fixed now
+trap "kill -TERM -- -$forward 2> /dev/null || true; $remove" EXIT
 
 attempt=0
 until "$PY" -c '
