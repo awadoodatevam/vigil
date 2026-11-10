@@ -2,6 +2,7 @@
 
 import json
 import secrets
+import shutil
 import socket
 import urllib.parse
 
@@ -376,3 +377,63 @@ def test_teams_link_rule():
     assert teams_spike.link_detail(wrapped.replace("https", "http", 1), link) == "the pasted link is not the link sent"
     assert teams_spike.link_detail("http://[::1", link) == "the pasted link is not the link sent"
     assert teams_spike.link_detail(link + "/", link) == "the pasted link is not the link sent"
+
+
+def test_teams_secrets(tmp_path, monkeypatch, capsys):
+    """AR-S-13 a missing teams-* parameter, or a webhook value that is not an https address with a host (an http one
+    for a host other than 127.0.0.1, one with whitespace), stops with the AR-S-13 message before any file changes."""
+    setup = spike_fakes.prepare(tmp_path, monkeypatch)
+    for key in KEYS[:3]:
+        setup.secret(SECRETS[key], f"https://example.test/{key}?sig={signature()}")
+    assert teams_spike.main([]) == 1
+    assert capsys.readouterr().out == "Missing secret /vigil/demo/teams-team-it-apps (AR-S-13).\n"
+    for key in KEYS:
+        setup.secret(SECRETS[key], f"https://example.test/{key}?sig={signature()}")
+    setup.parameters.pop("/vigil/demo/teams-user-dbops-lead")
+    setup.save()
+    assert teams_spike.main([]) == 1
+    assert capsys.readouterr().out == "Missing secret /vigil/demo/teams-user-dbops-lead (AR-S-13).\n"
+    for value in (
+        "",
+        "not an address",
+        "ftp://example.test/x",
+        "https://",
+        "https:///path",
+        "http://example.test/x?sig=1",
+        "http://127.0.0.2/x",
+        "https://example.test/a b",
+        " https://example.test/x",
+        "https://[::1/x",
+    ):
+        setup.secret("teams-team-db-ops", value)
+        assert teams_spike.main([]) == 1, value
+        assert capsys.readouterr().out == "Secret /vigil/demo/teams-team-db-ops is not valid (AR-S-13).\n"
+    setup.secret("teams-team-db-ops", "http://127.0.0.1:1/db-ops?sig=x")
+    assert teams_spike.webhook_valid("http://127.0.0.1:1/db-ops?sig=x")
+    assert setup.changed_files() == []
+
+
+def test_teams_inputs(tmp_path, monkeypatch, capsys):
+    """SB-T-06 not nine Teams delivery addresses, or one without its address, stops before any file changes."""
+    setup = spike_fakes.prepare(tmp_path, monkeypatch)
+    data = tmp_path / "root"
+    shutil.copytree(common.ROOT / "docs" / "31-demo-data", data / "docs" / "31-demo-data")
+    settings = data / "docs" / "31-demo-data" / "07-settings.yaml"
+    original = settings.read_text()
+    monkeypatch.setattr(common, "ROOT", data)
+    settings.write_text(
+        "".join(
+            line for line in original.splitlines(True) if "subject_key: dbops-lead,         channel: teams" not in line
+        )
+    )
+    assert teams_spike.main([]) == 1
+    assert capsys.readouterr().out == "07-settings.yaml has not 9 Teams delivery addresses (DD-F-07).\n"
+    settings.write_text(original.replace('address: "Techfinity Demo / IT Applications", ', ""))
+    assert teams_spike.main([]) == 1
+    assert capsys.readouterr().out == "docs/31-demo-data/07-settings.yaml has no delivery_addresses[6].address.\n"
+    settings.write_text(original.replace('locator: "secret:teams-team-db-ops"', 'locator: "teams-team-db-ops"'))
+    assert teams_spike.main([]) == 1
+    assert capsys.readouterr().out == (
+        "docs/31-demo-data/07-settings.yaml has no credential_references.cred-teams-db-ops.locator.\n"
+    )
+    assert setup.changed_files() == []
