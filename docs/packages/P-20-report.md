@@ -6,7 +6,7 @@
 | Branch | `p-20-knowledge-investigation` |
 | Pin date (BP-R-08) | 10 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (Temurin 25) |
-| State | Built; the gate command passes in this session (Section 10). **The owner-run step of spec Section 6.14 is still to be done before the merge** (Section 8). |
+| State | Built; the gate command passes in this session (Section 10). Owner-run results recorded (Section 8): Claude and OpenAI pass; the local-model run is deferred to P-34's SB-T-04 by owner decision (CTX-D-065, to be recorded by the owner). |
 
 ## 1. What was built
 
@@ -100,16 +100,19 @@ None (spec Section 9).
 
 ## 8. Owner-run results
 
-**Pending.** The owner-run step of spec Section 6.14 (BP-E-03, BP-E-05) is to be done from the Mac before the merge:
+Owner-run step of spec Section 6.14 (BP-E-03, BP-E-05), run by the owner from the Mac on 10 Nov 2026 and committed as `11d8de4` (`spikes/results/P-20-claude.json`, `spikes/results/P-20-openai.json`).
 
-1. `deploy/gpu.sh start` (waits until `vigil-llm` answers).
-2. `spikes/providers/run.sh claude --package P-20`
-3. `spikes/providers/run.sh openai --package P-20`
-4. `spikes/providers/run.sh local-model --package P-20`
-5. `deploy/gpu.sh stop`
-6. Commit `spikes/results/P-20-claude.json`, `P-20-openai.json` and `P-20-SB-T-04.json` to this branch, then start a cloud session on the branch with the prompt "Record the owner-run results of P-20", which copies into this section, per provider, whether each SL-T-1 answer was accepted, its rejection reasons, whether it cites RB-DB-01, the SL-T-2 summary length and the local model's durations.
+| Provider, model as the spike sends it from `07-settings.yaml` (result file, run id) | SL-T-1 answer accepted (`sl-t-1-accepted`) | Rejection reasons | Cites RB-DB-01 | SL-T-2 summary length | Other checks |
+| --- | --- | --- | --- | --- | --- |
+| Claude, `claude-sonnet-5-5` (`P-20-claude.json`, `20261110T165700Z`) | Yes (passed) | none (`[]`) | Yes | 574 characters | all 11 checks passed (`passed` true); SL-T-1 5.3 s, 11,225 input and 412 output units |
+| OpenAI, `gpt-6.1-sol` (`P-20-openai.json`, `20261110T165754Z`) | Yes (passed) | none (`[]`) | Yes | 496 characters | all 14 checks passed (`passed` true); SL-T-1 11.6 s, 7,226 input and 319 output units (112 reasoning) |
+| Local model, `gemma4:12b` (`P-20-SB-T-04.json`) | **Not run — deferred** | — | — | — | — |
 
-Pass (CTX-D-064 (2)): Claude's and OpenAI's `sl-t-1-accepted` passed, and at least 4 of the 5 local-model answers accepted, each within 45 s. When that is not met, it is recorded here as a blocking question and the owner decides.
+The cost of the two runs together is 0.090424 USD by the spikes' own computation (Claude 0.053918, OpenAI 0.036506).
+
+**Local model: not run, deferred.** By owner decision of 10 Nov 2026 (to be recorded by the owner as CTX-D-065), the `local-model` run with `--package P-20` is deferred to P-34's SB-T-04. `spikes/results/P-20-SB-T-04.json` is therefore not on the branch, and the local model's acceptance and durations are not measured by this package.
+
+Pass rule of spec Section 6.14 (CTX-D-064 (2)): Claude's and OpenAI's `sl-t-1-accepted` passed — **met**. The local-model part (at least 4 of the 5 answers accepted, each within 45 s) is **not judged here**; it is deferred to P-34 by the owner's decision above. No blocking question is raised (Section 5).
 
 ## 9. Lines of production code added and changed
 
@@ -119,9 +122,9 @@ Pass (CTX-D-064 (2)): Claude's and OpenAI's `sl-t-1-accepted` passed, and at lea
 
 Cloud session (`tools/check-all.sh`): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 1a built the local images. Step 2: `vigil-app` 172 unit tests and 576 `*IT` (every earlier test passes; the changed tests only as spec 6.13, spec 7 and deviation 6); `demo-control` 1 and 2; the web build, lint, type check and Vitest pass. Step 3: `ruff` clean; 242 Python tests passed and 1 skipped, the pytest lab tests included (this package changes `spikes/`, CTX-D-036). Step 4: `shellcheck`. Step 5: 49 data checks, 0 failed. Step 6: compose validation. Step 7: `tools/trace.py --check`.
 
-The gate ran on the tree of commit `0de0e8f`; the later commits change only this report. GitHub: the `ci.yml` job `gate` runs on the pull request.
+The gate ran on the tree of commit `0de0e8f`; the later commits change only this report and add the two owner-run result files `spikes/results/P-20-claude.json` and `P-20-openai.json` (no code). GitHub: the `ci.yml` job `gate` runs on the pull request.
 
-Done-check (spec Section 8): (1) BP-DC-01 to BP-DC-07: every part 4 row with proof `test` has a test that names it; the rows checked by review are listed in Section 1; nothing beyond the spec (no API operation, no screen, no setting); AR-Q-01 to AR-Q-09 pass, the new entry points are in `ExternalCallGuardIT`, the two listeners in the double-delivery test of `ReembeddingIT`; two migrations named as AR-P-05; no OpenAPI operation; the `README.md` and `CLAUDE.md` lines of spec 6.13; this report. (2) `ApplicationModules.verify()` passes with every module's dependencies unchanged (`ModuleStructureTest`). (3) `git diff origin/main -- dev/fakes/recordings spikes/results/P-06-*.json` is empty. (4) **Open:** the three owner-run result files are not yet on the branch (Section 8). (5) Section 9.
+Done-check (spec Section 8): (1) BP-DC-01 to BP-DC-07: every part 4 row with proof `test` has a test that names it; the rows checked by review are listed in Section 1; nothing beyond the spec (no API operation, no screen, no setting); AR-Q-01 to AR-Q-09 pass, the new entry points are in `ExternalCallGuardIT`, the two listeners in the double-delivery test of `ReembeddingIT`; two migrations named as AR-P-05; no OpenAPI operation; the `README.md` and `CLAUDE.md` lines of spec 6.13; this report. (2) `ApplicationModules.verify()` passes with every module's dependencies unchanged (`ModuleStructureTest`). (3) `git diff origin/main -- dev/fakes/recordings spikes/results/P-06-*.json` is empty. (4) `spikes/results/P-20-claude.json` and `P-20-openai.json` are on the branch and Section 8 records them against the pass rule of spec Section 6.14 (met); `P-20-SB-T-04.json` is not run, deferred to P-34's SB-T-04 by owner decision of 10 Nov 2026 (CTX-D-065, to be recorded by the owner). (5) Section 9.
 
 ## 11. Follow-up items for later packages
 
@@ -131,5 +134,5 @@ Done-check (spec Section 8): (1) BP-DC-01 to BP-DC-07: every part 4 row with pro
 4. P-23: `KnowledgeService.pastIncidents` (DM-R-52, DM-R-53).
 5. P-24: `KnowledgeService.latestSearchResult` (DM-E66-R2) and `pastIncident`; the key check of part 8 against part 14 (`fix_action_key`).
 6. P-36: `KnowledgeService.latestSearchResult` for test-mode outputs (DM-R-48).
-7. P-34: the citation rate and summary length runs of SB-T-02 on the demo installation.
+7. P-34: the citation rate and summary length runs of SB-T-02 on the demo installation; and, by owner decision of 10 Nov 2026 (CTX-D-065), the local-model run of P-20's owner-run step as part of SB-T-04: `gemma4:12b` against the product's SL-T-1 request (spec 6.10) with PM-M17-03's checks, pass when at least 4 of 5 answers are accepted, each within 45 s (AR-G-12, AR-G-32); `spikes/providers/run.sh local-model --package P-20` gives that run.
 8. Tests of later packages that import the full demo bundle now make part 8's embedding call: point `endpoint.local_embedding` at `TestEmbedding.shared().address()` (as `SeedTests.demoEntries` and `InstallationIT.demoEntries` do).
