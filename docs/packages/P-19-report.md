@@ -6,7 +6,7 @@
 | Branch | `p-19-ai-gateway-connectors` |
 | Pin date (BP-R-08) | 10 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (Temurin 25) |
-| State | Built; GATE_STATE |
+| State | Built; the gate command passes in this session (without the pytest lab tests, CTX-D-036); the `ci.yml` job `gate` runs on the pull request |
 
 ## 1. What was built
 
@@ -103,7 +103,9 @@ None (no owner-run step; the gate makes no call to a real provider).
 
 ## 10. Gate command result
 
-GATE_RESULT
+Cloud session (`tools/check-all.sh`): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 1a built the local images. Step 2: `vigil-app` 156 unit tests and 522 `*IT` (every earlier test passes; the changed tests only as spec 6.10 and spec 7), among them `DiagnosticStepIT` on `vigil/demo-lab:local`; `demo-control` 1 and 2; the web build, lint, type check and Vitest pass. Step 3: `ruff` clean, 158 Python tests passed, 1 skipped and 35 deselected (no file under `demo/`, `deploy/`, `dev/`, `spikes/`, `tools/` or `docs/31-demo-data/` changed, so the lab tests did not run, CTX-D-036). Step 4: `shellcheck`. Step 5: 49 data checks, 0 failed. Step 6: compose validation. Step 7: `tools/trace.py --check`.
+
+The gate ran on the tree of commit `1a10c25`; the later commits change only this report. GitHub: the `ci.yml` job `gate` runs on the pull request.
 
 Done-check (spec Section 8): (1) BP-DC-01 to BP-DC-07: every part 4 row with proof `test` has a test that names it, the rows checked by review are listed in Section 1; nothing beyond the spec (no API operation, no screen, no setting); AR-Q-01 to AR-Q-09 pass, the new external entry points are in `ExternalCallGuardIT`; one migration named as AR-P-05; no OpenAPI operation; no `README.md` or `CLAUDE.md` command change; this report. (2) Each copied recordings folder is byte-identical to its folder under `dev/fakes/recordings/` (`diff -r` per folder, no output). (3) `ApplicationModules.verify()` passes with the gateway's dependencies unchanged (`ModuleStructureTest`). (4) Section 9.
 
