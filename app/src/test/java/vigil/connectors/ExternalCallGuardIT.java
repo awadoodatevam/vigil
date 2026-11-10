@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -442,5 +443,124 @@ class ExternalCallGuardIT {
                 .run(tenantA, guardInstance(), credential, "true", Duration.ofSeconds(1)))
         .isEqualTo(
             new TargetResult.NotStarted("Credential reference " + credential + " not found."));
+  }
+
+  /** A tenant of {@code InvestigationFixture}: claude at WireMock, an open incident. */
+  private static Object[] investigationTenant(String name) {
+    vigil.investigation.InvestigationFixture f =
+        vigil.investigation.InvestigationFixture.create(
+            app,
+            name,
+            name.toLowerCase(java.util.Locale.ROOT).replace(' ', '-') + ".guard.test",
+            Map.of("claude-api", "http://127.0.0.1:" + wiremock.port()),
+            java.util.function.UnaryOperator.identity(),
+            vigil.setup.KnowledgeParts.demoPart());
+    UUID incident =
+        f.openIncident(
+            List.<String[]>of(
+                new String[] {"disk_full", "Disk full", "srv-db-01", "Disk full on srv-db-01"}),
+            "srv-db-01");
+    return new Object[] {f, incident};
+  }
+
+  private static vigil.knowledge.api.SearchRequest search(TenantId tenant) {
+    return new vigil.knowledge.api.SearchRequest(
+        tenant, Ids.newId(), null, List.of("disk_full"), List.of(), "srv-db-01");
+  }
+
+  private static void claudeAnswer() {
+    wiremock.stubFor(
+        post(urlEqualTo("/v1/messages"))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        "{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"summary\\\":"
+                            + "\\\"s\\\"}\"}],\"stop_reason\":\"end_turn\","
+                            + "\"usage\":{\"input_tokens\":1,\"output_tokens\":1}}")));
+  }
+
+  @Test
+  @DisplayName(
+      "AR-Q-04 the knowledge and investigation entry points refuse to run in a transaction")
+  void knowledgeAndInvestigationEntryPoints() {
+    Object[] tenant = investigationTenant("Guard K1");
+    vigil.investigation.InvestigationFixture f =
+        (vigil.investigation.InvestigationFixture) tenant[0];
+    UUID incident = (UUID) tenant[1];
+    claudeAnswer();
+    vigil.knowledge.api.KnowledgeService knowledge =
+        app.context().getBean(vigil.knowledge.api.KnowledgeService.class);
+    vigil.knowledge.api.KnowledgeImport knowledgeImport =
+        app.context().getBean(vigil.knowledge.api.KnowledgeImport.class);
+    vigil.investigation.api.InvestigationStepHandler step =
+        app.context().getBean(vigil.investigation.api.InvestigationStepHandler.class);
+    Map<String, Supplier<Object>> entryPoints = new LinkedHashMap<>();
+    entryPoints.put("KnowledgeService.search", () -> knowledge.search(search(f.tenant)));
+    entryPoints.put(
+        "KnowledgeImport.importPart",
+        () ->
+            knowledgeImport.importPart(
+                new TenantId(Ids.newId()),
+                vigil.setup.KnowledgeParts.demoPart(),
+                Instant.now(),
+                Map.of()));
+    entryPoints.put(
+        "InvestigationStepHandler.start",
+        () -> step.start(f.call(Ids.newId(), incident, Ids.newId(), "SL-T-1")));
+    entryPoints.put(
+        "InvestigationStepHandler.evaluate",
+        () -> step.evaluate(f.call(Ids.newId(), incident, Ids.newId(), "SL-T-3")));
+    vigil.testsupport.TestEmbedding embedding = vigil.testsupport.TestEmbedding.shared();
+    for (Map.Entry<String, Supplier<Object>> entry : entryPoints.entrySet()) {
+      wiremock.resetRequests();
+      int before = embedding.requestCount();
+      assertThatThrownBy(() -> transaction.execute(status -> entry.getValue().get()))
+          .as(entry.getKey())
+          .isInstanceOf(IllegalStateException.class)
+          .hasMessage("external call inside a transaction");
+      wiremock.verify(0, anyRequestedFor(anyUrl()));
+      assertThat(embedding.requestsSince(before)).as(entry.getKey()).isEmpty();
+    }
+  }
+
+  @Test
+  @DisplayName("AR-R-09 outside a transaction the knowledge and investigation calls are made")
+  void knowledgeAndInvestigationOutsideTransaction() {
+    Object[] tenant = investigationTenant("Guard K2");
+    vigil.investigation.InvestigationFixture f =
+        (vigil.investigation.InvestigationFixture) tenant[0];
+    UUID incident = (UUID) tenant[1];
+    claudeAnswer();
+    vigil.testsupport.TestEmbedding embedding = vigil.testsupport.TestEmbedding.shared();
+    int before = embedding.requestCount();
+    assertThat(
+            app.context()
+                .getBean(vigil.knowledge.api.KnowledgeService.class)
+                .search(search(f.tenant)))
+        .isInstanceOf(vigil.knowledge.api.SearchResult.Searched.class);
+    assertThat(embedding.requestsSince(before)).hasSize(1);
+    vigil.investigation.api.InvestigationStepHandler step =
+        app.context().getBean(vigil.investigation.api.InvestigationStepHandler.class);
+    wiremock.resetRequests();
+    step.start(f.call(Ids.newId(), incident, Ids.newId(), "SL-T-1"));
+    wiremock.verify(1, postRequestedFor(urlEqualTo("/v1/messages")));
+    before = embedding.requestCount();
+    step.evaluate(f.call(Ids.newId(), incident, Ids.newId(), "SL-T-3"));
+    assertThat(embedding.requestsSince(before)).hasSize(1);
+    vigil.knowledge.KnowledgeFixture second =
+        vigil.knowledge.KnowledgeFixture.create(
+            app,
+            "Guard K3",
+            "guard-k3.guard.test",
+            Map.of(),
+            java.util.function.UnaryOperator.identity(),
+            null);
+    before = embedding.requestCount();
+    app.context()
+        .getBean(vigil.knowledge.api.KnowledgeImport.class)
+        .importPart(second.tenant, vigil.setup.KnowledgeParts.demoPart(), Instant.now(), Map.of());
+    assertThat(embedding.requestsSince(before)).hasSize(1);
   }
 }

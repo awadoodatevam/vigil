@@ -186,7 +186,7 @@ class SeedImportIT {
     }
   }
 
-  /** The key check of the main app: referring part 3, target part 8; records its calls. */
+  /** The key check of the main app: referring part 3, target part 13; records its calls. */
   static final class RecordingCheck implements SeedKeyCheck {
 
     final List<TenantId> calls = new CopyOnWriteArrayList<>();
@@ -198,7 +198,7 @@ class SeedImportIT {
 
     @Override
     public int targetPart() {
-      return 8;
+      return 13;
     }
 
     @Override
@@ -418,9 +418,7 @@ class SeedImportIT {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
           .isEqualTo(
-              number <= 7 || (number >= 9 && number <= 12) || number == 16
-                  ? PartOutcome.SUCCEEDED
-                  : PartOutcome.NOT_STARTED);
+              number <= 12 || number == 16 ? PartOutcome.SUCCEEDED : PartOutcome.NOT_STARTED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.READY);
     TenantSettingsView settings = main.tenants().settings(view.tenantId());
@@ -536,6 +534,8 @@ class SeedImportIT {
                 3,
                 "data_routing_rules",
                 6));
+    assertThat(part(view, 8).counts())
+        .isEqualTo(Map.of("runbooks", 7, "past_incidents", 50, "knowledge_settings", 1));
     assertThat(part(view, 9).counts()).isEqualTo(Map.of("incident_settings", 1));
     assertThat(part(view, 10).counts()).isEqualTo(Map.of("correlation_settings", 1));
     assertThat(part(view, 11).counts()).isEqualTo(Map.of("rules", 3, "escalation_levels", 2));
@@ -615,9 +615,10 @@ class SeedImportIT {
     SeedImportView view =
         main.imported(
             SeedTests.demoBundleWith(
-                SETTINGS, SeedTests.section("knowledge_settings", "knowledge_settings: 3")));
+                "04-operations-actions-recovery.yaml",
+                SeedTests.section("recovery_check_definitions", "recovery_check_definitions: 3")));
     assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
-    assertThat(part(view, 8).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
+    assertThat(part(view, 13).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
   }
 
   @Test
@@ -929,18 +930,18 @@ class SeedImportIT {
                     "closure_check_interval_s: 30", "closure_check_interval_s: 90")));
     assertFailedPart(
         view, 9, "Part incidents refused. incident_settings: closure_check_interval_s: 1 to 60");
-    for (int number : List.of(1, 2, 3, 5, 6, 7)) {
+    for (int number : List.of(1, 2, 3, 5, 6, 7, 8)) {
       assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
   }
 
   @Test
-  @DisplayName("BP-R-29 part 9 is registered; parts 8, 13 to 15 and 17 are not started")
+  @DisplayName("BP-R-29 part 9 is registered; parts 13 to 15 and 17 are not started")
   void incidentsPartRegistered() {
     SeedImportView view = main.imported(SeedTests.demoBundle());
     assertThat(part(view, 9).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
-    for (int number : List.of(8, 13, 14, 15, 17)) {
+    for (int number : List.of(13, 14, 15, 17)) {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
           .isEqualTo(PartOutcome.NOT_STARTED);
@@ -1105,7 +1106,7 @@ class SeedImportIT {
         11,
         "Part routing refused. routing_rule_set_revision_1: Rule 'Critical service affected':"
             + " 'noc-l9' is not an active team.");
-    for (int number : List.of(1, 2, 3, 5, 6, 7, 9, 10)) {
+    for (int number : List.of(1, 2, 3, 5, 6, 7, 8, 9, 10)) {
       assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
@@ -1205,7 +1206,7 @@ class SeedImportIT {
         view,
         10,
         "Part correlation refused. correlation_settings: stability_check_interval_s: 1 to 5");
-    for (int number : List.of(1, 2, 3, 5, 6, 7, 9)) {
+    for (int number : List.of(1, 2, 3, 5, 6, 7, 8, 9)) {
       assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
@@ -1253,7 +1254,7 @@ class SeedImportIT {
         16,
         "Part workflows refused. workflow.version_1.steps[9].parameters.expiry_s:"
             + " 60 to 86400 seconds");
-    for (int number : List.of(1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12)) {
+    for (int number : List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)) {
       assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
@@ -1379,7 +1380,7 @@ class SeedImportIT {
                 SeedTests.replacing("    name: \"Disk usage of /data\"", "    name: \"\"")));
     assertFailedPart(
         view, 12, "Part diagnostics refused. diagnostic_definitions[0].name: 1 to 100 characters");
-    for (int number : List.of(1, 2, 3, 4, 5, 6, 7, 9, 10, 11)) {
+    for (int number : List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)) {
       assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     }
   }
@@ -1467,5 +1468,103 @@ class SeedImportIT {
         .anyMatch(check -> check.referringPart() == 5 && check.targetPart() == 4)
         .anyMatch(check -> check.referringPart() == 12 && check.targetPart() == 4)
         .anyMatch(check -> check.referringPart() == 16 && check.targetPart() == 12);
+  }
+
+  private static final String RUNBOOKS = "08-runbooks.md";
+  private static final String PAST_INCIDENTS = "09-past-incidents.csv";
+  private static final String PI_1002 =
+      "api_latency_high,svc-bundle-purchase,api-bundle,Bundle offer";
+
+  @Test
+  @DisplayName("DM-R-56 the full demo import stores part 8 with its embeddings and usage record")
+  void knowledgePart() {
+    SeedImportView view = main.imported(SeedTests.demoBundle());
+    assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
+    assertThat(part(view, 8).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    assertThat(part(view, 8).counts())
+        .isEqualTo(Map.of("runbooks", 7, "past_incidents", 50, "knowledge_settings", 1));
+    assertThat(rows(main, "knowledge.runbook", view.tenantId())).isEqualTo(7);
+    assertThat(rows(main, "knowledge.past_incident", view.tenantId())).isEqualTo(50);
+    assertThat(rows(main, "knowledge.incident_embedding", view.tenantId())).isEqualTo(50);
+    assertThat(rows(main, "knowledge.knowledge_settings", view.tenantId())).isEqualTo(1);
+    assertThat(
+            main.postgres()
+                .sql(
+                    "SELECT count(*) FROM ai_gateway.ai_usage_record WHERE tenant_id = :t"
+                        + " AND task = 'SL-T-3' AND provider_key = 'local-embed'")
+                .param("t", view.tenantId().value())
+                .query(Long.class)
+                .single())
+        .isEqualTo(1);
+  }
+
+  @Test
+  @DisplayName(
+      "DM-R-60 the key checks of part 8 against parts 6, 5 and 7 fail part 8 and the import")
+  void knowledgeKeyChecks() {
+    SeedImportView type =
+        main.imported(
+            SeedTests.demoBundleWith(
+                RUNBOOKS,
+                SeedTests.replacing(
+                    "| applicable_alert_types | disk_full, disk_space_low, db_write_errors |",
+                    "| applicable_alert_types | disk_full, disk_space_low, db_write_errors,"
+                        + " ghost_alert |")));
+    assertFailedPart(
+        type, 8, "Key check failed: runbook 'RB-DB-01': alert type 'ghost_alert' does not exist");
+    assertThat(main.state(type.tenantId())).isEqualTo(TenantState.FAILED);
+    SeedImportView component =
+        main.imported(
+            SeedTests.demoBundleWith(
+                PAST_INCIDENTS,
+                SeedTests.replacing(PI_1002, PI_1002.replace("api-bundle", "api-ghost"))));
+    assertFailedPart(
+        component,
+        8,
+        "Key check failed: past incident 'PI-1002': component 'api-ghost' does not exist");
+    SeedImportView service =
+        main.imported(
+            SeedTests.demoBundleWith(
+                PAST_INCIDENTS,
+                SeedTests.replacing(PI_1002, PI_1002.replace("svc-bundle-purchase", "svc-ghost"))));
+    assertFailedPart(
+        service,
+        8,
+        "Key check failed: past incident 'PI-1002': service 'svc-ghost' does not exist");
+    List<Map.Entry<String, byte[]>> ghost =
+        SeedTests.changed(
+            SeedTests.demoEntries(),
+            SETTINGS,
+            SeedTests.replacing(
+                "embedding_provider_key: local-embed", "embedding_provider_key: ghost-embed"));
+    SeedImportView provider =
+        main.imported(
+            SeedBundles.zip(
+                SeedTests.changed(
+                    ghost, PAST_INCIDENTS, text -> text.substring(0, text.indexOf('\n') + 1))));
+    assertFailedPart(
+        provider, 8, "Key check failed: knowledge settings: provider 'ghost-embed' does not exist");
+    SeedImportView embedded = main.imported(SeedBundles.zip(ghost));
+    assertFailedPart(
+        embedded,
+        8,
+        "Part knowledge refused. knowledge_settings.embedding_provider_key: the past incidents"
+            + " could not be embedded with ghost-embed (provider_error)");
+  }
+
+  @Test
+  @DisplayName("DM-R-57 a refused part 8 fails the import with the module's problem")
+  void knowledgePartRefused() {
+    SeedImportView view =
+        main.imported(
+            SeedTests.demoBundleWith(
+                RUNBOOKS,
+                SeedTests.replacing(
+                    "| runbook_key | RB-API-01 |\n| version | 1 |",
+                    "| runbook_key | RB-API-01 |\n| version | 0 |")));
+    assertFailedPart(
+        view, 8, "Part knowledge refused. runbooks[0].version: a whole number of at least 1");
+    assertThat(rows(main, "knowledge.runbook", view.tenantId())).isZero();
+    assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
   }
 }

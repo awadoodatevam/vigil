@@ -823,6 +823,9 @@ class IncidentLifecycleIT {
           () -> incidents.setAiStatus(a.tenant, actor, x, AiStatus.AVAILABLE, null, Ids.newId()),
           "setAiStatus is accepted only from vigil-investigation");
       refusedArgument(
+          () -> incidents.recordAiRequestGroup(a.tenant, actor, x, Ids.newId()),
+          "recordAiRequestGroup is accepted only from vigil-investigation");
+      refusedArgument(
           () -> incidents.resolve(a.tenant, actor, x, Ids.newId()),
           "resolve is accepted only from vigil-recovery");
     }

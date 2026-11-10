@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -86,8 +87,8 @@ class KnowledgeImporter implements KnowledgeImport {
                     r == null
                         || r.applicableAlertTypes() == null
                         || r.applicableComponentKinds() == null
-                        || r.applicableAlertTypes().contains(null)
-                        || r.applicableComponentKinds().contains(null))
+                        || r.applicableAlertTypes().stream().anyMatch(Objects::isNull)
+                        || r.applicableComponentKinds().stream().anyMatch(Objects::isNull))
         || part.pastIncidents().stream().anyMatch(p -> p == null || p.fields() == null)) {
       throw new IllegalArgumentException("a required argument is missing");
     }
