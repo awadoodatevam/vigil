@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.19 |
+| Version | 1.20 |
 | Date | 10 November 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
@@ -389,7 +389,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | M; P-18, P-06; none |
+| Size; depends on; owner tasks | L (CTX-D-063); P-18, P-06; none |
 | Builds | `vigil-ai-gateway`: DM-E-70 to DM-E-74; provider choice, data routing and fallback for SL-T-1 and SL-T-2 (DM-R-45, DM-R-69, AR-G-13); the single provider of SL-T-3 (DM-E72-R2); usage records and cost (AR-G-14); the event type of AR-E-11 (published by P-39 with the change of the SL-T-3 provider); seed import part 7. Connectors `claude`, `openai`, `local_model`, `local_embedding` (AR-K-07 to AR-K-10, AR-G-20 to AR-G-24, AR-T-16, AR-T-17) with the timeouts of AR-TM-01 as amended by BP-A-30, tested on P-06's recordings. The P-18 review fixes of CTX-D-059 (2) and (4) (owner decision): a stop during a runner call, non-finite decimals, wait rounding, unexpected exceptions, four tests, the `org.apache.sshd` logger at `WARN`. |
 | Requirements built | PM-M18-01 to PM-M18-05; PM-K-07 to PM-K-10; DM-E-70 to DM-E-74 with their rules; DM-R-42, DM-R-44, DM-R-45, DM-R-69; AR-K-00e, AR-K-07 to AR-K-10; AR-G-01 to AR-G-05, AR-G-13, AR-G-14, AR-G-20 to AR-G-24; AR-T-16, AR-T-17; SL-B-08; SL-A2-05 (gateway side); AR-E-11 (the event type); AR-TM-01 (the AI rows, BP-A-30); AR-R-09 (BP-A-30); the P-18 review fixes: DM-SM-10, DM-R-64, AR-K-11, DM-E-12, AR-S-11, DC-TX-03. |
 | Tests | Fallback on unreachable and provider error; no fallback on a 2xx refusal or truncation; data routing skips with `refused_by_data_routing`; units and cost from the recorded answers; SL-T-3 uses only the named provider. |
@@ -399,11 +399,11 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | L; P-19; none |
-| Builds | `vigil-knowledge`: DM-E-63 to DM-E-67; runbook applicability (DM-R-50); past incidents with times from offsets (AR-B-08); embeddings at import with its usage record (AR-B-09, AR-G-30); similarity search (DM-R-51, AR-P-07, DM-E66-R1); re-embedding (DM-SM-15, AR-R-30, AR-TM-07); seed import part 8. `vigil-investigation`: DM-E-68, DM-E-69; the AI task step for SL-T-1, SL-T-2 and SL-T-3 (DM-S-04); request parts and categories (AR-G-10, DM-R-43); prompts (AR-G-12); output checks (PM-M17-03, AR-G-11, DM-E68-R3); template summary (DM-E69-R1, DM-E69-R2); evidence and AI status; the re-run request with its worker (AR-R-29; its HTTP operation AR-I-26 is P-39). |
-| Requirements built | PM-M16-01 to PM-M16-05, PM-M17-01 to PM-M17-07; PM-S-04; DD-F-08, DD-F-09 (import); DM-E-63 to DM-E-69 with their rules; DM-R-43, DM-R-50 to DM-R-52; DM-SM-15; DM-S-04; AR-B-08, AR-B-09, AR-G-10 to AR-G-12, AR-G-30, AR-G-33, AR-P-07, AR-R-29, AR-R-30, AR-TM-07; SL-T-1, SL-T-2, SL-T-3; SL-A1-04 (AI), SL-A1-06 (search), SL-A2-07 (request). |
-| Tests | DD-K-08 and DD-K-09 through the product with a test embedding that gives equal vectors for equal texts; every AI rejection reason of DC-TX-11; template summary pattern; re-run allowed states (DM-E68-R2); searches refused during re-embedding. |
-| Runs in | BP-E-01, BP-E-02 |
+| Size; depends on; owner tasks | L (CTX-D-064 (1)); P-19; none |
+| Builds | `vigil-knowledge`: DM-E-63 to DM-E-67; runbook applicability (DM-R-50); past incidents with times from offsets (AR-B-08); embeddings at import with its usage record (AR-B-09, AR-G-30); similarity search (DM-R-51, AR-P-07, DM-E66-R1); re-embedding (DM-SM-15, AR-R-30, AR-TM-07); seed import part 8. `vigil-investigation`: DM-E-68, DM-E-69; the AI task step for SL-T-1, SL-T-2 and SL-T-3 (DM-S-04); request parts and categories (AR-G-10, DM-R-43); prompts (AR-G-12); output checks (PM-M17-03, AR-G-11, DM-E68-R3); template summary (DM-E69-R1, DM-E69-R2); evidence and AI status; the re-run request with its worker (AR-R-29; its HTTP operation AR-I-26 is P-39). `vigil-setup`: part 8 and its key checks against parts 5, 6 and 7 (DM-R-60). `vigil-ai-gateway`: the read of a provider's kind (CTX-D-064 (11)). `vigil-incidents`: `recordAiRequestGroup` (CTX-D-064 (12)). The P-06 provider spikes send the product's SL-T-1 and SL-T-2 requests and apply PM-M17-03's checks (CTX-D-064 (2)). |
+| Requirements built | PM-M16-01 to PM-M16-05, PM-M17-01 to PM-M17-07; PM-S-04; DD-F-08, DD-F-09 (import); DM-E-63 to DM-E-69 with their rules; DM-R-43, DM-R-50 to DM-R-52; DM-SM-15; DM-S-04; AR-B-08, AR-B-09, AR-G-10 to AR-G-12, AR-G-30, AR-G-33, AR-P-07, AR-R-29, AR-R-30, AR-TM-07; SL-T-1, SL-T-2, SL-T-3; SL-A1-04 (AI), SL-A1-06 (search), SL-A2-07 (request); DM-R-56, DM-R-57, DM-R-60 (part 8 and its key checks against parts 5, 6 and 7); AR-E-11 and AR-E-14 (the reactions of `vigil-knowledge`), AR-R-23 (its task), AR-R-24 (restart step (6)), AR-R-09, AR-Q-04 to AR-Q-06; DM-E-72 (DM-E72-R2, caller side), AR-G-13 (the rejection of refused, truncated or empty answers); DC-TX-03, DC-TX-10, DC-TX-11 (their AI rows); DM-C-11. |
+| Tests | DD-K-08 and DD-K-09 through the product with a test embedding that gives equal vectors for equal texts; every AI rejection reason of DC-TX-11; template summary pattern; re-run allowed states (DM-E68-R2); searches refused during re-embedding. Owner-run: `spikes/providers/run.sh claude|openai|local-model --package P-20` against the real providers before the merge (CTX-D-064 (2)). |
+| Runs in | BP-E-01, BP-E-02; BP-E-03 and BP-E-05 (owner-run) |
 
 #### P-21 Ticketing and the Jira connector
 
@@ -625,7 +625,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 ### 7.7 Size summary
 
-4 packages S, 23 packages M, 14 packages L, 41 packages in all (P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14 and L in v1.15, from its line count; P-16 became L in v1.15; P-17 was split into P-17 and P-41 in v1.16; P-18 became L in v1.17). With one cloud session for S, one to two for M and two to three for L, the estimate is about 65 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
+4 packages S, 22 packages M, 15 packages L, 41 packages in all (P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14 and L in v1.15, from its line count; P-16 became L in v1.15; P-17 was split into P-17 and P-41 in v1.16; P-18 became L in v1.17; P-19 became L in v1.20, from its line count). With one cloud session for S, one to two for M and two to three for L, the estimate is about 65 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
 
 ## 8. Phases, order and checkpoints
 
@@ -1051,3 +1051,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.17 | 26 Oct 2026 | For the P-18 spec (BP-L-1, CTX-D-057, CTX-D-058): P-18 becomes L by owner decision (Section 7.7); its entry adds the target connector type interface, the three key checks of DM-R-60, the P-41 follow-ups, DM-R-64 and AR-R-24 step (1), and the wrong-host-key test says the run ends `failed`. No behaviour of Vigil changes. |
 | 1.18 | 3 Nov 2026 | For the P-06 spec (BP-L-1, CTX-D-060): amendment BP-A-29 (`50-architecture` v1.9: the `jira` secret carries `expires_on`); the P-06 entry reads the data files with PyYAML instead of using `requests`, reaches `vigil-embed` and `vigil-llm` through Systems Manager port forwards from the owner's Mac, and adds BP-OT-10 and the Session Manager plugin to its owner tasks; Section 9 rows SB-T-03 and SB-T-04 name the port forward from BP-E-03; BP-OT-14 notes that P-06 writes the Jira address. |
 | 1.19 | 10 Nov 2026 | For the P-19 spec (BP-L-1, CTX-D-062): amendment BP-A-30 (`50-architecture` v1.10: batched embedding calls 90 s; AR-R-09 for immutable records); the P-19 entry builds the event type of AR-E-11 (published by P-39), the AR-TM-01 amendment and the P-18 review fixes of CTX-D-059 (2) and (4); the P-39 entry publishes `TaskProviderChanged`. |
+| 1.20 | 10 Nov 2026 | From the P-19 report (BP-L-8, CTX-D-063): the P-19 entry is size L (`tools/loc.sh` 2,408; Section 7.7). For the P-20 spec (BP-L-1, CTX-D-064): P-20 stays one package of size L by owner decision; its entry adds part 8's key checks, the gateway read and the owner-run re-run of the provider spikes with the product's request and checks. No behaviour of Vigil changes. |
