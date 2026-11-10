@@ -516,7 +516,7 @@ class TenancyIT {
           tenants.setAlias(host, tenant, "installation token");
           List<Map<String, Object>> added = new ArrayList<>(publications(host));
           added.removeAll(before);
-          assertThat(added).hasSize(5);
+          assertThat(added).hasSize(6);
           assertThat(added)
               .allSatisfy(
                   row ->
@@ -528,7 +528,8 @@ class TenancyIT {
               .anySatisfy(id -> assertThat(id).contains("vigil.incidents.IncidentsAliasListener"))
               .anySatisfy(
                   id -> assertThat(id).contains("vigil.correlation.CorrelationAliasListener"))
-              .anySatisfy(id -> assertThat(id).contains("vigil.engine.EngineAliasListener"));
+              .anySatisfy(id -> assertThat(id).contains("vigil.engine.EngineAliasListener"))
+              .anySatisfy(id -> assertThat(id).contains("vigil.knowledge.KnowledgeListeners"));
           assertThat(added)
               .allSatisfy(
                   publication ->

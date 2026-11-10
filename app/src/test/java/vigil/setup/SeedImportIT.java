@@ -1473,7 +1473,7 @@ class SeedImportIT {
   private static final String RUNBOOKS = "08-runbooks.md";
   private static final String PAST_INCIDENTS = "09-past-incidents.csv";
   private static final String PI_1002 =
-      "api_latency_high,svc-bundle-purchase,api-bundle,Bundle offer";
+      "41900,4,61,4,api_latency_high,svc-bundle-purchase,api-bundle,Bundle offer";
 
   @Test
   @DisplayName("DM-R-56 the full demo import stores part 8 with its embeddings and usage record")
