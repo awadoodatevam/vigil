@@ -1,0 +1,24 @@
+{
+  "seq": 1,
+  "call": "myself",
+  "started_at": "2026-11-10T04:42:30.869Z",
+  "duration_ms": 2161,
+  "request": {
+    "method": "GET",
+    "url": "${endpoint.jira}/rest/api/3/myself",
+    "headers": {
+      "Authorization": "Basic <redacted>",
+      "Accept": "application/json",
+      "User-Agent": "vigil-p06-spike"
+    },
+    "body": ""
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json;charset=UTF-8"
+    },
+    "body": "{\"self\": \"${endpoint.jira}/rest/api/3/user?accountId=<account-id>\", \"accountId\": \"<redacted>\", \"accountType\": \"atlassian\", \"emailAddress\": \"<redacted>\", \"avatarUrls\": \"<redacted>\", \"displayName\": \"<redacted>\", \"active\": true, \"timeZone\": \"Asia/Karachi\", \"locale\": \"en_US\", \"groups\": {\"size\": 10, \"items\": []}, \"applicationRoles\": {\"size\": 1, \"items\": []}, \"expand\": \"groups,applicationRoles\"}"
+  },
+  "error": null
+}

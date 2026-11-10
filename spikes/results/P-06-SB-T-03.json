@@ -1,0 +1,84 @@
+{
+  "spike": "SB-T-03",
+  "run_id": "20261110T045117Z",
+  "started_at": "2026-11-10T04:51:17.692Z",
+  "finished_at": "2026-11-10T04:51:51.096Z",
+  "passed": true,
+  "checks": [
+    {
+      "name": "past-1",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "storm-1",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "past-2",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "storm-2",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "same-vectors",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "best-match",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "dimensions": 768,
+  "calls": [
+    {
+      "call": "past-1",
+      "prompt_eval_count": 1598,
+      "duration_ms": 24075
+    },
+    {
+      "call": "storm-1",
+      "prompt_eval_count": 74,
+      "duration_ms": 426
+    },
+    {
+      "call": "past-2",
+      "prompt_eval_count": 1598,
+      "duration_ms": 7097
+    },
+    {
+      "call": "storm-2",
+      "prompt_eval_count": 74,
+      "duration_ms": 1617
+    }
+  ],
+  "scores": [
+    {
+      "past_incident_key": "PI-1001",
+      "score": "1.00"
+    },
+    {
+      "past_incident_key": "PI-1011",
+      "score": "0.98"
+    },
+    {
+      "past_incident_key": "PI-1012",
+      "score": "0.96"
+    },
+    {
+      "past_incident_key": "PI-1021",
+      "score": "0.92"
+    },
+    {
+      "past_incident_key": "PI-1039",
+      "score": "0.92"
+    }
+  ]
+}

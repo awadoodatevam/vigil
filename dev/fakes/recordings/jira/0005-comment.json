@@ -1,0 +1,25 @@
+{
+  "seq": 5,
+  "call": "comment",
+  "started_at": "2026-11-10T04:42:38.844Z",
+  "duration_ms": 1202,
+  "request": {
+    "method": "POST",
+    "url": "${endpoint.jira}/rest/api/3/issue/NOC-1/comment",
+    "headers": {
+      "Authorization": "Basic <redacted>",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "vigil-p06-spike"
+    },
+    "body": "{\"body\": {\"type\": \"doc\", \"version\": 1, \"content\": [{\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"Comment of the SB-T-07 spike.\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"Link: \"}, {\"type\": \"text\", \"text\": \"https://demo.vigil.solviclabs.com/incidents/spike-20261110T044230Z\", \"marks\": [{\"type\": \"link\", \"attrs\": {\"href\": \"https://demo.vigil.solviclabs.com/incidents/spike-20261110T044230Z\"}}]}]}]}}"
+  },
+  "response": {
+    "status": 201,
+    "headers": {
+      "Content-Type": "application/json;charset=UTF-8"
+    },
+    "body": "{\"self\": \"${endpoint.jira}/rest/api/3/issue/10017/comment/10000\", \"id\": \"10000\", \"author\": {\"self\": \"${endpoint.jira}/rest/api/3/user?accountId=<account-id>\", \"accountId\": \"<redacted>\", \"emailAddress\": \"<redacted>\", \"avatarUrls\": \"<redacted>\", \"displayName\": \"<redacted>\", \"active\": true, \"timeZone\": \"Asia/Karachi\", \"accountType\": \"atlassian\"}, \"body\": {\"type\": \"doc\", \"version\": 1, \"content\": [{\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"Comment of the SB-T-07 spike.\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"Link: \"}, {\"type\": \"text\", \"text\": \"https://demo.vigil.solviclabs.com/incidents/spike-20261110T044230Z\", \"marks\": [{\"type\": \"link\", \"attrs\": {\"href\": \"https://demo.vigil.solviclabs.com/incidents/spike-20261110T044230Z\"}}]}]}]}, \"updateAuthor\": {\"self\": \"${endpoint.jira}/rest/api/3/user?accountId=<account-id>\", \"accountId\": \"<redacted>\", \"emailAddress\": \"<redacted>\", \"avatarUrls\": \"<redacted>\", \"displayName\": \"<redacted>\", \"active\": true, \"timeZone\": \"Asia/Karachi\", \"accountType\": \"atlassian\"}, \"created\": \"2026-11-10T09:42:39.761+0500\", \"updated\": \"2026-11-10T09:42:39.761+0500\", \"jsdPublic\": true}"
+  },
+  "error": null
+}

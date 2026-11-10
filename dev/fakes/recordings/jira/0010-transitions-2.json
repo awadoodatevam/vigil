@@ -1,0 +1,24 @@
+{
+  "seq": 10,
+  "call": "transitions-2",
+  "started_at": "2026-11-10T04:42:45.972Z",
+  "duration_ms": 1079,
+  "request": {
+    "method": "GET",
+    "url": "${endpoint.jira}/rest/api/3/issue/NOC-1/transitions",
+    "headers": {
+      "Authorization": "Basic <redacted>",
+      "Accept": "application/json",
+      "User-Agent": "vigil-p06-spike"
+    },
+    "body": ""
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json;charset=UTF-8"
+    },
+    "body": "{\"expand\": \"transitions\", \"transitions\": [{\"id\": \"11\", \"name\": \"To Do\", \"to\": {\"self\": \"${endpoint.jira}/rest/api/3/status/10005\", \"description\": \"\", \"iconUrl\": \"${endpoint.jira}/images/icons/statuses/generic.png\", \"name\": \"To Do\", \"id\": \"10005\", \"statusCategory\": {\"self\": \"${endpoint.jira}/rest/api/3/statuscategory/2\", \"id\": 2, \"key\": \"new\", \"colorName\": \"blue-gray\", \"name\": \"To Do\"}}, \"hasScreen\": false, \"isGlobal\": true, \"isInitial\": false, \"isAvailable\": true, \"isConditional\": false, \"isLooped\": false}, {\"id\": \"21\", \"name\": \"In Progress\", \"to\": {\"self\": \"${endpoint.jira}/rest/api/3/status/3\", \"description\": \"This work item is being actively worked on at the moment by the assignee.\", \"iconUrl\": \"${endpoint.jira}/images/icons/statuses/inprogress.png\", \"name\": \"In Progress\", \"id\": \"3\", \"statusCategory\": {\"self\": \"${endpoint.jira}/rest/api/3/statuscategory/4\", \"id\": 4, \"key\": \"indeterminate\", \"colorName\": \"yellow\", \"name\": \"In Progress\"}}, \"hasScreen\": false, \"isGlobal\": true, \"isInitial\": false, \"isAvailable\": true, \"isConditional\": false, \"isLooped\": false}, {\"id\": \"31\", \"name\": \"Done\", \"to\": {\"self\": \"${endpoint.jira}/rest/api/3/status/10006\", \"description\": \"\", \"iconUrl\": \"${endpoint.jira}/images/icons/statuses/generic.png\", \"name\": \"Done\", \"id\": \"10006\", \"statusCategory\": {\"self\": \"${endpoint.jira}/rest/api/3/statuscategory/3\", \"id\": 3, \"key\": \"done\", \"colorName\": \"green\", \"name\": \"Done\"}}, \"hasScreen\": false, \"isGlobal\": true, \"isInitial\": false, \"isAvailable\": true, \"isConditional\": false, \"isLooped\": false}]}"
+  },
+  "error": null
+}

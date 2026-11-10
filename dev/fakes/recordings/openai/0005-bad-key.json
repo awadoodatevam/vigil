@@ -1,0 +1,24 @@
+{
+  "seq": 5,
+  "call": "bad-key",
+  "started_at": "2026-11-10T04:43:42.668Z",
+  "duration_ms": 837,
+  "request": {
+    "method": "POST",
+    "url": "${endpoint.openai}/v1/responses",
+    "headers": {
+      "Authorization": "Bearer <redacted>",
+      "Content-Type": "application/json",
+      "User-Agent": "vigil-p06-spike"
+    },
+    "body": "{\"model\": \"gpt-6.1-sol\", \"instructions\": \"Write a summary of at most 600 characters for NOC staff in summary, in plain sentences, using only the supplied parts. Answer only with the JSON object.\", \"input\": \"### Title (Incident record)\\nSubscriber DB server: Disk full \\u2014 3 services affected\\n\\n### Investigation (Incident record)\\nLikely cause: Rapid transaction-log archive accumulation, most likely from a catch-up run, exhausted /data on the Subscriber DB server (srv-db-01 / lab-db-01). The archive occupies 8.5 GiB, with 8.5 GiB written under /data in 15 minutes. Only 0.1 GiB remains free, below the database's 256 MiB write-refusal threshold, explaining the database write errors and downstream API errors, USSD failures and SMS queue growth.\\nUncertainty: A catch-up run is strongly suggested but not verified. The diagnostics do not identify the recently written files as transaction-log archives or establish whether backup shipping or the nightly purge failed.\\n\\n### Alerts (Alert data)\\n126 alerts of 7 types: balance_api_errors, bundle_api_errors, db_write_errors, disk_full, sms_queue_growth, ussd_synthetic_failed, ussd_timeouts\\n\\n### Customer impact (Service context)\\nBalance Check (USSD) (svc-balance-check), criticality critical, through api-balance, db-subscriber, ussd-gw\\nBundle Purchase (svc-bundle-purchase), criticality critical, through api-bundle, db-subscriber, ussd-gw\\nSMS Notifications (svc-sms-notifications), criticality high, through sms-queue\\n\\n### Hypothesis (Service context)\\nSubscriber DB server (srv-db-01), kind server, criticality critical; 6 other affected components depend on it\\n\\n### E1 (Diagnostic output)\\n/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)\\n\\n### E2 (Diagnostic output)\\nLargest folder under /data: /data/txlog_archive (8.5 GiB)\\n\\n### E3 (Diagnostic output)\\n8.5 GiB written to 34 files under /data in the last 15 minutes\", \"max_output_tokens\": 600, \"text\": {\"format\": {\"type\": \"json_schema\", \"name\": \"sl_t_2\", \"schema\": {\"type\": \"object\", \"properties\": {\"summary\": {\"type\": \"string\"}}, \"required\": [\"summary\"], \"additionalProperties\": false}, \"strict\": true}}}"
+  },
+  "response": {
+    "status": 401,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\n  \"error\": {\n    \"message\": \"Incorrect API key provided: invalid-*********pike. You can find your API key at https://platform.openai.com/account/api-keys.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"invalid_api_key\"\n  }\n}"
+  },
+  "error": null
+}

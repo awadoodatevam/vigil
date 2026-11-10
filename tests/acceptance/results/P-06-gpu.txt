@@ -1,0 +1,155 @@
+vpc vigil-demo: exists
+internet-gateway vigil-demo: exists
+subnet vigil-demo-a: exists
+subnet vigil-demo-b: exists
+subnet-reservation 10.40.1.8/29: exists
+subnet-reservation 10.40.1.16/29: exists
+route-table vigil-demo: exists
+security-group vigil-demo-alb: exists
+security-group vigil-demo-main: exists
+security-group vigil-demo-gpu: exists
+role vigil-demo-main: set
+role-policy vigil-demo-main: set
+instance-profile vigil-demo-main: exists
+role vigil-demo-gpu: set
+role-policy vigil-demo-gpu: set
+instance-profile vigil-demo-gpu: exists
+oidc-provider https://token.actions.githubusercontent.com: exists
+role vigil-demo-github-push: set
+role-policy vigil-demo-github-push: set
+ecr-repository demo/vigil-app: set
+ecr-repository demo/demo-control: set
+ecr-repository demo/demo-lab: set
+ecr-repository demo/demo-faults: set
+ecr-repository demo/lab-zabbix-provision: set
+ecr-repository demo/sse-probe: set
+bucket vigil-demo-deploy-653271908574: set
+hosted-zone vigil.solviclabs.com: exists
+name server ns-307.awsdns-38.com
+name server ns-721.awsdns-26.net
+name server ns-1964.awsdns-53.co.uk
+name server ns-1489.awsdns-58.org
+ses-identity vigil.solviclabs.com: exists
+dns-records ses-dkim: set
+certificate vigil-demo: exists
+dns-records certificate-validation: set
+target-group vigil-app: set
+target-group demo-control: set
+load-balancer vigil-alb: set
+listener 80: exists
+instance vigil-demo-main: exists
+target vigil-app/vigil-demo-main: exists
+target demo-control/vigil-demo-main: exists
+listener 443: exists
+listener-rules 443: exists
+dns-records demo-and-control: set
+The GPU host was not created: InsufficientInstanceCapacity. AWS has no g6.xlarge capacity now (AR-ASM-06); run deploy/edge.sh demo again later.
+name server ns-307.awsdns-38.com
+name server ns-721.awsdns-26.net
+name server ns-1964.awsdns-53.co.uk
+name server ns-1489.awsdns-58.org
+load balancer: vigil-alb-2119980440.us-east-1.elb.amazonaws.com
+bucket: vigil-demo-deploy-653271908574
+push role: arn:aws:iam::653271908574:role/vigil-demo-github-push
+main host: i-0512f130bee88b091 running
+gpu host: not created
+exit 3
+The GPU host does not exist yet (deploy/edge.sh, BP-OT-09).
+exit 1
+The GPU host does not exist yet (deploy/edge.sh, BP-OT-09).
+exit 1
+vpc vigil-demo: exists
+internet-gateway vigil-demo: exists
+subnet vigil-demo-a: exists
+subnet vigil-demo-b: exists
+subnet-reservation 10.40.1.8/29: exists
+subnet-reservation 10.40.1.16/29: exists
+route-table vigil-demo: exists
+security-group vigil-demo-alb: exists
+security-group vigil-demo-main: exists
+security-group vigil-demo-gpu: exists
+role vigil-demo-main: set
+role-policy vigil-demo-main: set
+instance-profile vigil-demo-main: exists
+role vigil-demo-gpu: set
+role-policy vigil-demo-gpu: set
+instance-profile vigil-demo-gpu: exists
+oidc-provider https://token.actions.githubusercontent.com: exists
+role vigil-demo-github-push: set
+role-policy vigil-demo-github-push: set
+ecr-repository demo/vigil-app: set
+ecr-repository demo/demo-control: set
+ecr-repository demo/demo-lab: set
+ecr-repository demo/demo-faults: set
+ecr-repository demo/lab-zabbix-provision: set
+ecr-repository demo/sse-probe: set
+bucket vigil-demo-deploy-653271908574: set
+hosted-zone vigil.solviclabs.com: exists
+name server ns-307.awsdns-38.com
+name server ns-721.awsdns-26.net
+name server ns-1964.awsdns-53.co.uk
+name server ns-1489.awsdns-58.org
+ses-identity vigil.solviclabs.com: exists
+dns-records ses-dkim: set
+certificate vigil-demo: exists
+dns-records certificate-validation: set
+target-group vigil-app: set
+target-group demo-control: set
+load-balancer vigil-alb: set
+listener 80: exists
+instance vigil-demo-main: exists
+target vigil-app/vigil-demo-main: exists
+target demo-control/vigil-demo-main: exists
+listener 443: exists
+listener-rules 443: exists
+dns-records demo-and-control: set
+instance vigil-demo-gpu: created
+name server ns-307.awsdns-38.com
+name server ns-721.awsdns-26.net
+name server ns-1964.awsdns-53.co.uk
+name server ns-1489.awsdns-58.org
+load balancer: vigil-alb-2119980440.us-east-1.elb.amazonaws.com
+bucket: vigil-demo-deploy-653271908574
+push role: arn:aws:iam::653271908574:role/vigil-demo-github-push
+main host: i-0512f130bee88b091 running
+gpu host: i-076737f05bf4a7c7a stopped
+exit 0
+AWS has no g6.xlarge capacity now; try again in a few minutes (AR-ASM-06).
+exit 1
+AWS has no g6.xlarge capacity now; try again in a few minutes (AR-ASM-06).
+exit 1
+No digest recorded for gemma4:12b: run deploy/models.sh update gemma4:12b and commit deploy/models.lock.
+ vigil-llm Pulling 
+ vigil-llm Pulled 
+ Network vigil-gpu_default  Creating
+ Network vigil-gpu_default  Created
+ Volume vigil-gpu_vigil-llm-models  Creating
+ Volume vigil-gpu_vigil-llm-models  Created
+ Container vigil-llm  Creating
+ Container vigil-llm  Created
+ Container vigil-llm  Starting
+ Container vigil-llm  Started
+curl: (7) Failed to connect to 10.40.1.20 port 11434 after 0 ms: Couldn't connect to server
+failed to run commands: exit status 1exit 1
+No digest recorded for gemma4:12b: run deploy/models.sh update gemma4:12b and commit deploy/models.lock.
+ vigil-llm Pulling 
+ vigil-llm Pulled 
+ Container vigil-llm  Running
+failed to run commands: exit status 1exit 1
+gemma4:12b: unrecorded -> 6114515d63c17436a7c0417d82820ac65ad643e2806c5a3c89cb62846436ed0b
+exit 0
+vigil-llm ready after 154 s
+ vigil-llm Pulling 
+ vigil-llm Pulled 
+ Container vigil-llm  Running
+curl: (28) Operation timed out after 60002 milliseconds with 0 bytes received
+curl: (28) Operation timed out after 60002 milliseconds with 0 bytes received
+exit 0
+gpu host: i-076737f05bf4a7c7a running
+NAME        IMAGE                                                                                          COMMAND               SERVICE     CREATED          STATUS          PORTS
+vigil-llm   ollama/ollama:0.40.5@sha256:5d3a2f25f9825628daba94dc0b1d421c7d57d6c03ae5faa9ba050e058bab8241   "/bin/ollama serve"   vigil-llm   32 minutes ago   Up 31 minutes   10.40.1.20:11434->11434/tcp
+gemma4:12b 6114515d63c17436a7c0417d82820ac65ad643e2806c5a3c89cb62846436ed0b matches models.lock
+name, memory.used [MiB], memory.total [MiB]
+NVIDIA L4, 9392 MiB, 23034 MiB
+exit 0
+exit 0
