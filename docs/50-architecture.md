@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 50-architecture (ID prefix `AR-`) |
-| Version | 1.9 |
-| Date | 3 November 2026 |
+| Version | 1.10 |
+| Date | 10 November 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 5 closed. Amended by Round 6 (`60-build-plan` BP-A-01 to BP-A-10, BP-A-15, BP-A-16) and during the build (BP-A-17, BP-A-19, BP-A-20, BP-A-21, BP-A-22, BP-A-23, BP-A-24, BP-A-29). |
+| Status | Baseline (owner reviewed). Round 5 closed. Amended by Round 6 (`60-build-plan` BP-A-01 to BP-A-10, BP-A-15, BP-A-16) and during the build (BP-A-17, BP-A-19, BP-A-20, BP-A-21, BP-A-22, BP-A-23, BP-A-24, BP-A-29, BP-A-30). |
 
 ## 1. Purpose
 
@@ -209,7 +209,7 @@ The dependency lists are the "Sends requests to" rows of `10-product-map` Sectio
 | AR-R-06 | A package `vigil.shared` holds code used by every module that owns no record and depends on no module (complete list): identifier, key and actor types (AR-P-01); the tenant identifier type; the clock; canonical JSON and hashing (AR-P-03); the error type of AR-I-03; the transaction guard of AR-R-09; the step protocol types `StepCall`, `StepCancel`, `StepAnswer`, `Completed` and `Waiting` (AR-R-21), so step-implementing modules do not depend on `vigil-engine`. It is declared `@ApplicationModule(type = Type.OPEN, allowedDependencies = {})`, so all its types are usable and it may use no module; it is listed in every module's allowed dependencies (Section 7.1) and in `@Modulithic(sharedModules = "shared")`, which only makes module integration tests load it. | PM-R-01 |
 | AR-R-07 | A module reads and writes only tables of its own schema. A test MUST fail when the SQL or table mapping of a module names another schema. Database foreign keys are allowed only within one schema; a reference to another module's record holds its identifier or key only (DM-C-06). | PM-R-01, PM-R-02; DM-C-06 |
 | AR-R-08 | Only code in `vigil.connectors` and `vigil.runner` may use the JDK HTTP client, Jakarta Mail or the SSH library. An ArchUnit test MUST fail on any other use. | PM-R-04; SL-B-07 |
-| AR-R-09 | No external call is made while a database transaction is open. Every connector and runner entry point that makes an external call MUST check this and throw `IllegalStateException("external call inside a transaction")` when a transaction is active; the operations that make no network call (monitoring `parse`, and the secret operations of AR-S-04) are not external calls and are not checked. A module that records an external call writes its record in a transaction before the call and its result in a new transaction after it (Example: DM-E60-R1 execution record, DM-E76-R2 pending ticket sync). | DM-E60-R1, DM-E76-R2; SL-B-11 |
+| AR-R-09 | No external call is made while a database transaction is open. Every connector and runner entry point that makes an external call MUST check this and throw `IllegalStateException("external call inside a transaction")` when a transaction is active; the operations that make no network call (monitoring `parse`, and the secret operations of AR-S-04) are not external calls and are not checked. A module that records an external call writes its record in a transaction before the call and its result in a new transaction after it (Example: DM-E60-R1 execution record, DM-E76-R2 pending ticket sync); a record of an immutable entity (DM-C-05) is instead inserted once, in a transaction after the call (Example: DM-E-74 AI usage record; amendment `60-build-plan` BP-A-30). | DM-E60-R1, DM-E76-R2; SL-B-11 |
 
 ## 8. Communication between modules (resolves PM-O-01)
 
@@ -654,7 +654,7 @@ Not chosen: stopping the main host outside working hours (Monday to Friday, 12 h
 
 | ID | Item | Value | Trace |
 | --- | --- | --- | --- |
-| AR-TM-01 | Connector timeouts | Connect: 5 s for every HTTP, SMTP and SSH connection (SB-ASM-03). Whole call: Claude and OpenAI chat 90 s; local model chat 120 s; embeddings 30 s; Jira 15 s per request; Teams 15 s; SMTP 15 s; monitoring source connection test 10 s; SSH operation: the operation's `timeout` (DD-F-04). | SB-ASM-03; DM-E-12 |
+| AR-TM-01 | Connector timeouts | Connect: 5 s for every HTTP, SMTP and SSH connection (SB-ASM-03). Whole call: Claude and OpenAI chat 90 s; local model chat 120 s; embeddings 30 s for a call with one text and 90 s for a call with more texts (the batched calls of seed import and re-embedding, AR-G-30; amendment `60-build-plan` BP-A-30); Jira 15 s per request; Teams 15 s; SMTP 15 s; monitoring source connection test 10 s; SSH operation: the operation's `timeout` (DD-F-04). | SB-ASM-03; DM-E-12 |
 | AR-TM-02 | Webhook body limit | 5 MiB per call. | PM-M06-01 |
 | AR-TM-03 | Session | Lifetime 12 h; idle limit 2 h (AR-S-02). | DM-O-05 |
 | AR-TM-04 | Live updates | Notice within 1 s of the commit; heartbeat every 15 s; stream closed after 300 s; re-read at most once per 500 ms per topic (AR-I-04, AR-W-02). | SL-A1-08 |
@@ -970,3 +970,4 @@ Carried open items still open: CTX-O-01, CTX-O-05; SL-O-19; SB-O-03; DD-O-03.
 | 1.7 | 19 Oct 2026 | Build amendment `60-build-plan` BP-A-23 (owner decision CTX-D-044): AR-B-05 upload limits, refusal `tenant_not_new`, and which part an unknown section or unreadable file refuses. |
 | 1.8 | 21 Oct 2026 | Build amendment `60-build-plan` BP-A-24 (CTX-D-045): AR-B-06 refuses any tag written in the file, names the complete list of parser messages, and applies to seed part 5. |
 | 1.9 | 3 Nov 2026 | Build amendment `60-build-plan` BP-A-29 (owner decision CTX-D-060): the secret `jira` carries the token's expiry date `expires_on` (AR-S-13, AR-K-04); `deploy/secrets.sh` prints it, asks for the renewal fewer than 30 days before it, and stops on a missing, invalid or past date (AR-H-07); the Status line lists BP-A-29. |
+| 1.10 | 10 Nov 2026 | Build amendment `60-build-plan` BP-A-30 (owner decision CTX-D-062): AR-TM-01 gives batched embedding calls (more than one text) 90 s; a call with one text keeps 30 s; AR-R-09 inserts an immutable record once after the call. |
