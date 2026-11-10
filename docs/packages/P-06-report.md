@@ -6,7 +6,7 @@
 | Branch | `p-06-spikes-jira-ai` |
 | Pin date (BP-R-08) | 3 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (setup version 1, Temurin 25.0.4.1+1; the environment's setup script failed at container start and was run again by hand, Section 4 item 1) |
-| State | Built; the gate command passes in the build session (Section 10). The owner-run steps of spec Section 6.11 are not yet done (Section 8); they run on this branch before the merge (BP-L-5), then a session "Record the owner-run results of P-06" fills Section 8. |
+| State | Built; the gate command passes in the build session (Section 10). Owner-run steps of spec Section 6.11 done on 10 November 2026 (commit `6adecfa`): all five spikes passed, the GPU host was created and started for the first time, and `deploy/models.lock` records the `gemma4:12b` digest. Results recorded on 10 November 2026 by the session "Record the owner-run results of P-06" (Section 8). |
 
 ## 1. What was built
 
@@ -83,18 +83,80 @@ None (spec Section 9). The measurements go into Section 8; `deploy/models.lock` 
 
 ## 8. Owner-run results
 
-Not yet run. The owner runs spec Section 6.11 on the Mac, on this branch, before the merge:
+Spec Section 6.11, run by the owner on 10 November 2026 from the Mac. The result files were committed to the branch in commit `6adecfa`: the five files `spikes/results/P-06-*.json`, `tests/acceptance/results/P-06-gpu.txt`, the recordings under `dev/fakes/recordings/` (`jira/` 12 files, `claude/` 4, `openai/` 5, `local-embed/` 4, `local-llm/` 5), and `deploy/models.lock`. Every spike passed; no owner decision item is needed.
 
-1. Prerequisites: prepaid credit and the keys `claude` and `openai` stored, `jira` stored again with `expires_on` (the block of `deploy/edge.md` "Operator secrets"); `brew install --cask session-manager-plugin`; `python3.12` from Homebrew; `aws login --profile vigil` and `export AWS_PROFILE=vigil`.
-2. `spikes/providers/run.sh jira` → exit 0.
-3. `spikes/providers/run.sh claude` and `spikes/providers/run.sh openai` → exit 0.
-4. Start the main host (`deploy/edge.md`), then `tests/acceptance/p06_log.sh deploy/edge.sh demo` → `exit 0` with `instance vigil-demo-gpu: created` (on `exit 3` for `InsufficientInstanceCapacity`, the same command again after a few minutes).
-5. `tests/acceptance/p06_log.sh deploy/gpu.sh start` (stops first with "No digest recorded for gemma4:12b …"), `tests/acceptance/p06_log.sh deploy/models.sh update gemma4:12b`, `tests/acceptance/p06_log.sh deploy/gpu.sh start` → `vigil-llm ready after {s} s`.
-6. `spikes/providers/run.sh local-model`.
-7. `tests/acceptance/p06_log.sh deploy/gpu.sh status`, then `tests/acceptance/p06_log.sh deploy/gpu.sh stop`.
-8. `spikes/providers/run.sh similarity` (main host still running).
-9. Stop the main host (`deploy/edge.md`).
-10. Commit to the branch the five result files under `spikes/results/`, `tests/acceptance/results/P-06-gpu.txt`, the recordings under `dev/fakes/recordings/` and `deploy/models.lock`; push. Then a cloud session "Record the owner-run results of P-06" fills this section: the checks of each result file (PM-ASM-03, DM-ASM-07, DM-ASM-09, AR-ASM-08 with `search.attempts` and `seconds_after_create`, AR-ASM-11, AR-ASM-10, SL-ASM-04, DD-ASM-04, AR-ASM-12), the five SB-T-04 durations (they include the port forward from the Mac, well under one second), the costs, the GPU host's creation and first start (AR-H-02, AR-ASM-06, BP-ASM-12) and the `gemma4:12b` digest (AR-H-11). A failed spike is recorded with an owner decision item; an SB-T-04 call above 45 s is recorded with its measurement (AR-G-32).
+### 8.1 Steps
+
+| Step | Result |
+| --- | --- |
+| 1 | Prerequisites done (the spikes read the secrets `jira`, `claude` and `openai`; the port forwards ran). |
+| 2 | `run.sh jira`: passed, run `20261110T044230Z` (Section 8.2). |
+| 3 | `run.sh claude`: passed, run `20261110T044300Z`. `run.sh openai`: passed, run `20261110T044321Z` (Section 8.3). |
+| 4 | `deploy/edge.sh demo`: the first run exited 3 with "The GPU host was not created: InsufficientInstanceCapacity. …" and `gpu host: not created`. Two runs then exited 1 with "The GPU host does not exist yet (deploy/edge.sh, BP-OT-09)." (the GPU host scripts before it existed). The next `deploy/edge.sh demo` exited 0 with `instance vigil-demo-gpu: created` and `gpu host: i-076737f05bf4a7c7a stopped`. All runs are in `P-06-gpu.txt` (AR-ASM-06). |
+| 5 | `deploy/gpu.sh start`: two runs exited 1 with "AWS has no g6.xlarge capacity now; try again in a few minutes (AR-ASM-06)." The next two runs started the host and `vigil-llm` and exited 1 with "No digest recorded for gemma4:12b: …". `deploy/models.sh update gemma4:12b` exited 0 (`gemma4:12b: unrecorded -> 6114515d…6436ed0b`). `deploy/gpu.sh start` then exited 0 with `vigil-llm ready after 154 s`: two warm-up attempts ended at curl's 60 s limit while the model loaded, and the third answered. |
+| 6 | `run.sh local-model`: passed, run `20261110T062103Z` (Section 8.4). |
+| 7 | `deploy/gpu.sh status` exited 0: `gpu host: i-076737f05bf4a7c7a running`, `vigil-llm` running (`ollama/ollama:0.40.5@sha256:5d3a2f25…`, `10.40.1.20:11434->11434/tcp`), `gemma4:12b 6114515d… matches models.lock`, `NVIDIA L4, 9392 MiB, 23034 MiB`. `deploy/gpu.sh stop` exited 0. |
+| 8 | `run.sh similarity`: passed, run `20261110T045117Z` (Section 8.5). By the run times it ran before step 6, not after step 7 as the spec orders. The two steps use different hosts and share nothing, so the order does not affect either result. |
+| 9 | Stopping the main host is the owner's step and is not in the result files. |
+| 10 | Committed in `6adecfa`. In `deploy/models.lock` only the `gemma4:12b` line changed (`unrecorded` → `6114515d63c17436a7c0417d82820ac65ad643e2806c5a3c89cb62846436ed0b`), as `deploy/models.sh update` wrote it (AR-H-11). |
+
+Secret check (review list item 1): no file under `dev/fakes/recordings/`, `spikes/results/` or in `P-06-gpu.txt` contains `sk-`, `ATATT`, `@techfinity`, `techfinity.ae` or `atlassian.net`. gitleaks 8.30.1 finds no leaks in each of the three folders, nor in the branch's commits (`origin/main..HEAD`, as `ci.yml`). The Jira recordings hold `${endpoint.jira}`, `<email>`, `<account-id>` and `"<redacted>"` in place of the site, the email, the account ID and the four personal keys.
+
+### 8.2 SB-T-07 Jira (`P-06-SB-T-07.json`)
+
+| Item | Value |
+| --- | --- |
+| Checks | `token-expiry`, `myself`, `create`, `search`, `read-description`, `comment`, `status-before`, `resolve`, `reopen`: all passed |
+| Token | `token_expires_on` 2027-11-03, `token_days_left` 358 |
+| Issue | `NOC-1` |
+| Search (AR-ASM-08) | `attempts` 1, `seconds_after_create` 2.4: the first search, made right after the create answer, found the issue |
+| Proves | PM-ASM-03 (`resolve` passed), DM-ASM-07 (`reopen` passed), DM-ASM-09 (`create` and `search` passed), AR-ASM-08 (`search` passed within the 4 searches of CTX-D-060 (6)), AR-ASM-11 (`read-description` passed: the ADF description read back with its three lines and the link mark) |
+
+### 8.3 Claude and OpenAI (`P-06-claude.json`, `P-06-openai.json`)
+
+All 10 Claude checks and all 13 OpenAI checks passed (AR-G-20 to AR-G-22; AR-ASM-10: `sl-t-1-usage` and `embed-usage` passed).
+
+| Call | Status | Duration | Input / output units | Reasoning units | Cost (USD) | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| Claude `sl-t-1` | 200 | 5,594 ms | 8,969 / 472 | — | 0.022658 | cites RB-DB-01: yes |
+| Claude `sl-t-2` | 200 | 3,366 ms | 1,082 / 243 | — | 0.004594 | summary length 613 characters |
+| Claude `truncated` | 200 | 2,086 ms | 8,969 / 16 | — | 0.018098 | `stop_reason` `max_tokens` |
+| Claude `bad-key` | 401 | 390 ms | — | — | — | |
+| OpenAI `sl-t-1` | 200 | 10,375 ms | 5,192 / 270 | 64 | 0.013084 | cites RB-DB-01: yes |
+| OpenAI `sl-t-2` | 200 | 4,349 ms | 476 / 146 | 0 | 0.002412 | summary length 528 characters |
+| OpenAI `truncated` | 200 | 4,485 ms | 5,192 / 16 | 16 | 0.010544 | `status` `incomplete` |
+| OpenAI `embed` | 200 | 1,649 ms | 116 / 0 | — | 0.000002 | two vectors of 1,536 numbers |
+| OpenAI `bad-key` | 401 | 837 ms | — | — | — | |
+
+Costs of the runs: Claude 0.045350 USD, OpenAI 0.026042 USD. Both SL-T-1 answers cite RB-DB-01. Claude's SL-T-2 summary has 613 characters, more than the 600 its system text asks for. Spec 6.3 records this length and does not check it (P-20, SB-T-02); see Section 11 item 4.
+
+### 8.4 SB-T-04 local model part (`P-06-SB-T-04.json`; AR-G-32, AR-ASM-12)
+
+| Item | Value |
+| --- | --- |
+| Checks | `model-present`, `warm-up`, `chat-1` to `chat-5`, `gpu-fit`: all passed |
+| Durations (`durations_ms`) | 15,847; 16,658; 16,363; 16,315; 16,465 ms. The maximum, 16,658 ms, is within the 45 s of AR-G-32. The times include the port forward from the Mac, well under one second. |
+| `prompt_eval_counts` / `eval_counts` | 5,704 for each call / 951, 982, 953, 951, 951 |
+| Ollama durations | `load_duration` 0.94 to 1.14 ms (the model stayed loaded from the warm-up); `prompt_eval_duration` 3.68 to 3.78 s; `eval_duration` 11.61 to 12.04 s |
+| `ps` | `gemma4:12b`, `size` 1,471,330,384, `size_vram` 1,471,330,384, `context_length` 16384 (whole model on the GPU, `gpu-fit` passed) |
+| RB-DB-01 cited | in all five answers |
+| Proves | AR-G-32 (measurement), AR-ASM-12 (`gemma4:12b` part: `gpu-fit` passed and `deploy/models.lock` records the digest) |
+
+Observation (no check depends on it): Ollama's `/api/ps` reports `size` 1,471,330,384 bytes (about 1.4 GiB) for `gemma4:12b`, while `nvidia-smi` in step 7 shows 9,392 MiB used on the L4. `gpu-fit` compares `size_vram` with `size`, and they are equal, so the check holds. The absolute `size` value looks too small for a 12B model; it is recorded as Ollama 0.40.5 reported it.
+
+### 8.5 SB-T-03 runtime part (`P-06-SB-T-03.json`; SL-ASM-04, DD-ASM-04)
+
+| Item | Value |
+| --- | --- |
+| Checks | `past-1`, `storm-1`, `past-2`, `storm-2`, `same-vectors`, `best-match`: all passed |
+| Dimensions | 768 |
+| Calls | `past-1` 1,598 prompt units, 24,075 ms; `storm-1` 74, 426 ms; `past-2` 1,598, 7,097 ms; `storm-2` 74, 1,617 ms |
+| Scores (five highest) | PI-1001 1.00, PI-1011 0.98, PI-1012 0.96, PI-1021 0.92, PI-1039 0.92 |
+| Proves | SL-ASM-04 runtime part (`same-vectors`: equal vectors in both calls, number for number), DD-ASM-04 (`best-match`: PI-1001 with 1.00) |
+
+### 8.6 GPU host (AR-H-02, AR-H-11, AR-ASM-06, BP-ASM-12)
+
+`P-06-gpu.txt` shows the following. `deploy/edge.sh demo` exited 0 with `instance vigil-demo-gpu: created` after one capacity refusal (exit 3). `deploy/gpu.sh start` was refused twice for capacity (AR-ASM-06), stopped twice at the missing digest, and after `deploy/models.sh update gemma4:12b` printed `vigil-llm ready after 154 s`. `deploy/gpu.sh status` shows the NVIDIA L4. The host's bootstrap allowed `host-gpu.sh` to pass its Docker version check (28.0 or later) and run Compose, so BP-ASM-12's GPU host part holds. The digest is `6114515d63c17436a7c0417d82820ac65ad643e2806c5a3c89cb62846436ed0b`.
 
 ## 9. Lines of production code added and changed
 
@@ -115,3 +177,4 @@ Done-check: BP-DC-01 (Section 1; every row with proof `test` has its test, the r
 1. P-19 and P-21: the connector tests use the recordings the owner commits under `dev/fakes/recordings/claude/`, `openai/`, `local-embed/`, `local-llm/` and `jira/` (their `README.md` files describe the format; the bodies hold the placeholders `${endpoint.*}`, `<email>`, `<account-id>` and `"<redacted>"`).
 2. The package that next changes `tools/cloud-setup.sh`: retries on its downloads (Section 4 item 1).
 3. The Jira issues the spike creates stay in the project (spec 5: nothing in Vigil deletes); each carries the label `vigil-spike-{run_id}`.
+4. P-20 (prompt texts, AR-G-12) and SB-T-02: in this run Claude's SL-T-2 summary had 613 characters, more than the 600 the system text asks for (Section 8.3). OpenAI's had 528. SB-T-02 measures this in the product.
