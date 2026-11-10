@@ -186,7 +186,7 @@ class SeedImportIT {
     }
   }
 
-  /** The key check of the main app: referring part 3, target part 7; records its calls. */
+  /** The key check of the main app: referring part 3, target part 8; records its calls. */
   static final class RecordingCheck implements SeedKeyCheck {
 
     final List<TenantId> calls = new CopyOnWriteArrayList<>();
@@ -198,7 +198,7 @@ class SeedImportIT {
 
     @Override
     public int targetPart() {
-      return 7;
+      return 8;
     }
 
     @Override
@@ -418,7 +418,7 @@ class SeedImportIT {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
           .isEqualTo(
-              number <= 6 || (number >= 9 && number <= 12) || number == 16
+              number <= 7 || (number >= 9 && number <= 12) || number == 16
                   ? PartOutcome.SUCCEEDED
                   : PartOutcome.NOT_STARTED);
     }
@@ -525,6 +525,17 @@ class SeedImportIT {
         .isEqualTo(Map.of("services", 4, "components", 12, "identity_keys", 15, "dependencies", 6));
     assertThat(part(view, 6).counts())
         .isEqualTo(Map.of("monitoring_sources", 2, "alert_types", 18, "alert_type_mappings", 9));
+    assertThat(part(view, 7).counts())
+        .isEqualTo(
+            Map.of(
+                "ai_provider_configurations",
+                5,
+                "allowed_providers",
+                3,
+                "task_assignments",
+                3,
+                "data_routing_rules",
+                6));
     assertThat(part(view, 9).counts()).isEqualTo(Map.of("incident_settings", 1));
     assertThat(part(view, 10).counts()).isEqualTo(Map.of("correlation_settings", 1));
     assertThat(part(view, 11).counts()).isEqualTo(Map.of("rules", 3, "escalation_levels", 2));
@@ -604,9 +615,9 @@ class SeedImportIT {
     SeedImportView view =
         main.imported(
             SeedTests.demoBundleWith(
-                SETTINGS, SeedTests.section("task_assignments", "task_assignments: 3")));
+                SETTINGS, SeedTests.section("knowledge_settings", "knowledge_settings: 3")));
     assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
-    assertThat(part(view, 7).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
+    assertThat(part(view, 8).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
   }
 
   @Test
@@ -918,18 +929,18 @@ class SeedImportIT {
                     "closure_check_interval_s: 30", "closure_check_interval_s: 90")));
     assertFailedPart(
         view, 9, "Part incidents refused. incident_settings: closure_check_interval_s: 1 to 60");
-    for (int number : List.of(1, 2, 3, 5, 6)) {
+    for (int number : List.of(1, 2, 3, 5, 6, 7)) {
       assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
   }
 
   @Test
-  @DisplayName("BP-R-29 part 9 is registered; parts 7, 8, 13 to 15 and 17 are not started")
+  @DisplayName("BP-R-29 part 9 is registered; parts 8, 13 to 15 and 17 are not started")
   void incidentsPartRegistered() {
     SeedImportView view = main.imported(SeedTests.demoBundle());
     assertThat(part(view, 9).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
-    for (int number : List.of(7, 8, 13, 14, 15, 17)) {
+    for (int number : List.of(8, 13, 14, 15, 17)) {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
           .isEqualTo(PartOutcome.NOT_STARTED);
@@ -1094,7 +1105,7 @@ class SeedImportIT {
         11,
         "Part routing refused. routing_rule_set_revision_1: Rule 'Critical service affected':"
             + " 'noc-l9' is not an active team.");
-    for (int number : List.of(1, 2, 3, 5, 6, 9, 10)) {
+    for (int number : List.of(1, 2, 3, 5, 6, 7, 9, 10)) {
       assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
@@ -1194,7 +1205,7 @@ class SeedImportIT {
         view,
         10,
         "Part correlation refused. correlation_settings: stability_check_interval_s: 1 to 5");
-    for (int number : List.of(1, 2, 3, 5, 6, 9)) {
+    for (int number : List.of(1, 2, 3, 5, 6, 7, 9)) {
       assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
@@ -1242,7 +1253,7 @@ class SeedImportIT {
         16,
         "Part workflows refused. workflow.version_1.steps[9].parameters.expiry_s:"
             + " 60 to 86400 seconds");
-    for (int number : List.of(1, 2, 3, 4, 5, 6, 9, 10, 11, 12)) {
+    for (int number : List.of(1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12)) {
       assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.FAILED);
@@ -1368,7 +1379,7 @@ class SeedImportIT {
                 SeedTests.replacing("    name: \"Disk usage of /data\"", "    name: \"\"")));
     assertFailedPart(
         view, 12, "Part diagnostics refused. diagnostic_definitions[0].name: 1 to 100 characters");
-    for (int number : List.of(1, 2, 3, 4, 5, 6, 9, 10, 11)) {
+    for (int number : List.of(1, 2, 3, 4, 5, 6, 7, 9, 10, 11)) {
       assertThat(part(view, number).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
     }
   }

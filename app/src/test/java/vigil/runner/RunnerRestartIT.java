@@ -1,13 +1,20 @@
 package vigil.runner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import jakarta.annotation.PreDestroy;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -16,7 +23,12 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import vigil.connectors.api.ConnectorInstanceView;
+import vigil.connectors.api.ConnectorKind;
+import vigil.connectors.api.TargetConnector;
+import vigil.connectors.api.TargetResult;
 import vigil.runner.api.OperationRunState;
 import vigil.runner.api.OperationRunView;
 import vigil.runner.api.PermissionKind;
@@ -155,5 +167,149 @@ class RunnerRestartIT {
     assertThat(run.error()).isEqualTo("interrupted by restart");
     assertThat(postgres.sql("SELECT count(*) FROM runner.operation_run").query(Long.class).single())
         .isEqualTo(before);
+  }
+
+  /** Replaces the {@code linux_server} connector bean under its own name. */
+  static class Replacing {
+
+    @Bean("linuxServerConnector")
+    ReplacingConnector linuxServerConnector() {
+      return new ReplacingConnector();
+    }
+  }
+
+  /**
+   * A {@code linux_server} connector that throws in the modes {@code throw} and {@code empty} and
+   * otherwise blocks until its own {@code @PreDestroy}, which runs after {@code Runner}'s.
+   */
+  static final class ReplacingConnector implements TargetConnector {
+
+    volatile String mode = "block";
+    final CountDownLatch entered = new CountDownLatch(1);
+    private final CountDownLatch released = new CountDownLatch(1);
+
+    @Override
+    public ConnectorKind kind() {
+      return ConnectorKind.LINUX_SERVER;
+    }
+
+    @Override
+    public TargetResult run(
+        TenantId tenantId,
+        ConnectorInstanceView instance,
+        UUID credentialRefId,
+        String command,
+        Duration timeout) {
+      switch (mode) {
+        case "throw" -> throw new IllegalStateException("the connector broke");
+        case "empty" -> throw new IllegalArgumentException("");
+        default -> {
+          entered.countDown();
+          try {
+            released.await();
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
+          return new TargetResult.Finished(0, "/data 95", false, "");
+        }
+      }
+    }
+
+    @PreDestroy
+    void release() {
+      released.countDown();
+    }
+  }
+
+  private static VigilTestApp replacingApp(VigilDatabase database, TestSecrets secrets) {
+    VigilTestApp app =
+        VigilTestApp.start(
+            database,
+            secrets.folder(),
+            List.of("--spring.main.allow-bean-definition-overriding=true"),
+            Replacing.class);
+    app.awaitStarted();
+    return app;
+  }
+
+  private static TenantId runnerTenant(VigilTestApp app, String name) {
+    TenantId tenant = new TestTenants(app).tenant(name).create().id();
+    RunnerFixture.importInto(app, tenant, "lab-db-01", 22, "SHA256:x", RunnerFixture.demoPart());
+    return tenant;
+  }
+
+  private static OperationRunView run(VigilTestApp app, TenantId tenant, String requestId) {
+    return app.context()
+        .getBean(RunnerService.class)
+        .run(
+            tenant,
+            RunnerFixture.actor(PermissionKind.DIAGNOSTIC),
+            RunnerFixture.request(
+                requestId, PermissionKind.DIAGNOSTIC, "fs_used_pct", "{\"mount\":\"/data\"}"));
+  }
+
+  @Test
+  @Order(4)
+  @DisplayName("DM-SM-10 a connector that throws ends the run failed with its message")
+  void connectorThrows() {
+    VigilDatabase database = VigilDatabase.fresh();
+    TestSecrets secrets = TestSecrets.create(database, Map.of());
+    try (VigilTestApp app = replacingApp(database, secrets)) {
+      ReplacingConnector connector =
+          app.context().getBean("linuxServerConnector", ReplacingConnector.class);
+      TenantId tenant = runnerTenant(app, "Runner throws");
+      connector.mode = "throw";
+      OperationRunView broke = run(app, tenant, "throws-1");
+      assertThat(broke.state()).isEqualTo(OperationRunState.FAILED);
+      assertThat(broke.error()).isEqualTo("the connector broke");
+      assertThat(broke.finishedAt()).isNotNull();
+      connector.mode = "empty";
+      OperationRunView empty = run(app, tenant, "throws-2");
+      assertThat(empty.state()).isEqualTo(OperationRunState.FAILED);
+      assertThat(empty.error()).isEqualTo("IllegalArgumentException");
+    }
+  }
+
+  @Test
+  @Order(5)
+  @DisplayName("DM-SM-10 a stop during a call leaves the run running; the next start ends it")
+  void stopDuringCall() throws Exception {
+    VigilDatabase database = VigilDatabase.fresh();
+    TestSecrets secrets = TestSecrets.create(database, Map.of());
+    VigilTestApp app = replacingApp(database, secrets);
+    ReplacingConnector connector =
+        app.context().getBean("linuxServerConnector", ReplacingConnector.class);
+    TenantId tenant = runnerTenant(app, "Runner stop");
+    CompletableFuture<OperationRunView> call = new CompletableFuture<>();
+    Thread.ofVirtual()
+        .start(
+            () -> {
+              try {
+                call.complete(run(app, tenant, "stop-1"));
+              } catch (Throwable failure) {
+                call.completeExceptionally(failure);
+              }
+            });
+    assertThat(connector.entered.await(60, TimeUnit.SECONDS)).isTrue();
+    app.close();
+    assertThatThrownBy(() -> call.get(60, TimeUnit.SECONDS))
+        .isInstanceOf(ExecutionException.class)
+        .cause()
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessage("the application is closing");
+    JdbcClient jdbc = database.postgres();
+    String query =
+        "SELECT state, error, finished_at FROM runner.operation_run"
+            + " WHERE tenant_id = :t AND request_id = 'stop-1'";
+    Map<String, Object> running = jdbc.sql(query).param("t", tenant.value()).query().singleRow();
+    assertThat(running.get("state")).isEqualTo("running");
+    assertThat(running.get("finished_at")).isNull();
+    try (VigilTestApp next = VigilTestApp.start(database, secrets.folder(), List.of())) {
+      next.awaitStarted();
+      Map<String, Object> ended = jdbc.sql(query).param("t", tenant.value()).query().singleRow();
+      assertThat(ended.get("state")).isEqualTo("failed");
+      assertThat(ended.get("error")).isEqualTo("interrupted by restart");
+      assertThat(ended.get("finished_at")).isNotNull();
+    }
   }
 }

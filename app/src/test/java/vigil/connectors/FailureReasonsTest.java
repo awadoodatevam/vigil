@@ -29,7 +29,13 @@ import vigil.testsupport.TestSecrets;
 class FailureReasonsTest {
 
   private static final ConnectorTimings TIMINGS =
-      new ConnectorTimings(Duration.ofSeconds(5), Duration.ofSeconds(10));
+      new ConnectorTimings(
+          Duration.ofSeconds(5),
+          Duration.ofSeconds(10),
+          Duration.ofSeconds(90),
+          Duration.ofSeconds(120),
+          Duration.ofSeconds(30),
+          Duration.ofSeconds(90));
   private static final URI ALERTMANAGER = URI.create("http://lab-alertmanager:9093/api/v2/status");
   private static final URI DEFAULT_PORT = URI.create("https://x.test/api");
 
@@ -82,8 +88,7 @@ class FailureReasonsTest {
         .isEqualTo("Connection failed: InterruptedException.");
 
     try (ServerSocket server = new ServerSocket(0, 50, InetAddress.getLoopbackAddress());
-        ConnectorHttp http =
-            new ConnectorHttp(new ConnectorTimings(Duration.ofSeconds(1), Duration.ofSeconds(2)))) {
+        ConnectorHttp http = new ConnectorHttp(ConnectionTestIT.shortTimings())) {
       Thread.ofPlatform()
           .daemon()
           .start(

@@ -130,7 +130,8 @@ abstract class HttpSourceConnector implements MonitoringSourceConnector {
     return new ConnectionTestResult.Failed(reason);
   }
 
-  private static Optional<URI> address(String text) {
+  /** The text as an {@code http} or {@code https} URI with a host and a valid port, or empty. */
+  static Optional<URI> address(String text) {
     URI uri;
     try {
       uri = new URI(text);

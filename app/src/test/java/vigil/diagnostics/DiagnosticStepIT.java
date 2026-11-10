@@ -1,6 +1,7 @@
 package vigil.diagnostics;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.security.SecureRandom;
 import java.sql.Timestamp;
@@ -11,6 +12,7 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -20,6 +22,9 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -41,9 +46,13 @@ import vigil.incidents.api.EvidenceView;
 import vigil.incidents.api.IncidentService;
 import vigil.runner.LabTarget;
 import vigil.runner.RunnerFixture;
+import vigil.runner.api.GrantView;
 import vigil.runner.api.OperationRunState;
 import vigil.runner.api.OperationRunView;
+import vigil.runner.api.OperationView;
 import vigil.runner.api.PermissionKind;
+import vigil.runner.api.RunRequest;
+import vigil.runner.api.RunnerService;
 import vigil.shared.Actor;
 import vigil.shared.Completed;
 import vigil.shared.Ids;
@@ -51,6 +60,7 @@ import vigil.shared.Key;
 import vigil.shared.StepAnswer;
 import vigil.shared.StepCall;
 import vigil.shared.StepCancel;
+import vigil.shared.TenantId;
 import vigil.testsupport.TestSecrets;
 import vigil.testsupport.VigilDatabase;
 import vigil.testsupport.VigilTestApp;
@@ -78,6 +88,68 @@ class DiagnosticStepIT {
   private DiagnosticsFixture b;
   private DiagnosticsFixture c;
   private final List<StepAnswer> answers = new ArrayList<>();
+  private ArmedRunner armed;
+
+  /** The test application's {@link ArmedRunner}. */
+  static class Armed {
+
+    @Bean
+    @Primary
+    ArmedRunner armedRunner(@Qualifier("runner") RunnerService runner) {
+      return new ArmedRunner(runner);
+    }
+  }
+
+  /**
+   * Delegates to the real runner; while armed for one request id, runs its action after the real
+   * run returned and before it returns the run.
+   */
+  static final class ArmedRunner implements RunnerService {
+
+    private final RunnerService runner;
+    private volatile String requestId;
+    private volatile Runnable action;
+
+    ArmedRunner(RunnerService runner) {
+      this.runner = runner;
+    }
+
+    void arm(String requestId, Runnable action) {
+      this.action = action;
+      this.requestId = requestId;
+    }
+
+    @Override
+    public OperationRunView run(TenantId tenantId, Actor requester, RunRequest request) {
+      OperationRunView run = runner.run(tenantId, requester, request);
+      if (request.requestId().equals(requestId)) {
+        requestId = null;
+        action.run();
+      }
+      return run;
+    }
+
+    @Override
+    public Optional<OperationView> operation(TenantId tenantId, String operationKey) {
+      return runner.operation(tenantId, operationKey);
+    }
+
+    @Override
+    public List<GrantView> grants(TenantId tenantId) {
+      return runner.grants(tenantId);
+    }
+
+    @Override
+    public Optional<OperationRunView> operationRun(TenantId tenantId, UUID id) {
+      return runner.operationRun(tenantId, id);
+    }
+
+    @Override
+    public List<String> parameterProblems(
+        TenantId tenantId, String operationKey, String parametersJson) {
+      return runner.parameterProblems(tenantId, operationKey, parametersJson);
+    }
+  }
 
   private LabTarget.Injection injection;
   private final UUID r1 = Ids.newId();
@@ -89,10 +161,11 @@ class DiagnosticStepIT {
     lab = LabTarget.shared();
     VigilDatabase database = VigilDatabase.fresh();
     TestSecrets secrets = TestSecrets.create(database, lab.secrets());
-    app = VigilTestApp.start(database, secrets.folder(), List.of());
+    app = VigilTestApp.start(database, secrets.folder(), List.of(), Armed.class);
     app.awaitStarted();
     postgres = database.postgres();
     handler = app.context().getBean(DiagnosticsStepHandler.class);
+    armed = app.context().getBean(ArmedRunner.class);
     incidents = app.context().getBean(IncidentService.class);
     a =
         DiagnosticsFixture.create(
@@ -320,6 +393,11 @@ class DiagnosticStepIT {
     assertThat(a.results(i1, s1)).hasSize(3);
     assertThat(a.runs(s1)).hasSize(3);
     assertThat(evidence(a, i1)).hasSize(3);
+    assertThat(output(start(a.call(r1, i1, s1, 2, "resume", KEYS.toArray(String[]::new)))))
+        .isEqualTo("done");
+    assertThat(a.results(i1, s1)).hasSize(3);
+    assertThat(a.runs(s1)).hasSize(3);
+    assertThat(evidence(a, i1)).hasSize(3);
   }
 
   @Test
@@ -475,5 +553,58 @@ class DiagnosticStepIT {
               handler.cancel(cancel);
             });
     assertThat(counts()).isEqualTo(before);
+  }
+
+  @Test
+  @Order(10)
+  @DisplayName("DM-R-64 a result stored meanwhile wins the insert, and no evidence is written")
+  void insertConflict() {
+    UUID incident = a.openIncident("srv-db-01");
+    UUID step = Ids.newId();
+    UUID stored = Ids.newId();
+    armed.arm(
+        step + ":disk_usage:1",
+        () ->
+            postgres
+                .sql(
+                    "INSERT INTO diagnostics.diagnostic_result (id, tenant_id, created_at,"
+                        + " incident_id, run_id, step_execution_id, diagnostic_key,"
+                        + " component_key, target_key, outcome, collected_at, error) VALUES"
+                        + " (:id, :t, now(), :incident, :run, :step, 'disk_usage', 'srv-db-01',"
+                        + " 'lab-db-01', 'failed', now(), 'stored by the test')")
+                .param("id", stored)
+                .param("t", a.tenant.value())
+                .param("incident", incident)
+                .param("run", r1)
+                .param("step", step)
+                .update());
+    assertThat(output(start(a.call(r1, incident, step, 1, "start", "disk_usage"))))
+        .isEqualTo("failed");
+    List<DiagnosticResultView> results = a.results(incident, step);
+    assertThat(results).singleElement().satisfies(r -> assertThat(r.id()).isEqualTo(stored));
+    assertThat(a.runs(step))
+        .singleElement()
+        .satisfies(run -> assertThat(run.state()).isEqualTo(OperationRunState.SUCCEEDED));
+    assertThat(evidence(a, incident)).isEmpty();
+  }
+
+  @Test
+  @Order(11)
+  @DisplayName("DM-R-64 an addEvidence refusal rolls the result back and the call throws")
+  void evidenceRefused() {
+    UUID incident = a.openIncident("srv-db-01");
+    postgres
+        .sql("UPDATE incidents.incident SET state = 'closed' WHERE tenant_id = :t AND id = :id")
+        .param("t", a.tenant.value())
+        .param("id", incident)
+        .update();
+    UUID step = Ids.newId();
+    assertThatThrownBy(() -> handler.start(a.call(r1, incident, step, 1, "start", "disk_usage")))
+        .isInstanceOf(RuntimeException.class);
+    assertThat(a.runs(step))
+        .singleElement()
+        .satisfies(run -> assertThat(run.state()).isEqualTo(OperationRunState.SUCCEEDED));
+    assertThat(a.results(incident, step)).isEmpty();
+    assertThat(evidence(a, incident)).isEmpty();
   }
 }

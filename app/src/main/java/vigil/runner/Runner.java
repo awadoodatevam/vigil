@@ -1,5 +1,6 @@
 package vigil.runner;
 
+import jakarta.annotation.PreDestroy;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -45,6 +46,7 @@ class Runner implements RunnerService, RunnerRestart {
   private static final int ERROR_MAX = 1_000;
   private static final String DIAGNOSTICS = "vigil-diagnostics";
   private static final String NUL = "\u0000";
+  private static final String CLOSING = "the application is closing";
 
   private final RunnerRecords records;
   private final ConnectorService connectors;
@@ -52,6 +54,7 @@ class Runner implements RunnerService, RunnerRestart {
   private final TenantService tenants;
   private final TransactionTemplate tx;
   private final Clock clock;
+  private volatile boolean closed;
 
   /** The run stored by step 2; {@code ended} when nothing else happens. */
   private record Started(
@@ -117,8 +120,23 @@ class Runner implements RunnerService, RunnerRestart {
     if (started.ended()) {
       return started.run();
     }
-    TargetResult result = call(tenantId, request, started);
-    return tx.execute(status -> end(tenantId, started, result));
+    TargetResult result;
+    try {
+      result = call(tenantId, request, started);
+    } catch (RuntimeException e) {
+      if (closed) {
+        throw new IllegalStateException(CLOSING, e);
+      }
+      String message = e.getMessage();
+      result =
+          new TargetResult.NotStarted(
+              message == null || message.isEmpty() ? e.getClass().getSimpleName() : message);
+    }
+    if (closed) {
+      throw new IllegalStateException(CLOSING);
+    }
+    TargetResult ended = result;
+    return tx.execute(status -> end(tenantId, started, ended));
   }
 
   /** Step 2: the earlier run of the request id, a refused run, or a {@code running} run. */
@@ -285,6 +303,15 @@ class Runner implements RunnerService, RunnerRestart {
                     finished.output(),
                     finished.outputTruncated(),
                     "the output could not be read by " + operation.outputParser()));
+  }
+
+  /**
+   * The application has begun to close: a call that returns or throws from now on leaves its run
+   * {@code running}, and restart step (1) ends it (DM-SM10-T6; CTX-D-059 (2) (a)).
+   */
+  @PreDestroy
+  void close() {
+    closed = true;
   }
 
   @Override

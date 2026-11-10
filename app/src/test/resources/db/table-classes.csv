@@ -54,3 +54,8 @@ runner.target_access_grant,configuration,yes
 runner.operation_run,stateful,yes
 diagnostics.diagnostic_definition,configuration,yes
 diagnostics.diagnostic_result,immutable,yes
+ai_gateway.ai_provider_configuration,configuration,yes
+ai_gateway.allowed_provider,configuration,yes
+ai_gateway.task_assignment,configuration,yes
+ai_gateway.data_routing_rule,configuration,yes
+ai_gateway.ai_usage_record,immutable,yes

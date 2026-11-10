@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterAll;
@@ -27,6 +28,16 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.json.JsonMapper;
+import vigil.aigateway.AiFixture;
+import vigil.aigateway.api.AiGatewayImport;
+import vigil.aigateway.api.AiGatewayService;
+import vigil.aigateway.api.AiPart;
+import vigil.aigateway.api.AiTask;
+import vigil.aigateway.api.CompletionRequest;
+import vigil.aigateway.api.DataCategory;
+import vigil.aigateway.api.EmbeddingRequest;
+import vigil.connectors.api.AiPromptPart;
+import vigil.connectors.api.AiProviderConnector;
 import vigil.connectors.api.ConnectionTestResult;
 import vigil.connectors.api.ConnectorImport;
 import vigil.connectors.api.ConnectorInstanceView;
@@ -72,7 +83,9 @@ class ExternalCallGuardIT {
             database,
             Map.of(
                 "zabbix-api", TestSecrets.randomToken(),
-                "alertmanager-password", TestSecrets.randomToken()));
+                "alertmanager-password", TestSecrets.randomToken(),
+                "claude", TestSecrets.randomToken(),
+                "openai", TestSecrets.randomToken()));
     app = VigilTestApp.start(database, secrets.folder(), List.of());
     app.awaitStarted();
     connectors = app.context().getBean(ConnectorService.class);
@@ -117,6 +130,177 @@ class ExternalCallGuardIT {
     wiremock.stubFor(
         get(urlEqualTo(ConnectionTestIT.ALERTMANAGER_PATH))
             .willReturn(aResponse().withStatus(200)));
+    wiremock.stubFor(
+        post(urlEqualTo("/v1/messages"))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withBody(
+                        "{\"content\":[{\"type\":\"text\",\"text\":\"{}\"}],"
+                            + "\"stop_reason\":\"end_turn\"}")));
+    wiremock.stubFor(
+        post(urlEqualTo("/v1/responses"))
+            .willReturn(aResponse().withStatus(200).withBody("{\"status\":\"completed\"}")));
+    wiremock.stubFor(
+        post(urlEqualTo("/v1/embeddings"))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withBody("{\"data\":[{\"index\":0,\"embedding\":[1.0]}]}")));
+    wiremock.stubFor(
+        post(urlEqualTo("/api/chat"))
+            .willReturn(
+                aResponse().withStatus(200).withBody("{\"message\":{\"content\":\"{}\"}}")));
+    wiremock.stubFor(
+        post(urlEqualTo("/api/embed"))
+            .willReturn(aResponse().withStatus(200).withBody("{\"embeddings\":[[1.0]]}")));
+  }
+
+  /** A tenant with the five AI instances of the demo at WireMock and the demo part 7. */
+  private record AiTenant(TenantId tenantId, Map<String, UUID> handles) {
+
+    ConnectorInstanceView instance(String handle) {
+      return connectors.instance(tenantId, handles.get(handle)).orElseThrow();
+    }
+  }
+
+  private static AiTenant aiTenant() {
+    TenantId tenantId = new TenantId(Ids.newId());
+    Map<String, UUID> handles =
+        app.context()
+            .getBean(ConnectorImport.class)
+            .importPart(
+                tenantId,
+                AiFixture.connectors("http://127.0.0.1:" + wiremock.port()),
+                Instant.now(),
+                Map.of());
+    app.context()
+        .getBean(AiGatewayImport.class)
+        .importPart(tenantId, AiFixture.demoPart(), Instant.now(), handles);
+    return new AiTenant(tenantId, handles);
+  }
+
+  private static AiProviderConnector aiConnector(ConnectorKind kind) {
+    return app.context().getBeansOfType(AiProviderConnector.class).values().stream()
+        .filter(bean -> bean.kind() == kind)
+        .findFirst()
+        .orElseThrow();
+  }
+
+  private static final List<AiPromptPart> AI_PARTS =
+      List.of(new AiPromptPart("Member alerts", "Alert data", "alerts"));
+
+  private static Supplier<Object> aiComplete(AiTenant tenant, ConnectorKind kind, String handle) {
+    return () ->
+        aiConnector(kind)
+            .complete(
+                tenant.tenantId(),
+                tenant.instance(handle),
+                "model",
+                "system",
+                AI_PARTS,
+                "sl_t_2",
+                Recordings.tree("{\"type\":\"object\"}"),
+                10);
+  }
+
+  private static Supplier<Object> aiEmbed(AiTenant tenant, ConnectorKind kind, String handle) {
+    return () ->
+        aiConnector(kind).embed(tenant.tenantId(), tenant.instance(handle), "model", List.of("t"));
+  }
+
+  private static Supplier<Object> gatewayComplete(AiTenant tenant) {
+    return () ->
+        app.context()
+            .getBean(AiGatewayService.class)
+            .complete(
+                new CompletionRequest(
+                    tenant.tenantId(),
+                    AiTask.SL_T_2,
+                    Ids.newId(),
+                    null,
+                    "system",
+                    List.of(new AiPart("Title", DataCategory.INCIDENT_RECORD, "title")),
+                    "sl_t_2",
+                    Recordings.tree("{\"type\":\"object\"}"),
+                    10));
+  }
+
+  private static Supplier<Object> gatewayEmbed(AiTenant tenant) {
+    return () ->
+        app.context()
+            .getBean(AiGatewayService.class)
+            .embed(
+                new EmbeddingRequest(
+                    tenant.tenantId(),
+                    "local-embed",
+                    Ids.newId(),
+                    null,
+                    Set.of(DataCategory.INCIDENT_HISTORY),
+                    List.of("t")));
+  }
+
+  private static long usageRecords(AiTenant tenant) {
+    return app.context()
+        .getBean(JdbcClient.class)
+        .sql("SELECT count(*) FROM ai_gateway.ai_usage_record WHERE tenant_id = :t")
+        .param("t", tenant.tenantId().value())
+        .query(Long.class)
+        .single();
+  }
+
+  @Test
+  @DisplayName(
+      "AR-Q-04 the AI gateway and AI connector entry points refuse to run in a transaction")
+  void aiEntryPoints() {
+    AiTenant tenant = aiTenant();
+    assertThat(app.context().getBeansOfType(AiProviderConnector.class)).hasSize(4);
+    Map<String, Supplier<Object>> entryPoints = new LinkedHashMap<>();
+    entryPoints.put("AiGatewayService.complete", gatewayComplete(tenant));
+    entryPoints.put("AiGatewayService.embed", gatewayEmbed(tenant));
+    entryPoints.put("claude complete", aiComplete(tenant, ConnectorKind.CLAUDE, "claude-api"));
+    entryPoints.put("claude embed", aiEmbed(tenant, ConnectorKind.CLAUDE, "claude-api"));
+    entryPoints.put("openai complete", aiComplete(tenant, ConnectorKind.OPENAI, "openai-api"));
+    entryPoints.put("openai embed", aiEmbed(tenant, ConnectorKind.OPENAI, "openai-embed-api"));
+    entryPoints.put(
+        "local_model complete", aiComplete(tenant, ConnectorKind.LOCAL_MODEL, "local-llm"));
+    entryPoints.put("local_model embed", aiEmbed(tenant, ConnectorKind.LOCAL_MODEL, "local-llm"));
+    entryPoints.put(
+        "local_embedding complete",
+        aiComplete(tenant, ConnectorKind.LOCAL_EMBEDDING, "local-embed"));
+    entryPoints.put(
+        "local_embedding embed", aiEmbed(tenant, ConnectorKind.LOCAL_EMBEDDING, "local-embed"));
+    for (Map.Entry<String, Supplier<Object>> entry : entryPoints.entrySet()) {
+      wiremock.resetRequests();
+      assertThatThrownBy(() -> transaction.execute(status -> entry.getValue().get()))
+          .as(entry.getKey())
+          .isInstanceOf(IllegalStateException.class)
+          .hasMessage("external call inside a transaction");
+      wiremock.verify(0, anyRequestedFor(anyUrl()));
+    }
+    assertThat(usageRecords(tenant)).isZero();
+  }
+
+  @Test
+  @DisplayName("AR-R-09 outside a transaction the AI gateway and AI connectors make their calls")
+  void aiOutsideTransaction() {
+    AiTenant tenant = aiTenant();
+    Map<String, Supplier<Object>> calls = new LinkedHashMap<>();
+    calls.put("AiGatewayService.complete", gatewayComplete(tenant));
+    calls.put("AiGatewayService.embed", gatewayEmbed(tenant));
+    calls.put("claude complete", aiComplete(tenant, ConnectorKind.CLAUDE, "claude-api"));
+    calls.put("openai complete", aiComplete(tenant, ConnectorKind.OPENAI, "openai-api"));
+    calls.put("openai embed", aiEmbed(tenant, ConnectorKind.OPENAI, "openai-embed-api"));
+    calls.put("local_model complete", aiComplete(tenant, ConnectorKind.LOCAL_MODEL, "local-llm"));
+    calls.put(
+        "local_embedding embed", aiEmbed(tenant, ConnectorKind.LOCAL_EMBEDDING, "local-embed"));
+    for (Map.Entry<String, Supplier<Object>> entry : calls.entrySet()) {
+      wiremock.resetRequests();
+      Object result = entry.getValue().get();
+      assertThat(result.toString()).as(entry.getKey()).doesNotContain("Failed", "Unavailable");
+      wiremock.verify(1, anyRequestedFor(anyUrl()));
+    }
+    assertThat(usageRecords(tenant)).isEqualTo(2);
   }
 
   @AfterAll

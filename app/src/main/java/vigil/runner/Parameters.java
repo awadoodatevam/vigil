@@ -120,7 +120,7 @@ final class Parameters {
       }
       JsonNode bound = definition.get(field);
       if (type.equals("decimal")) {
-        if (!bound.isNumber()) {
+        if (!isFiniteNumber(bound)) {
           problems.add(at + "." + field + ": not a number");
           bothValid = false;
         }
@@ -211,7 +211,8 @@ final class Parameters {
     return switch (type) {
       case "integer", "duration" ->
           value.isIntegralNumber() ? boundProblem(definition, type, value) : "not a whole number";
-      case "decimal" -> value.isNumber() ? boundProblem(definition, type, value) : "not a number";
+      case "decimal" ->
+          isFiniteNumber(value) ? boundProblem(definition, type, value) : "not a number";
       case "text", "path", "enum" -> textProblem(definition, type, value);
       default -> value.isBoolean() ? null : "true or false";
     };
@@ -302,6 +303,14 @@ final class Parameters {
     } catch (JacksonException e) {
       return null;
     }
+  }
+
+  /** Whether the node is a JSON number with a finite value ({@code 1e400} is not). */
+  static boolean isFiniteNumber(JsonNode node) {
+    if (node == null || !node.isNumber()) {
+      return false;
+    }
+    return !(node.isDouble() || node.isFloat()) || Double.isFinite(node.doubleValue());
   }
 
   static boolean isKey(JsonNode node) {

@@ -2,5 +2,14 @@ package vigil.connectors;
 
 import java.time.Duration;
 
-/** The connect timeout and the monitoring source connection test timeout (AR-TM-01). */
-record ConnectorTimings(Duration connect, Duration monitoringTest) {}
+/**
+ * The timeouts of this module's connectors (AR-TM-01): connect, monitoring source connection test,
+ * Claude and OpenAI chat, local model chat, embeddings with one text and with more texts.
+ */
+record ConnectorTimings(
+    Duration connect,
+    Duration monitoringTest,
+    Duration chat,
+    Duration localChat,
+    Duration embedOne,
+    Duration embedBatch) {}
