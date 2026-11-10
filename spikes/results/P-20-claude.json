@@ -1,0 +1,105 @@
+{
+  "spike": "claude",
+  "run_id": "20261110T165700Z",
+  "started_at": "2026-11-10T16:57:00.451Z",
+  "finished_at": "2026-11-10T16:57:11.856Z",
+  "passed": true,
+  "checks": [
+    {
+      "name": "sl-t-1-status",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-1-stop",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-1-output",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-1-accepted",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-1-usage",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-2-status",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-2-stop",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-2-output",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-2-usage",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "truncated",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "bad-key",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "calls": [
+    {
+      "call": "sl-t-1",
+      "status": 200,
+      "duration_ms": 5265,
+      "input_units": 11225,
+      "output_units": 412,
+      "reasoning_units": null,
+      "cost_usd": "0.026570",
+      "cites_rb_db_01": true,
+      "rejection_reasons": []
+    },
+    {
+      "call": "sl-t-2",
+      "status": 200,
+      "duration_ms": 3754,
+      "input_units": 1099,
+      "output_units": 254,
+      "reasoning_units": null,
+      "cost_usd": "0.004738",
+      "summary_length": 574
+    },
+    {
+      "call": "truncated",
+      "status": 200,
+      "duration_ms": 1888,
+      "input_units": 11225,
+      "output_units": 16,
+      "reasoning_units": null,
+      "cost_usd": "0.022610"
+    },
+    {
+      "call": "bad-key",
+      "status": 401,
+      "duration_ms": 302,
+      "input_units": null,
+      "output_units": null,
+      "reasoning_units": null,
+      "cost_usd": null
+    }
+  ]
+}

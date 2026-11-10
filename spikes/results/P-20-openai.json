@@ -1,0 +1,129 @@
+{
+  "spike": "openai",
+  "run_id": "20261110T165754Z",
+  "started_at": "2026-11-10T16:57:54.408Z",
+  "finished_at": "2026-11-10T16:58:33.445Z",
+  "passed": true,
+  "checks": [
+    {
+      "name": "sl-t-1-status",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-1-complete",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-1-output",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-1-accepted",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-1-usage",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-2-status",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-2-complete",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-2-output",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "sl-t-2-usage",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "truncated",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "embed-status",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "embed-vectors",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "embed-usage",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "bad-key",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "calls": [
+    {
+      "call": "sl-t-1",
+      "status": 200,
+      "duration_ms": 11566,
+      "input_units": 7226,
+      "output_units": 319,
+      "reasoning_units": 112,
+      "cost_usd": "0.017642",
+      "cites_rb_db_01": true,
+      "rejection_reasons": []
+    },
+    {
+      "call": "sl-t-2",
+      "status": 200,
+      "duration_ms": 15368,
+      "input_units": 510,
+      "output_units": 323,
+      "reasoning_units": 180,
+      "cost_usd": "0.004250",
+      "summary_length": 496
+    },
+    {
+      "call": "truncated",
+      "status": 200,
+      "duration_ms": 3822,
+      "input_units": 7226,
+      "output_units": 16,
+      "reasoning_units": 16,
+      "cost_usd": "0.014612"
+    },
+    {
+      "call": "embed",
+      "status": 200,
+      "duration_ms": 7318,
+      "input_units": 116,
+      "output_units": 0,
+      "reasoning_units": null,
+      "cost_usd": "0.000002"
+    },
+    {
+      "call": "bad-key",
+      "status": 401,
+      "duration_ms": 702,
+      "input_units": null,
+      "output_units": null,
+      "reasoning_units": null,
+      "cost_usd": null
+    }
+  ]
+}
