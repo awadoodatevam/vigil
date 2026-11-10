@@ -239,7 +239,9 @@ class AiGatewayImportIT {
         .containsExactly("ai_provider_configurations[5].provider_key: used more than once");
     assertThat(refused(claude(c -> AiFixture.withKind(c, "gemini"))))
         .containsExactly(
-            AT + ".provider_kind: not one of claude, openai, local_model, local_embedding");
+            AT + ".provider_kind: not one of claude, openai, local_model, local_embedding",
+            "task_assignments.SL-T-1: claude is not allowed for SL-T-1",
+            "task_assignments.SL-T-2: claude is not allowed for SL-T-2");
     assertThat(refused(claude(c -> AiFixture.withInstance(c, "cred-claude"))))
         .containsExactly(AT + ".connector_instance: not a connector instance of part 3");
     assertThat(refused(claude(c -> AiFixture.withInstance(c, "openai-api"))))

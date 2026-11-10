@@ -43,7 +43,8 @@ class AiTimeoutsIT {
   @BeforeAll
   static void start() {
     ai = new AiConnectorApp(ShortTimings.class);
-    for (String path : List.of("/v1/messages", "/api/chat", "/v1/embeddings", "/api/embed")) {
+    for (String path :
+        List.of("/v1/messages", "/v1/responses", "/api/chat", "/v1/embeddings", "/api/embed")) {
       ai.wiremock.stubFor(
           post(urlEqualTo(path))
               .willReturn(aResponse().withStatus(200).withFixedDelay(DELAY_MS).withBody("{}")));

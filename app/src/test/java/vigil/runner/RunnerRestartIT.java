@@ -232,8 +232,8 @@ class RunnerRestartIT {
     return app;
   }
 
-  private static TenantId runnerTenant(VigilTestApp app, String name) {
-    TenantId tenant = new TestTenants(app).tenant(name).create().id();
+  private static TenantId runnerTenant(VigilTestApp app, String name, String host) {
+    TenantId tenant = new TestTenants(app).tenant(name).host(host).create().id();
     RunnerFixture.importInto(app, tenant, "lab-db-01", 22, "SHA256:x", RunnerFixture.demoPart());
     return tenant;
   }
@@ -257,7 +257,7 @@ class RunnerRestartIT {
     try (VigilTestApp app = replacingApp(database, secrets)) {
       ReplacingConnector connector =
           app.context().getBean("linuxServerConnector", ReplacingConnector.class);
-      TenantId tenant = runnerTenant(app, "Runner throws");
+      TenantId tenant = runnerTenant(app, "Runner throws", "runner-throws.test");
       connector.mode = "throw";
       OperationRunView broke = run(app, tenant, "throws-1");
       assertThat(broke.state()).isEqualTo(OperationRunState.FAILED);
@@ -279,7 +279,7 @@ class RunnerRestartIT {
     VigilTestApp app = replacingApp(database, secrets);
     ReplacingConnector connector =
         app.context().getBean("linuxServerConnector", ReplacingConnector.class);
-    TenantId tenant = runnerTenant(app, "Runner stop");
+    TenantId tenant = runnerTenant(app, "Runner stop", "runner-stop.test");
     CompletableFuture<OperationRunView> call = new CompletableFuture<>();
     Thread.ofVirtual()
         .start(
