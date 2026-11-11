@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import vigil.identity.api.IdentityService;
 import vigil.identity.api.Permission;
+import vigil.incidents.api.DataCategory;
+import vigil.incidents.api.EvidenceKind;
 import vigil.incidents.api.IncidentService;
 import vigil.incidents.api.NotifiedPurpose;
 import vigil.incidents.api.Severity;
@@ -64,6 +66,7 @@ public final class NotificationsFixture {
           });
   private static final Actor ROUTING = Actor.module("vigil-routing");
   private static final Actor NOTIFICATIONS = Actor.module("vigil-notifications");
+  private static final Actor RECOVERY = Actor.module("vigil-recovery");
 
   public final VigilTestApp app;
   public final TenantId tenant;
@@ -296,6 +299,23 @@ public final class NotificationsFixture {
         tenant, NOTIFICATIONS, incident, new Key("noc-l1"), NotifiedPurpose.INCIDENT_NOTIFICATION);
     UUID user = userId("noc-l1");
     incidents.acknowledge(tenant, incident, user);
+  }
+
+  /** Resolves the incident as vigil-recovery with a recovery verification entry. */
+  public void resolve(UUID incident) {
+    UUID verification = Ids.newId();
+    incidents.addEvidence(
+        tenant,
+        RECOVERY,
+        incident,
+        EvidenceKind.RECOVERY_VERIFICATION,
+        verification,
+        "vigil-recovery, check db-disk-recovered",
+        Instant.now(),
+        "Recovery verified: every condition held for 60 s.",
+        "{}",
+        DataCategory.INCIDENT_RECORD);
+    incidents.resolve(tenant, RECOVERY, incident, verification);
   }
 
   public UUID userId(String username) {

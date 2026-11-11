@@ -45,7 +45,9 @@ import vigil.connectors.api.ConnectorInstanceView;
 import vigil.connectors.api.ConnectorKind;
 import vigil.connectors.api.ConnectorService;
 import vigil.connectors.api.ConnectorsPart;
+import vigil.connectors.api.MessageLine;
 import vigil.connectors.api.MonitoringSourceConnector;
+import vigil.connectors.api.NotificationChannelConnector;
 import vigil.connectors.api.ParseResult;
 import vigil.connectors.api.TargetConnector;
 import vigil.connectors.api.TargetResult;
@@ -53,6 +55,10 @@ import vigil.connectors.api.TicketLine;
 import vigil.connectors.api.TicketingConnector;
 import vigil.diagnostics.api.DiagnosticsStepHandler;
 import vigil.incidents.api.EscalationCause;
+import vigil.notifications.api.ApprovalRecipient;
+import vigil.notifications.api.NotificationsService;
+import vigil.notifications.api.NotificationsStepHandler;
+import vigil.routing.api.RoutingStepHandler;
 import vigil.runner.api.OperationRunState;
 import vigil.runner.api.OperationRunView;
 import vigil.runner.api.PermissionKind;
@@ -422,6 +428,90 @@ class ExternalCallGuardIT {
           .hasMessage("external call inside a transaction");
       wiremock.verify(0, anyRequestedFor(anyUrl()));
     }
+  }
+
+  @Test
+  @DisplayName("AR-Q-04 the notification entry points refuse to run inside a transaction")
+  void notificationEntryPoints() {
+    NotificationsStepHandler notify = app.context().getBean(NotificationsStepHandler.class);
+    RoutingStepHandler escalate = app.context().getBean(RoutingStepHandler.class);
+    NotificationsService notifications = app.context().getBean(NotificationsService.class);
+    StepCall notification =
+        guardCall(StepCall.StepType.NOTIFICATION, "{\"recipients\": [\"owner_team\"]}");
+    StepCall escalation = guardCall(StepCall.StepType.ESCALATION, "{\"mode\": \"escalate_now\"}");
+    Map<String, Supplier<Object>> entryPoints = new LinkedHashMap<>();
+    entryPoints.put("NotificationsStepHandler.start", () -> notify.start(notification));
+    entryPoints.put("NotificationsStepHandler.evaluate", () -> notify.evaluate(notification));
+    entryPoints.put("RoutingStepHandler.start", () -> escalate.start(escalation));
+    entryPoints.put("RoutingStepHandler.evaluate", () -> escalate.evaluate(escalation));
+    entryPoints.put(
+        "NotificationsService.notifyEscalation",
+        () ->
+            notifications.notifyEscalation(
+                tenantA,
+                Ids.newId(),
+                Ids.newId(),
+                1,
+                List.of(new Key("noc-l1")),
+                EscalationCause.ESCALATE_NOW,
+                null));
+    entryPoints.put(
+        "NotificationsService.notifyApprovalRequest",
+        () ->
+            notifications.notifyApprovalRequest(
+                tenantA,
+                Ids.newId(),
+                Ids.newId(),
+                List.of(new ApprovalRecipient(new Key("dbops-lead"), new Key("db-ops"))),
+                "action",
+                "target",
+                Instant.now()));
+    List<MessageLine> lines = List.of(MessageLine.of("line"));
+    for (NotificationChannelConnector channel :
+        app.context().getBeansOfType(NotificationChannelConnector.class).values()) {
+      ConnectorInstanceView instance =
+          new ConnectorInstanceView(
+              tenantA,
+              Ids.newId(),
+              "guard",
+              channel.kind(),
+              channel.kind() == ConnectorKind.EMAIL
+                  ? "smtp://127.0.0.1:" + wiremock.port()
+                  : "https://teams.microsoft.com",
+              JsonMapper.builder()
+                  .build()
+                  .readTree("{\"from_address\":\"a@vigil.test\",\"starttls\":false}"),
+              null,
+              true);
+      entryPoints.put(
+          "NotificationChannelConnector.send " + channel.kind().key(),
+          () -> channel.send(tenantA, instance, "a@vigil.test", null, "Techfinity", lines));
+    }
+    assertThat(entryPoints).hasSize(8);
+    for (Map.Entry<String, Supplier<Object>> entry : entryPoints.entrySet()) {
+      wiremock.resetRequests();
+      assertThatThrownBy(() -> transaction.execute(status -> entry.getValue().get()))
+          .as(entry.getKey())
+          .isInstanceOf(IllegalStateException.class)
+          .hasMessage("external call inside a transaction");
+      wiremock.verify(0, anyRequestedFor(anyUrl()));
+    }
+  }
+
+  private static StepCall guardCall(StepCall.StepType type, String parameters) {
+    return new StepCall(
+        tenantA,
+        Ids.newId(),
+        Ids.newId(),
+        Ids.newId(),
+        new Key("s-guard"),
+        type,
+        parameters,
+        1,
+        null,
+        new StepCall.WakeReason("start"),
+        null,
+        null);
   }
 
   private static RunRequest guardRequest(String requestId) {
