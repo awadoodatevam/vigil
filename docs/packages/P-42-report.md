@@ -6,7 +6,7 @@
 | Branch | `p-42-faster-gate` |
 | Pin date (BP-R-08) | 11 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` |
-| State | Built; the gate command passes in this session; the pull request's runs of Section 8 item 2 are recorded in Section 10 |
+| State | Built; the gate command passes in this session; on the pull request, the full run passed (after one re-run of the failed lab job) and the data-only run was light and passed (Section 10) |
 
 ## 1. What was built
 
@@ -87,7 +87,19 @@ Times are UTC on 11 November 2026, from `gh api repos/awadoodatevam/vigil/action
 
 `java` and `rest` started at the same second (13:15:44) and ran in parallel. Attempt 1 took 16 min 26 s (13:15:33 to 13:31:59), against 21 to 30 minutes for the single job of P-06 to P-07. In attempt 1, `rest` failed in three lab tests of `demo/monitoring/test_monitoring.py` (`test_storm`, `test_timing_targets`, `test_clear_all_faults`). In both storm runs, the check `resolve_after_clear` failed with `not resolved within 40 s 1: lab-db-01 Database write errors on schema bundle_catalog`; 373 tests passed. P-42 changes nothing that the lab or the storm runs (document feedback 1). I re-ran the failed jobs once (`rerun-failed-jobs`; no commit pushed). In attempt 2, `rest` passed with 376 tests passed and 1 skipped, the lab tests included, and `gate` passed. From the start of the run to the passed `gate` took 29 min 43 s; without the failed attempt the full gate takes about 16.5 minutes, the time of its longest job.
 
-**Run 2: the report commit (a data-only push).** Its times are added by the next commit of this report, whose own run is the third run (spec Section 8 item 2).
+**Run 2: 43032175222, the report commit (commit `f94f40c`, data only): light.** `scope` printed `gate: light (only data since 2f0c934 passed)`.
+
+| Job | Start to end | Result |
+| --- | --- | --- |
+| `scope` | 13:46:35 to 13:46:41 | success |
+| `secrets` | 13:46:35 to 13:46:42 | success |
+| `light` | 13:46:42 to 13:46:56 (14 s) | success |
+| `java`, `rest` | skipped | skipped |
+| `gate` | 13:46:59 to 13:47:02 | **success** |
+
+Total: 30 s (13:46:32 to 13:47:02), against about two minutes expected (CTX-D-067) and a full run before P-42. `main` had gained no code since the branch was made, so no rebase was needed.
+
+**Run 3**: the commit that adds run 2 to this report changes only this file, so its run is light as well. It is not recorded here.
 
 ## 11. Follow-up items for later packages
 
