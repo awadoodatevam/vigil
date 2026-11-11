@@ -1,5 +1,6 @@
 package vigil.connectors.api;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import vigil.shared.TenantId;
@@ -9,6 +10,12 @@ public interface ConnectorService {
 
   /** The instance with that id in the tenant, or empty. */
   Optional<ConnectorInstanceView> instance(TenantId tenantId, UUID instanceId);
+
+  /**
+   * The tenant's active instances of {@code kind}, by {@code name} in code point order, then id
+   * (AR-K-00c). Not an external call.
+   */
+  List<ConnectorInstanceView> activeInstances(TenantId tenantId, ConnectorKind kind);
 
   /** The credential reference with that id in the tenant, or empty. */
   Optional<CredentialReferenceView> credentialReference(TenantId tenantId, UUID credentialRefId);

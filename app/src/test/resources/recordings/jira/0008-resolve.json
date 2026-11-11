@@ -1,0 +1,25 @@
+{
+  "seq": 8,
+  "call": "resolve",
+  "started_at": "2026-11-10T04:42:43.733Z",
+  "duration_ms": 1189,
+  "request": {
+    "method": "POST",
+    "url": "${endpoint.jira}/rest/api/3/issue/NOC-1/transitions",
+    "headers": {
+      "Authorization": "Basic <redacted>",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "vigil-p06-spike"
+    },
+    "body": "{\"transition\": {\"id\": \"31\"}}"
+  },
+  "response": {
+    "status": 204,
+    "headers": {
+      "Content-Type": "text/html;charset=UTF-8"
+    },
+    "body": ""
+  },
+  "error": null
+}

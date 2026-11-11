@@ -14,20 +14,25 @@ import tools.jackson.databind.json.JsonMapper;
  * The monitoring webhook calls P-04 recorded and the provider calls P-06 recorded, copied into the
  * test resources (BP-R-06).
  */
-final class Recordings {
+public final class Recordings {
 
-  static final JsonMapper JSON = JsonMapper.builder().build();
+  public static final JsonMapper JSON = JsonMapper.builder().build();
   private static final Path RECORDINGS = Path.of("src/test/resources/recordings");
   private static final Path FOLDER = RECORDINGS.resolve("monitoring");
 
   /**
-   * One provider call of P-06 (P-06 spec Section 6.2): the request body as sent, the answer's
-   * status, headers and body as received.
+   * One provider call of P-06 (P-06 spec Section 6.2): the request's method, address and body as
+   * sent, the answer's status, headers and body as received.
    */
-  record ProviderCall(
-      String requestBody, int status, JsonNode responseHeaders, String responseBody) {
+  public record ProviderCall(
+      String method,
+      String url,
+      String requestBody,
+      int status,
+      JsonNode responseHeaders,
+      String responseBody) {
 
-    JsonNode request() {
+    public JsonNode request() {
       return JSON.readTree(requestBody);
     }
   }
@@ -59,7 +64,15 @@ final class Recordings {
   }
 
   /** The provider call {@code name} of the folder {@code provider} (Example: {@code claude}). */
-  static ProviderCall provider(String provider, String name) {
+  public static ProviderCall provider(String provider, String name) {
+    return provider(provider, name, "${endpoint.jira}");
+  }
+
+  /**
+   * The provider call {@code name} of the folder {@code provider} with {@code ${endpoint.jira}}
+   * replaced by {@code base} in the request address and the answer body.
+   */
+  public static ProviderCall provider(String provider, String name, String base) {
     JsonNode call;
     try {
       call =
@@ -69,18 +82,21 @@ final class Recordings {
       throw new UncheckedIOException(e);
     }
     JsonNode response = call.get("response");
+    JsonNode request = call.get("request");
     return new ProviderCall(
-        call.get("request").get("body").stringValue(),
+        request.get("method").stringValue(),
+        request.get("url").stringValue().replace("${endpoint.jira}", base),
+        request.get("body").stringValue(),
         response.get("status").intValue(),
         response.get("headers"),
-        response.get("body").stringValue());
+        response.get("body").stringValue().replace("${endpoint.jira}", base));
   }
 
-  static byte[] bytes(String text) {
+  public static byte[] bytes(String text) {
     return text.getBytes(StandardCharsets.UTF_8);
   }
 
-  static JsonNode tree(String text) {
+  public static JsonNode tree(String text) {
     return JSON.readTree(text);
   }
 }

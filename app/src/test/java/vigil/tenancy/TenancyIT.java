@@ -39,6 +39,7 @@ import vigil.tenancy.api.TenantSettingsView;
 import vigil.tenancy.api.TenantState;
 import vigil.tenancy.api.TenantView;
 import vigil.testsupport.MutableClock;
+import vigil.testsupport.TestTenants;
 import vigil.testsupport.VigilDatabase;
 import vigil.testsupport.VigilTestApp;
 
@@ -374,6 +375,25 @@ class TenancyIT {
             code(() -> tenants.setAlias(host(), new TenantId(Ids.newId()), "installation token")))
         .isEqualTo(VigilError.Code.NOT_FOUND);
     assertThat(tenants.publicHostName(provisioning())).isEmpty();
+  }
+
+  @Test
+  @DisplayName("AR-I-100 the public base address from vigil.links.base and the tenant's alias")
+  void publicBaseAddress() {
+    TenantId a = ready();
+    String host = host();
+    tenants.setAlias(host, a, "installation token");
+    assertThat(tenants.publicBaseAddress(a)).contains("https://" + host);
+    assertThat(tenants.publicBaseAddress(ready())).isEmpty();
+    // One vigil-app per database (AdvisoryLock): the second application has its own.
+    try (VigilTestApp local =
+        VigilTestApp.start(
+            VigilDatabase.fresh(), List.of("--vigil.links.base=http://{host}:8080/"))) {
+      local.awaitStarted();
+      TenantId b = new TestTenants(local).tenant("links").host(host).create().id();
+      TenantService other = local.context().getBean(TenantService.class);
+      assertThat(other.publicBaseAddress(b)).contains("http://" + host + ":8080");
+    }
   }
 
   @Test

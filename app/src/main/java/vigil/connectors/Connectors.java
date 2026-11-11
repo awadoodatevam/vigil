@@ -1,5 +1,6 @@
 package vigil.connectors;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,14 @@ class Connectors implements ConnectorService {
     required(tenantId, "tenantId");
     required(instanceId, "instanceId");
     return records.instance(tenantId, instanceId);
+  }
+
+  @Override
+  public List<ConnectorInstanceView> activeInstances(TenantId tenantId, ConnectorKind kind) {
+    if (tenantId == null || kind == null) {
+      throw new IllegalArgumentException("a required argument is missing");
+    }
+    return List.copyOf(records.activeInstances(tenantId, kind));
   }
 
   @Override

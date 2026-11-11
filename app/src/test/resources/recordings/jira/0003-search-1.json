@@ -1,0 +1,24 @@
+{
+  "seq": 3,
+  "call": "search-1",
+  "started_at": "2026-11-10T04:42:35.469Z",
+  "duration_ms": 2344,
+  "request": {
+    "method": "GET",
+    "url": "${endpoint.jira}/rest/api/3/search/jql?jql=project%3DNOC%20AND%20labels%3D%22vigil-spike-20261110T044230Z%22&fields=status",
+    "headers": {
+      "Authorization": "Basic <redacted>",
+      "Accept": "application/json",
+      "User-Agent": "vigil-p06-spike"
+    },
+    "body": ""
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json;charset=UTF-8"
+    },
+    "body": "{\"issues\": [{\"expand\": \"renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations\", \"id\": \"10017\", \"self\": \"${endpoint.jira}/rest/api/3/issue/10017\", \"key\": \"NOC-1\", \"fields\": {\"status\": {\"self\": \"${endpoint.jira}/rest/api/3/status/10005\", \"description\": \"\", \"iconUrl\": \"${endpoint.jira}/images/icons/statuses/generic.png\", \"name\": \"To Do\", \"id\": \"10005\", \"statusCategory\": {\"self\": \"${endpoint.jira}/rest/api/3/statuscategory/2\", \"id\": 2, \"key\": \"new\", \"colorName\": \"blue-gray\", \"name\": \"To Do\"}}}}], \"isLast\": true}"
+  },
+  "error": null
+}

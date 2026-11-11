@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.22 |
+| Version | 1.23 |
 | Date | 10 November 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
@@ -420,8 +420,8 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | M; P-20, P-06; none |
-| Builds | `jira_cloud` connector (AR-K-04, AR-K-14 to AR-K-16); `vigil-ticketing`: DM-E-75, DM-E-76; the Ticket step (DM-S-10) for create, reopen and resolve with DC-OUT-01, DC-OUT-03, DC-OUT-04; escalation records for P-22 (DC-OUT-02); duplicate protection after a restart (DM-E76-R2); incident link (AR-I-100, amendment BP-A-09). |
+| Size; depends on; owner tasks | M; P-20, P-06, P-42 (CTX-D-067 (1)); none |
+| Builds | `jira_cloud` connector (AR-K-04, AR-K-14 to AR-K-16); `vigil-ticketing`: DM-E-75, DM-E-76; the Ticket step (DM-S-10) for create, reopen and resolve with DC-OUT-01, DC-OUT-03, DC-OUT-04; escalation records for P-22 (DC-OUT-02); duplicate protection after a restart (DM-E76-R2); incident link (AR-I-100, amendment BP-A-09). `vigil-tenancy` reads `vigil.links.base` and gives the public base address (CTX-D-069 (1)); `vigil-connectors` adds `activeInstances` (CTX-D-069 (2)); `TicketingService.recordEscalation` for P-22 (CTX-D-069 (7)). |
 | Requirements built | PM-M19-01 to PM-M19-04; PM-K-04; PM-S-10; DM-E-75, DM-E-76 with their rules; DM-SM-14; DM-S-10; AR-K-00c, AR-K-04, AR-K-14 to AR-K-16, AR-I-100; DC-OUT-00 to DC-OUT-04; DM-E02-R2 (Jira); SL-A1-05 (ticket), SL-A1-07 (ticket resolved), SL-DR-03 (Jira). |
 | Tests | WireMock on P-06's recordings: create with label and the seven description parts in order; label search repeated up to 3 times; resolve and reopen by status name; a `pending` record after a restart creates no second issue; environment label prefix. |
 | Runs in | BP-E-01, BP-E-02 |
@@ -431,7 +431,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 | Item | Content |
 | --- | --- |
 | Size; depends on; owner tasks | L; P-21, P-07; none |
-| Builds | `ms_teams` connector (AR-K-05, AR-K-17, AR-K-18) and the installation-wide sender (AR-K-19, AR-R-32); `email` connector (AR-K-06, AR-K-20, AR-K-21, AR-T-14); `vigil-notifications`: DM-E-77, DM-E-78; the Notification step (DM-S-09) with recipients, de-duplication (DM-R-65), notified teams and DC-OUT-05 to DC-OUT-07 with the links of AR-I-101 and AR-I-102; seed import part 15. `vigil-routing`'s Escalation step (DM-S-08) in both modes. |
+| Builds | `ms_teams` connector (AR-K-05, AR-K-17, AR-K-18) and the installation-wide sender (AR-K-19, AR-R-32); `email` connector (AR-K-06, AR-K-20, AR-K-21, AR-T-14); `vigil-notifications`: DM-E-77, DM-E-78; the Notification step (DM-S-09) with recipients, de-duplication (DM-R-65), notified teams and DC-OUT-05 to DC-OUT-07 with the links of AR-I-101 and AR-I-102; seed import part 15. `vigil-routing`'s Escalation step (DM-S-08) in both modes, asking `vigil-ticketing` for the escalation comment with `TicketingService.recordEscalation`, the level, cause, timer and team names, after the escalation is committed in `vigil-incidents` (CTX-D-069 (7)); the links use `TenantService.publicBaseAddress` (CTX-D-069 (1)). |
 | Requirements built | PM-M20-01 to PM-M20-05, PM-M10-05; PM-K-05, PM-K-06; PM-S-08, PM-S-09; DM-E-77, DM-E-78 with their rules; DM-S-08, DM-S-09; DM-R-65; AR-K-00d, AR-K-05, AR-K-06, AR-K-17 to AR-K-21, AR-I-101, AR-I-102, AR-R-32, AR-T-14; DC-OUT-05 to DC-OUT-07; DM-E02-R2 (messages); SL-A1-05 (messages), SL-A2-03, SL-DR-03 (messages). |
 | Tests | Teams posts at least 300 ms apart; Adaptive Card lines and link text from P-07's recordings; email subject and body; no second send for a `sent` record; escalation through two levels with timer 120 s and a fixed clock; an acknowledgement made before the step starts ends it at once. |
 | Runs in | BP-E-01, BP-E-02 |
@@ -441,7 +441,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 | Item | Content |
 | --- | --- |
 | Size; depends on; owner tasks | M; P-22; none |
-| Builds | `vigil-recovery`: DM-E-61, DM-E-62; the Recovery check step (DM-S-07, DM-R-34 to DM-R-38) with the source health guard, window, DC-TX-03 condition texts and cancellation; the resolve request (PM-M09-06); seed import part 13. `vigil-reporting`: DM-E-79, DM-E-80; metrics (DM-R-53); seed import part 17. |
+| Builds | `vigil-recovery`: DM-E-61, DM-E-62; the Recovery check step (DM-S-07, DM-R-34 to DM-R-38) with the source health guard, window, DC-TX-03 condition texts and cancellation; the resolve request (PM-M09-06); the `recovery_verification` evidence entry with the `content` keys of CTX-D-069 (6), which the Jira resolve comment reads; seed import part 13. `vigil-reporting`: DM-E-79, DM-E-80; metrics (DM-R-53); seed import part 17. |
 | Requirements built | PM-M15-01 to PM-M15-04, PM-M21-01, PM-M21-02; PM-S-07; DM-E-61, DM-E-62, DM-E-79, DM-E-80 with their rules; DM-S-07; DM-R-34 to DM-R-38, DM-R-52, DM-R-53; DM-SM-13; DC-TX-03 (recovery texts); SL-A1-07, SL-A1-09 (computation). |
 | Tests | Recovered only after the window with every source healthy; window reset when a condition stops holding or a source turns stale; not recovered at `max_wait_until`; DD-K-11 seeded values (5.7 min, 41.1 min, 525, 46) through the product. |
 | Runs in | BP-E-01, BP-E-02 |
@@ -1065,3 +1065,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.20 | 10 Nov 2026 | From the P-19 report (BP-L-8, CTX-D-063): the P-19 entry is size L (`tools/loc.sh` 2,408; Section 7.7). For the P-20 spec (BP-L-1, CTX-D-064): P-20 stays one package of size L by owner decision; its entry adds part 8's key checks, the gateway read and the owner-run re-run of the provider spikes with the product's request and checks. No behaviour of Vigil changes. |
 | 1.21 | 10 Nov 2026 | From the P-20 report (BP-L-8, CTX-D-065): the P-34 entry adds the local-model SL-T-1 answers under PM-M17-03's checks to SB-T-04 and its rewording. For the P-07 spec (BP-L-1, CTX-D-065): the P-07 entry places the spikes in `spikes/providers/` with the owner's observations and writes the nine mailbox values; BP-OT-14's mailbox values are P-07's. No behaviour of Vigil changes. |
 | 1.22 | 11 Nov 2026 | For the P-42 spec (BP-L-1, CTX-D-067): new package P-42 Faster gate (S, Phase A, after P-07 and before P-21); BP-W-01 adds the light gate for data-only pushes and the parallel jobs; BP-R-12 adds `--part java` and `--part rest` and narrows the lab path list (changes CTX-D-036's list); BP-E-02 and Section 10.2 note the public repository's runners and free minutes; size summary 42 packages. No behaviour of Vigil changes. |
+| 1.23 | 11 Nov 2026 | For the P-21 spec (BP-L-1, CTX-D-069): the P-21 entry depends on P-42 too and adds the public base address of `vigil-tenancy`, `ConnectorService.activeInstances` and `TicketingService.recordEscalation`; the P-22 entry asks for the escalation comment with the level, cause, timer and team names and uses the public base address; the P-23 entry writes the `recovery_verification` evidence content that the Jira resolve comment reads. No behaviour of Vigil changes. |

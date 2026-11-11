@@ -55,6 +55,10 @@ build_image() {
       args+=(--build-arg "$name")
     fi
   done
+  # An Ubuntu mirror for the apt sources of the build only (CTX-D-070); nothing new without the variable.
+  if [ -n "${VIGIL_UBUNTU_MIRROR:-}" ]; then
+    args+=(--build-arg "UBUNTU_MIRROR=$VIGIL_UBUNTU_MIRROR")
+  fi
   if [ -f /etc/ssl/certs/ca-certificates.crt ]; then
     args+=(--secret "id=ca_bundle,src=/etc/ssl/certs/ca-certificates.crt")
   fi

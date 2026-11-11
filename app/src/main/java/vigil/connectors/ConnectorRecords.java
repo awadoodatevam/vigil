@@ -2,6 +2,7 @@ package vigil.connectors;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -37,6 +38,19 @@ class ConnectorRecords {
         .param("id", id)
         .query(ConnectorRecords::instanceRow)
         .optional();
+  }
+
+  /** The tenant's active instances of the kind, by name in code point order, then id. */
+  List<ConnectorInstanceView> activeInstances(TenantId tenantId, ConnectorKind kind) {
+    return jdbc.sql(
+            "SELECT id, tenant_id, name, kind, address, settings::text AS settings,"
+                + " credential_ref_id, active FROM connectors.connector_instance"
+                + " WHERE tenant_id = :tenantId AND kind = :kind AND active"
+                + " ORDER BY name COLLATE \"C\", id")
+        .param("tenantId", tenantId.value())
+        .param("kind", kind.key())
+        .query(ConnectorRecords::instanceRow)
+        .list();
   }
 
   Optional<StoredCredential> credential(TenantId tenantId, UUID id) {

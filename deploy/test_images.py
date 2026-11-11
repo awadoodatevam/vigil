@@ -66,8 +66,12 @@ def tree(tmp_path):
     log = tmp_path / "docker.log"
     log.write_text("", encoding="utf-8")
 
-    def run(*arguments):
+    def run(*arguments, mirror=None):
         environment = dict(os.environ)
+        environment.pop("VIGIL_UBUNTU_MIRROR", None)
+        if mirror is not None:
+            environment["VIGIL_UBUNTU_MIRROR"] = mirror
+        log.write_text("", encoding="utf-8")
         environment.update(PATH=os.pathsep.join([str(stubs), environment.get("PATH", "")]), STUB_LOG=str(log))
         result = subprocess.run(
             ["bash", str(root / "deploy" / "images.sh"), *arguments],
@@ -120,3 +124,31 @@ def test_wrong_arguments_print_usage(tree, arguments):
     assert result.returncode == 2
     assert result.stdout == USAGE
     assert calls == []
+
+
+def mirror_arguments(call):
+    return [
+        value
+        for flag, value in zip(call, call[1:], strict=False)
+        if flag == "--build-arg" and value.startswith("UBUNTU_MIRROR")
+    ]
+
+
+@pytest.mark.parametrize("arguments", [["--test"], ["--test", "--java"]])
+def test_mirror_build_argument_only_when_the_variable_is_set(tree, arguments):
+    """BP-R-04 every build gets --build-arg UBUNTU_MIRROR={value} only when VIGIL_UBUNTU_MIRROR is set and not empty."""
+    mirror = "http://azure.archive.ubuntu.com/ubuntu/"
+    result, calls = tree(*arguments, mirror=mirror)
+    assert result.returncode == 0, result.stdout + result.stderr
+    builds = [call for call in calls if call[0] == "build"]
+    assert builds
+    for call in builds:
+        assert mirror_arguments(call) == [f"UBUNTU_MIRROR={mirror}"]
+    for unset in [None, ""]:
+        result, calls = tree(*arguments, mirror=unset)
+        assert result.returncode == 0, result.stdout + result.stderr
+        builds = [call for call in calls if call[0] == "build"]
+        assert builds
+        for call in builds:
+            assert mirror_arguments(call) == []
+            assert not any("UBUNTU_MIRROR" in part for part in call)

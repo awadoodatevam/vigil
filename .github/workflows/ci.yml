@@ -71,6 +71,8 @@ jobs:
     if: needs.scope.outputs.mode == 'full'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    env:
+      VIGIL_UBUNTU_MIRROR: http://azure.archive.ubuntu.com/ubuntu/
     steps:
       - name: checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -91,6 +93,9 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
+      - name: dns
+        run: getent hosts archive.ubuntu.com security.ubuntu.com azure.archive.ubuntu.com || true
+
       - name: gate command, part java
         run: tools/check-all.sh --part java
 
@@ -110,6 +115,8 @@ jobs:
     if: needs.scope.outputs.mode == 'full'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    env:
+      VIGIL_UBUNTU_MIRROR: http://azure.archive.ubuntu.com/ubuntu/
     steps:
       - name: checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -129,6 +136,9 @@ jobs:
 
       - name: shellcheck
         run: sudo apt-get install -y shellcheck
+
+      - name: dns
+        run: getent hosts archive.ubuntu.com security.ubuntu.com azure.archive.ubuntu.com || true
 
       - name: gate command, part rest
         run: tools/check-all.sh --part rest

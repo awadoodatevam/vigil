@@ -121,7 +121,8 @@ class EngineAbsentHandlersIT {
     EngineFixture a = startApp("a.engine-absent.test", TestBeans.class);
     UUID run =
         a.start(
-            a.openIncident(CLOCK, "nowhere-1", "i-1", ALERTNAME), TestContents.linear("ticket"));
+            a.openIncident(CLOCK, "nowhere-1", "i-1", ALERTNAME),
+            TestContents.linear("notification"));
     for (int n = 1; n <= 3; n++) {
       int attempt = n;
       EngineFixture.await(
@@ -138,7 +139,7 @@ class EngineAbsentHandlersIT {
         .allSatisfy(
             line ->
                 assertThat(line.path("error").path("message").asString())
-                    .isEqualTo("no step handler for ticket"));
+                    .isEqualTo("no step handler for notification"));
 
     UUID incident = a.openIncident(CLOCK, "nowhere-2", "i-1", ALERTNAME);
     UUID waiting = a.start(incident, TestContents.linear("recovery_check"));
