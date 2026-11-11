@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
@@ -55,11 +56,17 @@ class Tenancy implements TenantService, TenantImport {
   private final JdbcClient jdbc;
   private final Clock clock;
   private final ApplicationEventPublisher events;
+  private final String linksBase;
 
-  Tenancy(JdbcClient jdbc, Clock clock, ApplicationEventPublisher events) {
+  Tenancy(
+      JdbcClient jdbc,
+      Clock clock,
+      ApplicationEventPublisher events,
+      @Value("${vigil.links.base}") String linksBase) {
     this.jdbc = jdbc;
     this.clock = clock;
     this.events = events;
+    this.linksBase = linksBase;
   }
 
   @Override
@@ -276,6 +283,14 @@ class Tenancy implements TenantService, TenantImport {
         .param("tenantId", tenantId.value())
         .query(String.class)
         .optional();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<String> publicBaseAddress(TenantId tenantId) {
+    required(tenantId, "tenantId");
+    return publicHostName(tenantId)
+        .map(host -> linksBase.replace("{host}", host).replaceFirst("/+$", ""));
   }
 
   @Override

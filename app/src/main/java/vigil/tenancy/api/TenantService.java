@@ -40,4 +40,11 @@ public interface TenantService {
 
   /** The host name of the tenant's latest alias revision, or empty (PM-M01-04). */
   Optional<String> publicHostName(TenantId tenantId);
+
+  /**
+   * The tenant's public base address for links (AR-A-05, BP-A-09): the installation property {@code
+   * vigil.links.base} with {@code {host}} replaced by {@link #publicHostName}, without a trailing
+   * {@code /}; empty when the tenant has no alias.
+   */
+  Optional<String> publicBaseAddress(TenantId tenantId);
 }

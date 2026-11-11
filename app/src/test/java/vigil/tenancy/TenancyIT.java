@@ -377,6 +377,23 @@ class TenancyIT {
   }
 
   @Test
+  @DisplayName("AR-I-100 the public base address from vigil.links.base and the tenant's alias")
+  void publicBaseAddress() {
+    TenantId a = ready();
+    String host = host();
+    tenants.setAlias(host, a, "installation token");
+    assertThat(tenants.publicBaseAddress(a)).contains("https://" + host);
+    assertThat(tenants.publicBaseAddress(ready())).isEmpty();
+    try (VigilTestApp local =
+        VigilTestApp.start(
+            database, List.of("--vigil.links.base=http://{host}:8080/"), TestClock.class)) {
+      local.awaitStarted();
+      TenantService other = local.context().getBean(TenantService.class);
+      assertThat(other.publicBaseAddress(a)).contains("http://" + host + ":8080");
+    }
+  }
+
+  @Test
   @DisplayName("DM-E-83 alias revisions keep host name, revision, tenant, set_at and set_by")
   void aliasRecord() {
     TenantId a = ready();

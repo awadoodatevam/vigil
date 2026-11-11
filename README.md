@@ -45,6 +45,7 @@ Migrations are Flyway SQL files in `app/src/main/resources/db/migration/{schema}
 - Secrets are read only through `vigil.connectors.api.Secrets` (callers as `docs/50-architecture.md` AR-S-04, checked by `SecretCallerRuleTest`); monitoring payloads are parsed and sources tested only through `ConnectorService`; every entry point that makes an external call calls `TransactionGuard.assertNoTransaction()` first and is listed in `ExternalCallGuardIT`.
 - Every `vigil-api` handler method carries `@Public`, `@LoggedIn`, `@RequiresPermission`, `@InstallationToken` or `@WebhookToken`; errors are `VigilError`s, mapped by `ApiErrors` (AR-I-03); timestamps are written with `ApiTimes`; live notices are published with `LiveHub.publish` after the commit; every operation is in `openapi/vigil-api.yaml` and in `ContractIT`.
 - A seed part joins the import by a `SeedPartImporter` bean in `vigil.setup` (its sections and name are already in `SeedParts`; its refusal message is `Part {name} refused.`); a cross-module key check by a `SeedKeyCheck` bean; each package that adds one extends `SeedImportIT` (AR-Q-10).
+- P-21 (built): `vigil-ticketing` (ticket link, sync record, the Ticket step, the escalation comment for P-22) and the `jira_cloud` connector; `vigil.links.base` read by `vigil-tenancy` (`TenantService.publicBaseAddress`).
 
 Interfaces of the platform modules for later packages (P-08):
 

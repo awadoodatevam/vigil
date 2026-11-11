@@ -49,7 +49,10 @@ import vigil.connectors.api.MonitoringSourceConnector;
 import vigil.connectors.api.ParseResult;
 import vigil.connectors.api.TargetConnector;
 import vigil.connectors.api.TargetResult;
+import vigil.connectors.api.TicketLine;
+import vigil.connectors.api.TicketingConnector;
 import vigil.diagnostics.api.DiagnosticsStepHandler;
+import vigil.incidents.api.EscalationCause;
 import vigil.runner.api.OperationRunState;
 import vigil.runner.api.OperationRunView;
 import vigil.runner.api.PermissionKind;
@@ -63,6 +66,8 @@ import vigil.shared.TenantId;
 import vigil.testsupport.TestSecrets;
 import vigil.testsupport.VigilDatabase;
 import vigil.testsupport.VigilTestApp;
+import vigil.ticketing.api.TicketingService;
+import vigil.ticketing.api.TicketingStepHandler;
 
 class ExternalCallGuardIT {
 
@@ -357,6 +362,66 @@ class ExternalCallGuardIT {
       assertThat(connectors.parse(ConnectorKind.ZABBIX, body, contentType)).isEqualTo(expected);
     }
     assertThat(inside).isEqualTo(expected);
+  }
+
+  @Test
+  @DisplayName("AR-Q-04 the ticketing entry points refuse to run inside a transaction")
+  void ticketingEntryPoints() {
+    TicketingConnector jira = app.context().getBean(TicketingConnector.class);
+    TicketingStepHandler step = app.context().getBean(TicketingStepHandler.class);
+    TicketingService ticketing = app.context().getBean(TicketingService.class);
+    ConnectorInstanceView instance =
+        new ConnectorInstanceView(
+            tenantA,
+            Ids.newId(),
+            "guard",
+            ConnectorKind.JIRA_CLOUD,
+            "http://127.0.0.1:" + wiremock.port(),
+            JsonMapper.builder().build().readTree("{\"project_key\":\"NOC\"}"),
+            null,
+            true);
+    List<TicketLine> lines = List.of(TicketLine.of("line"));
+    StepCall call =
+        new StepCall(
+            tenantA,
+            Ids.newId(),
+            Ids.newId(),
+            Ids.newId(),
+            new Key("s-ticket"),
+            StepCall.StepType.TICKET,
+            "{\"operation\": \"create\"}",
+            1,
+            null,
+            new StepCall.WakeReason("start"),
+            null,
+            null);
+    Map<String, Supplier<Object>> entryPoints = new LinkedHashMap<>();
+    entryPoints.put("create", () -> jira.create(tenantA, instance, "t", lines, "vigil-x"));
+    entryPoints.put("addComment", () -> jira.addComment(tenantA, instance, "NOC-1", lines));
+    entryPoints.put("transition", () -> jira.transition(tenantA, instance, "NOC-1", "Done"));
+    entryPoints.put("status", () -> jira.status(tenantA, instance, "NOC-1"));
+    entryPoints.put("findByLabel", () -> jira.findByLabel(tenantA, instance, "vigil-x"));
+    entryPoints.put("TicketingStepHandler.start", () -> step.start(call));
+    entryPoints.put("TicketingStepHandler.evaluate", () -> step.evaluate(call));
+    entryPoints.put(
+        "TicketingService.recordEscalation",
+        () ->
+            ticketing.recordEscalation(
+                tenantA,
+                Ids.newId(),
+                Ids.newId(),
+                1,
+                List.of(),
+                EscalationCause.ESCALATE_NOW,
+                null));
+    for (Map.Entry<String, Supplier<Object>> entry : entryPoints.entrySet()) {
+      wiremock.resetRequests();
+      assertThatThrownBy(() -> transaction.execute(status -> entry.getValue().get()))
+          .as(entry.getKey())
+          .isInstanceOf(IllegalStateException.class)
+          .hasMessage("external call inside a transaction");
+      wiremock.verify(0, anyRequestedFor(anyUrl()));
+    }
   }
 
   private static RunRequest guardRequest(String requestId) {

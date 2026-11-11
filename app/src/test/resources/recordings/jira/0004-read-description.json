@@ -1,0 +1,24 @@
+{
+  "seq": 4,
+  "call": "read-description",
+  "started_at": "2026-11-10T04:42:37.848Z",
+  "duration_ms": 967,
+  "request": {
+    "method": "GET",
+    "url": "${endpoint.jira}/rest/api/3/issue/NOC-1?fields=description",
+    "headers": {
+      "Authorization": "Basic <redacted>",
+      "Accept": "application/json",
+      "User-Agent": "vigil-p06-spike"
+    },
+    "body": ""
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json;charset=UTF-8"
+    },
+    "body": "{\"expand\": \"renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations\", \"id\": \"10017\", \"self\": \"${endpoint.jira}/rest/api/3/issue/10017\", \"key\": \"NOC-1\", \"fields\": {\"description\": {\"type\": \"doc\", \"version\": 1, \"content\": [{\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"SB-T-07 spike run 20261110T044230Z.\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"Created by the P-06 Jira spike; nothing else uses this issue.\"}]}, {\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"Link: \"}, {\"type\": \"text\", \"text\": \"https://demo.vigil.solviclabs.com/incidents/spike-20261110T044230Z\", \"marks\": [{\"type\": \"link\", \"attrs\": {\"href\": \"https://demo.vigil.solviclabs.com/incidents/spike-20261110T044230Z\"}}]}]}]}}}"
+  },
+  "error": null
+}

@@ -36,7 +36,8 @@ class AiTimeoutsIT {
           Duration.ofSeconds(1),
           Duration.ofSeconds(2),
           Duration.ofSeconds(3),
-          Duration.ofSeconds(4));
+          Duration.ofSeconds(4),
+          Duration.ofSeconds(15));
     }
   }
 

@@ -66,3 +66,5 @@ knowledge.similarity_search_result,immutable,yes
 knowledge.knowledge_settings,configuration,yes
 investigation.ai_investigation_result,immutable,yes
 investigation.incident_summary,immutable,yes
+ticketing.ticket_link,stateful,yes
+ticketing.ticket_sync_record,stateful,yes

@@ -10,7 +10,7 @@ class ConnectorConfiguration {
 
   /**
    * Connect 5 s, monitoring source connection test 10 s, chat 90 s, local chat 120 s, embeddings 30
-   * s for one text and 90 s for more (AR-TM-01, BP-A-30).
+   * s for one text and 90 s for more (AR-TM-01, BP-A-30), each Jira call 15 s (AR-TM-01).
    */
   @Bean
   ConnectorTimings connectorTimings() {
@@ -20,6 +20,7 @@ class ConnectorConfiguration {
         Duration.ofSeconds(90),
         Duration.ofSeconds(120),
         Duration.ofSeconds(30),
-        Duration.ofSeconds(90));
+        Duration.ofSeconds(90),
+        Duration.ofSeconds(15));
   }
 }
