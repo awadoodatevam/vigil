@@ -6,7 +6,7 @@
 | Branch | `p-07-spikes-teams-email` |
 | Pin date (BP-R-08) | 10 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (Temurin 25.0.4.1+1) |
-| State | Built; the gate command passes in the build session (Section 10); pull request opened. The owner-run steps of spec Section 6.8 are not done yet (Section 8); then a session "Record the owner-run results of P-07" fills Section 8. |
+| State | Built; the gate command passes in the build session (Section 10); pull request opened. Owner-run steps of spec Section 6.8 done on 11 November 2026 (commit `a5360fb`): both spikes passed, all 27 and 28 checks. Results recorded on 11 November 2026 by the session "Record the owner-run results of P-07" (Section 8). |
 
 ## 1. What was built
 
@@ -19,11 +19,11 @@
 | AR-K-20 | The SMTP messages: `smtplib.SMTP(host, port, timeout=15)`, `EHLO`, `STARTTLS` with `ssl.create_default_context()`, `EHLO`, login; `EmailMessage(policy=email.policy.SMTP)` with `From`, `To`, `Subject` (line 1), `Date`, `MIME-Version`, then `set_content(…, charset="utf-8", cte="7bit")`; the four lines joined and ended by CRLF; sent as `msg.as_bytes()`; `send-*` passes when `DATA`'s final reply is 250 | `email_spike.py` | `test_email_spike.py` (`test_email_run`, `test_email_auth_login`) |
 | AR-K-21 | The nine lines `mailbox.{key}: vigil-{key}@techfinity.ae` after `endpoint.jira`, in AR-K-21's order; the email spike reads `mailbox.noc-l1` and `mailbox.dbops-engineer` | `deploy/values/demo.yaml`, `email_spike.py` | `test_email_spike.py` (`test_mailbox_values`) |
 | AR-S-13 | The checks of the secrets `teams-team-{key}`, `teams-user-{username}` (a string without whitespace, `https` with a host, or `http` on `127.0.0.1`) and `smtp` (a JSON object with non-empty `username` and `password`); the guarded values of spec 6.2 (webhook addresses, `sig` as written and decoded, username, password, their base64 and that of `\0{username}\0{password}`) | `teams_spike.py`, `email_spike.py` | `test_teams_spike.py`, `test_email_spike.py` (`test_email_secrets`) |
-| SL-ASM-02 | | owner-run | checked by review: `P-07-SB-T-06.json` (Section 8) |
+| SL-ASM-02 | | owner-run | checked by review: `P-07-SB-T-06.json`, `post-*`, `lines-*` and `link-*` passed for all nine channels (Section 8.2) |
 | AR-ASM-01 | | owner-run | checked by review: as SL-ASM-02 |
-| AR-ASM-02 | | owner-run | checked by review: `P-07-SB-T-06.json` and `P-07-AR-SP-02.json` |
-| AR-ASM-04 | | owner-run | checked by review: `P-07-AR-SP-02.json` `arrival-*` |
-| AR-H-08 | | owner-run | checked by review: `P-07-AR-SP-02.json` `connect-*` and `send-*` |
+| AR-ASM-02 | | owner-run | checked by review: `P-07-SB-T-06.json` (nine channels and workflows) and `P-07-AR-SP-02.json` (two of the nine mailboxes), all checks passed (Sections 8.2, 8.3) |
+| AR-ASM-04 | | owner-run | checked by review: `P-07-AR-SP-02.json` `arrival-*` passed for both mailboxes (15.3 s and 18.8 s, Section 8.3) |
+| AR-H-08 | | owner-run | checked by review: `P-07-AR-SP-02.json` `connect-*` and all 20 `send-*` passed (Section 8.3) |
 | AR-H-10 | | owner-run | checked by review: as AR-ASM-02 |
 
 `common.py` changes (spec 6.1, complete list): `Run(spike, guard, package=None)`; `call_http(…, user_agent=USER_AGENT)`; `Recorder.record(answer, url=None)`; `Guard.redact(text)`; `ask(question, lines=(), *, kind)` and `NoAnswer` (spec 6.6). The P-06 spikes call none of the new arguments, so they behave as before (their tests pass unchanged).
@@ -101,12 +101,65 @@ None (spec Section 9). `deploy/values/demo.yaml` gets the nine mailbox values (s
 
 ## 8. Owner-run results
 
-Not yet run. The owner's steps (spec Section 6.8), on the Mac (BP-E-03), on this branch before the merge:
+### 8.1 Steps
 
-1. Prerequisites: `aws login --profile vigil` and `export AWS_PROFILE=vigil`; the Teams desktop client signed in as a member of "Techfinity Demo"; Outlook on the web with full access to `vigil-noc-l1@techfinity.ae` and `vigil-dbops-engineer@techfinity.ae`.
-2. `spikes/providers/run.sh teams`, answering its questions → exit 0 (27 checks).
-3. `spikes/providers/run.sh email`, answering its questions → exit 0 (28 checks). A run with messages in Junk Email, or a link rewritten by Safe Links, is not repeated without reason: it is recorded here with an owner decision item.
-4. Commit `spikes/results/P-07-SB-T-06.json`, `spikes/results/P-07-AR-SP-02.json` and the recordings under `dev/fakes/recordings/teams/` and `email/`; push. Then a cloud session on the branch with the prompt "Record the owner-run results of P-07" fills this section.
+Run by the owner on the Mac (BP-E-03) on 11 November 2026, committed as `a5360fb` ("P-07: owner-run results of SB-T-06 and AR-SP-02"): `spikes/results/P-07-SB-T-06.json`, `spikes/results/P-07-AR-SP-02.json`, nine recordings under `dev/fakes/recordings/teams/` and twenty under `dev/fakes/recordings/email/`.
+
+1. Prerequisites (spec 6.8 step 1): done.
+2. `spikes/providers/run.sh teams` → passed (run `20261111T052608Z`, 05:26:08 to 05:29:41 UTC).
+3. `spikes/providers/run.sh email` → passed (run `20261111T112835Z`, 11:28:35 to 11:30:24 UTC). No message was in Junk Email and no link was rewritten by Safe Links, so there is no owner decision item.
+4. Commit and push: done; this section filled by the session "Record the owner-run results of P-07".
+
+Review list point 3 (spec Section 10), checked in this session: no file under `dev/fakes/recordings/teams/`, `dev/fakes/recordings/email/` or `spikes/results/P-07-*.json` contains `sig=`, `powerplatform`, `logic.azure`, `webhook.office` or `AKIA`. Every Teams recording's `url` is `secret:teams-team-{key}` or `secret:teams-user-{username}`. `gitleaks git --log-opts=origin/main..HEAD`: no leaks found.
+
+### 8.2 SB-T-06 Teams (`P-07-SB-T-06.json`; SL-ASM-02, AR-ASM-01, AR-ASM-02, AR-K-18, AR-K-19)
+
+`passed` true; all 27 checks passed: `post-*`, `lines-*` and `link-*` for the nine channels. The owner saw the four lines of each message on separate lines in the Teams desktop client, and pasted each channel's link exactly as sent.
+
+| Channel (`key`) | `address` | `status` | `duration_ms` |
+| --- | --- | --- | --- |
+| `noc-l1` | Techfinity Demo / NOC L1 | 202 | 2287 |
+| `db-ops` | Techfinity Demo / Database Operations | 202 | 526 |
+| `vas-service-owners` | Techfinity Demo / VAS Service Owners | 202 | 561 |
+| `it-apps` | Techfinity Demo / IT Applications | 202 | 520 |
+| `noc-shift-lead` | Techfinity Demo / NOC Shift Lead | 202 | 348 |
+| `noc-management` | Techfinity Demo / NOC Management | 202 | 408 |
+| `customer-care` | Techfinity Demo / Customer Care | 202 | 353 |
+| `dbops-engineer` | Techfinity Demo / Approvals — Usman | 202 | 371 |
+| `dbops-lead` | Techfinity Demo / Approvals — Farah | 202 | 615 |
+
+Readings from the recordings:
+- Every Workflows webhook answered 202 with an empty body and no `Content-Type` (`response.headers` `{}`). This confirms the assumption of spec Section 11 (202, as Microsoft documents).
+- Posts took 348 to 2,287 ms. The first was the slowest; the others took at most 615 ms.
+- From the end of one post to the start of the next: 323 to 340 ms (the 300 ms pause of AR-K-19, plus the spike's own work).
+- No post was refused or throttled.
+
+### 8.3 AR-SP-02 email (`P-07-AR-SP-02.json`; AR-ASM-04, AR-H-08, AR-K-20)
+
+`passed` true; all 28 checks passed (per mailbox: `connect`, 10 `send`, `arrival`, `lines`, `link`). `from` "Techfinity <techfinity-demo@vigil.solviclabs.com>"; `server` `email-smtp.us-east-1.amazonaws.com:587`.
+
+| Mailbox (`key`) | `address` | `accepted` | `seconds_to_arrival` | `missing_in_junk` | `checked_message` |
+| --- | --- | --- | --- | --- | --- |
+| `noc-l1` | vigil-noc-l1@techfinity.ae | 10 | 15.3 | null | 6 |
+| `dbops-engineer` | vigil-dbops-engineer@techfinity.ae | 10 | 18.8 | null | 2 |
+
+Readings from the recordings and the result file:
+- STARTTLS and the login with the SES SMTP credentials passed for both connections. SES runs outside the sandbox (BP-OT-08), so neither mailbox needed verifying.
+- SES accepted all 20 messages with `250 Ok {message id}`.
+- Each message took 1,361 to 1,706 ms from `MAIL` to the final `DATA` reply, on one connection per mailbox.
+- All ten messages of each mailbox were in the Inbox, not in Junk, 15.3 s and 18.8 s after SES accepted the first one (at most 60 s, AR-SP-02). That timing includes the ten sends and the owner's reaction time.
+- The owner saw message 6 (`noc-l1`) and message 2 (`dbops-engineer`) with four lines and the link whole, and pasted each link exactly as sent, so Safe Links did not rewrite it.
+- The recorded `Date` header reads `… +0000` (Section 3 item 9).
+
+### 8.4 Assumptions (spec Section 11)
+
+| Item | Result |
+| --- | --- |
+| SL-ASM-02, AR-ASM-01 | Proved by SB-T-06: the AR-K-18 payload arrives in each channel with its lines separate and a copyable link. |
+| AR-ASM-02 | Teams part proved (nine channels and workflows answer); mailboxes: two of the nine proved by AR-SP-02, the other seven as the owner stated (CTX-D-065 (5)). |
+| AR-ASM-04 | Proved by AR-SP-02 (inbox, not Junk, within 60 s, lines and link intact). |
+| Mail from SES with DKIM `From` domain `vigil.solviclabs.com` not put in Junk, links not rewritten by Safe Links | Held in this run: `missing_in_junk` null for both mailboxes, `link-*` passed. |
+| The Workflows webhook answers a successful post with a 2xx status | Held: 202 for all nine posts. |
 
 ## 9. Lines of production code added and changed
 
@@ -118,10 +171,10 @@ Cloud session (`tools/check-all.sh`): steps 0 to 7 pass, last line `== all check
 
 The gate ran on the tree of commit `15843c0` (the Python step started after that commit); the later commit changes only this report. GitHub: the `ci.yml` job `gate` runs on the pull request.
 
-Done-check (spec Section 8): (1) BP-DC-01 to BP-DC-07: every part 4 row with proof `test` has a test that names it; the rows checked by review wait for the owner-run results (Section 8); nothing beyond the spec (no product code, no API operation, no setting); no migration, OpenAPI operation or seed import part; `README.md` and `CLAUDE.md` name `run.sh teams|email`; this report. (2) The owner-run steps of spec Section 6.8: not yet done (Section 8). (3) The `ci.yml` job `gate` after the owner's commit of the results and recordings: to follow.
+Done-check (spec Section 8): (1) BP-DC-01 to BP-DC-07: every part 4 row with proof `test` has a test that names it; the rows checked by review are proved by the owner-run results (Sections 1 and 8); nothing beyond the spec (no product code, no API operation, no setting); no migration, OpenAPI operation or seed import part; `README.md` and `CLAUDE.md` name `run.sh teams|email`; this report. (2) The owner-run steps of spec Section 6.8 are done and their files committed (`a5360fb`); both spikes passed (Section 8). (3) The `ci.yml` job `gate` runs on the pull request after the owner's commit of the results and recordings and this report's commit.
 
 ## 11. Follow-up items for later packages
 
-1. P-22: the `ms_teams` and `email` connectors test on the recordings under `dev/fakes/recordings/teams/` and `email/` once the owner has committed them; a Teams recording's `url` is `secret:{secret name}`, never the webhook address (AR-K-17). The exact connect and call timeouts (AR-TM-01), the worker AR-R-32 and the texts of DC-OUT-05 to DC-OUT-07 are P-22's.
+1. P-22: the `ms_teams` and `email` connectors test on the recordings under `dev/fakes/recordings/teams/` (nine posts, each answered 202 with an empty body and no `Content-Type`) and `email/` (twenty messages, each accepted with `250 Ok {message id}`), committed in `a5360fb`. Measured from the owner's Mac, a Teams post took at most 2,287 ms and an SES message at most 1,706 ms (Section 8), well within the 15 s call timeouts of AR-TM-01. A Teams recording's `url` is `secret:{secret name}`, never the webhook address (AR-K-17). The exact connect and call timeouts (AR-TM-01), the worker AR-R-32 and the texts of DC-OUT-05 to DC-OUT-07 are P-22's.
 2. P-22: a message's body lines are kept whole only with a 7bit (or 8bit) transfer encoding; a quoted-printable or base64 body wraps or hides the link (spec 6.5). The `Date` header form (Section 3 item 9) is the library's.
 3. P-32: the other values of `deploy/values/demo.yaml` (`endpoint.smtp`, `smtp_starttls` and the rest of AR-B-07); the nine mailbox values are there now.
