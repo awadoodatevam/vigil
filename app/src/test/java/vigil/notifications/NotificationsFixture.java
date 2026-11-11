@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import vigil.identity.api.IdentityService;
 import vigil.identity.api.Permission;
@@ -69,11 +70,13 @@ public final class NotificationsFixture {
   public final TicketingFixture ticketing;
   public final UUID teamsInstanceId;
   public final UUID emailInstanceId;
+  public final String host;
   private final IncidentService incidents;
 
   private NotificationsFixture(
-      TicketingFixture ticketing, UUID teamsInstanceId, UUID emailInstanceId) {
+      TicketingFixture ticketing, String host, UUID teamsInstanceId, UUID emailInstanceId) {
     this.app = ticketing.app;
+    this.host = host;
     this.tenant = ticketing.tenant;
     this.ticketing = ticketing;
     this.teamsInstanceId = teamsInstanceId;
@@ -187,7 +190,7 @@ public final class NotificationsFixture {
     app.context()
         .getBean(RoutingImport.class)
         .importPart(tenant, RoutingFixture.demoPart(), Instant.now(), Map.of());
-    return new NotificationsFixture(ticketing, teams, email);
+    return new NotificationsFixture(ticketing, host, teams, email);
   }
 
   /** The eighteen delivery addresses of DD-F-07 with the test values {@code {key}@vigil.test}. */
@@ -274,7 +277,7 @@ public final class NotificationsFixture {
                     id,
                     Severity.P1,
                     new Key(owner),
-                    informed.stream().map(Key::new).collect(java.util.stream.Collectors.toSet()),
+                    informed.stream().map(Key::new).collect(Collectors.toSet()),
                     Ids.newId(),
                     "Critical service affected"));
     ticketing.investigation.addDiagnostic(
@@ -318,6 +321,11 @@ public final class NotificationsFixture {
         .param("instance", ticketing.jiraInstanceId)
         .param("url", jira + "/browse/NOC-1")
         .update();
+  }
+
+  /** The incident's Acknowledge link (AR-I-101). */
+  public String acknowledgeLink(UUID incident) {
+    return "https://" + host + "/m/acknowledge/" + incident;
   }
 
   /** A Notification step call with the parameters. */
