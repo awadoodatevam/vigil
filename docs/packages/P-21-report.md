@@ -86,7 +86,9 @@ None: the spec lists no owner-run steps. The connector is tested on the P-06 rec
 
 ## 10. Gate command result
 
-GATE_RESULT
+Cloud session (`tools/check-all.sh`): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 1a built the local images. Step 2: `vigil-app` 179 unit tests and 607 `*IT` (every earlier test passes; the changed tests only as spec 6.10); `demo-control` 1 and 2; the web build, lint, type check and Vitest pass. Step 3: `ruff` clean; 341 Python tests passed, 1 skipped, 35 deselected (the lab tests: this package changes no lab path, BP-R-12 step (3)). Step 4: `shellcheck`. Step 5: 49 data checks, 0 failed. Step 6: compose validation. Step 7: `tools/trace.py --check`.
+
+The gate ran on the tree of commit `874ff0f`; the later commit changes only this report. An earlier full run in this session failed once in `deploy/test_new_installation.py::test_first_and_second_run` (the AWS fake answered `ParameterAlreadyExists` on the second run, exit 254); the test passed alone and in the next full run. This package changes nothing under `deploy/` (follow-up item 7). GitHub: the `ci.yml` job `gate` runs on the pull request.
 
 Done-check (spec Section 8): (1) BP-DC-01 to BP-DC-07: every part 4 row with proof `test` has a test that names it (`tools/trace.py --check` passes); AR-Q-05 checked by review (Section 1); nothing beyond the spec (no API operation, no screen, no setting beyond `vigil.links.base`, which BP-A-09 names); AR-Q-01 to AR-Q-09 pass, the new entry points are in `ExternalCallGuardIT`, no new listener; one migration named as AR-P-05; no OpenAPI operation; the `README.md` bullet of spec 6.10; this report; no owner-run steps. (2) Section 9: 2,102, recorded as spec Section 1 says. (3) `diff -r dev/fakes/recordings/jira app/src/test/resources/recordings/jira` is empty; the tests generate the `jira` secret (email and token) at start and hold no secret, token or email address.
 
@@ -98,3 +100,4 @@ Done-check (spec Section 8): (1) BP-DC-01 to BP-DC-07: every part 4 row with pro
 4. P-26: the local installation sets `VIGIL_LINKS_BASE=http://{host}:8080` (BP-R-25).
 5. P-36: the test replay text "Simulated: no ticket change." stays with that package; the Ticket step has no test mode.
 6. P-32: the demo installation reaches the real Jira; the `jira-demo` instance and the secret `jira` are those of P-06.
+7. Owner: `deploy/test_new_installation.py::test_first_and_second_run` failed once under the load of a full gate run (`ParameterAlreadyExists` from the AWS fake on the second run) and passed alone and on the next run; a flaky test for the package that next changes `deploy/`.
