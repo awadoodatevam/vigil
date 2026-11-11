@@ -6,7 +6,7 @@
 | Branch | `p-22-notifications-escalation` |
 | Pin date (BP-R-08) | 11 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (Temurin 25) |
-| State | Built; the gate command result is in Section 10. No owner-run steps. |
+| State | Built; the gate command passes in this session (Section 10). No owner-run steps. |
 
 ## 1. What was built
 
@@ -98,7 +98,9 @@ None: the spec lists no owner-run steps. The connectors are tested on the P-07 r
 
 ## 10. Gate command result
 
-GATE_RESULT
+Cloud session (`tools/check-all.sh`), run on the tree of commit `4e623f4` (this report's text is the only later change): steps 0 to 7 pass, last line `== all checks passed`, exit code 0. Step 2: `vigil-app` 187 unit tests and 647 `*IT` (every earlier test passes; the changed tests only as spec 6.12); `demo-control` 1 and 2; the web build, lint, type check and Vitest pass. Step 3: `ruff` clean; 345 Python tests passed, 1 skipped, 35 deselected (no lab path changed, BP-R-12 step (3)). Step 4: `shellcheck`. Step 5: 49 data checks, 0 failed. Step 6: compose validation. Step 7: `tools/trace.py --check`.
+
+The run before it, on the same commit, failed once in step 3 in `deploy/test_new_installation.py::test_first_and_second_run` (the second run of `new-installation.sh` against the AWS fake did not exit 0). This branch changes nothing under `deploy/`; the file passed alone (3 passed) and in the next full run. It is the flaky test of the P-21 report's follow-up item 7.
 
 Done-check (spec Section 8): (1) BP-DC-01 to BP-DC-07: every part 4 row with proof `test` has a test that names it (`tools/trace.py --check` passes); AR-Q-05 checked by review (Section 1); nothing beyond the spec (no API operation, screen or setting); AR-Q-01 to AR-Q-09 pass, the new entry points are in `ExternalCallGuardIT`; two migrations named as AR-P-05; the `README.md` bullet; this report; no owner-run steps. (2) Section 9: 2,519. (3) `diff -r` of `dev/fakes/recordings/teams` and `email` against `app/src/test/resources/recordings/teams` and `email` is empty; the tests generate the webhook addresses (with a random `sig`), the SMTP user and password and the Jira credential at start and hold no secret.
 
@@ -108,4 +110,5 @@ Done-check (spec Section 8): (1) BP-DC-01 to BP-DC-07: every part 4 row with pro
 2. P-25: `NotificationsService.records` and `IncidentService.notifiedTeams` for the delivery status and notified teams of DC-S03-13 (DC-L-09 stays Later).
 3. P-26: the dev fakes `teams-fake` and Mailpit; the local installation's `teams-team-*`, `teams-user-*` and `smtp` secrets and `endpoint.smtp` / `smtp_starttls` values.
 4. P-32: the demo values `endpoint.smtp` and `smtp_starttls: true`; the first deliveries to the real channels and mailboxes check the `8bit` body against SES and Exchange Online (spec Section 11).
-5. P-36: the test replay texts "Simulated: would notify …" and "Simulated escalation …".
+5. Owner: `deploy/test_new_installation.py::test_first_and_second_run` failed again once under a full gate run and passed on the next (P-21 follow-up item 7); still open for the package that next changes `deploy/`.
+6. P-36: the test replay texts "Simulated: would notify …" and "Simulated escalation …".
