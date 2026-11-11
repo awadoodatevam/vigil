@@ -186,7 +186,7 @@ class SeedImportIT {
     }
   }
 
-  /** The key check of the main app: referring part 3, target part 13; records its calls. */
+  /** The key check of the main app: referring part 3, target part 14; records its calls. */
   static final class RecordingCheck implements SeedKeyCheck {
 
     final List<TenantId> calls = new CopyOnWriteArrayList<>();
@@ -198,7 +198,7 @@ class SeedImportIT {
 
     @Override
     public int targetPart() {
-      return 13;
+      return 14;
     }
 
     @Override
@@ -213,7 +213,7 @@ class SeedImportIT {
   }
 
   /**
-   * The latch importer: part 17, which no package has registered yet; a held tenant waits until its
+   * The latch importer: part 14, which no package has registered yet; a held tenant waits until its
    * latch is released.
    */
   static final class LatchImporter implements SeedPartImporter {
@@ -231,12 +231,12 @@ class SeedImportIT {
     }
 
     void awaitEntered(TenantId tenantId) throws InterruptedException {
-      assertThat(entered.get(tenantId).await(60, TimeUnit.SECONDS)).as("part 17 reached").isTrue();
+      assertThat(entered.get(tenantId).await(60, TimeUnit.SECONDS)).as("part 14 reached").isTrue();
     }
 
     @Override
     public int part() {
-      return 17;
+      return 14;
     }
 
     @Override
@@ -417,10 +417,7 @@ class SeedImportIT {
     for (int number = 1; number <= 17; number++) {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
-          .isEqualTo(
-              number <= 12 || number == 15 || number == 16
-                  ? PartOutcome.SUCCEEDED
-                  : PartOutcome.NOT_STARTED);
+          .isEqualTo(number == 14 ? PartOutcome.NOT_STARTED : PartOutcome.SUCCEEDED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.READY);
     TenantSettingsView settings = main.tenants().settings(view.tenantId());
@@ -490,8 +487,8 @@ class SeedImportIT {
     release.countDown();
     SeedImportView view = latch.await(started);
     assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
-    assertThat(part(view, 17).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
-    assertThat(part(view, 17).counts()).isEmpty();
+    assertThat(part(view, 14).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
+    assertThat(part(view, 14).counts()).isEmpty();
   }
 
   @Test
@@ -618,9 +615,9 @@ class SeedImportIT {
         main.imported(
             SeedTests.demoBundleWith(
                 "04-operations-actions-recovery.yaml",
-                SeedTests.section("recovery_check_definitions", "recovery_check_definitions: 3")));
+                SeedTests.section("registered_actions", "registered_actions: 3")));
     assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
-    assertThat(part(view, 13).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
+    assertThat(part(view, 14).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
   }
 
   @Test
@@ -939,11 +936,11 @@ class SeedImportIT {
   }
 
   @Test
-  @DisplayName("BP-R-29 part 9 is registered; parts 13, 14 and 17 are not started")
+  @DisplayName("BP-R-29 part 9 is registered; part 14 is not started")
   void incidentsPartRegistered() {
     SeedImportView view = main.imported(SeedTests.demoBundle());
     assertThat(part(view, 9).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
-    for (int number : List.of(13, 14, 17)) {
+    for (int number : List.of(14)) {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
           .isEqualTo(PartOutcome.NOT_STARTED);

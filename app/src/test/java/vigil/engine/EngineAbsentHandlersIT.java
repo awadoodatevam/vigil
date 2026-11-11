@@ -141,7 +141,7 @@ class EngineAbsentHandlersIT {
                     .isEqualTo("no step handler for approval"));
 
     UUID incident = a.openIncident(CLOCK, "nowhere-2", "i-1", ALERTNAME);
-    UUID waiting = a.start(incident, TestContents.linear("recovery_check"));
+    UUID waiting = a.start(incident, TestContents.linear("approval"));
     EngineFixture.await(
         () ->
             a.steps(waiting).contains("s-1") && a.execution(waiting, "s-1").failedAttempts() == 1);

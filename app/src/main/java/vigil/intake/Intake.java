@@ -3,6 +3,7 @@ package vigil.intake;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -261,6 +262,22 @@ class Intake implements IntakeService {
     required(tenantId, "tenantId");
     required(alertId, "alertId");
     return records.alert(tenantId, alertId);
+  }
+
+  @Override
+  public List<AlertView> alerts(TenantId tenantId, Collection<UUID> alertIds) {
+    required(tenantId, "tenantId");
+    required(alertIds, "alertIds");
+    if (alertIds.isEmpty()) {
+      return List.of();
+    }
+    return List.copyOf(records.alerts(tenantId, alertIds));
+  }
+
+  @Override
+  public long alertCount(TenantId tenantId) {
+    required(tenantId, "tenantId");
+    return records.alertCount(tenantId);
   }
 
   @Override

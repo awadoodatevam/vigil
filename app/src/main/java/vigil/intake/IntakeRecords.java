@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -505,6 +506,23 @@ class IntakeRecords {
         .param("limit", limit)
         .query(IntakeRecords::alert)
         .list();
+  }
+
+  List<AlertView> alerts(TenantId tenantId, Collection<UUID> alertIds) {
+    return jdbc.sql(
+            "SELECT * FROM intake.alert WHERE tenant_id = :tenantId AND id IN (:ids)"
+                + " ORDER BY sequence")
+        .param("tenantId", tenantId.value())
+        .param("ids", List.copyOf(alertIds))
+        .query(IntakeRecords::alert)
+        .list();
+  }
+
+  long alertCount(TenantId tenantId) {
+    return jdbc.sql("SELECT count(*) FROM intake.alert WHERE tenant_id = :tenantId")
+        .param("tenantId", tenantId.value())
+        .query(Long.class)
+        .single();
   }
 
   Optional<AlertView> alert(TenantId tenantId, UUID alertId) {
