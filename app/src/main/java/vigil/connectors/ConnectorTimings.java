@@ -4,8 +4,8 @@ import java.time.Duration;
 
 /**
  * The timeouts of this module's connectors (AR-TM-01): connect, monitoring source connection test,
- * Claude and OpenAI chat, local model chat, embeddings with one text and with more texts, and each
- * Jira call.
+ * Claude and OpenAI chat, local model chat, embeddings with one text and with more texts, each Jira
+ * call, each Teams post and the SMTP read and write.
  */
 record ConnectorTimings(
     Duration connect,
@@ -14,4 +14,6 @@ record ConnectorTimings(
     Duration localChat,
     Duration embedOne,
     Duration embedBatch,
-    Duration jira) {}
+    Duration jira,
+    Duration teams,
+    Duration smtp) {}

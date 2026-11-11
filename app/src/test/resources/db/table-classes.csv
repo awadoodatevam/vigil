@@ -40,6 +40,7 @@ incidents.incident_settings,configuration,yes
 routing.routing_rule_set_revision,revisioned,yes
 routing.escalation_policy_revision,revisioned,yes
 routing.routing_evaluation,immutable,yes
+routing.step_escalation,immutable,yes
 correlation.grouping_decision,immutable,yes
 correlation.hypothesis_computation,immutable,yes
 correlation.correlation_settings,configuration,yes
@@ -68,3 +69,5 @@ investigation.ai_investigation_result,immutable,yes
 investigation.incident_summary,immutable,yes
 ticketing.ticket_link,stateful,yes
 ticketing.ticket_sync_record,stateful,yes
+notifications.delivery_address,configuration,yes
+notifications.notification_record,immutable,yes

@@ -1,0 +1,26 @@
+{
+  "seq": 3,
+  "call": "send-noc-l1-3",
+  "started_at": "2026-11-11T11:28:44.658Z",
+  "duration_ms": 1362,
+  "request": {
+    "method": "SMTP",
+    "url": "${endpoint.smtp}",
+    "headers": {
+      "From": "Techfinity <techfinity-demo@vigil.solviclabs.com>",
+      "To": "vigil-noc-l1@techfinity.ae",
+      "Subject": "AR-SP-02 spike 20261111T112835Z - message 3 of 10",
+      "Date": "Wed, 11 Nov 2026 11:28:44 +0000",
+      "MIME-Version": "1.0",
+      "Content-Type": "text/plain; charset=\"utf-8\"",
+      "Content-Transfer-Encoding": "7bit"
+    },
+    "body": "AR-SP-02 spike 20261111T112835Z - message 3 of 10\r\nSent at 2026-11-11T11:28:44.656Z to vigil-noc-l1@techfinity.ae.\r\nThird line: sent by the P-07 email spike; nothing else uses this message.\r\nAcknowledge: https://demo.vigil.solviclabs.com/m/acknowledge/8516ea66-4b46-4053-927f-bf843b10723b\r\n"
+  },
+  "response": {
+    "status": 250,
+    "headers": {},
+    "body": "Ok 010001a1ca5e14b3-872ceeef-13e3-466d-bbb2-b9058da66176-000000"
+  },
+  "error": null
+}

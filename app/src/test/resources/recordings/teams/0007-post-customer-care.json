@@ -1,0 +1,21 @@
+{
+  "seq": 7,
+  "call": "post-customer-care",
+  "started_at": "2026-11-11T05:26:15.033Z",
+  "duration_ms": 353,
+  "request": {
+    "method": "POST",
+    "url": "secret:teams-team-customer-care",
+    "headers": {
+      "Content-Type": "application/json",
+      "User-Agent": "vigil-p07-spike"
+    },
+    "body": "{\"type\": \"message\", \"attachments\": [{\"contentType\": \"application/vnd.microsoft.card.adaptive\", \"content\": {\"$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\", \"type\": \"AdaptiveCard\", \"version\": \"1.4\", \"body\": [{\"type\": \"TextBlock\", \"text\": \"SB-T-06 spike 20261111T052608Z - Techfinity Demo / Customer Care\", \"wrap\": true, \"weight\": \"Bolder\"}, {\"type\": \"TextBlock\", \"text\": \"Second line: the four lines of this message are on separate lines.\", \"wrap\": true}, {\"type\": \"TextBlock\", \"text\": \"Third line: sent by the P-07 Teams spike; nothing else uses this message.\", \"wrap\": true}, {\"type\": \"TextBlock\", \"text\": \"Acknowledge: [https://demo.vigil.solviclabs.com/m/acknowledge/99a88afd-47fc-4e5c-928d-2ca6179beb6c](https://demo.vigil.solviclabs.com/m/acknowledge/99a88afd-47fc-4e5c-928d-2ca6179beb6c)\", \"wrap\": true}]}}]}"
+  },
+  "response": {
+    "status": 202,
+    "headers": {},
+    "body": ""
+  },
+  "error": null
+}
