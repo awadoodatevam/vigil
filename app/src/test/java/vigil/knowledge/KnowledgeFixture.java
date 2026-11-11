@@ -58,7 +58,22 @@ public final class KnowledgeFixture {
       Map<String, String> addresses,
       UnaryOperator<AiGatewayPart> part7,
       KnowledgePart part8) {
-    TestTenants.Builder builder = new TestTenants(app).tenant(name);
+    return create(app, name, host, addresses, part7, part8, UnaryOperator.identity());
+  }
+
+  /**
+   * As {@link #create(VigilTestApp, String, String, Map, UnaryOperator, KnowledgePart)}, with the
+   * tenant's settings and identity added by {@code tenant} before it is created.
+   */
+  public static KnowledgeFixture create(
+      VigilTestApp app,
+      String name,
+      String host,
+      Map<String, String> addresses,
+      UnaryOperator<AiGatewayPart> part7,
+      KnowledgePart part8,
+      UnaryOperator<TestTenants.Builder> identity) {
+    TestTenants.Builder builder = identity.apply(new TestTenants(app).tenant(name));
     if (host != null) {
       builder.host(host);
     }

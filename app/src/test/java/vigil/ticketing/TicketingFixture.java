@@ -24,6 +24,7 @@ import vigil.shared.Key;
 import vigil.shared.StepCall;
 import vigil.shared.TenantId;
 import vigil.testsupport.TestSecrets;
+import vigil.testsupport.TestTenants;
 import vigil.testsupport.VigilTestApp;
 
 /**
@@ -32,9 +33,9 @@ import vigil.testsupport.VigilTestApp;
  * tenant settings of DD-F-01, and helpers that open, resolve and reopen incidents and build Ticket
  * step calls.
  */
-final class TicketingFixture {
+public final class TicketingFixture {
 
-  static final String LABEL = "Demo environment — fictional data";
+  public static final String LABEL = "Demo environment — fictional data";
   static final String SETTINGS =
       "{\"project_key\":\"NOC\",\"issue_type\":\"Task\",\"resolved_status\":\"Done\","
           + "\"reopened_status\":\"To Do\",\"label_prefix\":\"vigil-\"}";
@@ -61,10 +62,10 @@ final class TicketingFixture {
   private static final Actor RECOVERY = Actor.module("vigil-recovery");
   private static final AtomicLong SEQUENCE = new AtomicLong(1_000_000);
 
-  final VigilTestApp app;
-  final TenantId tenant;
-  final InvestigationFixture investigation;
-  final UUID jiraInstanceId;
+  public final VigilTestApp app;
+  public final TenantId tenant;
+  public final InvestigationFixture investigation;
+  public final UUID jiraInstanceId;
   private final IncidentService incidents;
 
   private TicketingFixture(InvestigationFixture investigation, UUID jiraInstanceId) {
@@ -76,7 +77,7 @@ final class TicketingFixture {
   }
 
   /** The secrets of the app: the AI keys and {@code jira}, generated at test start. */
-  static Map<String, String> secrets() {
+  public static Map<String, String> secrets() {
     Map<String, String> secrets = new LinkedHashMap<>(AiFixture.secrets());
     secrets.put(
         "jira",
@@ -89,10 +90,26 @@ final class TicketingFixture {
   }
 
   /** A tenant (with an alias when {@code host} is not {@code null}) whose Jira is {@code jira}. */
-  static TicketingFixture create(VigilTestApp app, String name, String host, String jira) {
+  public static TicketingFixture create(VigilTestApp app, String name, String host, String jira) {
+    return create(app, name, host, jira, UnaryOperator.identity());
+  }
+
+  /** With the tenant's settings and identity added by {@code identity} before it is created. */
+  public static TicketingFixture create(
+      VigilTestApp app,
+      String name,
+      String host,
+      String jira,
+      UnaryOperator<TestTenants.Builder> identity) {
     InvestigationFixture investigation =
         InvestigationFixture.create(
-            app, name, host, Map.of(), UnaryOperator.identity(), KnowledgeParts.demoPart());
+            app,
+            name,
+            host,
+            Map.of(),
+            UnaryOperator.identity(),
+            KnowledgeParts.demoPart(),
+            identity);
     JdbcClient postgres = investigation.postgres();
     TenantId tenant = investigation.tenant;
     Timestamp now = Timestamp.from(Instant.now());
@@ -155,7 +172,7 @@ final class TicketingFixture {
   }
 
   /** An open incident with the two alerts, the hypothesis srv-db-01 and one diagnostic entry. */
-  UUID openIncident() {
+  public UUID openIncident() {
     UUID incident = investigation.openIncident(ALERTS, "srv-db-01");
     investigation.addDiagnostic(
         incident,
@@ -254,7 +271,7 @@ final class TicketingFixture {
         null);
   }
 
-  JdbcClient postgres() {
+  public JdbcClient postgres() {
     return app.database().postgres();
   }
 }
