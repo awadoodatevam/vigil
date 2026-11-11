@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 # The gate command (BP-R-12): every check a package MUST pass, in order, stopping at the first failure.
+# --part java: steps (0), (1), (1a) with only the demo-lab image, and (2); --part rest: steps (0), (1), (1a), (3) to (7).
+# ci.yml runs the two parts in parallel jobs (BP-W-01, CTX-D-067 (5)).
 set -euo pipefail
+
+part=""
+if [ "$#" -eq 2 ] && [ "$1" = "--part" ] && { [ "$2" = "java" ] || [ "$2" = "rest" ]; }; then
+  part=$2
+elif [ "$#" -ne 0 ]; then
+  echo "Usage: tools/check-all.sh [--part java|rest]"
+  exit 2
+fi
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
@@ -34,11 +44,22 @@ fi
 
 if [ -f deploy/images.sh ]; then
   step 1a "test images"
-  deploy/images.sh --test
+  if [ "$part" = "java" ]; then
+    deploy/images.sh --test --java
+  else
+    deploy/images.sh --test
+  fi
 fi
 
-step 2 "java and web build and tests"
-./mvnw -B verify
+if [ "$part" != "rest" ]; then
+  step 2 "java and web build and tests"
+  ./mvnw -B verify
+fi
+
+if [ "$part" = "java" ]; then
+  echo "== all checks passed"
+  exit 0
+fi
 
 step 3 "python checks and tests"
 "$PY" -m ruff check .
@@ -49,14 +70,12 @@ for dir in tools demo dev deploy spikes tests/acceptance; do
     test_dirs+=("$dir")
   fi
 done
-# The lab tests run only when the branch changes the lab (CTX-D-036).
+# The lab tests run only when the branch changes the lab (CTX-D-036, CTX-D-067 (3)).
 markers="not installation"
-if git rev-parse --verify --quiet origin/main > /dev/null; then
-  changed=$({ git diff --name-only origin/main; git ls-files --others --exclude-standard; } | sort -u)
-  if ! echo "$changed" | grep -qE '^(demo/|deploy/|dev/|spikes/|tools/|docs/31-demo-data/)'; then
-    markers="not installation and not lab"
-    echo "lab tests skipped: no change under demo/, deploy/, dev/, spikes/, tools/, docs/31-demo-data/"
-  fi
+lab=$("$PY" tools/gate_scope.py lab)
+if [ "$lab" = "no-lab" ]; then
+  markers="not installation and not lab"
+  echo "lab tests skipped: no change to the lab (BP-R-12 step (3))"
 fi
 "$PY" -m pytest -m "$markers" "${test_dirs[@]}"
 

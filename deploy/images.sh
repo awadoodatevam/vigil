@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
 # Builds the local images (BP-R-04). --test: the images that tests use (P-03, P-04, P-05), after pulling the
-# third-party images of deploy/local/compose.yaml.
+# third-party images of deploy/local/compose.yaml. --test --java: only vigil/demo-lab:local, the image the Java tests
+# use (BP-R-06), pulling only the base images of its Dockerfile (BP-R-12, P-42).
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 usage() {
-  echo "Usage: deploy/images.sh --test"
+  echo "Usage: deploy/images.sh --test [--java]"
   exit 2
 }
 
-if [ "$#" -ne 1 ] || [ "$1" != "--test" ]; then
+java_only=false
+if [ "$#" -eq 2 ] && [ "$1" = "--test" ] && [ "$2" = "--java" ]; then
+  java_only=true
+elif [ "$#" -ne 1 ] || [ "$1" != "--test" ]; then
   usage
 fi
 
@@ -43,11 +47,6 @@ pull_base_images() {
   done < <(awk 'toupper($1) == "FROM" { print $2 }' "$1")
 }
 
-# The third-party images of the local compose file: every image: value pinned by digest.
-while read -r reference; do
-  pull_image "$reference"
-done < <(awk '$1 == "image:" && $2 ~ /@sha256:/ { print $2 }' deploy/local/compose.yaml)
-
 build_image() {
   local tag=$1 context=$2 name
   local args=(--network host -t "$tag" -f "$context/Dockerfile")
@@ -62,6 +61,16 @@ build_image() {
   pull_base_images "$context/Dockerfile"
   DOCKER_BUILDKIT=1 docker build "${args[@]}" "$context"
 }
+
+if [ "$java_only" = "true" ]; then
+  build_image vigil/demo-lab:local demo/lab
+  exit 0
+fi
+
+# The third-party images of the local compose file: every image: value pinned by digest.
+while read -r reference; do
+  pull_image "$reference"
+done < <(awk '$1 == "image:" && $2 ~ /@sha256:/ { print $2 }' deploy/local/compose.yaml)
 
 build_image vigil/demo-lab:local demo/lab
 build_image vigil/demo-faults:local demo/faults

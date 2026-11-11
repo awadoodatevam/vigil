@@ -11,33 +11,42 @@ concurrency:
 
 permissions:
   contents: read
+  checks: read
 
+# BP-W-01 (CTX-D-067): the job scope chooses the light gate (data only) or the full gate (the jobs java and rest in
+# parallel); the job secrets runs in both; the summary job gate is the merge gate.
 jobs:
-  gate:
-    name: gate
+  scope:
+    name: scope
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 5
+    outputs:
+      mode: ${{ steps.decide.outputs.mode }}
     steps:
       - name: checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
-      - name: scope
-        id: scope
+      - name: decide
+        id: decide
         env:
           EVENT_NAME: ${{ github.event_name }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          docs_only=false
-          if [ "$EVENT_NAME" = "pull_request" ]; then
-            changed=$(git diff --name-only "$BASE_SHA...$HEAD_SHA")
-            if [ -n "$changed" ] && ! echo "$changed" | grep -qv '^docs/'; then
-              docs_only=true
-            fi
-          fi
-          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+          MERGE_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/gate_scope.py ci
+
+  light:
+    name: light
+    needs: scope
+    if: needs.scope.outputs.mode == 'light'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -50,14 +59,25 @@ jobs:
           "$RUNNER_TEMP/vigil-tools/bin/python" -m pip install --disable-pip-version-check -r tools/requirements-dev.txt
           echo "VIGIL_TOOLS=$RUNNER_TEMP/vigil-tools" >> "$GITHUB_ENV"
 
-      - name: documents only
-        if: steps.scope.outputs.docs_only == 'true'
-        run: |
-          "$VIGIL_TOOLS/bin/python" docs/31-demo-data/tools/check_data.py docs/31-demo-data
-          "$VIGIL_TOOLS/bin/python" tools/trace.py --check
+      - name: data checks
+        run: '"$VIGIL_TOOLS/bin/python" docs/31-demo-data/tools/check_data.py docs/31-demo-data'
+
+      - name: traceability
+        run: '"$VIGIL_TOOLS/bin/python" tools/trace.py --check'
+
+  java:
+    name: java
+    needs: scope
+    if: needs.scope.outputs.mode == 'full'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       - name: java
-        if: steps.scope.outputs.docs_only != 'true'
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
@@ -65,23 +85,65 @@ jobs:
           cache: maven
 
       - name: node
-        if: steps.scope.outputs.docs_only != 'true'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22.23.3"
           cache: npm
           cache-dependency-path: web/package-lock.json
 
+      - name: gate command, part java
+        run: tools/check-all.sh --part java
+
+      - name: test reports
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-reports
+          path: |
+            **/target/surefire-reports/
+            **/target/failsafe-reports/
+          retention-days: 3
+
+  rest:
+    name: rest
+    needs: scope
+    if: needs.scope.outputs.mode == 'full'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: python tools
+        run: |
+          python -m venv "$RUNNER_TEMP/vigil-tools"
+          "$RUNNER_TEMP/vigil-tools/bin/python" -m pip install --disable-pip-version-check -r tools/requirements-dev.txt
+          echo "VIGIL_TOOLS=$RUNNER_TEMP/vigil-tools" >> "$GITHUB_ENV"
+
       - name: shellcheck
-        if: steps.scope.outputs.docs_only != 'true'
         run: sudo apt-get install -y shellcheck
 
-      - name: gate command
-        if: steps.scope.outputs.docs_only != 'true'
-        run: tools/check-all.sh
+      - name: gate command, part rest
+        run: tools/check-all.sh --part rest
+
+  secrets:
+    name: secrets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       - name: gitleaks
-        if: steps.scope.outputs.docs_only != 'true'
         env:
           EVENT_NAME: ${{ github.event_name }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -101,12 +163,37 @@ jobs:
             gitleaks git --redact
           fi
 
-      - name: test reports
-        if: failure() && steps.scope.outputs.docs_only != 'true'
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: test-reports
-          path: |
-            **/target/surefire-reports/
-            **/target/failsafe-reports/
-          retention-days: 3
+  gate:
+    name: gate
+    needs: [scope, light, java, rest, secrets]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: summary
+        shell: bash
+        env:
+          MODE: ${{ needs.scope.outputs.mode }}
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          LIGHT_RESULT: ${{ needs.light.result }}
+          JAVA_RESULT: ${{ needs.java.result }}
+          REST_RESULT: ${{ needs.rest.result }}
+          SECRETS_RESULT: ${{ needs.secrets.result }}
+        run: |
+          passed=false
+          if [ "$SCOPE_RESULT" = "success" ] && [ "$SECRETS_RESULT" = "success" ]; then
+            if [ "$MODE" = "light" ] && [ "$LIGHT_RESULT" = "success" ]; then
+              passed=true
+            elif [ "$MODE" = "full" ] && [ "$JAVA_RESULT" = "success" ] && [ "$REST_RESULT" = "success" ]; then
+              passed=true
+            fi
+          fi
+          if [ "$passed" != "true" ]; then
+            echo "mode: ${MODE:-none}"
+            echo "scope: $SCOPE_RESULT"
+            echo "light: $LIGHT_RESULT"
+            echo "java: $JAVA_RESULT"
+            echo "rest: $REST_RESULT"
+            echo "secrets: $SECRETS_RESULT"
+            exit 1
+          fi

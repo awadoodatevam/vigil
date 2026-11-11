@@ -42,7 +42,7 @@ Under `docs/` you MAY change only: your package report; the values your spec nam
 
 | What | Command |
 | --- | --- |
-| Every check a package MUST pass (setup version, Java and web build and tests, Python checks and tests, shell checks, data checks, compose validation, traceability) | `tools/check-all.sh` |
+| Every check a package MUST pass (setup version, Java and web build and tests, Python checks and tests, shell checks, data checks, compose validation, traceability) | `tools/check-all.sh` (`--part java` or `--part rest`: one half, as `ci.yml` runs it; from P-42) |
 | Java and web build and tests only | `./mvnw -B verify` |
 | Data checks | `/opt/vigil-tools/bin/python docs/31-demo-data/tools/check_data.py docs/31-demo-data` |
 | Lines of production code added and changed | `tools/loc.sh origin/main HEAD` |
