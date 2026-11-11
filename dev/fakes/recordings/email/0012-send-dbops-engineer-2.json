@@ -1,0 +1,26 @@
+{
+  "seq": 12,
+  "call": "send-dbops-engineer-2",
+  "started_at": "2026-11-11T11:29:45.951Z",
+  "duration_ms": 1463,
+  "request": {
+    "method": "SMTP",
+    "url": "${endpoint.smtp}",
+    "headers": {
+      "From": "Techfinity <techfinity-demo@vigil.solviclabs.com>",
+      "To": "vigil-dbops-engineer@techfinity.ae",
+      "Subject": "AR-SP-02 spike 20261111T112835Z - message 2 of 10",
+      "Date": "Wed, 11 Nov 2026 11:29:45 +0000",
+      "MIME-Version": "1.0",
+      "Content-Type": "text/plain; charset=\"utf-8\"",
+      "Content-Transfer-Encoding": "7bit"
+    },
+    "body": "AR-SP-02 spike 20261111T112835Z - message 2 of 10\r\nSent at 2026-11-11T11:29:45.949Z to vigil-dbops-engineer@techfinity.ae.\r\nThird line: sent by the P-07 email spike; nothing else uses this message.\r\nAcknowledge: https://demo.vigil.solviclabs.com/m/acknowledge/281a7609-72ce-43d9-aba0-918193eab43e\r\n"
+  },
+  "response": {
+    "status": 250,
+    "headers": {},
+    "body": "Ok 010001a1ca5f0478-de9646b5-facc-454e-8072-3dfa36b16fc2-000000"
+  },
+  "error": null
+}
