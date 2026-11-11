@@ -1,3 +1,12 @@
 # Deployment values of the demo installation (AR-B-07); P-32 adds the other values.
 demo_domain: vigil.solviclabs.com
 endpoint.jira: https://techfinity-noc.atlassian.net
+mailbox.noc-l1: vigil-noc-l1@techfinity.ae
+mailbox.db-ops: vigil-db-ops@techfinity.ae
+mailbox.vas-service-owners: vigil-vas-service-owners@techfinity.ae
+mailbox.it-apps: vigil-it-apps@techfinity.ae
+mailbox.noc-shift-lead: vigil-noc-shift-lead@techfinity.ae
+mailbox.noc-management: vigil-noc-management@techfinity.ae
+mailbox.customer-care: vigil-customer-care@techfinity.ae
+mailbox.dbops-engineer: vigil-dbops-engineer@techfinity.ae
+mailbox.dbops-lead: vigil-dbops-lead@techfinity.ae

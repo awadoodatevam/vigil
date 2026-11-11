@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.20 |
+| Version | 1.21 |
 | Date | 10 November 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
@@ -257,7 +257,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 | Item | Content |
 | --- | --- |
 | Size; depends on; owner tasks | S; P-05; BP-OT-07, BP-OT-08, BP-OT-14 (Teams and SMTP part) |
-| Builds | `spikes/` scripts: SB-T-06 (a message with line breaks and a link in each of the 9 channels, payload of AR-K-18, at least 300 ms apart); AR-SP-02 (10 messages to each of 2 shared mailboxes through SES, lines and link intact). Recordings under `dev/fakes/recordings/`. |
+| Builds | `spikes/` scripts, in `spikes/providers/` (CTX-D-065 (6)): SB-T-06 (a message with line breaks and a link in each of the 9 channels, payload of AR-K-18, at least 300 ms apart); AR-SP-02 (10 messages to each of 2 shared mailboxes through SES, lines and link intact); the owner's observations asked by the spikes (CTX-D-065 (7)). Recordings under `dev/fakes/recordings/`. The nine mailbox values in `deploy/values/demo.yaml` (CTX-D-065 (10)). |
 | Requirements built | None in the product. Proves SL-ASM-02, AR-ASM-01, AR-ASM-02, AR-ASM-04. |
 | Tests | Owner-run: SB-T-06; AR-SP-02. |
 | Done-check | As P-06. |
@@ -547,9 +547,9 @@ Cross-cutting items have no package of their own; every package whose code they 
 | Item | Content |
 | --- | --- |
 | Size; depends on; owner tasks | M; P-33; BP-OT-12 |
-| Builds | Fixes found by the tests below; the prompt rewording AR-G-12 allows when RB-DB-01 is cited in fewer than 4 of 5 runs; no new feature. |
+| Builds | Fixes found by the tests below; the prompt rewording AR-G-12 allows when RB-DB-01 is cited in fewer than 4 of 5 runs, or when fewer than 4 of 5 local-model SL-T-1 answers are accepted (CTX-D-065 (2)); no new feature. |
 | Requirements built | SL-A3-04; SL-A3-08 (primary demo part); SL-CP-2. |
-| Tests | Owner-run on the demo installation: SB-T-02 (5 runs from a reset, mode `script`, every exact value of SB-S01 to SB-S09); SB-T-03 in the product with `embeddinggemma`; SB-T-04 (all step times and the local model within 45 s); SB-T-08 (two rehearsals with the senior manager); the backup video of the primary demo. |
+| Tests | Owner-run on the demo installation: SB-T-02 (5 runs from a reset, mode `script`, every exact value of SB-S01 to SB-S09); SB-T-03 in the product with `embeddinggemma`; SB-T-04 (all step times and the local model within 45 s; also the product's SL-T-1 answers of the local model under PM-M17-03's checks, at least 4 of 5 accepted, a rewording within AR-G-12 otherwise, CTX-D-065 (2)); SB-T-08 (two rehearsals with the senior manager); the backup video of the primary demo. |
 | Done-check | The SL-CP-2 review of Section 8.3 passes. |
 | Runs in | BP-E-01, BP-E-03, BP-E-04, BP-E-05 |
 
@@ -773,7 +773,7 @@ The placeholders of AR-B-07 as amended by BP-A-01, with these values in `deploy/
 | BP-OT-11 | Obtain the senior manager's confirmation that the Jazz name and logo may be shown, because the demo login page shows the customer name before login (CTX-O-05). | P-32 | CTX-O-05 |
 | BP-OT-12 | Rehearsals with the senior manager (SB-T-08) and the backup videos (SL-A3-08). | P-34, P-40 | SB-T-08; SL-A3-08 |
 | BP-OT-13 | Review and merge every package pull request (BP-L-7); run the owner-run steps (BP-L-5); take part in the checkpoint reviews. | Every package | BP-L-5, BP-L-7 |
-| BP-OT-14 | Store the operator-made secrets of AR-S-13 in Parameter Store under `/vigil/demo/`: `jira`; `smtp` (create the SES SMTP credentials first); the nine `teams-team-{key}` and `teams-user-{username}` webhook addresses. Fill `deploy/values/demo.yaml` with the Jira address (written by P-06, CTX-D-060) and the nine mailbox addresses (committed: they are not secrets). | P-06 (Jira), P-07 (Teams, SMTP), P-32 (values) | AR-S-13, AR-B-07 |
+| BP-OT-14 | Store the operator-made secrets of AR-S-13 in Parameter Store under `/vigil/demo/`: `jira`; `smtp` (create the SES SMTP credentials first); the nine `teams-team-{key}` and `teams-user-{username}` webhook addresses. Fill `deploy/values/demo.yaml` with the Jira address (written by P-06, CTX-D-060) and the nine mailbox addresses (written by P-07, CTX-D-065 (10); committed: they are not secrets). | P-06 (Jira), P-07 (Teams, SMTP, mailbox values), P-32 (the other values) | AR-S-13, AR-B-07 |
 
 ## 13. Traceability
 
@@ -1052,3 +1052,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.18 | 3 Nov 2026 | For the P-06 spec (BP-L-1, CTX-D-060): amendment BP-A-29 (`50-architecture` v1.9: the `jira` secret carries `expires_on`); the P-06 entry reads the data files with PyYAML instead of using `requests`, reaches `vigil-embed` and `vigil-llm` through Systems Manager port forwards from the owner's Mac, and adds BP-OT-10 and the Session Manager plugin to its owner tasks; Section 9 rows SB-T-03 and SB-T-04 name the port forward from BP-E-03; BP-OT-14 notes that P-06 writes the Jira address. |
 | 1.19 | 10 Nov 2026 | For the P-19 spec (BP-L-1, CTX-D-062): amendment BP-A-30 (`50-architecture` v1.10: batched embedding calls 90 s; AR-R-09 for immutable records); the P-19 entry builds the event type of AR-E-11 (published by P-39), the AR-TM-01 amendment and the P-18 review fixes of CTX-D-059 (2) and (4); the P-39 entry publishes `TaskProviderChanged`. |
 | 1.20 | 10 Nov 2026 | From the P-19 report (BP-L-8, CTX-D-063): the P-19 entry is size L (`tools/loc.sh` 2,408; Section 7.7). For the P-20 spec (BP-L-1, CTX-D-064): P-20 stays one package of size L by owner decision; its entry adds part 8's key checks, the gateway read and the owner-run re-run of the provider spikes with the product's request and checks. No behaviour of Vigil changes. |
+| 1.21 | 10 Nov 2026 | From the P-20 report (BP-L-8, CTX-D-065): the P-34 entry adds the local-model SL-T-1 answers under PM-M17-03's checks to SB-T-04 and its rewording. For the P-07 spec (BP-L-1, CTX-D-065): the P-07 entry places the spikes in `spikes/providers/` with the owner's observations and writes the nine mailbox values; BP-OT-14's mailbox values are P-07's. No behaviour of Vigil changes. |

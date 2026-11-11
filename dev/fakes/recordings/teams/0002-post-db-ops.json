@@ -1,0 +1,21 @@
+{
+  "seq": 2,
+  "call": "post-db-ops",
+  "started_at": "2026-11-11T05:26:10.999Z",
+  "duration_ms": 526,
+  "request": {
+    "method": "POST",
+    "url": "secret:teams-team-db-ops",
+    "headers": {
+      "Content-Type": "application/json",
+      "User-Agent": "vigil-p07-spike"
+    },
+    "body": "{\"type\": \"message\", \"attachments\": [{\"contentType\": \"application/vnd.microsoft.card.adaptive\", \"content\": {\"$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\", \"type\": \"AdaptiveCard\", \"version\": \"1.4\", \"body\": [{\"type\": \"TextBlock\", \"text\": \"SB-T-06 spike 20261111T052608Z - Techfinity Demo / Database Operations\", \"wrap\": true, \"weight\": \"Bolder\"}, {\"type\": \"TextBlock\", \"text\": \"Second line: the four lines of this message are on separate lines.\", \"wrap\": true}, {\"type\": \"TextBlock\", \"text\": \"Third line: sent by the P-07 Teams spike; nothing else uses this message.\", \"wrap\": true}, {\"type\": \"TextBlock\", \"text\": \"Acknowledge: [https://demo.vigil.solviclabs.com/m/acknowledge/b2101493-ba0b-49c5-90e6-ecb6766fffc9](https://demo.vigil.solviclabs.com/m/acknowledge/b2101493-ba0b-49c5-90e6-ecb6766fffc9)\", \"wrap\": true}]}}]}"
+  },
+  "response": {
+    "status": 202,
+    "headers": {},
+    "body": ""
+  },
+  "error": null
+}

@@ -1,4 +1,4 @@
-"""Tests of spikes/providers/run.sh and host-address.sh (P-06 spec Sections 6.9 and 7).
+"""Tests of spikes/providers/run.sh and host-address.sh (P-06 spec Sections 6.9 and 7; P-07 spec Sections 6.7, 7).
 
 Each test runs a copy of spikes/providers/, deploy/lib/aws.sh, deploy/values/demo.yaml and docs/31-demo-data/ in a
 temporary root, with a .venv/bin/python there that is the gate's Python, the fake AWS CLI and Docker of deploy/tests/bin
@@ -17,6 +17,7 @@ from pathlib import Path
 import spike_fakes
 import test_local_model_spike
 import test_similarity_spike
+import test_teams_spike
 from spike_fakes import json_answer
 
 REPOSITORY = spike_fakes.REPOSITORY
@@ -26,7 +27,7 @@ INSTANCES = {
     "i-0gpu": {"Name": "vigil-demo-gpu", "State": "running"},
 }
 EMBED_ADDRESS = "172.30.0.7"
-USAGE = "Usage: spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20]\n"
+USAGE = "Usage: spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20] | teams | email\n"
 
 
 def executable(path, text):
@@ -97,12 +98,13 @@ class Root:
         environment.update(extra)
         return environment
 
-    def run(self, *arguments, path=None, **extra):
+    def run(self, *arguments, path=None, input=None, **extra):
+        standard_input = {"stdin": subprocess.DEVNULL} if input is None else {"input": input}
         return subprocess.run(
             [shutil.which("bash"), str(self.root / "spikes" / "providers" / "run.sh"), *arguments],
             cwd=self.base,
             env=self.environment(path, **extra),
-            stdin=subprocess.DEVNULL,
+            **standard_input,
             capture_output=True,
             text=True,
             timeout=300,
@@ -161,7 +163,7 @@ def check_forward(root, address):
 def test_usage_and_identity(tmp_path):
     """SB-T-03 run.sh: the usage line and exit 2; without an AWS identity, the sign-in message and exit 1."""
     root = Root(tmp_path)
-    for arguments in ([], ["teams"], ["jira", "claude"]):
+    for arguments in ([], ["slack"], ["jira", "claude"]):
         result = root.run(*arguments)
         assert result.returncode == 2
         assert result.stdout == USAGE
@@ -275,7 +277,7 @@ def test_package_wrong_values(tmp_path):
         ["claude", "P-20"],
         ["--package", "P-20", "claude"],
         ["claude", "--package", "P-20", "extra"],
-        ["teams", "--package", "P-20"],
+        ["slack", "--package", "P-20"],
     ):
         result = root.run(*arguments, TMPDIR=str(temporary))
         assert result.returncode == 2, arguments
@@ -407,3 +409,49 @@ def test_forward_ended(tmp_path):
     assert any("TargetNotConnected" in line for line in lines[:-1])
     assert elapsed < 30
     assert len(root.sessions()) == 1
+
+
+def test_teams(tmp_path):
+    """SB-T-06 run.sh teams runs the spike in the virtual environment with standard input passed on (the answers
+    given to run.sh reach the spike) and exits with its code; teams or email with --package P-20 print the usage line
+    and exit 2."""
+    root = Root(tmp_path)
+    fake = test_teams_spike.FakeTeams()
+    with spike_fakes.FakeServer(fake) as server:
+        parameters = {
+            f"/vigil/demo/{name}": {
+                "Value": f"{server.address}/{key}?sig={test_teams_spike.signature()}",
+                "Type": "SecureString",
+            }
+            for key, name in test_teams_spike.SECRETS.items()
+        }
+        root.seed(instances=INSTANCES, parameters=parameters)
+        answers = "n\n\n" + "y\nhttps://demo.vigil.solviclabs.com/m/acknowledge/other\n" * 8
+        result = root.run("teams", input=answers)
+    assert result.returncode == 1, result.stdout + result.stderr
+    path = root.results / "P-07-SB-T-06.json"
+    assert result.stdout.splitlines()[-1] == f"result: {path}"
+    assert len(server.requests) == 9
+    checks = {c["name"]: (c["passed"], c["detail"]) for c in json.loads(path.read_text())["checks"]}
+    assert checks["lines-noc-l1"] == (False, "the owner answered no")
+    assert checks["link-noc-l1"] == (False, "no link pasted")
+    assert checks["lines-dbops-lead"] == (True, "")
+    assert checks["link-dbops-lead"] == (False, "the pasted link is not the link sent")
+    assert all(checks[f"post-{key}"] == (True, "") for key in test_teams_spike.KEYS)
+    assert sorted(item.name for item in (root.recordings / "teams").iterdir()) == [
+        f"{n:04d}-post-{key}.json" for n, key in enumerate(test_teams_spike.KEYS, start=1)
+    ]
+    for arguments in (["teams", "--package", "P-20"], ["email", "--package", "P-20"], ["teams", "email"]):
+        result = root.run(*arguments)
+        assert result.returncode == 2, arguments
+        assert result.stdout == USAGE
+
+
+def test_email_without_secret(tmp_path):
+    """SB-T-06 run.sh email with no smtp parameter stops with the AR-S-13 message and exit 1 (no test lets the email
+    spike reach a real server)."""
+    root = Root(tmp_path)
+    result = root.run("email", input="\n")
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert result.stdout == "Missing secret /vigil/demo/smtp (AR-S-13).\n"
+    assert not root.results.exists() and not root.recordings.exists()

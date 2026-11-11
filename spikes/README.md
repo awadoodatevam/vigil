@@ -6,4 +6,4 @@ Re-runnable spike scripts (`docs/60-build-plan.md` Section 9), one folder per sp
 | --- | --- | --- |
 | `storm-timing/` | SB-T-01 storm timing, development run against the webhook recorder | P-04 |
 | `sse-probe/` | AR-SP-01 probe part: live updates through the load balancer from a browser in Pakistan (owner-run) | P-05 |
-| `providers/` | SB-T-07 (Jira), SB-T-03 runtime part, SB-T-04 local model part, the Claude and OpenAI calls (owner-run) | P-06 |
+| `providers/` | SB-T-07 (Jira), SB-T-03 runtime part, SB-T-04 local model part, the Claude and OpenAI calls, SB-T-06 (Teams) and AR-SP-02 (email) (owner-run) | P-06, P-07 |
