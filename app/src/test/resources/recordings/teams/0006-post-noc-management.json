@@ -1,0 +1,21 @@
+{
+  "seq": 6,
+  "call": "post-noc-management",
+  "started_at": "2026-11-11T05:26:14.292Z",
+  "duration_ms": 408,
+  "request": {
+    "method": "POST",
+    "url": "secret:teams-team-noc-management",
+    "headers": {
+      "Content-Type": "application/json",
+      "User-Agent": "vigil-p07-spike"
+    },
+    "body": "{\"type\": \"message\", \"attachments\": [{\"contentType\": \"application/vnd.microsoft.card.adaptive\", \"content\": {\"$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\", \"type\": \"AdaptiveCard\", \"version\": \"1.4\", \"body\": [{\"type\": \"TextBlock\", \"text\": \"SB-T-06 spike 20261111T052608Z - Techfinity Demo / NOC Management\", \"wrap\": true, \"weight\": \"Bolder\"}, {\"type\": \"TextBlock\", \"text\": \"Second line: the four lines of this message are on separate lines.\", \"wrap\": true}, {\"type\": \"TextBlock\", \"text\": \"Third line: sent by the P-07 Teams spike; nothing else uses this message.\", \"wrap\": true}, {\"type\": \"TextBlock\", \"text\": \"Acknowledge: [https://demo.vigil.solviclabs.com/m/acknowledge/c23436d5-a1f8-4306-b44b-64d48835560e](https://demo.vigil.solviclabs.com/m/acknowledge/c23436d5-a1f8-4306-b44b-64d48835560e)\", \"wrap\": true}]}}]}"
+  },
+  "response": {
+    "status": 202,
+    "headers": {},
+    "body": ""
+  },
+  "error": null
+}

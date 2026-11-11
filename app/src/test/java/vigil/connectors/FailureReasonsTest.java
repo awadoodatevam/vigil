@@ -36,6 +36,8 @@ class FailureReasonsTest {
           Duration.ofSeconds(120),
           Duration.ofSeconds(30),
           Duration.ofSeconds(90),
+          Duration.ofSeconds(15),
+          Duration.ofSeconds(15),
           Duration.ofSeconds(15));
   private static final URI ALERTMANAGER = URI.create("http://lab-alertmanager:9093/api/v2/status");
   private static final URI DEFAULT_PORT = URI.create("https://x.test/api");

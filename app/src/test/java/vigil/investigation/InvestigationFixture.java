@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import vigil.aigateway.api.AiGatewayPart;
@@ -33,6 +34,7 @@ import vigil.shared.Ids;
 import vigil.shared.Key;
 import vigil.shared.StepCall;
 import vigil.shared.TenantId;
+import vigil.testsupport.TestTenants;
 import vigil.testsupport.VigilTestApp;
 
 /**
@@ -66,7 +68,20 @@ public final class InvestigationFixture {
       Map<String, String> addresses,
       UnaryOperator<AiGatewayPart> part7,
       KnowledgePart part8) {
-    KnowledgeFixture knowledge = KnowledgeFixture.create(app, name, host, addresses, part7, part8);
+    return create(app, name, host, addresses, part7, part8, UnaryOperator.identity());
+  }
+
+  /** With the tenant's settings and identity added by {@code tenant} before it is created. */
+  public static InvestigationFixture create(
+      VigilTestApp app,
+      String name,
+      String host,
+      Map<String, String> addresses,
+      UnaryOperator<AiGatewayPart> part7,
+      KnowledgePart part8,
+      UnaryOperator<TestTenants.Builder> identity) {
+    KnowledgeFixture knowledge =
+        KnowledgeFixture.create(app, name, host, addresses, part7, part8, identity);
     app.context()
         .getBean(IncidentImport.class)
         .importPart(
@@ -114,7 +129,17 @@ public final class InvestigationFixture {
    * components, opened.
    */
   public UUID openIncident(List<String[]> alerts, String hypothesisComponentKey) {
+    return openIncident(alerts, hypothesisComponentKey, incident -> {});
+  }
+
+  /**
+   * As {@link #openIncident(List, String)}, with {@code whileForming} called with the incident's id
+   * while it is {@code forming} (Example: its assignment as vigil-routing).
+   */
+  public UUID openIncident(
+      List<String[]> alerts, String hypothesisComponentKey, Consumer<UUID> whileForming) {
     UUID incident = forming(alerts);
+    whileForming.accept(incident);
     Set<String> components = new LinkedHashSet<>();
     alerts.stream().map(a -> a[2]).filter(c -> c != null).forEach(components::add);
     List<AffectedServiceCopy> services =

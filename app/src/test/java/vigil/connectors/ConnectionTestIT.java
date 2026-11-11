@@ -90,6 +90,8 @@ class ConnectionTestIT {
         Duration.ofSeconds(120),
         Duration.ofSeconds(30),
         Duration.ofSeconds(90),
+        Duration.ofSeconds(15),
+        Duration.ofSeconds(15),
         Duration.ofSeconds(15));
   }
 

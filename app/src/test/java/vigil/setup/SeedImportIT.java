@@ -418,7 +418,9 @@ class SeedImportIT {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
           .isEqualTo(
-              number <= 12 || number == 16 ? PartOutcome.SUCCEEDED : PartOutcome.NOT_STARTED);
+              number <= 12 || number == 15 || number == 16
+                  ? PartOutcome.SUCCEEDED
+                  : PartOutcome.NOT_STARTED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.READY);
     TenantSettingsView settings = main.tenants().settings(view.tenantId());
@@ -937,11 +939,11 @@ class SeedImportIT {
   }
 
   @Test
-  @DisplayName("BP-R-29 part 9 is registered; parts 13 to 15 and 17 are not started")
+  @DisplayName("BP-R-29 part 9 is registered; parts 13, 14 and 17 are not started")
   void incidentsPartRegistered() {
     SeedImportView view = main.imported(SeedTests.demoBundle());
     assertThat(part(view, 9).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
-    for (int number : List.of(13, 14, 15, 17)) {
+    for (int number : List.of(13, 14, 17)) {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
           .isEqualTo(PartOutcome.NOT_STARTED);
