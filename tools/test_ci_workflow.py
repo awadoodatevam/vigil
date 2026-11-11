@@ -124,3 +124,20 @@ def test_gate_passes_only_when_the_chosen_jobs_passed(mode, results, passes, sec
         assert result.returncode == 1
         assert f"secrets: {secrets}" in result.stdout
         assert f"scope: {results['scope']}" in result.stdout
+
+
+MIRROR = "http://azure.archive.ubuntu.com/ubuntu/"
+DNS = "getent hosts archive.ubuntu.com security.ubuntu.com azure.archive.ubuntu.com || true"
+
+
+@pytest.mark.parametrize("job, gate", [("java", "gate command, part java"), ("rest", "gate command, part rest")])
+def test_ubuntu_mirror_and_dns_step(job, gate):
+    """BP-W-01 java and rest set VIGIL_UBUNTU_MIRROR and run the step dns right before the gate command."""
+    definition = workflow()["jobs"][job]
+    assert definition["env"] == {"VIGIL_UBUNTU_MIRROR": MIRROR}
+    names = [step.get("name") for step in definition["steps"]]
+    assert names.index("dns") == names.index(gate) - 1
+    assert definition["steps"][names.index("dns")]["run"] == DNS
+    for other in ["scope", "light", "secrets", "gate"]:
+        assert "env" not in workflow()["jobs"][other], other
+        assert "dns" not in [step.get("name") for step in workflow()["jobs"][other]["steps"]], other
