@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.26 |
+| Version | 1.27 |
 | Date | 12 November 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
@@ -177,7 +177,7 @@ What was built (with requirement IDs); tests added (with IDs); deviations from t
 
 ## 7. Build packages (complete list)
 
-Packages are listed in build order. "Depends on" lists packages that MUST be merged first (BP-R-19). Requirement lists are the content of the spec's part 4 (each spec lists the IDs one per row, BP-R-15). Every package also meets the common done-check (Section 6.3). A module package builds the module core (Section 3). The display reads a screen needs (DC-R-08, PM-R-10) are built in the owning module's code by the package that builds the API operation that uses them (P-25 for the primary demo; P-35 to P-39 for the deep dives), and are proved by that operation's tests. Each module that `50-architecture` Section 8.3 lists as reacting to AR-E-14 gets its listener in its own package: the listener reads the active tenants from `vigil-tenancy` and registers or cancels its own per-tenant scheduled work with the task scheduler that P-02 configures (AR-R-23, AR-R-28), and joins the double-delivery test AR-Q-05.
+Packages are listed in build order. "Depends on" lists packages that MUST be merged first (BP-R-19). Requirement lists are the content of the spec's part 4 (each spec lists the IDs one per row, BP-R-15). Every package also meets the common done-check (Section 6.3). A module package builds the module core (Section 3). The display reads a screen needs (DC-R-08, PM-R-10) are built in the owning module's code by the package that builds the API operation that uses them (P-25 and P-43 for the primary demo; P-35 to P-39 for the deep dives), and are proved by that operation's tests. Each module that `50-architecture` Section 8.3 lists as reacting to AR-E-14 gets its listener in its own package: the listener reads the active tenants from `vigil-tenancy` and registers or cancels its own per-tenant scheduled work with the task scheduler that P-02 configures (AR-R-23, AR-R-28), and joins the double-delivery test AR-Q-05.
 
 Cross-cutting items have no package of their own; every package whose code they touch follows them, and each spec lists the ones that apply in its part 4 (complete list): PM-R-01, PM-R-02, PM-R-03 (proved by AR-Q-01), PM-R-04 to PM-R-08, PM-R-11; DM-C-06, DM-C-11, DM-C-12; DM-V-01 to DM-V-12 (built with the entities that use them); DC-R-01 to DC-R-07; DC-TX-00. Items with nothing to build (complete list): withdrawn items (PM-M09-10, AR-S-10, AR-U-05); Later items (PM-K-11 to PM-K-14, AR-M-25 to AR-M-28, AR-L-01 to AR-L-03, DC-L-01 to DC-L-14); records of decisions, amendments and assumptions of earlier rounds (their content is built through the items they changed); module cut tags DC-M-01 to DC-M-43 (built through the modules' packages); the data files DD-F-00, DD-F-11 and DD-F-12 (the folder's README and its tools, run by the gate command). Every other data file DD-F-01 to DD-F-10 is imported by the seed part of the package that names it, or by the package whose module owns that part.
 
@@ -456,21 +456,31 @@ Cross-cutting items have no package of their own; every package whose code they 
 | Tests | Policy outcomes `preauthorized` and `blocked` (SL-B-04 automated tests); a second approver must differ; expired, rejected, refused paths; each recheck failing on its own; unknown result reconciled, `unresolved` after 3 attempts; AR-Q-11 case (e); the snapshot hash changes when any part changes. |
 | Runs in | BP-E-01, BP-E-02 |
 
-#### P-25 Primary-demo API operations
+#### P-25 Incident list and workspace API operations
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | M; P-24; none |
-| Builds | The API layer of the primary demo's screens: AR-I-20 to AR-I-25, AR-I-27 to AR-I-35, AR-I-80; the live update producers for the topics `incidents`, `incident`, `run`, `alerts`, `sources`, `approval` and `tenant` (AR-I-04); the data the polled screens read (AR-I-05); OpenAPI entries and contract tests. |
-| Requirements built | AR-I-05, AR-I-20 to AR-I-25, AR-I-27 to AR-I-35, AR-I-80; AR-I-04 (topics); PM-M23-04; DC-R-08; PM-R-10. |
-| Tests | Contract tests; each operation's permission and refusals (AR-I-32 and AR-I-34 return the refusal that applies); every topic's notice within 1 s of the commit in an `*IT` test. |
+| Size; depends on; owner tasks | L (CTX-D-077 (6)); P-24; none |
+| Builds | The first half of the primary demo's API layer (split by owner decision, CTX-D-077 (1)): the live update producers for the topics `incidents`, `incident`, `run`, `alerts`, `sources`, `approval` and `tenant` (AR-I-04); AR-I-20 (the alerts strip that the incident list polls, AR-I-05), AR-I-21 (paged, DC-U-12), AR-I-22 to AR-I-24, AR-I-29 to AR-I-31; the display reads of `vigil-intake`, `vigil-incidents` and `vigil-engine` they need (CTX-D-077 (2), (3)); OpenAPI entries and contract tests. |
+| Requirements built | AR-I-04 (topics); AR-I-05 (the strip); AR-I-20 to AR-I-24, AR-I-29 to AR-I-31; AR-I-01 (paging), AR-I-07, AR-I-08; AR-R-19; PM-M23-04; DC-R-08; PM-R-10; DC-U-12; AR-Q-05. |
+| Tests | Contract tests; each operation's permission; every topic's notice within 1 s of the commit in an `*IT` test; each new module read. |
+| Runs in | BP-E-01, BP-E-02 |
+
+#### P-43 Workspace sections, Acknowledge, Approval and dashboard API operations
+
+| Item | Content |
+| --- | --- |
+| Size; depends on; owner tasks | L (estimate, CTX-D-077 (6)); P-25; none |
+| Builds | The second half of the primary demo's API layer (CTX-D-077 (1)): AR-I-25, AR-I-27, AR-I-28, AR-I-32 to AR-I-35, AR-I-80; the data the polled screens read (AR-I-05: recovery section, Approval page, Acknowledge page); the display reads they need (`InvestigationService`, `KnowledgeService`, `vigil-actions`' proposals, requests, decisions and executions, `RecoveryService.verifications`, `ReportingService.dashboard`); the requests `IncidentService.acknowledge` (P-14) and `ActionsService.decide` (P-24) for AR-I-33 and AR-I-35; OpenAPI entries and contract tests. |
+| Requirements built | AR-I-05 (recovery section, Approval page, Acknowledge page); AR-I-25, AR-I-27, AR-I-28, AR-I-32 to AR-I-35, AR-I-80; AR-I-03 (the refusal in read answers), AR-I-07, AR-I-08; DC-R-08; PM-R-10. |
+| Tests | Contract tests; each operation's permission and refusals (AR-I-32 and AR-I-34 return the refusal that applies). |
 | Runs in | BP-E-01, BP-E-02 |
 
 #### P-26 Local installation and dev fakes
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | L; P-25, P-04; BP-OT-10 (Mac run) |
+| Size; depends on; owner tasks | L; P-43, P-04; BP-OT-10 (Mac run) |
 | Builds | `deploy/local/compose.yaml` complete (Section 11); `deploy/local.sh` complete (`up`, `down`, `reset`, `logs`, `e2e`; secrets and values; tenant creation, bundle import and alias through the installation operations); `deploy/local/bundle.py` (builds the seed bundle with the values merge of AR-B-07); `dev/fakes/` (Section 11.3); the Playwright runner container in a compose profile `e2e` and `deploy/local.sh e2e [suite]`, which runs `npm ci` for `tests/e2e/` on the host, stops `claude-fake` and `openai-fake` before suites tagged `@ai-down` and starts them again after; `e2e.yml` (Section 10.1). |
 | Requirements built | BP-R-24 to BP-R-28, BP-R-30; Section 11; AR-Q-10 (complete: all 17 parts registered, the interim rule BP-R-29 ends). |
 | Tests | AR-Q-10 with the bundle of `docs/31-demo-data/` built by `bundle.py`; `deploy/local.sh up` then a Playwright smoke test (login page loads, banner text) in a cloud session and in `e2e.yml`; the dev fakes' own pytest tests. |
@@ -636,7 +646,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 ### 7.7 Size summary
 
-5 packages S, 20 packages M, 17 packages L, 42 packages in all (P-42 added in v1.22; P-23 became L in v1.25, from its estimate; P-21 became L in v1.24, from its line count; P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14 and L in v1.15, from its line count; P-16 became L in v1.15; P-17 was split into P-17 and P-41 in v1.16; P-18 became L in v1.17; P-19 became L in v1.20, from its line count). With one cloud session for S, one to two for M and two to three for L, the estimate is about 65 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
+4 packages S, 20 packages M, 19 packages L, 43 packages in all (P-25 was split into P-25 (L) and P-43 (L) in v1.27, and the S and M counts corrected to the entries; P-42 added in v1.22; P-23 became L in v1.25, from its estimate; P-21 became L in v1.24, from its line count; P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14 and L in v1.15, from its line count; P-16 became L in v1.15; P-17 was split into P-17 and P-41 in v1.16; P-18 became L in v1.17; P-19 became L in v1.20, from its line count). With one cloud session for S, one to two for M and two to three for L, the estimate is about 67 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
 
 ## 8. Phases, order and checkpoints
 
@@ -645,7 +655,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 | Phase | Packages | Ends at | Order and parallel work (BP-R-18) |
 | --- | --- | --- | --- |
 | A Foundations and risk spikes | P-01 to P-07, P-42 | All Phase A packages merged | P-02 and P-03 start after P-01; P-04 after P-03; P-05 after P-01; P-06 and P-07 after P-05; P-42 after P-07 and before P-21 (CTX-D-067). Phase A packages that change only `demo/`, `deploy/`, `spikes/` or `dev/` run alongside Phase B. |
-| B Product core | P-08 to P-17, P-41, P-18 to P-27 | P-27 merged: the storm runs headless from intake to a resolved incident on the local installation | Starts when P-02 is merged. One product package at a time, in order (PM-R-03; P-41 comes after P-17 and before P-18); P-10 and P-26 also wait for P-04, P-18 for P-03, P-19 and P-21 for P-06, P-22 for P-07 (BP-R-19, BP-R-20). |
+| B Product core | P-08 to P-17, P-41, P-18 to P-25, P-43, P-26, P-27 | P-27 merged: the storm runs headless from intake to a resolved incident on the local installation | Starts when P-02 is merged. One product package at a time, in order (PM-R-03; P-41 comes after P-17 and before P-18; P-43 after P-25 and before P-26); P-10 and P-26 also wait for P-04, P-18 for P-03, P-19 and P-21 for P-06, P-22 for P-07 (BP-R-19, BP-R-20). |
 | C Screens and demo operations | P-28 to P-32 | SL-CP-1 | P-31 alongside P-28 to P-30. |
 | D Primary demo complete | P-33, P-34 | SL-CP-2 | None. |
 | E Deep dives | P-35 to P-40 | SL-CP-3 | None. |
@@ -800,7 +810,7 @@ The placeholders of AR-B-07 as amended by BP-A-01, with these values in `deploy/
 | SL-A1-06 | P-20, P-24, P-29, P-30 |
 | SL-A1-07 | P-21, P-23, P-29 |
 | SL-A1-08 | P-09, P-17, P-41, P-25, P-29 |
-| SL-A1-09 | P-23, P-25, P-33 |
+| SL-A1-09 | P-23, P-43, P-33 |
 | SL-A2-01 | P-13, P-38 |
 | SL-A2-02 | P-19, P-39 |
 | SL-A2-03 | P-22, P-29 |
@@ -885,7 +895,7 @@ The placeholders of AR-B-07 as amended by BP-A-01, with these values in `deploy/
 | `vigil-workflows` | P-41, P-35, P-36 |
 | `vigil-reporting` | P-23; screen P-33 |
 | `vigil-setup` | P-11, P-38 |
-| `vigil-api` | P-09, P-11, P-13, P-25, P-35, P-36, P-38, P-39 |
+| `vigil-api` | P-09, P-11, P-13, P-25, P-43, P-35, P-36, P-38, P-39 |
 | `vigil-web` | P-01 (skeleton), P-28 to P-30, P-33, P-37 to P-39 |
 | `demo-lab` | P-03 |
 | `demo-monitoring` | P-04 |
@@ -906,7 +916,7 @@ The placeholders of AR-B-07 as amended by BP-A-01, with these values in `deploy/
 | SL-A1-06 | P-20 search; P-24 approval and action; P-30 Approval page | P-27; P-32 | SB-T-03 (P-06, P-34); SL-B-04 tests (P-24) |
 | SL-A1-07 | P-23 recovery; P-21 resolve | P-27; P-32 | P-23 window tests; SB-T-01 resolve timing |
 | SL-A1-08 | P-17 events; P-09, P-25 live stream; P-29 canvas | P-29 on the local installation; P-32 | AR-SP-01 (P-05, P-32); P-29 highlight timing |
-| SL-A1-09 | P-23 metrics; P-25 operation; P-33 screen | P-33 | DD-K-11 (P-23); SB-S09 values (P-33, P-34) |
+| SL-A1-09 | P-23 metrics; P-43 operation; P-33 screen | P-33 | DD-K-11 (P-23); SB-S09 values (P-33, P-34) |
 
 Result: every scene has its building packages, the point where it first runs end to end, and the test that proves it.
 
@@ -946,7 +956,7 @@ Status "Decided by owner" means Abdul gave the answer himself (Section 2 or the 
 | BP-D-06 | Package protocol of Section 6: a spec written in the Claude project and readiness-tested before each package and committed as the branch's first commit; one branch and pull request per package; owner-run steps with result files; Abdul merges; at most two packages at once. | Keeps every package reviewable by one builder and keeps code and documents consistent (CTX-Q-5, CTX-Q-8). | Agreed by owner, 12 Oct 2026 | CTX-C-01; CTX §9 |
 | BP-D-07 | `ci.yml` on pull requests only, with a light path for documentation-only changes; `e2e.yml` on label; artifacts only on failure, kept 3 days (Section 10). | Included minutes and artifact storage on personal plans (Section 16 items 4 and 5). | Agreed by owner, 12 Oct 2026 | BP-ASM-07 |
 | BP-D-08 | Repository layout and conventions of Section 5, including the root aggregator POM and the test-tooling folders `dev/`, `spikes/`, `tests/` (BP-A-07). | One build command for both Java projects; test tooling kept apart from product and demo. | Proposed | AR-R-02, AR-T-07 |
-| BP-D-09 | Module packages build the module core; the primary demo's API layer, with the display reads it needs, is one package (P-25) before the headless acceptance; the deep-dive screens' packages build their own operations and display reads. `vigil-reporting`'s core is built with recovery (P-23). | The headless driver needs the API layer before the screens; the full bundle needs every seed part before P-26. | Agreed by owner, 12 Oct 2026 | DM-R-56; AR §10.2 |
+| BP-D-09 | Module packages build the module core; the primary demo's API layer, with the display reads it needs, is one package (P-25) before the headless acceptance (split into P-25 and P-43, built one after the other, by owner decision in v1.27, CTX-D-077 (1)); the deep-dive screens' packages build their own operations and display reads. `vigil-reporting`'s core is built with recovery (P-23). | The headless driver needs the API layer before the screens; the full bundle needs every seed part before P-26. | Agreed by owner, 12 Oct 2026; split agreed by owner, 12 Nov 2026 (CTX-D-077 (1)) | DM-R-56; AR §10.2 |
 | BP-D-10 | Requirement IDs at the start of test names, checked by `tools/trace.py` (BP-R-10, BP-R-15). | Coverage both ways stays checkable during the build. | Proposed | CTX-Q-1, CTX-Q-8 |
 | BP-D-11 | CTX-O-05 (Jazz name and logo) is resolved before P-32, the first deployment of the public demo installation. | The login page shows the customer name before login (AR-B-10); there is no separate branding package. | Proposed | CTX-O-05 |
 | BP-D-12 | Spikes are kept as re-runnable scripts under `spikes/`, their recordings under `dev/fakes/recordings/`. | CTX-C-03; the recordings feed the connector tests (AR §19.2). | Proposed | CTX-C-03 |
@@ -1069,3 +1079,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.24 | 11 Nov 2026 | From the P-21 report (BP-L-8, CTX-D-070): the P-21 entry is size L (`tools/loc.sh` 2,106; Section 7.7). For the P-22 spec (BP-L-1, CTX-D-071): the P-22 entry names the choices of CTX-D-071; the P-24 entry sends approval messages through `NotificationsService.notifyApprovalRequest`. No behaviour of Vigil changes. |
 | 1.25 | 12 Nov 2026 | From the P-22 report (BP-L-8, CTX-D-072): no change (P-22 stays L, `tools/loc.sh` 2,519). For the P-23 spec (BP-L-1, CTX-D-073): the P-23 entry is size L (Section 7.7) and names the dashboard read, the two reads of `vigil-intake`, the key checks of part 13 and every requirement its spec builds. No behaviour of Vigil changes. |
 | 1.26 | 12 Nov 2026 | From the P-23 report (BP-L-8, CTX-D-074): no change (P-23 stays L, `tools/loc.sh` 2,206). For the P-24 spec (BP-L-1, CTX-D-075): the P-24 entry names the engine reads, the key checks and the decision request and every requirement its spec builds; Section 13.1 row SL-B-03 adds P-24. No behaviour of Vigil changes. |
+| 1.27 | 12 Nov 2026 | From the P-24 report (BP-L-8, CTX-D-076): no change (P-24 stays L, `tools/loc.sh` 3,461). For the P-25 spec (BP-L-1, CTX-D-077): P-25 is split by owner decision into P-25 Incident list and workspace API operations (L) and the new package P-43 Workspace sections, Acknowledge, Approval and dashboard API operations (L), built after P-25 and before P-26 (P-26 now depends on P-43; Sections 7 introduction, 7.7, 8.1, 13.1, 13.2, 14 and BP-D-09); Section 7.7 also corrects the S and M counts to the entries (4 S, 20 M). No behaviour of Vigil changes. |
