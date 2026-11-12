@@ -1,0 +1,89 @@
+# BP-W-02 (P-26 spec Section 6.7): the local installation with the dev fakes and the test profile, then the Playwright
+# suites. On pull requests labelled e2e and manual runs. The storm driver step arrives with P-27.
+name: e2e
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: e2e
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'e2e')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      VIGIL_UBUNTU_MIRROR: http://azure.archive.ubuntu.com/ubuntu/
+    steps:
+      - name: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: java
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "25.0.4+101.0.LTS"
+          cache: maven
+
+      - name: node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22.23.3"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: python tools
+        run: |
+          python -m venv "$RUNNER_TEMP/vigil-tools"
+          "$RUNNER_TEMP/vigil-tools/bin/python" -m pip install --disable-pip-version-check -r tools/requirements-dev.txt
+          echo "VIGIL_TOOLS=$RUNNER_TEMP/vigil-tools" >> "$GITHUB_ENV"
+
+      - name: test images
+        run: deploy/images.sh --test
+
+      - name: local installation
+        env:
+          VIGIL_LOCAL_HOME: ${{ runner.temp }}/vigil-local
+        run: deploy/local.sh up
+
+      - name: playwright suites
+        env:
+          VIGIL_LOCAL_HOME: ${{ runner.temp }}/vigil-local
+        run: deploy/local.sh e2e
+
+      - name: logs and the dev fakes' calls
+        if: failure()
+        env:
+          VIGIL_LOCAL_HOME: ${{ runner.temp }}/vigil-local
+          OUT: ${{ runner.temp }}/e2e-failure
+        run: |
+          mkdir -p "$OUT/fakes"
+          deploy/local.sh logs --no-follow > "$OUT/logs.txt" 2>&1 || true
+          for fake in jira-fake:8000 teams-fake:8000 claude-fake:8000 openai-fake:8000 ollama-llm-fake:11434 ollama-embed-fake:11434; do
+            docker compose -f deploy/local/compose.yaml -p vigil-local exec -T "${fake%%:*}" /usr/bin/python3 -c \
+              "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:${fake##*:}/_fakes/calls').read().decode())" \
+              > "$OUT/fakes/${fake%%:*}.json" 2>&1 || true
+          done
+          cp -R "$VIGIL_LOCAL_HOME/vigil-local/e2e" "$OUT/run" || true
+
+      - name: upload
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-failure
+          path: ${{ runner.temp }}/e2e-failure
+          retention-days: 3
