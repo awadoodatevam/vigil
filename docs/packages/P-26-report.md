@@ -97,7 +97,7 @@ Cloud session run (spec Section 8 item 3), profile `test`:
 
 ## 9. Lines of production code (`tools/loc.sh origin/main HEAD`)
 
-LOC_COUNT (BP-R-05 limit for M 2,000; spec estimate about 1,700).
+1,317 (BP-R-05 limit for M 2,000; spec estimate about 1,700).
 
 ## 10. Gate command result
 
