@@ -89,13 +89,13 @@ None: the spec has no owner-run steps. The Action step ran the demo action on th
 
 ## 9. Lines of production code (`tools/loc.sh origin/main HEAD`)
 
-LOC_RESULT (BP-R-05 limit 3,500; spec estimate about 3,350, between 3,100 and 3,600). The first complete build counted 3,586; `ActionStep` and `ActionRecords` were then simplified without a change in behaviour (the execution's changeable columns as fields instead of eight-argument copies; the reads of a request, a proposal and a "no proposal" row by column), and every test was run again.
+3,461 (BP-R-05 limit 3,500; spec estimate about 3,350, between 3,100 and 3,600). The first complete build counted 3,586; `ActionStep` and `ActionRecords` were then simplified without a change in behaviour (the execution's changeable columns as fields instead of eight-argument copies; the reads of a request, a proposal and a "no proposal" row by column), and every test was run again.
 
 ## 10. Gate command result
 
-GATE_RESULT
+`tools/check-all.sh` passed in this session (exit 0, "all checks passed"): step (0) Docker, (1) setup version, (1a) test images, (2) `./mvnw -B verify` (197 unit tests and 735 integration tests, 0 failures, 0 errors; Spotless and `ApplicationModules.verify()` included; 24 min 16 s), (3) Python checks and tests, (4) shellcheck, (5) data checks (49 checks, 0 failed), (6) compose validation, (7) traceability. The lab tests of BP-R-12 step (3) do not run: no lab path changes.
 
-Done-check 3 (spec Section 8): the log lines of `vigil.actions` in the `ActionStepIT` run are only the two `WARN` lines of spec 6.1 (ids and the state key); none holds a parameter value, an output value or a secret (LOG_CHECK).
+Done-check 3 (spec Section 8): the log lines of `vigil.actions` in the `ActionStepIT` run are only the two `WARN` lines of spec 6.1 (ids and the state key); none holds a parameter value, an output value or a secret (the run of the new and changed tests: 6 `not_executed`, 2 `failed` and 3 `unresolved` lines, nothing else).
 
 ## 11. Follow-up items for later packages
 
