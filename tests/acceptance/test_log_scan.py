@@ -85,3 +85,48 @@ def test_sub_folders_are_read(tmp_path):
 
     assert result.returncode == 1
     assert result.stdout.splitlines() == ["a/b/c/deep"]
+
+
+def test_ignore_fields_leave_out_only_the_named_keys(tmp_path):
+    """AR-Q-07 --ignore-fields leaves out only the named JSON keys' values."""
+    token = secrets.token_urlsafe(18)
+    username = "vigil-diag"
+    write(
+        tmp_path / "secrets" / "vigil-app" / "lab-db-01-diag", json.dumps({"username": username, "private_key": token})
+    )
+    write(
+        tmp_path / "secrets" / "vigil-app" / "jira", json.dumps({"email": "vigil@vigil.test", "api_token": token + "x"})
+    )
+    log = write(tmp_path / "app.log", '{"logger":"vigil-diagnostics","to":"vigil@vigil.test"}\n')
+    arguments = ["--ignore-fields", "username,email,expires_on"]
+
+    clean = subprocess.run(
+        [sys.executable, str(SCRIPT), "--log", str(log), "--secrets-dir", str(tmp_path / "secrets"), *arguments],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert clean.returncode == 0, clean.stdout
+    assert run_scan(log, tmp_path / "secrets").stdout.splitlines() == ["vigil-app/jira", "vigil-app/lab-db-01-diag"]
+
+    leaked = write(tmp_path / "leak.log", f"key {token}\n")
+    found = subprocess.run(
+        [sys.executable, str(SCRIPT), "--log", str(leaked), "--secrets-dir", str(tmp_path / "secrets"), *arguments],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert found.returncode == 1
+    assert found.stdout.splitlines() == ["vigil-app/lab-db-01-diag"]
+    assert token not in found.stdout
+
+    whole = json.dumps({"username": "a-longer-user-name"})
+    write(tmp_path / "secrets" / "only-user", whole)
+    log_whole = write(tmp_path / "whole.log", whole + "\n")
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--log", str(log_whole), "--secrets-dir", str(tmp_path / "secrets"), *arguments],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.stdout.splitlines() == ["only-user"]

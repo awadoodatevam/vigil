@@ -121,3 +121,22 @@ def test_reset_makes_a_new_tenant():
     assert json.loads((BASE / "state" / "seed-import.json").read_text())["tenant_id"] == after["tenant_id"]
     status, answer = branding()
     assert status == 200 and answer["product_display_name"] == "Techfinity" and answer["customer_name"] == "Jazz"
+
+
+def test_up_writes_the_lab_profile():
+    """BP-R-28 up writes the lab profile it used to state/lab-profile (P-27), next to state/values-file."""
+    values_file = Path((BASE / "state" / "values-file").read_text().strip())
+    profile = (BASE / "state" / "lab-profile").read_text()
+    used = next(
+        line.split(":", 1)[1].strip().strip('"')
+        for line in values_file.read_text().splitlines()
+        if line.startswith("lab_profile:")
+    )
+    assert profile == used + "\n"
+    environment = subprocess.run(
+        ["docker", "inspect", "-f", "{{range .Config.Env}}{{println .}}{{end}}", "lab-db-01"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.splitlines()
+    assert f"LAB_PROFILE={used}" in environment

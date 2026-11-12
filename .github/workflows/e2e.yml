@@ -1,5 +1,6 @@
-# BP-W-02 (P-26 spec Section 6.7): the local installation with the dev fakes and the test profile, then the Playwright
-# suites. On pull requests labelled e2e and manual runs. The storm driver step arrives with P-27.
+# BP-W-02 (P-26 spec Section 6.7, P-27 spec Section 6.7): the local installation with the dev fakes and the test profile,
+# the storm driver in mode immediate with the log scan of AR-Q-07, then the Playwright suites. On pull requests labelled
+# e2e and manual runs.
 name: e2e
 
 on:
@@ -60,6 +61,12 @@ jobs:
           VIGIL_LOCAL_HOME: ${{ runner.temp }}/vigil-local
         run: deploy/local.sh up
 
+      - name: storm driver
+        env:
+          VIGIL_LOCAL_HOME: ${{ runner.temp }}/vigil-local
+          VIGIL_STORM_RESULTS: ${{ runner.temp }}/storm
+        run: tests/acceptance/storm/run.sh --mode immediate
+
       - name: playwright suites
         env:
           VIGIL_LOCAL_HOME: ${{ runner.temp }}/vigil-local
@@ -79,6 +86,7 @@ jobs:
               > "$OUT/fakes/${fake%%:*}.json" 2>&1 || true
           done
           cp -R "$VIGIL_LOCAL_HOME/vigil-local/e2e" "$OUT/run" || true
+          cp -R "${{ runner.temp }}/storm" "$OUT/storm" || true
 
       - name: upload
         if: failure()

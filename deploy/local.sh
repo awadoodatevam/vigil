@@ -560,6 +560,7 @@ full_up() {
     fi
   done
   printf '%s\n' "$values_file" > "$base/$project/state/values-file"
+  printf '%s\n' "$profile" > "$base/$project/state/lab-profile"
   EMBED=no
   if [ "$(value_of endpoint.local_embedding "$values_file")" = "http://vigil-embed:11434" ]; then
     EMBED=yes
@@ -598,7 +599,8 @@ full_up() {
 
 lab_down() {
   local project=$1 volumes=$2
-  local args=(--profile lab-only --profile spike --profile embed --profile e2e down --remove-orphans)
+  local args=(--profile lab-only --profile spike --profile embed --profile e2e --profile acceptance down
+    --remove-orphans)
   if [ "$volumes" = yes ]; then
     args+=(--volumes)
   fi
@@ -628,10 +630,10 @@ logs() {
   shift
   if [ "$follow" = yes ]; then
     docker compose -f "$COMPOSE_FILE" -p "$PROJECT" --profile lab-only --profile spike --profile embed --profile e2e \
-      logs --tail 200 --follow "$@"
+      --profile acceptance logs --tail 200 --follow "$@"
   else
     docker compose -f "$COMPOSE_FILE" -p "$PROJECT" --profile lab-only --profile spike --profile embed --profile e2e \
-      logs --tail 200 "$@"
+      --profile acceptance logs --tail 200 "$@"
   fi
 }
 

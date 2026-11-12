@@ -24,6 +24,18 @@ USAGE = """Usage: deploy/local.sh up [--profile test|demo] [--values FILE] [--no
        deploy/local.sh e2e [SUITE] [--project NAME]
 """
 COMPOSE = ["compose", "-f", "deploy/local/compose.yaml", "-p", "vigil-local"]
+PROFILES = [
+    "--profile",
+    "lab-only",
+    "--profile",
+    "spike",
+    "--profile",
+    "embed",
+    "--profile",
+    "e2e",
+    "--profile",
+    "acceptance",
+]
 PW = [
     *COMPOSE,
     "--profile",
@@ -195,14 +207,25 @@ def test_e2e_suite(local):
 
 
 def test_logs(local):
-    """BP-R-28 logs follows by default; --no-follow leaves --follow out; services are passed on."""
-    profiles = ["--profile", "lab-only", "--profile", "spike", "--profile", "embed", "--profile", "e2e"]
+    """BP-R-28 logs follows by default, with the profile acceptance (P-27); --no-follow leaves --follow out; services
+    are passed on."""
+    profiles = PROFILES
     result, calls = local("logs", "--no-follow", "vigil-app", "jira-fake")
     assert result.returncode == 0
     assert calls == [[*COMPOSE, *profiles, "logs", "--tail", "200", "vigil-app", "jira-fake"]]
     result, calls = local("logs", "--project", "other")
     assert result.returncode == 0
     assert calls == [[*COMPOSE[:-1], "other", *profiles, "logs", "--tail", "200", "--follow"]]
+
+
+def test_down_with_the_acceptance_profile(local):
+    """BP-R-28 down stops the services of every profile, the storm driver's acceptance included (P-27)."""
+    result, calls = local("down")
+    assert result.returncode == 0
+    assert calls == [[*COMPOSE, *PROFILES, "down", "--remove-orphans"]]
+    result, calls = local("down", "--volumes", "--project", "other")
+    assert result.returncode == 0
+    assert calls == [[*COMPOSE[:-1], "other", *PROFILES, "down", "--remove-orphans", "--volumes"]]
 
 
 def test_reset_needs_up(local):
