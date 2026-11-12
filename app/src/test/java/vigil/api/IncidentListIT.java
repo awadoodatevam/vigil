@@ -67,6 +67,13 @@ class IncidentListIT {
     fixture.close();
   }
 
+  /** {@code GET path} as {@code presenter}; the answer MUST be 200; its body. */
+  private JsonNode get(String path) {
+    Response response = fixture.as("presenter", fixture.client.get(path)).send();
+    assertThat(response.status()).as(response.text()).isEqualTo(200);
+    return response.json();
+  }
+
   private SourceView source(String key) {
     return intake.sources(fixture.tenant).stream()
         .filter(s -> s.sourceKey().equals(key))
@@ -123,14 +130,12 @@ class IncidentListIT {
     for (int i = 1; i <= 12; i++) {
       fixture.clock.advance(Duration.ofMillis(10));
       posted.add(
-          fixture
-              .correlation()
-              .postAlertmanager(
-                  "nowhere-strip", "i-" + i, i % 2 == 0 ? "HighLatency" : "NodeDown"));
+          fixture.engine.correlation.postAlertmanager(
+              "nowhere-strip", "i-" + i, i % 2 == 0 ? "HighLatency" : "NodeDown"));
     }
-    fixture.correlation().awaitDecided();
+    fixture.engine.correlation.awaitDecided();
     fixture.engine.awaitPublications();
-    JsonNode strip = fixture.get(STRIP);
+    JsonNode strip = get(STRIP);
     assertThat(strip.get("received_last_10_minutes").longValue()).isEqualTo(12);
     assertThat(strip.get("forming").get("incidents").longValue()).isEqualTo(1);
     assertThat(strip.get("forming").get("alerts").longValue()).isEqualTo(12);
@@ -159,7 +164,7 @@ class IncidentListIT {
     assertThat(strip.size()).isEqualTo(4);
 
     fixture.clock.advance(Duration.ofMinutes(10).plusSeconds(1));
-    JsonNode later = fixture.get(STRIP);
+    JsonNode later = get(STRIP);
     assertThat(later.get("received_last_10_minutes").longValue()).isZero();
     assertThat(later.get("latest")).isEqualTo(strip.get("latest"));
   }
@@ -177,13 +182,14 @@ class IncidentListIT {
   @DisplayName("AR-I-20 the strip: latest ten newest first, forming counts, active sources")
   void stripParts() {
     EngineFixture.await(() -> incidents.formingSummary(fixture.tenant).incidents() == 0);
-    JsonNode none = fixture.get(STRIP);
+    JsonNode none = get(STRIP);
     assertThat(none.get("forming").get("incidents").longValue()).isZero();
     assertThat(none.get("forming").get("alerts").longValue()).isZero();
 
-    AlertView newest = fixture.correlation().postAlertmanager("nowhere-strip-2", "i-1", "NodeDown");
-    fixture.correlation().awaitDecided();
-    JsonNode strip = fixture.get(STRIP);
+    AlertView newest =
+        fixture.engine.correlation.postAlertmanager("nowhere-strip-2", "i-1", "NodeDown");
+    fixture.engine.correlation.awaitDecided();
+    JsonNode strip = get(STRIP);
     assertThat(strip.get("received_last_10_minutes").longValue()).isEqualTo(1);
     assertThat(strip.get("forming").get("incidents").longValue()).isEqualTo(1);
     assertThat(strip.get("forming").get("alerts").longValue()).isEqualTo(1);
@@ -201,7 +207,7 @@ class IncidentListIT {
 
     fixture.clock.advance(Duration.ofSeconds(41));
     EngineFixture.await(() -> incidents.formingSummary(fixture.tenant).incidents() == 0);
-    JsonNode after = fixture.get(STRIP);
+    JsonNode after = get(STRIP);
     assertThat(after.get("forming").get("incidents").longValue()).isZero();
     assertThat(after.get("forming").get("alerts").longValue()).isZero();
   }
@@ -236,13 +242,13 @@ class IncidentListIT {
     fixture.ticketLink(acknowledged);
     UUID run = fixture.liveRun(running, TestContents.linear("diagnostic"));
     EngineFixture.await(() -> !fixture.engine.engine.pendingTimers(fixture.tenant, run).isEmpty());
-    fixture.correlation().resolve(resolved);
+    fixture.engine.correlation.resolve(resolved);
     fixture.close(closed);
     merged = fixture.mergedIncident();
     fixture.engine.awaitPublications();
     assertThat(third).isNotNull();
 
-    JsonNode page = fixture.get(LIST);
+    JsonNode page = get(LIST);
     assertThat(page.get("next_cursor").isNull()).isTrue();
     List<JsonNode> items = new ArrayList<>();
     page.get("items").forEach(items::add);
@@ -286,7 +292,7 @@ class IncidentListIT {
         assertThat(ack.get("at").stringValue()).isEqualTo(ApiTimes.format(view.acknowledgedAt()));
         assertThat(item.get("ticket").get("key").stringValue()).isEqualTo("NOC-1");
         assertThat(item.get("ticket").get("url").stringValue())
-            .isEqualTo(fixture.jira() + "/browse/NOC-1");
+            .isEqualTo("http://127.0.0.1:" + fixture.wiremock.port() + "/browse/NOC-1");
       } else {
         assertThat(item.get("acknowledged").isNull()).isTrue();
         assertThat(item.get("ticket").isNull()).isTrue();
@@ -328,7 +334,7 @@ class IncidentListIT {
   @DisplayName("AR-I-01 the list is paged by limit and the opaque cursor; bad paging is refused")
   void paging() {
     List<String> all = new ArrayList<>();
-    fixture.get(LIST).get("items").forEach(i -> all.add(i.get("incident_id").stringValue()));
+    get(LIST).get("items").forEach(i -> all.add(i.get("incident_id").stringValue()));
     List<String> seen = new ArrayList<>();
     List<Integer> sizes = new ArrayList<>();
     String query = "?limit=2";
@@ -371,10 +377,10 @@ class IncidentListIT {
       fixture.openIncident();
     }
     assertThat(numbered()).hasSize(51);
-    JsonNode first = fixture.get(LIST);
+    JsonNode first = get(LIST);
     assertThat(first.get("items")).hasSize(50);
     assertThat(first.get("next_cursor").isNull()).isFalse();
-    JsonNode second = fixture.get(LIST + "?after=" + first.get("next_cursor").stringValue());
+    JsonNode second = get(LIST + "?after=" + first.get("next_cursor").stringValue());
     assertThat(second.get("items")).hasSize(1);
     assertThat(second.get("next_cursor").isNull()).isTrue();
   }

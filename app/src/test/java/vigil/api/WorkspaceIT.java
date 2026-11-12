@@ -87,6 +87,13 @@ class WorkspaceIT {
     fixture.close();
   }
 
+  /** {@code GET path} as {@code presenter}; the answer MUST be 200; its body. */
+  private JsonNode get(String path) {
+    Response response = fixture.as("presenter", fixture.client.get(path)).send();
+    assertThat(response.status()).as(response.text()).isEqualTo(200);
+    return response.json();
+  }
+
   private void awaitWaiting(UUID runId) {
     EngineFixture.await(
         () ->
@@ -95,7 +102,7 @@ class WorkspaceIT {
   }
 
   private JsonNode get(UUID id, String section) {
-    return fixture.get(INCIDENTS + id + section);
+    return get(INCIDENTS + id + section);
   }
 
   private IncidentView view(UUID id) {
@@ -158,7 +165,7 @@ class WorkspaceIT {
     assertThat(header.get("resolved_at").isNull()).isTrue();
     assertThat(header.get("ticket").get("key").stringValue()).isEqualTo("NOC-1");
     assertThat(header.get("ticket").get("url").stringValue())
-        .isEqualTo(fixture.jira() + "/browse/NOC-1");
+        .isEqualTo("http://127.0.0.1:" + fixture.wiremock.port() + "/browse/NOC-1");
     assertThat(header.get("reopen_count").longValue()).isZero();
     assertThat(header.get("alert_count").longValue()).isEqualTo(view.alertCount());
 

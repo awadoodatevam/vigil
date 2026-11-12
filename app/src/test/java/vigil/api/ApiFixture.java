@@ -140,10 +140,6 @@ public final class ApiFixture implements AutoCloseable {
     wiremock.stop();
   }
 
-  public CorrelationFixture correlation() {
-    return engine.correlation;
-  }
-
   /** The request with a new logged-in session of the user, as {@code PermissionIT.as} does. */
   public Request as(String username, Request request) {
     Response login = client.login(HOST, username, engine.correlation.identity.password(username));
@@ -154,13 +150,6 @@ public final class ApiFixture implements AutoCloseable {
         .cookie("vigil_session", login.cookieValue("vigil_session"))
         .cookie("vigil_csrf", csrf)
         .header("X-Vigil-CSRF", csrf);
-  }
-
-  /** {@code GET path} as {@code presenter}; the answer MUST be 200; its body. */
-  public JsonNode get(String path) {
-    Response response = as("presenter", client.get(path)).send();
-    assertThat(response.status()).as(response.text()).isEqualTo(200);
-    return response.json();
   }
 
   /**
@@ -275,13 +264,8 @@ public final class ApiFixture implements AutoCloseable {
         .param("now", now)
         .param("incident", incident)
         .param("instance", Ids.newId())
-        .param("url", jira() + "/browse/NOC-1")
+        .param("url", "http://127.0.0.1:" + wiremock.port() + "/browse/NOC-1")
         .update();
-  }
-
-  /** The address of the ticket links. */
-  public String jira() {
-    return "http://127.0.0.1:" + wiremock.port();
   }
 
   /** A {@code diagnostic_result} entry with content as {@code DiagnosticStep} writes it. */

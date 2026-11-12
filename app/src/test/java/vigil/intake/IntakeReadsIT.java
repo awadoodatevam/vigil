@@ -38,13 +38,13 @@ class IntakeReadsIT {
     fixture = new ApiFixture();
     intake = fixture.app.context().getBean(IntakeService.class);
     first = fixture.clock.instant();
-    a = fixture.correlation().postAlertmanager("nowhere-reads-1", "i-1", "ReadsA");
+    a = fixture.engine.correlation.postAlertmanager("nowhere-reads-1", "i-1", "ReadsA");
     second = fixture.clock.advance(Duration.ofSeconds(1));
-    b = fixture.correlation().postAlertmanager("nowhere-reads-2", "i-1", "ReadsB");
+    b = fixture.engine.correlation.postAlertmanager("nowhere-reads-2", "i-1", "ReadsB");
     fixture.clock.advance(Duration.ofSeconds(1));
-    c = fixture.correlation().postAlertmanager("nowhere-reads-3", "i-1", "ReadsC");
-    d = fixture.correlation().postAlertmanager("nowhere-reads-4", "i-1", "ReadsD");
-    fixture.correlation().awaitDecided();
+    c = fixture.engine.correlation.postAlertmanager("nowhere-reads-3", "i-1", "ReadsC");
+    d = fixture.engine.correlation.postAlertmanager("nowhere-reads-4", "i-1", "ReadsD");
+    fixture.engine.correlation.awaitDecided();
   }
 
   @AfterAll

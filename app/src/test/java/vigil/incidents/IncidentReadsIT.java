@@ -67,12 +67,12 @@ class IncidentReadsIT {
       numbers.add(number(fixture.openIncident()));
     }
     resolved = incidents.incidentPage(tenant, LISTED, null, 51).getLast().id();
-    fixture.correlation().resolve(resolved);
+    fixture.engine.correlation.resolve(resolved);
     assertThat(incidents.formingSummary(tenant)).isEqualTo(new FormingSummary(0, 0));
     fixture.formingIncident();
-    fixture.correlation().postAlertmanager("nowhere-reads-two", "i-1", "First");
-    fixture.correlation().postAlertmanager("nowhere-reads-two", "i-2", "Second");
-    fixture.correlation().awaitDecided();
+    fixture.engine.correlation.postAlertmanager("nowhere-reads-two", "i-1", "First");
+    fixture.engine.correlation.postAlertmanager("nowhere-reads-two", "i-2", "Second");
+    fixture.engine.correlation.awaitDecided();
     fixture.engine.awaitPublications();
     assertThat(incidents.incidents(tenant, EnumSet.of(IncidentState.FORMING))).hasSize(2);
     assertThat(incidents.formingSummary(tenant)).isEqualTo(new FormingSummary(2, 3));
