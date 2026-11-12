@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.25 |
+| Version | 1.26 |
 | Date | 12 November 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
@@ -451,8 +451,8 @@ Cross-cutting items have no package of their own; every package whose code they 
 | Item | Content |
 | --- | --- |
 | Size; depends on; owner tasks | L; P-23; none |
-| Builds | `vigil-actions`: DM-E-55 to DM-E-60; proposal (DM-R-29); the Approval step (DM-S-05) with the order of checks, policy outcomes, snapshot and hash (DM-R-30, DM-V-12, AR-P-03), requests to every eligible approver (messages through `NotificationsService.notifyApprovalRequest`, CTX-D-071 (10)), expiry and cancellation; decisions with the atomic check (DM-E59-R1); the Action step (DM-S-06) with rechecks, runner call and reconciliation including after a restart (DM-R-32, DM-R-33, AR-TM-06, PM-M12-10); evidence (DC-TX-03); AR-E-09; the requests DM-A-15 lists; seed import part 14. |
-| Requirements built | PM-M14-01 to PM-M14-09; PM-S-05, PM-S-06; DM-E-55 to DM-E-60 with their rules; DM-S-05, DM-S-06; DM-R-29 to DM-R-33, DM-R-63 (approval); DM-SM-11, DM-SM-12; DM-V-12; AR-E-09, AR-TM-06; SL-A1-06, SL-A2-04 (attempt limit), SL-B-04. |
+| Builds | `vigil-actions`: DM-E-55 to DM-E-60; proposal (DM-R-29); the Approval step (DM-S-05) with the order of checks, policy outcomes, snapshot and hash (DM-R-30, DM-V-12, AR-P-03), requests to every eligible approver (messages through `NotificationsService.notifyApprovalRequest`, CTX-D-071 (10)), expiry and cancellation; decisions with the atomic check (DM-E59-R1); the Action step (DM-S-06) with rechecks, runner call and reconciliation including after a restart (DM-R-32, DM-R-33, AR-TM-06, PM-M12-10); evidence (DC-TX-03); AR-E-09; the requests DM-A-15 lists; seed import part 14. The reads of `ActionRuns` for the engine (DM-A-15); the key checks of part 14 against parts 4, 5 and 13 and of part 8 against part 14 (DM-R-60); `ActionsService.decide` with the refusals of DC-S05-06 (CTX-D-075 (8)). |
+| Requirements built | PM-M14-01 to PM-M14-09; PM-S-05, PM-S-06; DM-E-55 to DM-E-60 with their rules; DM-S-05, DM-S-06; DM-R-29 to DM-R-33, DM-R-63 (approval); DM-SM-11, DM-SM-12; DM-V-12; AR-E-09, AR-TM-06; SL-A1-06, SL-A2-04 (attempt limit), SL-B-04.; DM-V-08; DM-E56-R1, DM-E56-R2, DM-E59-R1, DM-E60-R1, DM-E60-R2; DM-R-34 (actions side), DM-R-64; DM-E14-R1 (the request ids of `vigil-actions`); DM-E08-R1, DM-E08-R3; DC-TX-01, DC-TX-03, DC-TX-10 (their action rows); DD-F-04 (part 14); DM-R-56, DM-R-57, DM-R-60; AR-B-11; AR-P-03; AR-Q-04, AR-Q-06, AR-Q-08; SL-B-03, SL-B-11. |
 | Tests | Policy outcomes `preauthorized` and `blocked` (SL-B-04 automated tests); a second approver must differ; expired, rejected, refused paths; each recheck failing on its own; unknown result reconciled, `unresolved` after 3 attempts; AR-Q-11 case (e); the snapshot hash changes when any part changes. |
 | Runs in | BP-E-01, BP-E-02 |
 
@@ -831,7 +831,7 @@ The placeholders of AR-B-07 as amended by BP-A-01, with these values in `deploy/
 | SL-WE-10 | P-29 |
 | SL-B-01 | P-02, P-08 |
 | SL-B-02 | P-02, P-13 |
-| SL-B-03 | P-17, P-41, P-35 |
+| SL-B-03 | P-17, P-41, P-24, P-35 |
 | SL-B-04 | P-17, P-24 |
 | SL-B-05 | P-18 |
 | SL-B-06 | P-02, P-08 |
@@ -1068,3 +1068,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.23 | 11 Nov 2026 | For the P-21 spec (BP-L-1, CTX-D-069): the P-21 entry depends on P-42 too and adds the public base address of `vigil-tenancy`, `ConnectorService.activeInstances` and `TicketingService.recordEscalation`; the P-22 entry asks for the escalation comment with the level, cause, timer and team names and uses the public base address; the P-23 entry writes the `recovery_verification` evidence content that the Jira resolve comment reads. No behaviour of Vigil changes. |
 | 1.24 | 11 Nov 2026 | From the P-21 report (BP-L-8, CTX-D-070): the P-21 entry is size L (`tools/loc.sh` 2,106; Section 7.7). For the P-22 spec (BP-L-1, CTX-D-071): the P-22 entry names the choices of CTX-D-071; the P-24 entry sends approval messages through `NotificationsService.notifyApprovalRequest`. No behaviour of Vigil changes. |
 | 1.25 | 12 Nov 2026 | From the P-22 report (BP-L-8, CTX-D-072): no change (P-22 stays L, `tools/loc.sh` 2,519). For the P-23 spec (BP-L-1, CTX-D-073): the P-23 entry is size L (Section 7.7) and names the dashboard read, the two reads of `vigil-intake`, the key checks of part 13 and every requirement its spec builds. No behaviour of Vigil changes. |
+| 1.26 | 12 Nov 2026 | From the P-23 report (BP-L-8, CTX-D-074): no change (P-23 stays L, `tools/loc.sh` 2,206). For the P-24 spec (BP-L-1, CTX-D-075): the P-24 entry names the engine reads, the key checks and the decision request and every requirement its spec builds; Section 13.1 row SL-B-03 adds P-24. No behaviour of Vigil changes. |

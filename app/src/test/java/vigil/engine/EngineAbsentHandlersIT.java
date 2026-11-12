@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Bean;
@@ -56,6 +57,18 @@ class EngineAbsentHandlersIT {
     @Primary
     Clock testClock() {
       return CLOCK;
+    }
+  }
+
+  /** Removes the step handler and the reads of vigil-actions: no handler for approval, no runs. */
+  static class WithoutActionsBeans {
+
+    @Bean
+    static BeanDefinitionRegistryPostProcessor withoutActions() {
+      return registry -> {
+        registry.removeBeanDefinition("actionSteps");
+        registry.removeBeanDefinition("actionRunReads");
+      };
     }
   }
 
@@ -118,7 +131,7 @@ class EngineAbsentHandlersIT {
   @Order(1)
   @DisplayName("AR-R-21 a step whose handler bean is absent fails; cancel is skipped for it")
   void absentHandler(CapturedOutput output) {
-    EngineFixture a = startApp("a.engine-absent.test", TestBeans.class);
+    EngineFixture a = startApp("a.engine-absent.test", TestBeans.class, WithoutActionsBeans.class);
     UUID run =
         a.start(
             a.openIncident(CLOCK, "nowhere-1", "i-1", ALERTNAME), TestContents.linear("approval"));
@@ -171,7 +184,9 @@ class EngineAbsentHandlersIT {
   @Order(2)
   @DisplayName("AR-R-21 without ActionRuns a run has no proposal, so its Action step is refused")
   void absentActionRuns() {
-    EngineFixture a = startApp("b.engine-absent.test", TestBeans.class, ActionsBeans.class);
+    EngineFixture a =
+        startApp(
+            "b.engine-absent.test", TestBeans.class, WithoutActionsBeans.class, ActionsBeans.class);
     UUID run =
         a.start(
             a.openIncident(CLOCK, "nowhere-3", "i-1", ALERTNAME),

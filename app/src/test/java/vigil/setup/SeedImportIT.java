@@ -21,6 +21,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -134,11 +135,12 @@ class SeedImportIT {
   private static final List<ServiceMapImported> SERVICE_MAP_EVENTS = new CopyOnWriteArrayList<>();
   private static final List<Object> INTAKE_EVENTS = new CopyOnWriteArrayList<>();
   private static final List<Object> INCIDENT_EVENTS = new CopyOnWriteArrayList<>();
-  private static final LatchImporter LATCH = new LatchImporter();
+  private static final HeldKeyCheck LATCH = new HeldKeyCheck();
 
   private static App main;
   private static App latch;
   private static App failingCheck;
+  private static App noReporting;
 
   /** One app on its own fresh database. */
   private record App(
@@ -186,7 +188,10 @@ class SeedImportIT {
     }
   }
 
-  /** The key check of the main app: referring part 3, target part 14; records its calls. */
+  /**
+   * The key check of the application without part 17: referring part 3, target part 17, which is
+   * not registered there; records its calls.
+   */
   static final class RecordingCheck implements SeedKeyCheck {
 
     final List<TenantId> calls = new CopyOnWriteArrayList<>();
@@ -198,7 +203,7 @@ class SeedImportIT {
 
     @Override
     public int targetPart() {
-      return 14;
+      return 17;
     }
 
     @Override
@@ -213,10 +218,11 @@ class SeedImportIT {
   }
 
   /**
-   * The latch importer: part 14, which no package has registered yet; a held tenant waits until its
-   * latch is released.
+   * The held key check (referring part 3, target part 2): it holds a held tenant's import on the
+   * import's thread until released, while the record is {@code running}, and records the handle map
+   * it receives.
    */
-  static final class LatchImporter implements SeedPartImporter {
+  static final class HeldKeyCheck implements SeedKeyCheck {
 
     final Map<TenantId, CountDownLatch> latches = new ConcurrentHashMap<>();
     final Map<TenantId, CountDownLatch> entered = new ConcurrentHashMap<>();
@@ -231,20 +237,26 @@ class SeedImportIT {
     }
 
     void awaitEntered(TenantId tenantId) throws InterruptedException {
-      assertThat(entered.get(tenantId).await(60, TimeUnit.SECONDS)).as("part 14 reached").isTrue();
+      assertThat(entered.get(tenantId).await(60, TimeUnit.SECONDS))
+          .as("key checks reached")
+          .isTrue();
     }
 
     @Override
-    public int part() {
-      return 14;
+    public int referringPart() {
+      return 3;
     }
 
     @Override
-    public PartResult importPart(
+    public int targetPart() {
+      return 2;
+    }
+
+    @Override
+    public List<String> problems(
         TenantId tenantId,
         SeedBundle bundle,
         Map<String, JsonNode> files,
-        Instant importStartedAt,
         Map<String, UUID> handles) {
       CountDownLatch release = latches.get(tenantId);
       if (release != null) {
@@ -257,17 +269,12 @@ class SeedImportIT {
           Thread.currentThread().interrupt();
         }
       }
-      return new PartResult(Map.of(), Map.of());
+      return List.of();
     }
   }
 
   /** The beans of the main app. */
   static class MainBeans {
-
-    @Bean
-    SeedKeyCheck recordingKeyCheck() {
-      return RECORDING_CHECK;
-    }
 
     @Bean
     ServiceMapListener serviceMapListener() {
@@ -326,8 +333,22 @@ class SeedImportIT {
   static class LatchBeans {
 
     @Bean
-    SeedPartImporter latchImporter() {
+    SeedKeyCheck heldKeyCheck() {
       return LATCH;
+    }
+  }
+
+  /** The beans of the application without part 17: its adapter removed, the recording check. */
+  static class NoReportingBeans {
+
+    @Bean
+    static BeanDefinitionRegistryPostProcessor withoutReporting() {
+      return registry -> registry.removeBeanDefinition("reportingAdapter");
+    }
+
+    @Bean
+    SeedKeyCheck recordingKeyCheck() {
+      return RECORDING_CHECK;
     }
   }
 
@@ -364,11 +385,12 @@ class SeedImportIT {
     main = App.start(MainBeans.class);
     latch = App.start(LatchBeans.class);
     failingCheck = App.start(FailingCheckBeans.class);
+    noReporting = App.start(NoReportingBeans.class);
   }
 
   @AfterAll
   static void stop() {
-    for (App app : new App[] {main, latch, failingCheck}) {
+    for (App app : new App[] {main, latch, failingCheck, noReporting}) {
       if (app != null) {
         app.app().close();
       }
@@ -417,7 +439,7 @@ class SeedImportIT {
     for (int number = 1; number <= 17; number++) {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
-          .isEqualTo(number == 14 ? PartOutcome.NOT_STARTED : PartOutcome.SUCCEEDED);
+          .isEqualTo(PartOutcome.SUCCEEDED);
     }
     assertThat(main.state(view.tenantId())).isEqualTo(TenantState.READY);
     TenantSettingsView settings = main.tenants().settings(view.tenantId());
@@ -484,11 +506,34 @@ class SeedImportIT {
               .single();
       assertThat(received.get(instance.get("handle").stringValue())).isEqualTo(stored);
     }
+    List<Map<String, Object>> grants =
+        latch
+            .postgres()
+            .sql(
+                "SELECT permission_kind, connector_instance_id, credential_ref_id FROM"
+                    + " runner.target_access_grant WHERE tenant_id = :tenantId"
+                    + " ORDER BY permission_kind")
+            .param("tenantId", tenant.value())
+            .query()
+            .listOfRows();
+    assertThat(grants).hasSize(2);
+    assertThat(grants)
+        .allSatisfy(
+            grant ->
+                assertThat(grant.get("connector_instance_id"))
+                    .isEqualTo(received.get("linux-lab-db-01")));
+    assertThat(grants.get(0).get("permission_kind")).isEqualTo("action");
+    assertThat(grants.get(0).get("credential_ref_id"))
+        .isEqualTo(received.get("cred-lab-db-01-action"));
+    assertThat(grants.get(1).get("permission_kind")).isEqualTo("diagnostic");
+    assertThat(grants.get(1).get("credential_ref_id"))
+        .isEqualTo(received.get("cred-lab-db-01-diag"));
     release.countDown();
     SeedImportView view = latch.await(started);
     assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
     assertThat(part(view, 14).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
-    assertThat(part(view, 14).counts()).isEmpty();
+    assertThat(part(view, 14).counts())
+        .isEqualTo(Map.of("registered_actions", 1, "action_policies", 1));
   }
 
   @Test
@@ -612,12 +657,11 @@ class SeedImportIT {
   @DisplayName("BP-R-29 sections of parts that are not registered are skipped")
   void unregisteredSectionsAreSkipped() {
     SeedImportView view =
-        main.imported(
+        noReporting.imported(
             SeedTests.demoBundleWith(
-                "04-operations-actions-recovery.yaml",
-                SeedTests.section("registered_actions", "registered_actions: 3")));
+                SETTINGS, SeedTests.section("baseline_values", "baseline_values: 3")));
     assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
-    assertThat(part(view, 14).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
+    assertThat(part(view, 17).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
   }
 
   @Test
@@ -749,8 +793,9 @@ class SeedImportIT {
   @Test
   @DisplayName("PM-M22-04 a key check whose target part did not succeed is skipped")
   void keyCheckSkipped() {
-    SeedImportView view = main.imported(SeedTests.demoBundle());
+    SeedImportView view = noReporting.imported(SeedTests.demoBundle());
     assertThat(view.state()).isEqualTo(SeedImportState.SUCCEEDED);
+    assertThat(part(view, 17).outcome()).isEqualTo(PartOutcome.NOT_STARTED);
     assertThat(RECORDING_CHECK.calls).doesNotContain(view.tenantId()).isEmpty();
   }
 
@@ -936,15 +981,12 @@ class SeedImportIT {
   }
 
   @Test
-  @DisplayName("BP-R-29 part 9 is registered; part 14 is not started")
+  @DisplayName("DM-R-56 every part of the demo bundle is imported")
   void incidentsPartRegistered() {
     SeedImportView view = main.imported(SeedTests.demoBundle());
-    assertThat(part(view, 9).outcome()).isEqualTo(PartOutcome.SUCCEEDED);
-    for (int number : List.of(14)) {
-      assertThat(part(view, number).outcome())
-          .as("part %s", number)
-          .isEqualTo(PartOutcome.NOT_STARTED);
-    }
+    assertThat(view.parts()).hasSize(17);
+    assertThat(view.parts())
+        .allSatisfy(p -> assertThat(p.outcome()).isEqualTo(PartOutcome.SUCCEEDED));
   }
 
   private static final String ROUTING = "05-routing-escalation.yaml";

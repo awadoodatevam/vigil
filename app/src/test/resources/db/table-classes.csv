@@ -74,3 +74,10 @@ notifications.notification_record,immutable,yes
 recovery.recovery_check_definition,configuration,yes
 recovery.recovery_verification,stateful,yes
 reporting.baseline_value,configuration,yes
+actions.registered_action,configuration,yes
+actions.action_policy,configuration,yes
+actions.action_proposal,immutable,yes
+actions.approval_request,stateful,yes
+actions.step_without_proposal,immutable,yes
+actions.approval_decision,immutable,yes
+actions.action_execution,stateful,yes
