@@ -76,7 +76,7 @@ None: the spec has no owner-run steps.
 
 ## 10. Gate command result
 
-GATE_RESULT
+`tools/check-all.sh` passed in this session (exit 0, "all checks passed"): step (0) Docker, (1) setup version, (1a) test images, (2) `./mvnw -B verify` (197 unit tests and 757 integration tests, 0 failures, 0 errors; Spotless and `ApplicationModules.verify()` included; 24 min 3 s), (3) Python checks and tests (345 passed, 1 skipped; the lab tests skipped: no lab path changes, BP-R-12 step (3)), (4) shellcheck, (5) data checks (49 checks, 0 failed), (6) compose validation, (7) traceability.
 
 ## 11. Follow-up items for later packages
 
