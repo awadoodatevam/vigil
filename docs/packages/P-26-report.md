@@ -97,11 +97,13 @@ Cloud session run (spec Section 8 item 3), profile `test`:
 
 ## 9. Lines of production code (`tools/loc.sh origin/main HEAD`)
 
-1,317 (BP-R-05 limit for M 2,000; spec estimate about 1,700).
+LOC_COUNT (BP-R-05 limit for M 2,000; spec estimate about 1,700).
 
 ## 10. Gate command result
 
-GATE_RESULT
+`tools/check-all.sh` passed in this session (exit 0, "all checks passed"): step (0) Docker, (1) setup version, (1a) test images, (2) `./mvnw -B verify` (197 unit tests and 776 integration tests in `vigil-app`, 3 tests in `demo-control`, 0 failures, 0 errors), (3) `ruff` and pytest with the lab tests (the branch changes lab paths): 450 passed, 1 skipped, 3 deselected (the `installation` tests) in 11 min 25 s, (4) shellcheck, (5) data checks (49 checks, 0 failed), (6) compose validation, (7) traceability.
+
+The first gate run failed in step (3) on `dev/fakes/test_fakes.py::test_calls_are_recorded_without_headers`: the fake wrote its log line after its answer, so the test could read the log one line short. The fake now logs before it writes the answer's body; the test passed five runs in a row and the second gate run passed.
 
 ## 11. Follow-up items for later packages
 
