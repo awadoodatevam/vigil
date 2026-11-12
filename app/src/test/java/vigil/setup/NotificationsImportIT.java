@@ -256,7 +256,7 @@ class NotificationsImportIT {
     for (int number = 1; number <= 17; number++) {
       assertThat(part(view, number).outcome())
           .as("part %s", number)
-          .isEqualTo(number == 14 ? PartOutcome.NOT_STARTED : PartOutcome.SUCCEEDED);
+          .isEqualTo(PartOutcome.SUCCEEDED);
     }
     SeedImportView refused =
         changed(SeedTests.replacing(NOC_L1_EMAIL, "{subject_kind: team, subject_key: noc-l1}"));

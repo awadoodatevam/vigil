@@ -48,6 +48,7 @@ Migrations are Flyway SQL files in `app/src/main/resources/db/migration/{schema}
 - P-21 (built): `vigil-ticketing` (ticket link, sync record, the Ticket step, the escalation comment for P-22) and the `jira_cloud` connector; `vigil.links.base` read by `vigil-tenancy` (`TenantService.publicBaseAddress`).
 - P-22 (built): `vigil-notifications` (delivery addresses of part 15, notification records, the Notification step, the escalation and approval request messages), the `ms_teams` and `email` connectors with the Teams sender, and `vigil-routing`'s Escalation step
 - P-23 (built): `vigil-recovery` (recovery check definitions of part 13, the Recovery check step, recovery verifications with their evidence and the resolve request) and `vigil-reporting` (baseline values of part 17, the four dashboard metrics)
+- P-24 (built): `vigil-actions` (registered actions and policies of part 14, proposals, the Approval and Action steps, decisions, executions and reconciliation, the reads of `ActionRuns`)
 
 Interfaces of the platform modules for later packages (P-08):
 
@@ -104,7 +105,7 @@ Interfaces of `vigil-servicemap` for later packages (P-12):
 - P-15 (built): `ServiceMapService.component`, `service` (owners, criticality).
 - P-16 (built): `ServiceMapService.match`, `relation`, `dependents`, `affectedServices`, `component`, `service`, `currentGeneration`.
 - P-18 (built): `ServiceMapService.target`; the key check of part 5 against part 4 (target keys in the service map against runner grants, DM-R-60).
-- P-24: `ServiceMapService.target`.
+- P-24 (built): `ServiceMapService.target`.
 - P-38: `ServiceMapService.currentGeneration`, `services`, `components`, `importFile`; the reaction of `vigil-setup` to `ServiceMapImported`.
 
 Interfaces of `vigil-incidents` for later packages (P-14):
@@ -147,7 +148,7 @@ Interfaces of `vigil-engine` for later packages (P-17):
 - P-21: `TicketingStepHandler`.
 - P-22: `NotificationsStepHandler`, `RoutingStepHandler`.
 - P-23: `RecoveryStepHandler` (the recovery check key comes in `StepCall`).
-- P-24: `ActionsStepHandler`, `ActionRuns` (an absent bean means no proposal), `ApprovalDecided` (published in the decision's transaction).
+- P-24 (built): `ActionsStepHandler`, `ActionRuns` (an absent bean means no proposal), `ApprovalDecided` (published in the decision's transaction).
 - P-25, P-29: `RunStarted`, `StepChanged`, `RunFinished`; `EngineService.run`, `runs`, `stepExecutions`.
 - P-36: test-mode runs.
 - Test support: `EngineFixture`, `TestHandlers` (its adapter beans are `@Primary`), `TestContents`.
@@ -162,7 +163,7 @@ Interfaces of `vigil-workflows` for later packages (P-41):
 
 Interfaces of `vigil-runner` for later packages (P-18):
 
-- P-24: `RunnerService.run` with `PermissionKind.ACTION` (and `DIAGNOSTIC` for state checks) and the request IDs of DM-E14-R1 (an action that timed out or lost its connection after its command was sent ends `unknown`); `operation`, `operationRun`; output values as an ordered array of `{name, value}` (state checks, DM-V-08); the key checks of part 14 against part 4.
+- P-24 (built): `RunnerService.run` with `PermissionKind.ACTION` (and `DIAGNOSTIC` for state checks) and the request IDs of DM-E14-R1 (an action that timed out or lost its connection after its command was sent ends `unknown`); `operation`, `operationRun`; output values as an ordered array of `{name, value}` (state checks, DM-V-08); the key checks of part 14 against part 4.
 - Test support: `LabTarget` (`lab-db-01` of the `demo-lab` image, started once per test JVM), `RunnerFixture`.
 
 Interfaces of `vigil-diagnostics` for later packages (P-18):
@@ -175,7 +176,7 @@ Interfaces of `vigil-diagnostics` for later packages (P-18):
 Interfaces of `vigil-knowledge` for later packages (P-20):
 
 - P-23: `KnowledgeService.pastIncidents` (the seeded history, DM-R-52, DM-R-53).
-- P-24: `KnowledgeService.latestSearchResult` (DM-E66-R2) and `pastIncident`; the key check of part 8 against part 14 (action keys).
+- P-24 (built): `KnowledgeService.latestSearchResult` (DM-E66-R2) and `pastIncident`; the key check of part 8 against part 14 (action keys).
 - P-36: `KnowledgeService.latestSearchResult` (DM-R-48).
 - P-39: `TaskProviderChanged` starts re-embedding; `KnowledgeService.settings` (the embedding state).
 - Test support: `TestEmbedding`, `KnowledgeFixture`.

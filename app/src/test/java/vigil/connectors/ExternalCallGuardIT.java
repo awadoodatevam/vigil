@@ -718,4 +718,51 @@ class ExternalCallGuardIT {
         .importPart(second.tenant, vigil.setup.KnowledgeParts.demoPart(), Instant.now(), Map.of());
     assertThat(embedding.requestsSince(before)).hasSize(1);
   }
+
+  @Test
+  @DisplayName("AR-Q-04 the actions entry points refuse to run inside a transaction")
+  void actionsEntryPoints() {
+    vigil.actions.api.ActionsStepHandler actions =
+        app.context().getBean(vigil.actions.api.ActionsStepHandler.class);
+    vigil.actions.api.ActionRuns runs = app.context().getBean(vigil.actions.api.ActionRuns.class);
+    UUID run = Ids.newId();
+    StepCall approval =
+        new StepCall(
+            tenantA,
+            run,
+            Ids.newId(),
+            Ids.newId(),
+            new Key("s-approve"),
+            StepCall.StepType.APPROVAL,
+            "{\"eligible_teams\": [\"db-ops\"], \"expiry\": 900}",
+            1,
+            null,
+            new StepCall.WakeReason("start"),
+            null,
+            null);
+    StepCall action =
+        new StepCall(
+            tenantA,
+            run,
+            Ids.newId(),
+            Ids.newId(),
+            new Key("s-action"),
+            StepCall.StepType.ACTION,
+            "{}",
+            1,
+            null,
+            new StepCall.WakeReason("start"),
+            null,
+            null);
+    Map<String, Supplier<Object>> entryPoints = new LinkedHashMap<>();
+    entryPoints.put("ActionsStepHandler.start", () -> actions.start(approval));
+    entryPoints.put("ActionsStepHandler.evaluate", () -> actions.evaluate(action));
+    entryPoints.put("ActionRuns.reconcile", () -> runs.reconcile(action));
+    for (Map.Entry<String, Supplier<Object>> entry : entryPoints.entrySet()) {
+      assertThatThrownBy(() -> transaction.execute(status -> entry.getValue().get()))
+          .as(entry.getKey())
+          .isInstanceOf(IllegalStateException.class)
+          .hasMessage("external call inside a transaction");
+    }
+  }
 }
