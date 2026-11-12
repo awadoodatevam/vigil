@@ -1,6 +1,7 @@
 package vigil.intake.api;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,6 +26,15 @@ public interface IntakeService {
 
   /** The alert with that id, or empty (PM-I-29). */
   Optional<AlertView> alert(TenantId tenantId, UUID alertId);
+
+  /**
+   * The alerts of the tenant with these ids, by ascending {@code sequence}; ids that are not alerts
+   * of the tenant are left out (PM-I-29). Joins the caller's transaction.
+   */
+  List<AlertView> alerts(TenantId tenantId, Collection<UUID> alertIds);
+
+  /** The number of alerts of the tenant, firing or resolved (PM-I-39, DM-R-53). */
+  long alertCount(TenantId tenantId);
 
   /** Every source, active or not, in code point order of {@code source_key} (PM-I-40). */
   List<SourceView> sources(TenantId tenantId);

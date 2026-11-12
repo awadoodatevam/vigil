@@ -47,6 +47,7 @@ Migrations are Flyway SQL files in `app/src/main/resources/db/migration/{schema}
 - A seed part joins the import by a `SeedPartImporter` bean in `vigil.setup` (its sections and name are already in `SeedParts`; its refusal message is `Part {name} refused.`); a cross-module key check by a `SeedKeyCheck` bean; each package that adds one extends `SeedImportIT` (AR-Q-10).
 - P-21 (built): `vigil-ticketing` (ticket link, sync record, the Ticket step, the escalation comment for P-22) and the `jira_cloud` connector; `vigil.links.base` read by `vigil-tenancy` (`TenantService.publicBaseAddress`).
 - P-22 (built): `vigil-notifications` (delivery addresses of part 15, notification records, the Notification step, the escalation and approval request messages), the `ms_teams` and `email` connectors with the Teams sender, and `vigil-routing`'s Escalation step
+- P-23 (built): `vigil-recovery` (recovery check definitions of part 13, the Recovery check step, recovery verifications with their evidence and the resolve request) and `vigil-reporting` (baseline values of part 17, the four dashboard metrics)
 
 Interfaces of the platform modules for later packages (P-08):
 

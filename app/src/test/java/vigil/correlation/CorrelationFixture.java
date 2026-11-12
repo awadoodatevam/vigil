@@ -35,6 +35,7 @@ import vigil.incidents.api.IncidentState;
 import vigil.intake.IntakeFixture;
 import vigil.intake.IntakeFixture.Recording;
 import vigil.intake.api.AlertView;
+import vigil.intake.api.IntakePart;
 import vigil.intake.api.IntakeService;
 import vigil.routing.RoutingFixture;
 import vigil.routing.api.RoutingImport;
@@ -103,8 +104,32 @@ public final class CorrelationFixture {
       String address,
       String suffix,
       boolean withRouting) {
+    return create(app, secrets, name, host, address, suffix, withRouting, IntakeFixture.demoPart());
+  }
+
+  /** As {@code create(..., withRouting = true)} with {@code part} as the intake part. */
+  public static CorrelationFixture create(
+      VigilTestApp app,
+      TestSecrets secrets,
+      String name,
+      String host,
+      String address,
+      String suffix,
+      IntakePart part) {
+    return create(app, secrets, name, host, address, suffix, true, part);
+  }
+
+  private static CorrelationFixture create(
+      VigilTestApp app,
+      TestSecrets secrets,
+      String name,
+      String host,
+      String address,
+      String suffix,
+      boolean withRouting,
+      IntakePart part) {
     TenantId tenant = teams(new TestTenants(app).tenant(name)).host(host).create().id();
-    IntakeFixture.importInto(app, tenant, address, suffix, IntakeFixture.demoPart());
+    IntakeFixture.importInto(app, tenant, address, suffix, part);
     importServiceMap(app, tenant, serviceMap());
     if (withRouting) {
       app.context()

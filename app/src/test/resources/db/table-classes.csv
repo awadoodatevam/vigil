@@ -71,3 +71,6 @@ ticketing.ticket_link,stateful,yes
 ticketing.ticket_sync_record,stateful,yes
 notifications.delivery_address,configuration,yes
 notifications.notification_record,immutable,yes
+recovery.recovery_check_definition,configuration,yes
+recovery.recovery_verification,stateful,yes
+reporting.baseline_value,configuration,yes

@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.24 |
-| Date | 10 November 2026 |
+| Version | 1.25 |
+| Date | 12 November 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
 
@@ -440,9 +440,9 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | M; P-22; none |
-| Builds | `vigil-recovery`: DM-E-61, DM-E-62; the Recovery check step (DM-S-07, DM-R-34 to DM-R-38) with the source health guard, window, DC-TX-03 condition texts and cancellation; the resolve request (PM-M09-06); the `recovery_verification` evidence entry with the `content` keys of CTX-D-069 (6), which the Jira resolve comment reads; seed import part 13. `vigil-reporting`: DM-E-79, DM-E-80; metrics (DM-R-53); seed import part 17. |
-| Requirements built | PM-M15-01 to PM-M15-04, PM-M21-01, PM-M21-02; PM-S-07; DM-E-61, DM-E-62, DM-E-79, DM-E-80 with their rules; DM-S-07; DM-R-34 to DM-R-38, DM-R-52, DM-R-53; DM-SM-13; DC-TX-03 (recovery texts); SL-A1-07, SL-A1-09 (computation). |
+| Size; depends on; owner tasks | L (CTX-D-073 (9)); P-22; none |
+| Builds | `vigil-recovery`: DM-E-61, DM-E-62; the Recovery check step (DM-S-07, DM-R-34 to DM-R-38) with the source health guard, window, DC-TX-03 condition texts and cancellation; the resolve request (PM-M09-06); the `recovery_verification` evidence entry with the `content` keys of CTX-D-069 (6), which the Jira resolve comment reads; seed import part 13. `vigil-reporting`: DM-E-79, DM-E-80; metrics (DM-R-53); seed import part 17; the dashboard read with the four metrics, their baselines and the counts of DC-S10-03 (CTX-D-073 (7)). `vigil-intake` adds `alerts` and `alertCount` (CTX-D-073 (1)); `vigil-setup` the key checks of part 13 against parts 5 and 6 (DM-R-60). |
+| Requirements built | PM-M15-01 to PM-M15-04, PM-M21-01, PM-M21-02; PM-S-07; DM-E-61, DM-E-62, DM-E-79, DM-E-80 with their rules; DM-S-07; DM-R-34 to DM-R-38, DM-R-52, DM-R-53; DM-SM-13; DC-TX-03 (recovery texts); SL-A1-07, SL-A1-09 (computation).; DM-V-07; DM-R-56, DM-R-57, DM-R-60 (parts 13 and 17 and the two key checks of part 13); DM-R-64 (recovery); DM-SM14-T2 (the evidence it reads); DM-E08-R1, DM-E08-R3 (`recovery_verified`); DC-TX-10 (its row); DD-F-04 (part 13), DD-F-07 (part 17); DD-K-11; SL-A2-04 (not recovered); AR-B-11 (parts 13 and 17); AR-Q-06, AR-Q-08. |
 | Tests | Recovered only after the window with every source healthy; window reset when a condition stops holding or a source turns stale; not recovered at `max_wait_until`; DD-K-11 seeded values (5.7 min, 41.1 min, 525, 46) through the product. |
 | Runs in | BP-E-01, BP-E-02 |
 
@@ -636,7 +636,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 ### 7.7 Size summary
 
-5 packages S, 21 packages M, 16 packages L, 42 packages in all (P-42 added in v1.22; P-21 became L in v1.24, from its line count; P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14 and L in v1.15, from its line count; P-16 became L in v1.15; P-17 was split into P-17 and P-41 in v1.16; P-18 became L in v1.17; P-19 became L in v1.20, from its line count). With one cloud session for S, one to two for M and two to three for L, the estimate is about 65 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
+5 packages S, 20 packages M, 17 packages L, 42 packages in all (P-42 added in v1.22; P-23 became L in v1.25, from its estimate; P-21 became L in v1.24, from its line count; P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14 and L in v1.15, from its line count; P-16 became L in v1.15; P-17 was split into P-17 and P-41 in v1.16; P-18 became L in v1.17; P-19 became L in v1.20, from its line count). With one cloud session for S, one to two for M and two to three for L, the estimate is about 65 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
 
 ## 8. Phases, order and checkpoints
 
@@ -1067,3 +1067,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.22 | 11 Nov 2026 | For the P-42 spec (BP-L-1, CTX-D-067): new package P-42 Faster gate (S, Phase A, after P-07 and before P-21); BP-W-01 adds the light gate for data-only pushes and the parallel jobs; BP-R-12 adds `--part java` and `--part rest` and narrows the lab path list (changes CTX-D-036's list); BP-E-02 and Section 10.2 note the public repository's runners and free minutes; size summary 42 packages. No behaviour of Vigil changes. |
 | 1.23 | 11 Nov 2026 | For the P-21 spec (BP-L-1, CTX-D-069): the P-21 entry depends on P-42 too and adds the public base address of `vigil-tenancy`, `ConnectorService.activeInstances` and `TicketingService.recordEscalation`; the P-22 entry asks for the escalation comment with the level, cause, timer and team names and uses the public base address; the P-23 entry writes the `recovery_verification` evidence content that the Jira resolve comment reads. No behaviour of Vigil changes. |
 | 1.24 | 11 Nov 2026 | From the P-21 report (BP-L-8, CTX-D-070): the P-21 entry is size L (`tools/loc.sh` 2,106; Section 7.7). For the P-22 spec (BP-L-1, CTX-D-071): the P-22 entry names the choices of CTX-D-071; the P-24 entry sends approval messages through `NotificationsService.notifyApprovalRequest`. No behaviour of Vigil changes. |
+| 1.25 | 12 Nov 2026 | From the P-22 report (BP-L-8, CTX-D-072): no change (P-22 stays L, `tools/loc.sh` 2,519). For the P-23 spec (BP-L-1, CTX-D-073): the P-23 entry is size L (Section 7.7) and names the dashboard read, the two reads of `vigil-intake`, the key checks of part 13 and every requirement its spec builds. No behaviour of Vigil changes. |
