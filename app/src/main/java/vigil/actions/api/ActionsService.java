@@ -24,4 +24,25 @@ public interface ActionsService {
    */
   ApprovalRequestView decide(
       TenantId tenantId, UUID requestId, UUID userId, Decision decision, String snapshotHashShown);
+
+  /** The approval request with this id (DM-E-58), or empty. */
+  Optional<ApprovalRequestView> request(TenantId tenantId, UUID requestId);
+
+  /** The run's approval requests, by {@code sequence_in_run}. */
+  List<ApprovalRequestView> requests(TenantId tenantId, UUID runId);
+
+  /** The run's action proposal (DM-E-57), or empty. */
+  Optional<ProposalView> proposal(TenantId tenantId, UUID runId);
+
+  /** Whether an Approval step execution of the run completed without a proposal (DM-R-29). */
+  boolean withoutProposal(TenantId tenantId, UUID runId);
+
+  /** The run's action executions (DM-E-60), by attempt number, then started_at, then id. */
+  List<ActionExecutionView> executions(TenantId tenantId, UUID runId);
+
+  /**
+   * DM-E59-R1, CTX-D-079 (3): the refusal of checks 1 to 6 of a decision that the user would get
+   * now, read without a lock; empty when none applies or the request does not exist.
+   */
+  Optional<DecisionRefusal> decisionRefusal(TenantId tenantId, UUID requestId, UUID userId);
 }

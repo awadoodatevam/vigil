@@ -16,7 +16,7 @@ import vigil.shared.VigilError.Code;
  */
 final class IncidentGuard {
 
-  private static final Pattern UUID_TEXT =
+  static final Pattern UUID_TEXT =
       Pattern.compile(
           "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 

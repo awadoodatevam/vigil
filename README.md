@@ -72,8 +72,9 @@ Interfaces of `vigil-api` for later packages (P-09):
 - P-13 (built): the webhook operation AR-I-90 with `@WebhookToken`; `vigil-intake` checks the token.
 - P-25 and later: `@RequiresPermission`, `TenantId` and `ApiCaller` handler parameters, `ApiTimes`, `VigilError` for refusals, `LiveHub.publish` for the topics of AR-I-04, the OpenAPI file and `ContractIT` scenarios for each new operation.
 - P-25 (built): the live update producers of the topics `incidents`, `incident`, `run`, `alerts`, `sources`, `approval` and `tenant`; AR-I-20 to AR-I-24 and AR-I-29 to AR-I-31.
+- P-43 (built): AR-I-25, AR-I-27, AR-I-28, AR-I-32 to AR-I-35 and AR-I-80.
 - P-28: the operations AR-I-10 to AR-I-16, the cookies `vigil_session` and `vigil_csrf`, the header `X-Vigil-CSRF` and the default messages of AR-I-03.
-- Test support: `VigilTestApp.start(database, extraArgs, configurations)`, `ApiClient` (requests with their own `Host` header, and streams read line by line) and `TestTenants` (`ready` tenants with users, teams and a host alias); `ApiFixture` (the application of `EngineWakeIT` with users, the storm and the workspace helpers).
+- Test support: `VigilTestApp.start(database, extraArgs, configurations)`, `ApiClient` (requests with their own `Host` header, and streams read line by line) and `TestTenants` (`ready` tenants with users, teams and a host alias); `ApiFixture` (the application of `EngineWakeIT` with users, the storm and the workspace helpers); `ApprovalApiFixture` (the application of `ActionsEngineIT` with a `MutableClock` and the Approval helpers).
 
 Interfaces of `vigil-setup` for later packages (P-11):
 
@@ -121,7 +122,7 @@ Interfaces of `vigil-incidents` for later packages (P-14):
 - P-23, P-24: `IncidentService.addEvidence` with their kinds.
 - P-21, P-22: `IncidentService.incident`, `evidenceSummary`, `recordNotifiedTeam`.
 - P-23: `IncidentService.resolve`, `members`, and for DM-R-53 `acknowledgements`, `transitions`, `incidents`.
-- P-25 (built): `IncidentChanged`; `IncidentService.incidentPage`, `formingSummary` and the reads. P-43: `IncidentService.acknowledge` (refusal keys `not_open`, `already_acknowledged`, `not_notified`).
+- P-25 (built): `IncidentChanged`; `IncidentService.incidentPage`, `formingSummary` and the reads. P-43 (built): `IncidentService.acknowledge` (refusal keys `not_open`, `already_acknowledged`, `not_notified`) and `acknowledgeRefusal`.
 - Test support: `IncidentFixture`.
 
 Interfaces of `vigil-routing` for later packages (P-15):
@@ -185,9 +186,13 @@ Interfaces of `vigil-knowledge` for later packages (P-20):
 Interfaces of `vigil-investigation` for later packages (P-20):
 
 - P-21, P-22: `InvestigationService.summaryForMessage` (DM-E69-R2).
-- P-43, P-29: `InvestigationService.latestAccepted`, `results`, `latestSummary` (DC-S03-09).
+- P-43 (built), P-29: `InvestigationService.latestAccepted`, `results`, `latestSummary` (DC-S03-09).
 - P-39: `InvestigationService.requestRerun` (refusals `NOT_FOUND`, `REFUSED` `not_rerunnable`).
 - Test support: `InvestigationFixture`.
+
+Interfaces of `vigil-actions` for later packages (P-24):
+
+- P-43 (built): `ActionsService.request`, `requests`, `proposal`, `withoutProposal`, `executions`, `decisionRefusal`; `decide` (AR-I-35).
 
 ## Local installation
 

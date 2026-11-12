@@ -15,9 +15,12 @@ import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
+import vigil.actions.api.ActionExecutionView;
 import vigil.actions.api.ActionPolicyView;
 import vigil.actions.api.ApprovalRequestView;
+import vigil.actions.api.ExecutionState;
 import vigil.actions.api.PolicyOutcome;
+import vigil.actions.api.ProposalView;
 import vigil.actions.api.RefusalReason;
 import vigil.actions.api.RegisteredActionView;
 import vigil.actions.api.RequestState;
@@ -44,30 +47,6 @@ class ActionRecords {
       String pastIncidentKey,
       BigDecimal score,
       long successCount) {}
-
-  /** The states of an action execution (DM-SM-12). */
-  enum ExecutionState {
-    RECORDED,
-    RECHECKING,
-    NOT_EXECUTED,
-    EXECUTING,
-    RECONCILING,
-    SUCCEEDED,
-    FAILED,
-    UNRESOLVED;
-
-    String key() {
-      return name().toLowerCase(Locale.ROOT);
-    }
-
-    boolean isFinal() {
-      return this == NOT_EXECUTED || this == SUCCEEDED || this == FAILED || this == UNRESOLVED;
-    }
-
-    static ExecutionState of(String key) {
-      return valueOf(key.toUpperCase(Locale.ROOT));
-    }
-  }
 
   /**
    * An action execution (DM-E-60): its fixed columns, and the changeable ones that the steps set
@@ -277,6 +256,19 @@ class ActionRecords {
         .optional();
   }
 
+  /** The run's proposal with its creation time (DM-E-57). */
+  Optional<ProposalView> proposalView(TenantId tenantId, UUID runId) {
+    return jdbc.sql(
+            "SELECT "
+                + PROPOSAL_COLUMNS
+                + ", created_at FROM actions.action_proposal WHERE tenant_id = :t AND run_id ="
+                + " :run")
+        .param("t", tenantId.value())
+        .param("run", runId)
+        .query(ActionRecords::proposalView)
+        .optional();
+  }
+
   void insertWithoutProposal(
       TenantId tenantId, UUID runId, UUID incidentId, UUID stepExecutionId, Instant now) {
     jdbc.sql(
@@ -381,6 +373,19 @@ class ActionRecords {
         .list();
   }
 
+  /** The run's requests, by {@code sequence_in_run}. */
+  List<ApprovalRequestView> requestsBySequence(TenantId tenantId, UUID runId) {
+    return jdbc.sql(
+            "SELECT "
+                + REQUEST_COLUMNS
+                + " FROM actions.approval_request WHERE tenant_id = :t AND run_id = :run"
+                + " ORDER BY sequence_in_run, id")
+        .param("t", tenantId.value())
+        .param("run", runId)
+        .query(ActionRecords::request)
+        .list();
+  }
+
   long requestCount(TenantId tenantId, UUID runId) {
     return jdbc.sql(
             "SELECT count(*) FROM actions.approval_request WHERE tenant_id = :t AND run_id = :run")
@@ -476,6 +481,23 @@ class ActionRecords {
         .param("step", stepExecutionId)
         .query(ActionRecords::execution)
         .optional();
+  }
+
+  /** The run's executions, by {@code attempt_number}, then {@code started_at}, then id. */
+  List<ActionExecutionView> executions(TenantId tenantId, UUID runId) {
+    return jdbc
+        .sql(
+            "SELECT "
+                + EXECUTION_COLUMNS
+                + " FROM actions.action_execution WHERE tenant_id = :t AND run_id = :run"
+                + " ORDER BY attempt_number, started_at, id")
+        .param("t", tenantId.value())
+        .param("run", runId)
+        .query(ActionRecords::execution)
+        .list()
+        .stream()
+        .map(ActionRecords::view)
+        .toList();
   }
 
   /** Writes every changeable column of the execution. */
@@ -607,6 +629,23 @@ class ActionRecords {
         rs.getLong("success_count"));
   }
 
+  private static ProposalView proposalView(ResultSet rs, int row) throws SQLException {
+    Proposal proposal = proposal(rs, row);
+    return new ProposalView(
+        proposal.id(),
+        proposal.incidentId(),
+        proposal.runId(),
+        proposal.actionKey(),
+        proposal.actionSnapshotJson(),
+        proposal.componentKey(),
+        proposal.targetKey(),
+        proposal.similarityResultId(),
+        proposal.pastIncidentKey(),
+        proposal.score(),
+        proposal.successCount(),
+        instant(rs, "created_at"));
+  }
+
   private static ApprovalRequestView request(ResultSet rs, int row) throws SQLException {
     String outcome = rs.getString("policy_outcome");
     String reason = rs.getString("refusal_reason");
@@ -642,7 +681,7 @@ class ActionRecords {
             idList(rs.getString("approval_request_ids")),
             rs.getLong("attempt_number"),
             instant(rs, "started_at"));
-    execution.state = ExecutionState.of(rs.getString("state"));
+    execution.state = ExecutionState.fromKey(rs.getString("state")).orElseThrow();
     execution.recheckPass = rs.getLong("recheck_pass");
     execution.recheckJson = rs.getString("recheck");
     execution.operationRunId = rs.getObject("operation_run_id", UUID.class);
@@ -650,6 +689,23 @@ class ActionRecords {
     execution.executingAt = instant(rs, "executing_at");
     execution.finishedAt = instant(rs, "finished_at");
     return execution;
+  }
+
+  private static ActionExecutionView view(Execution execution) {
+    return new ActionExecutionView(
+        execution.id,
+        execution.incidentId,
+        execution.runId,
+        execution.stepExecutionId,
+        execution.proposalId,
+        execution.actionKey,
+        execution.approvalRequestIds,
+        execution.attemptNumber,
+        execution.state,
+        execution.recheckJson,
+        execution.operationRunId,
+        execution.startedAt,
+        execution.finishedAt);
   }
 
   private static Timestamp timestamp(Instant instant) {

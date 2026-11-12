@@ -7,7 +7,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
-import vigil.actions.ActionRecords.ExecutionState;
+import vigil.actions.api.ExecutionState;
 import vigil.actions.api.PolicyOutcome;
 import vigil.actions.api.RefusalReason;
 import vigil.actions.api.RequestState;

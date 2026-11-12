@@ -12,9 +12,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -39,9 +41,13 @@ import vigil.intake.IntakeFixture.Recording;
 import vigil.intake.api.AlertView;
 import vigil.intake.api.IntakeService;
 import vigil.intake.api.MonitoringKind;
+import vigil.recovery.RecoveryFixture;
+import vigil.recovery.api.RecoveryImport;
+import vigil.recovery.api.RecoveryStepHandler;
 import vigil.shared.Actor;
 import vigil.shared.Ids;
 import vigil.shared.Key;
+import vigil.shared.StepCall;
 import vigil.shared.TenantId;
 import vigil.testsupport.ApiClient;
 import vigil.testsupport.ApiClient.Request;
@@ -406,6 +412,48 @@ public final class ApiFixture implements AutoCloseable {
     for (String teamKey : teamKeys) {
       incidents.recordNotifiedTeam(
           tenant, NOTIFICATIONS, incident, new Key(teamKey), NotifiedPurpose.INCIDENT_NOTIFICATION);
+    }
+  }
+
+  // P-43: the Recovery check step of the recovery section (AR-I-28).
+
+  /** Part 13 of the demo data (the recovery check definitions). */
+  public void recoveryDefinitions() {
+    app.context()
+        .getBean(RecoveryImport.class)
+        .importPart(tenant, RecoveryFixture.demoPart(), Instant.now(), Map.of());
+  }
+
+  /** A Recovery check step call of {@code rc-subscriber-db} as {@code RecoveryFixture.call}. */
+  public StepCall recoveryCall(UUID run, UUID incident, UUID stepExecution, long count) {
+    return new StepCall(
+        tenant,
+        run,
+        incident,
+        stepExecution,
+        new Key("s-recover"),
+        StepCall.StepType.RECOVERY_CHECK,
+        "{\"max_wait\": 300}",
+        count,
+        null,
+        new StepCall.WakeReason(count == 1 ? "start" : "timer"),
+        new Key("rc-subscriber-db"),
+        List.of());
+  }
+
+  /** The real Recovery check step (the test handlers' adapter is {@code @Primary}). */
+  public RecoveryStepHandler recoveryStep() {
+    return app.context().getBean("recoveryStep", RecoveryStepHandler.class);
+  }
+
+  /** Posts every recorded resolve: the recordings that are not in the storm. */
+  public void resolveAll() {
+    Set<String> storm =
+        CorrelationFixture.storm().stream().map(Recording::name).collect(Collectors.toSet());
+    for (Recording recording : IntakeFixture.recordings()) {
+      if (!storm.contains(recording.name())) {
+        engine.correlation.post(recording);
+      }
     }
   }
 }
