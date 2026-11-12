@@ -416,9 +416,9 @@ def make_handler(fake, log):
                 self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
-            self.wfile.write(data)
             elapsed = round((time.monotonic() - started) * 1000)
             log(f"{self.command} {self.path} {status} {elapsed} ms")
+            self.wfile.write(data)
 
         do_GET = do_POST = do_PUT = do_DELETE = do_PATCH = _handle
 
