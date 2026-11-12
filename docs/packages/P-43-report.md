@@ -75,11 +75,11 @@ None: the spec has no owner-run steps.
 
 ## 9. Lines of production code (`tools/loc.sh origin/main HEAD`)
 
-LOC_COUNT
+1,523 (BP-R-05 limit 3,500; spec estimate about 2,300, between 2,000 and 2,700). As in P-25 (CTX-D-078 (1)), the answers are records and the composition is plain Java; the refusal checks moved into shared methods rather than being added twice. By count the package is M (BP-R-05).
 
 ## 10. Gate command result
 
-GATE_RESULT
+`tools/check-all.sh` passed in this session (exit 0, "all checks passed"): step (0) Docker, (1) setup version, (1a) test images, (2) `./mvnw -B verify` (197 unit tests and 776 integration tests in `vigil-app`, 0 failures, 0 errors; Spotless and `ApplicationModules.verify()` included; 25 min 12 s), (3) Python checks and tests (345 passed, 1 skipped, 35 deselected: the lab tests, since no lab path changes, BP-R-12 step (3)), (4) shellcheck, (5) data checks (49 checks, 0 failed), (6) compose validation, (7) traceability.
 
 ## 11. Follow-up items for later packages
 
