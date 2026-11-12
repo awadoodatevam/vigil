@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.27 |
+| Version | 1.28 |
 | Date | 12 November 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
@@ -460,7 +460,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | L (CTX-D-077 (6)); P-24; none |
+| Size; depends on; owner tasks | M (`tools/loc.sh` 1,540, CTX-D-078 (1)); P-24; none |
 | Builds | The first half of the primary demo's API layer (split by owner decision, CTX-D-077 (1)): the live update producers for the topics `incidents`, `incident`, `run`, `alerts`, `sources`, `approval` and `tenant` (AR-I-04); AR-I-20 (the alerts strip that the incident list polls, AR-I-05), AR-I-21 (paged, DC-U-12), AR-I-22 to AR-I-24, AR-I-29 to AR-I-31; the display reads of `vigil-intake`, `vigil-incidents` and `vigil-engine` they need (CTX-D-077 (2), (3)); OpenAPI entries and contract tests. |
 | Requirements built | AR-I-04 (topics); AR-I-05 (the strip); AR-I-20 to AR-I-24, AR-I-29 to AR-I-31; AR-I-01 (paging), AR-I-07, AR-I-08; AR-R-19; PM-M23-04; DC-R-08; PM-R-10; DC-U-12; AR-Q-05. |
 | Tests | Contract tests; each operation's permission; every topic's notice within 1 s of the commit in an `*IT` test; each new module read. |
@@ -470,9 +470,9 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | L (estimate, CTX-D-077 (6)); P-25; none |
-| Builds | The second half of the primary demo's API layer (CTX-D-077 (1)): AR-I-25, AR-I-27, AR-I-28, AR-I-32 to AR-I-35, AR-I-80; the data the polled screens read (AR-I-05: recovery section, Approval page, Acknowledge page); the display reads they need (`InvestigationService`, `KnowledgeService`, `vigil-actions`' proposals, requests, decisions and executions, `RecoveryService.verifications`, `ReportingService.dashboard`); the requests `IncidentService.acknowledge` (P-14) and `ActionsService.decide` (P-24) for AR-I-33 and AR-I-35; OpenAPI entries and contract tests. |
-| Requirements built | AR-I-05 (recovery section, Approval page, Acknowledge page); AR-I-25, AR-I-27, AR-I-28, AR-I-32 to AR-I-35, AR-I-80; AR-I-03 (the refusal in read answers), AR-I-07, AR-I-08; DC-R-08; PM-R-10. |
+| Size; depends on; owner tasks | L (estimate about 2,300, CTX-D-079 (9)); P-25; none |
+| Builds | The second half of the primary demo's API layer (CTX-D-077 (1)): AR-I-25, AR-I-27, AR-I-28, AR-I-32 to AR-I-35, AR-I-80; the data the polled screens read (AR-I-05: recovery section, Approval page, Acknowledge page); the display reads they need (`InvestigationService`, `KnowledgeService`, `vigil-actions`' proposals, requests, decisions and executions, `RecoveryService.verifications`, `ReportingService.dashboard`); the refusals that apply before an action, as reads sharing the checks of `IncidentService.acknowledge` and `ActionsService.decide` (`acknowledgeRefusal`, `decisionRefusal`; CTX-D-079 (3)); the requests `IncidentService.acknowledge` (P-14) and `ActionsService.decide` (P-24) for AR-I-33 and AR-I-35; OpenAPI entries and contract tests. |
+| Requirements built | AR-I-05 (recovery section, Approval page, Acknowledge page); AR-I-25, AR-I-27, AR-I-28, AR-I-32 to AR-I-35, AR-I-80; AR-I-03 (the refusal in read answers), AR-I-07, AR-I-08; DC-R-08; PM-R-10; DM-E35-R1, DM-E59-R1 (the refusal before the action). |
 | Tests | Contract tests; each operation's permission and refusals (AR-I-32 and AR-I-34 return the refusal that applies). |
 | Runs in | BP-E-01, BP-E-02 |
 
@@ -646,7 +646,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 ### 7.7 Size summary
 
-4 packages S, 20 packages M, 19 packages L, 43 packages in all (P-25 was split into P-25 (L) and P-43 (L) in v1.27, and the S and M counts corrected to the entries; P-42 added in v1.22; P-23 became L in v1.25, from its estimate; P-21 became L in v1.24, from its line count; P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14 and L in v1.15, from its line count; P-16 became L in v1.15; P-17 was split into P-17 and P-41 in v1.16; P-18 became L in v1.17; P-19 became L in v1.20, from its line count). With one cloud session for S, one to two for M and two to three for L, the estimate is about 67 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
+4 packages S, 21 packages M, 18 packages L, 43 packages in all (P-25 became M in v1.28, from its line count; P-25 was split into P-25 (L) and P-43 (L) in v1.27, and the S and M counts corrected to the entries; P-42 added in v1.22; P-23 became L in v1.25, from its estimate; P-21 became L in v1.24, from its line count; P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14 and L in v1.15, from its line count; P-16 became L in v1.15; P-17 was split into P-17 and P-41 in v1.16; P-18 became L in v1.17; P-19 became L in v1.20, from its line count). With one cloud session for S, one to two for M and two to three for L, the estimate is about 67 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
 
 ## 8. Phases, order and checkpoints
 
@@ -1080,3 +1080,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.25 | 12 Nov 2026 | From the P-22 report (BP-L-8, CTX-D-072): no change (P-22 stays L, `tools/loc.sh` 2,519). For the P-23 spec (BP-L-1, CTX-D-073): the P-23 entry is size L (Section 7.7) and names the dashboard read, the two reads of `vigil-intake`, the key checks of part 13 and every requirement its spec builds. No behaviour of Vigil changes. |
 | 1.26 | 12 Nov 2026 | From the P-23 report (BP-L-8, CTX-D-074): no change (P-23 stays L, `tools/loc.sh` 2,206). For the P-24 spec (BP-L-1, CTX-D-075): the P-24 entry names the engine reads, the key checks and the decision request and every requirement its spec builds; Section 13.1 row SL-B-03 adds P-24. No behaviour of Vigil changes. |
 | 1.27 | 12 Nov 2026 | From the P-24 report (BP-L-8, CTX-D-076): no change (P-24 stays L, `tools/loc.sh` 3,461). For the P-25 spec (BP-L-1, CTX-D-077): P-25 is split by owner decision into P-25 Incident list and workspace API operations (L) and the new package P-43 Workspace sections, Acknowledge, Approval and dashboard API operations (L), built after P-25 and before P-26 (P-26 now depends on P-43; Sections 7 introduction, 7.7, 8.1, 13.1, 13.2, 14 and BP-D-09); Section 7.7 also corrects the S and M counts to the entries (4 S, 20 M). No behaviour of Vigil changes. |
+| 1.28 | 12 Nov 2026 | From the P-25 report (BP-L-8, CTX-D-078): the P-25 entry is size M (`tools/loc.sh` 1,540; Section 7.7). For the P-43 spec (BP-L-1, CTX-D-079): the P-43 entry names the refusal reads before an action and its estimate, and builds DM-E35-R1 and DM-E59-R1. No behaviour of Vigil changes. |
