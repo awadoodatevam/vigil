@@ -41,9 +41,13 @@ public final class KnowledgeFixture {
   public final VigilTestApp app;
   public final TenantId tenant;
 
-  private KnowledgeFixture(VigilTestApp app, TenantId tenant) {
+  /** The created tenant with its users' passwords. */
+  public final TestTenants.Tenant identity;
+
+  private KnowledgeFixture(VigilTestApp app, TestTenants.Tenant identity) {
     this.app = app;
-    this.tenant = tenant;
+    this.tenant = identity.id();
+    this.identity = identity;
   }
 
   /**
@@ -77,7 +81,8 @@ public final class KnowledgeFixture {
     if (host != null) {
       builder.host(host);
     }
-    TenantId tenant = builder.create().id();
+    TestTenants.Tenant created = builder.create();
+    TenantId tenant = created.id();
     Instant now = Instant.now();
     String closed = closedAddress();
     Map<String, String> all = new LinkedHashMap<>();
@@ -113,7 +118,7 @@ public final class KnowledgeFixture {
         app.context().getBean(KnowledgeScheduling.class).matchActiveTenants();
       }
     }
-    return new KnowledgeFixture(app, tenant);
+    return new KnowledgeFixture(app, created);
   }
 
   /** An address on a port the fixture bound and released. */

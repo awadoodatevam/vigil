@@ -6,6 +6,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
+import java.util.function.UnaryOperator;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import vigil.correlation.CorrelationFixture;
 import vigil.engine.api.EngineService;
@@ -21,6 +22,7 @@ import vigil.shared.Ids;
 import vigil.shared.TenantId;
 import vigil.testsupport.MutableClock;
 import vigil.testsupport.TestSecrets;
+import vigil.testsupport.TestTenants;
 import vigil.testsupport.VigilTestApp;
 
 /**
@@ -53,8 +55,20 @@ public final class EngineFixture {
       String host,
       String address,
       String suffix) {
+    return create(app, secrets, name, host, address, suffix, UnaryOperator.identity());
+  }
+
+  /** As the other {@code create}, with the users added by {@code users}. */
+  public static EngineFixture create(
+      VigilTestApp app,
+      TestSecrets secrets,
+      String name,
+      String host,
+      String address,
+      String suffix,
+      UnaryOperator<TestTenants.Builder> users) {
     CorrelationFixture correlation =
-        CorrelationFixture.create(app, secrets, name, host, address, suffix);
+        CorrelationFixture.create(app, secrets, name, host, address, suffix, users);
     await(() -> isScheduled(app, correlation.tenant));
     return new EngineFixture(app, correlation);
   }

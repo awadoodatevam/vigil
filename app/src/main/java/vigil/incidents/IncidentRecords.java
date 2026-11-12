@@ -22,6 +22,7 @@ import vigil.incidents.api.EscalationCause;
 import vigil.incidents.api.EscalationView;
 import vigil.incidents.api.EvidenceKind;
 import vigil.incidents.api.EvidenceView;
+import vigil.incidents.api.FormingSummary;
 import vigil.incidents.api.IncidentSettingsView;
 import vigil.incidents.api.IncidentState;
 import vigil.incidents.api.MembershipView;
@@ -133,6 +134,34 @@ class IncidentRecords {
         .param("states", states.stream().map(IncidentState::key).toList())
         .query(IncidentRecords::incident)
         .list();
+  }
+
+  List<IncidentRow> incidentPage(
+      TenantId tenantId, Set<IncidentState> states, Long beforeNumber, int limit) {
+    JdbcClient.StatementSpec statement =
+        jdbc.sql(
+                "SELECT "
+                    + INCIDENT_COLUMNS
+                    + " FROM incidents.incident WHERE tenant_id = :tenantId AND state IN (:states)"
+                    + " AND number IS NOT NULL"
+                    + (beforeNumber == null ? "" : " AND number < :before")
+                    + " ORDER BY number DESC LIMIT :limit")
+            .param("tenantId", tenantId.value())
+            .param("states", states.stream().map(IncidentState::key).toList())
+            .param("limit", limit);
+    if (beforeNumber != null) {
+      statement = statement.param("before", beforeNumber);
+    }
+    return statement.query(IncidentRecords::incident).list();
+  }
+
+  FormingSummary formingSummary(TenantId tenantId) {
+    return jdbc.sql(
+            "SELECT count(*) AS incidents, coalesce(sum(alert_count), 0) AS alerts"
+                + " FROM incidents.incident WHERE tenant_id = :tenantId AND state = 'forming'")
+        .param("tenantId", tenantId.value())
+        .query((rs, n) -> new FormingSummary(rs.getLong("incidents"), rs.getLong("alerts")))
+        .single();
   }
 
   long lastSequence(TenantId tenantId) {

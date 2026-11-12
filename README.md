@@ -71,8 +71,9 @@ Interfaces of `vigil-api` for later packages (P-09):
 - P-11 (built): the installation operations AR-I-95 to AR-I-98 with `@InstallationToken`.
 - P-13 (built): the webhook operation AR-I-90 with `@WebhookToken`; `vigil-intake` checks the token.
 - P-25 and later: `@RequiresPermission`, `TenantId` and `ApiCaller` handler parameters, `ApiTimes`, `VigilError` for refusals, `LiveHub.publish` for the topics of AR-I-04, the OpenAPI file and `ContractIT` scenarios for each new operation.
+- P-25 (built): the live update producers of the topics `incidents`, `incident`, `run`, `alerts`, `sources`, `approval` and `tenant`; AR-I-20 to AR-I-24 and AR-I-29 to AR-I-31.
 - P-28: the operations AR-I-10 to AR-I-16, the cookies `vigil_session` and `vigil_csrf`, the header `X-Vigil-CSRF` and the default messages of AR-I-03.
-- Test support: `VigilTestApp.start(database, extraArgs, configurations)`, `ApiClient` (requests with their own `Host` header, and streams read line by line) and `TestTenants` (`ready` tenants with users, teams and a host alias).
+- Test support: `VigilTestApp.start(database, extraArgs, configurations)`, `ApiClient` (requests with their own `Host` header, and streams read line by line) and `TestTenants` (`ready` tenants with users, teams and a host alias); `ApiFixture` (the application of `EngineWakeIT` with users, the storm and the workspace helpers).
 
 Interfaces of `vigil-setup` for later packages (P-11):
 
@@ -96,7 +97,7 @@ Interfaces of `vigil-intake` for later packages (P-13):
 - P-16 (built): `IntakeService.alertsAfter`, `alert`; `AlertReceived` (wakes the worker).
 - P-17 (built): `AlertStateChanged`, `SourceHealthChanged` (wakes).
 - P-23: `IntakeService.alert`, `sources`, `healthyThroughout`.
-- P-25: the topics `alerts` (AR-E-01, AR-E-02) and `sources` (AR-E-03).
+- P-25 (built): the topics `alerts` (AR-E-01, AR-E-02) and `sources` (AR-E-03); `IntakeService.alertsReceivedSince`, `latestAlerts`.
 - P-38: `IntakeService.sources`, `testSource`; `SourceHealthChanged`.
 - Test support: the webhook secrets `webhook-zabbix` and `webhook-alertmanager` in a `TestSecrets` folder.
 
@@ -120,7 +121,7 @@ Interfaces of `vigil-incidents` for later packages (P-14):
 - P-23, P-24: `IncidentService.addEvidence` with their kinds.
 - P-21, P-22: `IncidentService.incident`, `evidenceSummary`, `recordNotifiedTeam`.
 - P-23: `IncidentService.resolve`, `members`, and for DM-R-53 `acknowledgements`, `transitions`, `incidents`.
-- P-25: `IncidentChanged`; `IncidentService.acknowledge` (refusal keys `not_open`, `already_acknowledged`, `not_notified`) and the reads.
+- P-25 (built): `IncidentChanged`; `IncidentService.incidentPage`, `formingSummary` and the reads. P-43: `IncidentService.acknowledge` (refusal keys `not_open`, `already_acknowledged`, `not_notified`).
 - Test support: `IncidentFixture`.
 
 Interfaces of `vigil-routing` for later packages (P-15):
@@ -128,7 +129,7 @@ Interfaces of `vigil-routing` for later packages (P-15):
 - P-16 (built): `RoutingService.evaluate` with `CORRELATION` before `open` (DM-R-15).
 - P-41 (built): `evaluate` with `WORKFLOWS` before a live run (PM-I-16).
 - P-22: `escalationPolicy` (the Escalation step).
-- P-25, P-29: `evaluation`, `evaluations` (the rule of an assignment).
+- P-25 (built), P-29: `evaluation`, `evaluations` (the rule of an assignment).
 - P-36: `evaluate` with `TEST_REPLAY`, `ruleSetRevision` (DM-R-28).
 - P-38: `ruleSet`, `saveRuleSet` (`FORBIDDEN`, `CONFLICT`, `INVALID` with `problems` and `places`; `IllegalArgumentException` → 400 `bad_request`), `escalationPolicy`, `RoutingField` (`displayName`, `allowedValues`, `operators`).
 - Test support: `RoutingFixture`.
@@ -136,9 +137,9 @@ Interfaces of `vigil-routing` for later packages (P-15):
 Interfaces of `vigil-correlation` for later packages (P-16):
 
 - P-23: `CorrelationService.alertsOfComponent` (DM-R-35).
-- P-29: `CorrelationService.decisions`, `hypothesisComputations`, `latestHypothesisComputation`, `settings` (DC-TX-02, DC-S03-03, DC-S03-05).
+- P-25 (built), P-29: `CorrelationService.decisions`, `hypothesisComputations`, `latestHypothesisComputation`, `settings` (DC-TX-02, DC-S03-03, DC-S03-05).
 - P-26, P-27: the health indicator `correlation` in `deploy/status.sh` (they set `management.endpoint.health.show-details` so its details show).
-- Test support: `CorrelationFixture` (with public posting and waiting helpers), `IntakeFixture` (public).
+- Test support: `CorrelationFixture` (with public posting and waiting helpers), `IntakeFixture` (public); `CorrelationFixture.create` with users.
 
 Interfaces of `vigil-engine` for later packages (P-17):
 
@@ -149,9 +150,9 @@ Interfaces of `vigil-engine` for later packages (P-17):
 - P-22: `NotificationsStepHandler`, `RoutingStepHandler`.
 - P-23: `RecoveryStepHandler` (the recovery check key comes in `StepCall`).
 - P-24 (built): `ActionsStepHandler`, `ActionRuns` (an absent bean means no proposal), `ApprovalDecided` (published in the decision's transaction).
-- P-25, P-29: `RunStarted`, `StepChanged`, `RunFinished`; `EngineService.run`, `runs`, `stepExecutions`.
+- P-25 (built), P-29: `RunStarted`, `StepChanged`, `RunFinished`; `EngineService.run`, `runs`, `stepExecutions`, `stages`, `pendingTimers`.
 - P-36: test-mode runs.
-- Test support: `EngineFixture`, `TestHandlers` (its adapter beans are `@Primary`), `TestContents`.
+- Test support: `EngineFixture`, `TestHandlers` (its adapter beans are `@Primary`), `TestContents`; `EngineFixture.create` with users.
 
 Interfaces of `vigil-workflows` for later packages (P-41):
 
@@ -184,7 +185,7 @@ Interfaces of `vigil-knowledge` for later packages (P-20):
 Interfaces of `vigil-investigation` for later packages (P-20):
 
 - P-21, P-22: `InvestigationService.summaryForMessage` (DM-E69-R2).
-- P-25, P-29: `InvestigationService.latestAccepted`, `results`, `latestSummary` (DC-S03-09).
+- P-43, P-29: `InvestigationService.latestAccepted`, `results`, `latestSummary` (DC-S03-09).
 - P-39: `InvestigationService.requestRerun` (refusals `NOT_FOUND`, `REFUSED` `not_rerunnable`).
 - Test support: `InvestigationFixture`.
 

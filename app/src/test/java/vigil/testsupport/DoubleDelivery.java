@@ -3,6 +3,7 @@ package vigil.testsupport;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -54,12 +55,25 @@ public final class DoubleDelivery {
           columns.stream().map(c -> quote(c) + "::text").collect(Collectors.joining(", "));
       rows.put(
           table,
-          new ArrayList<>(
-              db.sql("SELECT * FROM " + quote(schema) + "." + quote(table) + " ORDER BY " + orderBy)
-                  .query()
-                  .listOfRows()));
+          db
+              .sql("SELECT * FROM " + quote(schema) + "." + quote(table) + " ORDER BY " + orderBy)
+              .query()
+              .listOfRows()
+              .stream()
+              .map(DoubleDelivery::comparable)
+              .collect(Collectors.toCollection(ArrayList::new)));
     }
     return rows;
+  }
+
+  /** The row with each {@code bytea} value as hex text, so rows compare by content. */
+  private static Map<String, Object> comparable(Map<String, Object> row) {
+    Map<String, Object> copy = new TreeMap<>();
+    row.forEach(
+        (column, value) ->
+            copy.put(
+                column, value instanceof byte[] bytes ? HexFormat.of().formatHex(bytes) : value));
+    return copy;
   }
 
   private static String quote(String identifier) {

@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ import vigil.engine.api.RunState;
 import vigil.engine.api.RunView;
 import vigil.engine.api.StepExecutionState;
 import vigil.engine.api.StepExecutionView;
+import vigil.engine.api.TimerView;
 import vigil.engine.api.WaitReason;
 import vigil.shared.Completed.ResultRef;
 import vigil.shared.StepCall.StepType;
@@ -672,6 +674,52 @@ class EngineRecords {
         .param("tenantId", tenantId.value())
         .param("now", Timestamp.from(now))
         .update();
+  }
+
+  /** The run's {@code pending} timers, by {@code due_at}, then id. */
+  List<TimerView> pendingTimers(TenantId tenantId, UUID runId) {
+    return jdbc.sql(
+            "SELECT id, step_execution_id, due_at FROM engine.durable_timer"
+                + " WHERE tenant_id = :tenantId AND run_id = :runId AND state = 'pending'"
+                + " ORDER BY due_at, id")
+        .param("tenantId", tenantId.value())
+        .param("runId", runId)
+        .query(
+            (rs, n) ->
+                new TimerView(
+                    rs.getObject("id", UUID.class),
+                    rs.getObject("step_execution_id", UUID.class),
+                    instant(rs, "due_at")))
+        .list();
+  }
+
+  // Stages.
+
+  /**
+   * For each incident with a live run: the step type of the latest {@code running} or {@code
+   * waiting} step execution of its latest live run (by {@code started_at}, then id); incidents
+   * whose latest live run has none are left out.
+   */
+  Map<UUID, StepType> currentStepTypes(TenantId tenantId, Collection<UUID> incidentIds) {
+    Map<UUID, StepType> types = new HashMap<>();
+    jdbc.sql(
+            "SELECT latest.incident_id, step.step_type FROM (SELECT DISTINCT ON (incident_id)"
+                + " id, incident_id FROM engine.workflow_run WHERE tenant_id = :tenantId"
+                + " AND mode = 'live' AND incident_id IN (:ids)"
+                + " ORDER BY incident_id, started_at DESC, id DESC) latest"
+                + " JOIN LATERAL (SELECT step_type FROM engine.step_execution"
+                + " WHERE tenant_id = :tenantId AND run_id = latest.id"
+                + " AND state IN ('running', 'waiting')"
+                + " ORDER BY started_at DESC, id DESC LIMIT 1) step ON true")
+        .param("tenantId", tenantId.value())
+        .param("ids", List.copyOf(incidentIds))
+        .query(
+            rs -> {
+              types.put(
+                  rs.getObject("incident_id", UUID.class),
+                  RunContent.type(rs.getString("step_type")));
+            });
+    return types;
   }
 
   private static Timestamp timestamp(Instant instant) {

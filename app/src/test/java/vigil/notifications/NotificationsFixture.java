@@ -318,6 +318,11 @@ public final class NotificationsFixture {
     incidents.resolve(tenant, RECOVERY, incident, verification);
   }
 
+  /** The generated password of the tenant's user. */
+  public String password(String username) {
+    return ticketing.investigation.knowledge.identity.password(username);
+  }
+
   public UUID userId(String username) {
     return app.context()
         .getBean(IdentityService.class)

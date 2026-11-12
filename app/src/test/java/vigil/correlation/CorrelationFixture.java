@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
+import java.util.function.UnaryOperator;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
@@ -67,6 +68,10 @@ public final class CorrelationFixture {
 
   public final VigilTestApp app;
   public final TenantId tenant;
+
+  /** The created tenant with its users' passwords; {@code null} for {@link #of}. */
+  public final TestTenants.Tenant identity;
+
   final TestSecrets secrets;
   final String suffix;
   final IntakeService intake;
@@ -75,10 +80,15 @@ public final class CorrelationFixture {
   final Clock clock;
 
   private CorrelationFixture(
-      VigilTestApp app, TestSecrets secrets, TenantId tenant, String suffix) {
+      VigilTestApp app,
+      TestSecrets secrets,
+      TenantId tenant,
+      TestTenants.Tenant identity,
+      String suffix) {
     this.app = app;
     this.secrets = secrets;
     this.tenant = tenant;
+    this.identity = identity;
     this.suffix = suffix;
     this.intake = app.context().getBean(IntakeService.class);
     this.incidents = app.context().getBean(IncidentService.class);
@@ -104,7 +114,16 @@ public final class CorrelationFixture {
       String address,
       String suffix,
       boolean withRouting) {
-    return create(app, secrets, name, host, address, suffix, withRouting, IntakeFixture.demoPart());
+    return create(
+        app,
+        secrets,
+        name,
+        host,
+        address,
+        suffix,
+        withRouting,
+        IntakeFixture.demoPart(),
+        UnaryOperator.identity());
   }
 
   /** As {@code create(..., withRouting = true)} with {@code part} as the intake part. */
@@ -116,7 +135,19 @@ public final class CorrelationFixture {
       String address,
       String suffix,
       IntakePart part) {
-    return create(app, secrets, name, host, address, suffix, true, part);
+    return create(app, secrets, name, host, address, suffix, true, part, UnaryOperator.identity());
+  }
+
+  /** As {@code create(..., withRouting = true)} with the users added by {@code users}. */
+  public static CorrelationFixture create(
+      VigilTestApp app,
+      TestSecrets secrets,
+      String name,
+      String host,
+      String address,
+      String suffix,
+      UnaryOperator<TestTenants.Builder> users) {
+    return create(app, secrets, name, host, address, suffix, true, IntakeFixture.demoPart(), users);
   }
 
   private static CorrelationFixture create(
@@ -127,8 +158,11 @@ public final class CorrelationFixture {
       String address,
       String suffix,
       boolean withRouting,
-      IntakePart part) {
-    TenantId tenant = teams(new TestTenants(app).tenant(name)).host(host).create().id();
+      IntakePart part,
+      UnaryOperator<TestTenants.Builder> users) {
+    TestTenants.Tenant identity =
+        users.apply(teams(new TestTenants(app).tenant(name))).host(host).create();
+    TenantId tenant = identity.id();
     IntakeFixture.importInto(app, tenant, address, suffix, part);
     importServiceMap(app, tenant, serviceMap());
     if (withRouting) {
@@ -142,13 +176,13 @@ public final class CorrelationFixture {
     importSettings(app, tenant, "300", "40", "300", "1");
     app.context().getBean(CorrelationScheduling.class).matchActiveTenants();
     await(() -> work(app).runningTenants().contains(tenant), WAIT);
-    return new CorrelationFixture(app, secrets, tenant, suffix);
+    return new CorrelationFixture(app, secrets, tenant, identity, suffix);
   }
 
   /** The fixture of a tenant created earlier, for an application started again. */
   public static CorrelationFixture of(
       VigilTestApp app, TestSecrets secrets, TenantId tenant, String suffix) {
-    return new CorrelationFixture(app, secrets, tenant, suffix);
+    return new CorrelationFixture(app, secrets, tenant, null, suffix);
   }
 
   /** The nine teams of {@code 01-tenant-identity.yaml} with their names. */
