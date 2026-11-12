@@ -50,8 +50,8 @@ Under `docs/` you MAY change only: your package report; the values your spec nam
 | Lab only: lab hosts (from P-03); Zabbix, Prometheus, Alertmanager, `demo-faults` and the webhook recorder (from P-04) | `deploy/local.sh up --lab-only [--profile test|demo] [--project NAME]`, `deploy/local.sh down [--volumes] [--project NAME]` |
 | Storm timing spike (from P-04; needs the lab) | `spikes/storm-timing/run.sh [--storms N] [--extra LIST] [--save-recordings] [--foreground] [--project NAME]` |
 | Provider spikes (owner-run, from the Mac; from P-06; `--package P-20` from P-20; `teams` and `email` from P-07) | `spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20]`, `spikes/providers/run.sh teams|email` (from P-07) |
-| Local installation: Vigil, lab, dev fakes (from P-26) | `deploy/local.sh up`, `deploy/local.sh down`, `deploy/local.sh reset`, `deploy/local.sh logs` |
-| Build the local images that tests use (from P-03) | `deploy/images.sh --test` (the gate command runs it) |
+| Local installation: Vigil, lab, dev fakes (from P-26) | `deploy/local.sh up [--profile test|demo] [--values FILE] [--no-build] [--project NAME]`, `deploy/local.sh down [--volumes] [--project NAME]`, `deploy/local.sh reset [--project NAME]`, `deploy/local.sh logs [--no-follow] [SERVICE…] [--project NAME]` |
+| Build the local images that tests use (from P-03); the images of a local installation (from P-26) | `deploy/images.sh --test` (the gate command runs it); `deploy/images.sh --local` (`deploy/local.sh up` runs it) |
 | Storm driver (from P-27) | `docker compose -f deploy/local/compose.yaml --profile acceptance run --rm storm-driver --mode immediate` |
 | Playwright tests (from P-26) | `deploy/local.sh e2e [suite]` |
 | Demo installation on AWS (owner-run, from the Mac; P-05): edge, secrets, images, deployment, status, GPU host, models | `deploy/edge.md` (the scripts `deploy/edge.sh`, `new-installation.sh`, `build.sh`, `deploy.sh`, `status.sh`, `gpu.sh`, `models.sh`) |

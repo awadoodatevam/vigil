@@ -1,3 +1,20 @@
 # Deployment values of the local installation (docs/60-build-plan.md Section 11.4).
 lab_profile: test
 webhook_base_url: http://demo.vigil.test:8080
+demo_domain: vigil.test
+endpoint.jira: http://jira.fakes:8000
+endpoint.smtp: smtp://mailpit:1025
+smtp_starttls: false
+endpoint.claude: http://claude.fakes:8000
+endpoint.openai: http://openai.fakes:8000
+endpoint.local_embedding: http://ollama-embed.fakes:11434
+gpu_host_ip: ollama-llm.fakes
+mailbox.noc-l1: noc-l1@vigil.test
+mailbox.db-ops: db-ops@vigil.test
+mailbox.vas-service-owners: vas-service-owners@vigil.test
+mailbox.it-apps: it-apps@vigil.test
+mailbox.noc-shift-lead: noc-shift-lead@vigil.test
+mailbox.noc-management: noc-management@vigil.test
+mailbox.customer-care: customer-care@vigil.test
+mailbox.dbops-engineer: dbops-engineer@vigil.test
+mailbox.dbops-lead: dbops-lead@vigil.test

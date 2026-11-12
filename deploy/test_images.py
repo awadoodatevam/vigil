@@ -1,4 +1,4 @@
-"""Tests of deploy/images.sh --test [--java] (P-42 spec Section 7, BP-R-12, BP-R-04).
+"""Tests of deploy/images.sh --test [--java] | --local (P-42 spec Section 7, P-26 spec Section 6.8, BP-R-12, BP-R-04).
 
 deploy/images.sh runs from a temporary copy of the repository with its compose file and Dockerfiles, with a docker
 stub first on PATH: it records every call, answers that no image is present (image inspect exits 1) and succeeds
@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-USAGE = "Usage: deploy/images.sh --test [--java]\n"
+USAGE = "Usage: deploy/images.sh --test [--java] | --local\n"
 CONTEXTS = {
     "vigil/demo-lab:local": "demo/lab",
     "vigil/demo-faults:local": "demo/faults",
@@ -26,6 +26,11 @@ CONTEXTS = {
     "vigil/recorder:local": "dev/recorder",
     "vigil/storm-spike:local": "spikes/storm-timing",
     "vigil/sse-probe:local": "spikes/sse-probe",
+}
+LOCAL_CONTEXTS = {
+    "vigil/vigil-app:local": "app",
+    "vigil/dev-fakes:local": "dev/fakes",
+    "vigil/e2e:local": "tests/e2e",
 }
 
 
@@ -48,14 +53,16 @@ def base_images(context):
 
 
 def compose_images():
+    """The pinned images of the compose file, except the lines ending with # optional."""
     text = (ROOT / "deploy" / "local" / "compose.yaml").read_text(encoding="utf-8")
-    return re.findall(r"^\s*image:\s*(\S+@sha256:\S+)", text, re.MULTILINE)
+    return re.findall(r"^\s*image:\s*(\S+@sha256:\S+)\s*$", text, re.MULTILINE)
 
 
 @pytest.fixture
 def tree(tmp_path):
     root = tmp_path / "repository"
-    for relative in ["deploy/images.sh", "deploy/local/compose.yaml"] + [f"{c}/Dockerfile" for c in CONTEXTS.values()]:
+    contexts = list(CONTEXTS.values()) + list(LOCAL_CONTEXTS.values())
+    for relative in ["deploy/images.sh", "deploy/local/compose.yaml"] + [f"{c}/Dockerfile" for c in contexts]:
         target = root / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / relative, target)
@@ -66,7 +73,13 @@ def tree(tmp_path):
     log = tmp_path / "docker.log"
     log.write_text("", encoding="utf-8")
 
-    def run(*arguments, mirror=None):
+    def run(*arguments, mirror=None, jar=True):
+        target = root / "app" / "target" / "vigil-app.jar"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if jar:
+            target.write_bytes(b"jar")
+        else:
+            target.unlink(missing_ok=True)
         environment = dict(os.environ)
         environment.pop("VIGIL_UBUNTU_MIRROR", None)
         if mirror is not None:
@@ -117,7 +130,48 @@ def test_test_builds_the_six_images(tree):
         assert set(base_images(context)) <= set(pulled(calls))
 
 
-@pytest.mark.parametrize("arguments", [["--java"], ["--java", "--test"], ["--test", "--java", "x"], []])
+def test_test_skips_the_optional_and_local_images(tree):
+    """BP-R-04 --test pulls neither the optional Ollama image of the embed profile nor the e2e profile's image."""
+    result, calls = tree("--test")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert not any(image.startswith("ollama/ollama:") for image in pulled(calls))
+    assert not any(image.startswith(("vigil/", "mcr.microsoft.com/playwright")) for image in pulled(calls))
+    assert any(image.startswith("pgvector/pgvector:") for image in pulled(calls))
+    assert any(image.startswith("axllent/mailpit:") for image in pulled(calls))
+
+
+def test_local_builds_the_three_images(tree):
+    """BP-R-04 --local builds vigil-app from app/, the dev fakes and the Playwright image, each from its context."""
+    result, calls = tree("--local")
+    assert result.returncode == 0, result.stdout + result.stderr
+    builds = [call for call in calls if call[0] == "build"]
+    assert built(calls) == list(LOCAL_CONTEXTS)
+    for call, context in zip(builds, LOCAL_CONTEXTS.values(), strict=True):
+        assert call[-1].endswith(context)
+        assert call[call.index("-f") + 1].endswith(f"{context}/Dockerfile")
+    assert "mcr.microsoft.com/playwright:v1.65.0-noble" in " ".join(pulled(calls))
+
+
+def test_e2e_image_version_equals_the_package():
+    """BP-R-04 the Playwright base image's version equals the @playwright/test version of tests/e2e/package.json."""
+    package = json.loads((ROOT / "tests" / "e2e" / "package.json").read_text())
+    version = package["devDependencies"]["@playwright/test"]
+    assert base_images("tests/e2e") == [base_images("tests/e2e")[0]]
+    assert base_images("tests/e2e")[0].startswith(f"mcr.microsoft.com/playwright:v{version}-noble@sha256:")
+    assert not (ROOT / "tests" / "e2e" / "node_modules").exists()
+
+
+def test_local_needs_the_jar(tree):
+    """BP-R-04 --local without app/target/vigil-app.jar is refused before any docker call."""
+    result, calls = tree("--local", jar=False)
+    assert result.returncode == 1
+    assert result.stdout == "Run ./mvnw -B -pl app -DskipTests package first.\n"
+    assert calls == []
+
+
+@pytest.mark.parametrize(
+    "arguments", [["--java"], ["--java", "--test"], ["--test", "--java", "x"], [], ["--local", "--test"]]
+)
 def test_wrong_arguments_print_usage(tree, arguments):
     """BP-R-12 other arguments print the usage line and exit 2 before any docker call."""
     result, calls = tree(*arguments)
@@ -134,7 +188,7 @@ def mirror_arguments(call):
     ]
 
 
-@pytest.mark.parametrize("arguments", [["--test"], ["--test", "--java"]])
+@pytest.mark.parametrize("arguments", [["--test"], ["--test", "--java"], ["--local"]])
 def test_mirror_build_argument_only_when_the_variable_is_set(tree, arguments):
     """BP-R-04 every build gets --build-arg UBUNTU_MIRROR={value} only when VIGIL_UBUNTU_MIRROR is set and not empty."""
     mirror = "http://azure.archive.ubuntu.com/ubuntu/"

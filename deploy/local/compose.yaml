@@ -1,5 +1,6 @@
-# The local installation (docs/60-build-plan.md Section 11), started by deploy/local.sh. So far: the lab hosts (P-03),
-# Zabbix, Prometheus, Alertmanager, demo-faults, the webhook recorder and the storm timing spike (P-04).
+# The local installation (docs/60-build-plan.md Section 11), started by deploy/local.sh: the lab hosts (P-03), Zabbix,
+# Prometheus, Alertmanager, demo-faults, the webhook recorder and the storm timing spike (P-04); vigil-db, vigil-migrate,
+# vigil-app, the dev fakes, Mailpit, vigil-embed (profile embed) and the Playwright runner (profile e2e) (P-26).
 # Subnets and container names are fixed, so one local installation runs per Docker host.
 
 networks:
@@ -20,6 +21,8 @@ volumes:
   lab-db-01-data:
   lab-zabbix-db-data:
   demo-faults-state:
+  vigil-db-data:
+  vigil-embed-models:
 
 services:
   lab-db-01:
@@ -321,6 +324,260 @@ services:
       - type: bind
         source: ${VIGIL_SPIKE_SAVE:-../../dev/fakes/recordings/monitoring}
         target: /save
+        bind:
+          create_host_path: false
+    restart: "no"
+
+  vigil-db:
+    image: pgvector/pgvector:0.8.7-pg17@sha256:ac08538c6f8b9904c33c8224c5e5706dbe760aca29db1d096972b4052c22a75d
+    container_name: vigil-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: vigil
+      POSTGRES_PASSWORD_FILE: /run/secrets/vigil/vigil-db-superuser
+    networks: [vigil-net]
+    volumes:
+      - vigil-db-data:/var/lib/postgresql/data
+      - type: bind
+        source: ../db/init
+        target: /docker-entrypoint-initdb.d
+        read_only: true
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/vigil-db
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "postgres", "-d", "vigil"]
+      interval: 2s
+      timeout: 2s
+      retries: 60
+
+  vigil-migrate:
+    image: vigil/vigil-app:local
+    container_name: vigil-migrate
+    user: "10001"
+    environment:
+      SPRING_PROFILES_ACTIVE: migrate
+    depends_on:
+      vigil-db: {condition: service_healthy}
+    networks: [vigil-net]
+    volumes:
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/vigil-migrate
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: "no"
+
+  vigil-app:
+    image: vigil/vigil-app:local
+    container_name: vigil-app
+    user: "10001"
+    command:
+      - --vigil.http.bind-address=0.0.0.0
+      - --vigil.security.secure-cookies=false
+      - --vigil.links.base=http://{host}:8080
+    depends_on:
+      vigil-migrate: {condition: service_completed_successfully}
+    networks:
+      vigil-net:
+        aliases: [demo.vigil.test]
+      lab-net:
+        aliases: [demo.vigil.test]
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/vigil-app
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: "no"
+
+  jira-fake:
+    image: vigil/dev-fakes:local
+    container_name: jira-fake
+    environment:
+      FAKE_ROLE: jira
+    networks:
+      vigil-net:
+        aliases: [jira.fakes]
+      lab-net:
+        aliases: [jira.fakes]
+    restart: "no"
+    healthcheck:
+      test:
+        - CMD
+        - /usr/bin/python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/_fakes/calls', timeout=2)"
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  teams-fake:
+    image: vigil/dev-fakes:local
+    container_name: teams-fake
+    environment:
+      FAKE_ROLE: teams
+    networks:
+      vigil-net:
+        aliases: [teams.fakes]
+      lab-net:
+        aliases: [teams.fakes]
+    restart: "no"
+    healthcheck:
+      test:
+        - CMD
+        - /usr/bin/python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/_fakes/calls', timeout=2)"
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  claude-fake:
+    image: vigil/dev-fakes:local
+    container_name: claude-fake
+    environment:
+      FAKE_ROLE: claude
+    networks:
+      vigil-net:
+        aliases: [claude.fakes]
+      lab-net:
+        aliases: [claude.fakes]
+    restart: "no"
+    healthcheck:
+      test:
+        - CMD
+        - /usr/bin/python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/_fakes/calls', timeout=2)"
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  openai-fake:
+    image: vigil/dev-fakes:local
+    container_name: openai-fake
+    environment:
+      FAKE_ROLE: openai
+    networks:
+      vigil-net:
+        aliases: [openai.fakes]
+      lab-net:
+        aliases: [openai.fakes]
+    restart: "no"
+    healthcheck:
+      test:
+        - CMD
+        - /usr/bin/python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/_fakes/calls', timeout=2)"
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  ollama-llm-fake:
+    image: vigil/dev-fakes:local
+    container_name: ollama-llm-fake
+    environment:
+      FAKE_ROLE: ollama-llm
+    networks:
+      vigil-net:
+        aliases: [ollama-llm.fakes]
+      lab-net:
+        aliases: [ollama-llm.fakes]
+    restart: "no"
+    healthcheck:
+      test:
+        - CMD
+        - /usr/bin/python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:11434/_fakes/calls', timeout=2)"
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  ollama-embed-fake:
+    image: vigil/dev-fakes:local
+    container_name: ollama-embed-fake
+    environment:
+      FAKE_ROLE: ollama-embed
+    networks:
+      vigil-net:
+        aliases: [ollama-embed.fakes]
+      lab-net:
+        aliases: [ollama-embed.fakes]
+    restart: "no"
+    healthcheck:
+      test:
+        - CMD
+        - /usr/bin/python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:11434/_fakes/calls', timeout=2)"
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  mailpit:
+    image: axllent/mailpit:v1.33.1@sha256:aef2aacc11f075ec0fb6874275ee4a421e688e11a96ebb296134d1735c7761ce
+    container_name: mailpit
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "1"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "1"
+    networks:
+      vigil-net:
+        aliases: [mailpit]
+      lab-net:
+        aliases: [mailpit]
+    restart: "no"
+
+  vigil-embed:
+    image: ollama/ollama:0.40.5@sha256:5d3a2f25f9825628daba94dc0b1d421c7d57d6c03ae5faa9ba050e058bab8241 # optional
+    container_name: vigil-embed
+    profiles: ["embed"]
+    networks: [vigil-net]
+    volumes:
+      - vigil-embed-models:/root/.ollama
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 2s
+      timeout: 5s
+      retries: 60
+
+  e2e:
+    image: vigil/e2e:local
+    container_name: e2e
+    profiles: ["e2e"]
+    user: "${VIGIL_LOCAL_UID:-10001}:${VIGIL_LOCAL_GID:-10001}"
+    networks: [vigil-net]
+    volumes:
+      - type: bind
+        source: ../../tests/e2e
+        target: /e2e/tests
+        read_only: true
+      - type: bind
+        source: ${VIGIL_LOCAL_E2E:-/nonexistent}
+        target: /e2e/run
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/e2e
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${VIGIL_LOCAL_STATE:-/nonexistent}
+        target: /run/state
+        read_only: true
         bind:
           create_host_path: false
     restart: "no"

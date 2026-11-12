@@ -1,0 +1,9 @@
+{
+  "name": "vigil-e2e",
+  "private": true,
+  "description": "Playwright tests of the local installation (P-26), run in vigil/e2e:local by deploy/local.sh e2e.",
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "typescript": "7.0.2"
+  }
+}
