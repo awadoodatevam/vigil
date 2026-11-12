@@ -8,7 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import tools.jackson.databind.JsonNode;
-import vigil.actions.ActionRecords.ExecutionState;
+import vigil.actions.api.ExecutionState;
 import vigil.actions.api.PolicyOutcome;
 import vigil.actions.api.RefusalReason;
 import vigil.actions.api.RequestState;

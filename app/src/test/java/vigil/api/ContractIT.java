@@ -10,7 +10,9 @@ import com.networknt.schema.SpecificationVersion;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.sql.Timestamp;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -27,15 +29,23 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 import vigil.identity.api.Permission;
+import vigil.incidents.api.IncidentService;
+import vigil.incidents.api.NotifiedPurpose;
 import vigil.knowledge.KnowledgeFixture;
 import vigil.notifications.NotificationsFixture;
+import vigil.shared.Actor;
+import vigil.shared.CanonicalJson;
+import vigil.shared.Ids;
+import vigil.shared.Key;
 import vigil.shared.TenantId;
 import vigil.tenancy.api.TenantService;
 import vigil.testsupport.ApiClient;
@@ -67,6 +77,11 @@ class ContractIT {
   private static NotificationsFixture contractApi;
   private static UUID openIncident;
   private static UUID mergedIncident;
+  private static UUID resolvedIncident;
+  private static UUID pendingRequest;
+  private static String pendingHash;
+  private static UUID cancelledRequest;
+  private static String cancelledHash;
   private static SchemaRegistry schemas;
 
   @BeforeAll
@@ -115,6 +130,152 @@ class ContractIT {
             Integer.parseInt(closedPort.substring(closedPort.lastIndexOf(':') + 1)));
     openIncident = contractApi.openIncident();
     mergedIncident = contractApi.ticketing.investigation.mergedIncident();
+    approvalRecords();
+  }
+
+  /**
+   * The records of the P-43 scenarios (P-43 spec Section 6.11): {@code admin} without {@code view},
+   * a resolved incident, {@code db-ops} notified of the open incident, and for a new run of the
+   * open incident a proposal with a {@code pending} request 1 and a {@code cancelled} request 2,
+   * inserted as postgres.
+   */
+  private static void approvalRecords() {
+    JdbcClient postgres = contractApi.postgres();
+    TenantId tenant = contractApi.tenant;
+    postgres
+        .sql(
+            "UPDATE identity.permission_grant SET active = false WHERE tenant_id = :t"
+                + " AND user_id = :u AND permission = 'view'")
+        .param("t", tenant.value())
+        .param("u", contractApi.userId("admin"))
+        .update();
+    resolvedIncident = contractApi.openIncident();
+    contractApi.resolve(resolvedIncident);
+    IncidentService incidents = app.context().getBean(IncidentService.class);
+    incidents.recordNotifiedTeam(
+        tenant,
+        Actor.module("vigil-notifications"),
+        openIncident,
+        new Key("db-ops"),
+        NotifiedPurpose.INCIDENT_NOTIFICATION);
+    UUID run = Ids.newId();
+    UUID proposal = Ids.newId();
+    Instant now = Instant.now();
+    postgres
+        .sql(
+            "INSERT INTO actions.action_proposal (id, tenant_id, created_at, incident_id, run_id,"
+                + " action_key, action_snapshot, component_key, target_key, similarity_result_id,"
+                + " past_incident_key, score, success_count) VALUES (:id, :t, :now, :incident,"
+                + " :run, 'purge-archived-txlogs', CAST(:snapshot AS jsonb), 'srv-db-01',"
+                + " 'lab-db-01', :result, 'PI-1001', 1.00, 4)")
+        .param("id", proposal)
+        .param("t", tenant.value())
+        .param("now", Timestamp.from(now))
+        .param("incident", openIncident)
+        .param("run", run)
+        .param("snapshot", JSON.writeValueAsString(actionSnapshot()))
+        .param("result", Ids.newId())
+        .update();
+    ObjectNode pending = approvalSnapshot(now.plus(Duration.ofHours(1)));
+    pendingHash = CanonicalJson.sha256HexOfCanonical(JSON.writeValueAsString(pending));
+    pendingRequest =
+        insertRequest(postgres, run, proposal, 1, "pending", pending, pendingHash, now, null);
+    ObjectNode cancelled = approvalSnapshot(now.plus(Duration.ofHours(1)));
+    cancelledHash = CanonicalJson.sha256HexOfCanonical(JSON.writeValueAsString(cancelled));
+    cancelledRequest =
+        insertRequest(postgres, run, proposal, 2, "cancelled", cancelled, cancelledHash, now, now);
+  }
+
+  /** The action snapshot of the demo action as {@code Snapshots.action} writes it. */
+  private static ObjectNode actionSnapshot() {
+    ObjectNode node = JSON.createObjectNode();
+    node.put("action_key", "purge-archived-txlogs");
+    node.put("name", "Purge archived transaction logs");
+    node.put("operation_key", "purge_old_archives");
+    node.putObject("parameter_values")
+        .put("path", "/data/txlog_archive")
+        .put("older_than_minutes", 1440)
+        .put("max_bytes", 12884901888L);
+    node.putArray("limits").add("Deletes only *.arc files directly under /data/txlog_archive");
+    node.put("attempt_limit", 1);
+    node.putObject("precondition")
+        .put("operation_key", "fs_used_pct")
+        .put("result_field", "value")
+        .put("operator", "greater_or_equal")
+        .put("value", "90")
+        .putObject("parameters")
+        .put("mount", "/data");
+    node.put("recovery_check_key", "rc-subscriber-db");
+    return node;
+  }
+
+  /** An approval snapshot with every key of DM-V-12 and fixed test values. */
+  private static ObjectNode approvalSnapshot(Instant expiresAt) {
+    ObjectNode node = JSON.createObjectNode();
+    node.put("action_key", "purge-archived-txlogs");
+    node.put("action_name", "Purge archived transaction logs");
+    node.set("parameters", actionSnapshot().get("parameter_values"));
+    node.put("target_key", "lab-db-01");
+    node.put("target_name", "Subscriber DB server");
+    node.putArray("limits").add("Deletes only *.arc files directly under /data/txlog_archive");
+    node.put("attempt_number", 1);
+    node.put("attempt_limit", 1);
+    node.put("expires_at", expiresAt.toString());
+    node.putArray("evidence")
+        .addObject()
+        .put("evidence_entry_id", Ids.newId().toString())
+        .put("kind", "diagnostic_result")
+        .put("summary", "/data is 100% full")
+        .put("collected_at", Instant.now().toString());
+    node.putObject("based_on")
+        .put("past_incident_key", "PI-1001")
+        .put("past_incident_title", "Subscriber DB /data full")
+        .put("record_label", "Fictional record")
+        .put("score", "1.00")
+        .put("success_count", 4);
+    ObjectNode checks = node.putObject("recovery_checks");
+    checks.put("recovery_check_key", "rc-subscriber-db");
+    checks.put("name", "Subscriber DB services recovered");
+    checks.putArray("conditions").add("Every alert of the incident is resolved at its source");
+    checks.put("observation_window", 60);
+    return node;
+  }
+
+  private static UUID insertRequest(
+      JdbcClient postgres,
+      UUID run,
+      UUID proposal,
+      long sequence,
+      String state,
+      ObjectNode snapshot,
+      String hash,
+      Instant now,
+      Instant decidedAt) {
+    UUID id = Ids.newId();
+    postgres
+        .sql(
+            "INSERT INTO actions.approval_request (id, tenant_id, created_at, updated_at,"
+                + " incident_id, run_id, step_execution_id, proposal_id, sequence_in_run,"
+                + " policy_outcome, eligible_team_keys, excluded_user_ids, snapshot,"
+                + " snapshot_hash, expires_at, state, refusal_reason, decided_at, decided_by)"
+                + " VALUES (:id, :t, :now, :now, :incident, :run, :step, :proposal, :sequence,"
+                + " 'approval_required', CAST('[\"db-ops\"]' AS jsonb), CAST('[]' AS jsonb),"
+                + " CAST(:snapshot AS jsonb), :hash, :expiresAt, :state, NULL, :decidedAt, NULL)")
+        .param("id", id)
+        .param("t", contractApi.tenant.value())
+        .param("now", Timestamp.from(now))
+        .param("incident", openIncident)
+        .param("run", run)
+        .param("step", Ids.newId())
+        .param("proposal", proposal)
+        .param("sequence", sequence)
+        .param("snapshot", JSON.writeValueAsString(snapshot))
+        .param("hash", hash)
+        .param("expiresAt", Timestamp.from(Instant.parse(snapshot.get("expires_at").stringValue())))
+        .param("state", state)
+        .param("decidedAt", decidedAt == null ? null : Timestamp.from(decidedAt))
+        .update();
+    return id;
   }
 
   private static Request installation(Request request) {
@@ -368,6 +529,8 @@ class ContractIT {
     scenarios.addAll(installationScenarios());
     scenarios.addAll(webhookScenarios());
     scenarios.addAll(workspaceScenarios());
+    scenarios.addAll(sectionScenarios());
+    scenarios.addAll(approvalScenarios());
     return scenarios;
   }
 
@@ -615,6 +778,163 @@ class ContractIT {
             "merged incident",
             () -> answer(as("presenter", client.get(merged)))));
     return scenarios;
+  }
+
+  /**
+   * The access answers of an operation: 403 as admin, 401, 404 unknown_host and, with {@code
+   * unknown}, 404 not_found as {@code user}.
+   */
+  private static void access(
+      List<Scenario> scenarios,
+      Operation operation,
+      String method,
+      String path,
+      String unknown,
+      String user) {
+    scenarios.add(
+        new Scenario(
+            operation,
+            path + " as admin",
+            () -> answer(as("admin", client.request(method, path)))));
+    scenarios.add(
+        new Scenario(
+            operation,
+            path + " without session",
+            send(client.request(method, path).host(API_HOST))));
+    scenarios.add(
+        new Scenario(
+            operation,
+            path + " nowhere.test",
+            send(client.request(method, path).host("nowhere.test"))));
+    if (unknown != null) {
+      scenarios.add(
+          new Scenario(
+              operation,
+              unknown + " unknown",
+              () -> answer(as(user, client.request(method, unknown)))));
+    }
+  }
+
+  /** The P-43 workspace sections, the Acknowledge page and action, and the dashboard. */
+  private static List<Scenario> sectionScenarios() {
+    List<Scenario> scenarios = new ArrayList<>();
+    for (String section : List.of("/investigation", "/response", "/recovery", "/acknowledgement")) {
+      Operation operation = new Operation("get", "/api/v1/incidents/{incident_id}" + section);
+      String path = "/api/v1/incidents/" + openIncident + section;
+      scenarios.add(
+          new Scenario(
+              operation, path + " as presenter", () -> answer(as("presenter", client.get(path)))));
+      access(
+          scenarios,
+          operation,
+          "GET",
+          path,
+          "/api/v1/incidents/" + UUID.randomUUID() + section,
+          "presenter");
+    }
+    Operation acknowledge =
+        new Operation("post", "/api/v1/incidents/{incident_id}/acknowledgements");
+    String acknowledgePath = "/api/v1/incidents/" + openIncident + "/acknowledgements";
+    String resolvedPath = "/api/v1/incidents/" + resolvedIncident + "/acknowledgements";
+    scenarios.add(
+        new Scenario(
+            acknowledge,
+            "acknowledge as dbops-engineer",
+            () -> answer(as("dbops-engineer", client.post(acknowledgePath)))));
+    scenarios.add(
+        new Scenario(
+            acknowledge,
+            "acknowledge resolved incident",
+            () -> answer(as("dbops-engineer", client.post(resolvedPath)))));
+    access(
+        scenarios,
+        acknowledge,
+        "POST",
+        acknowledgePath,
+        "/api/v1/incidents/" + UUID.randomUUID() + "/acknowledgements",
+        "dbops-engineer");
+    Operation dashboard = new Operation("get", "/api/v1/dashboard");
+    scenarios.add(
+        new Scenario(
+            dashboard,
+            "dashboard as presenter",
+            () -> answer(as("presenter", client.get(dashboard.path())))));
+    access(scenarios, dashboard, "GET", dashboard.path(), null, null);
+    return scenarios;
+  }
+
+  /** The P-43 Approval page and decision. */
+  private static List<Scenario> approvalScenarios() {
+    List<Scenario> scenarios = new ArrayList<>();
+    Operation page = new Operation("get", "/api/v1/approval-requests/{request_id}");
+    String pagePath = "/api/v1/approval-requests/" + pendingRequest;
+    scenarios.add(
+        new Scenario(
+            page,
+            "approval page as presenter",
+            () -> answer(as("presenter", client.get(pagePath)))));
+    access(
+        scenarios,
+        page,
+        "GET",
+        pagePath,
+        "/api/v1/approval-requests/" + UUID.randomUUID(),
+        "dbops-engineer");
+    Operation decide = new Operation("post", "/api/v1/approval-requests/{request_id}/decisions");
+    String decidePath = pagePath + "/decisions";
+    String cancelledPath = "/api/v1/approval-requests/" + cancelledRequest + "/decisions";
+    scenarios.add(
+        new Scenario(
+            decide,
+            "decision maybe",
+            () ->
+                answer(
+                    as(
+                        "dbops-engineer",
+                        client
+                            .post(decidePath)
+                            .json("{\"decision\":\"maybe\",\"snapshot_hash_shown\":\"x\"}")))));
+    scenarios.add(
+        new Scenario(
+            decide,
+            "approve request 1",
+            () ->
+                answer(as("dbops-engineer", client.post(decidePath).json(approve(pendingHash))))));
+    scenarios.add(
+        new Scenario(
+            decide,
+            "approve cancelled request 2",
+            () ->
+                answer(
+                    as(
+                        "dbops-engineer",
+                        client.post(cancelledPath).json(approve(cancelledHash))))));
+    scenarios.add(
+        new Scenario(
+            decide,
+            decidePath + " as admin",
+            () -> answer(as("admin", client.post(decidePath).json(approve(pendingHash))))));
+    scenarios.add(
+        new Scenario(
+            decide,
+            decidePath + " without session",
+            send(client.post(decidePath).host(API_HOST).json(approve(pendingHash)))));
+    scenarios.add(
+        new Scenario(
+            decide,
+            decidePath + " nowhere.test",
+            send(client.post(decidePath).host("nowhere.test").json(approve(pendingHash)))));
+    String unknown = "/api/v1/approval-requests/" + UUID.randomUUID() + "/decisions";
+    scenarios.add(
+        new Scenario(
+            decide,
+            unknown + " unknown",
+            () -> answer(as("dbops-engineer", client.post(unknown).json(approve(pendingHash))))));
+    return scenarios;
+  }
+
+  private static String approve(String hash) {
+    return "{\"decision\":\"approve\",\"snapshot_hash_shown\":\"" + hash + "\"}";
   }
 
   private static Supplier<Answer> send(Request request) {

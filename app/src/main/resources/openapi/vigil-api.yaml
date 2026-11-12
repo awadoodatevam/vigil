@@ -687,6 +687,304 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /api/v1/incidents/{incident_id}/investigation:
+    get:
+      security:
+        - session: []
+      parameters:
+        - name: incident_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The AI investigation section (DC-S03-09)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestigationSection'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found or unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/incidents/{incident_id}/response:
+    get:
+      security:
+        - session: []
+      parameters:
+        - name: incident_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The Response section of the latest live run (DC-S03-10)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseSection'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found or unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/incidents/{incident_id}/recovery:
+    get:
+      security:
+        - session: []
+      parameters:
+        - name: incident_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The recovery verifications of the latest live run (DC-S03-11)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoverySection'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found or unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/incidents/{incident_id}/acknowledgement:
+    get:
+      security:
+        - session: []
+      parameters:
+        - name: incident_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The Acknowledge page (DC-S04)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcknowledgePage'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found or unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/incidents/{incident_id}/acknowledgements:
+    post:
+      security:
+        - session: []
+      parameters:
+        - name: incident_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: The acknowledgement (DC-S04-04)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewAcknowledgement'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found or unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: refused with the refusal of DC-S04-05
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/approval-requests/{request_id}:
+    get:
+      security:
+        - session: []
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The Approval page (DC-S05)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalPage'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found or unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/approval-requests/{request_id}/decisions:
+    post:
+      security:
+        - session: []
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionRequest'
+      responses:
+        '201':
+          description: The decision (DC-S05-05)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewDecision'
+        '400':
+          description: bad_request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found or unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: refused with the refusal of DC-S05-06
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/dashboard:
+    get:
+      security:
+        - session: []
+      responses:
+        '200':
+          description: The dashboard (DC-S10)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   securitySchemes:
     session:
@@ -1705,3 +2003,742 @@ components:
                   - approval_request
               first_notified_at:
                 type: string
+    Refusal:
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      required:
+        - key
+        - message
+      properties:
+        key:
+          type: string
+        message:
+          type: string
+    ParameterValue:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - value
+      properties:
+        name:
+          type: string
+        value:
+          {}
+    Target:
+      type: object
+      additionalProperties: false
+      required:
+        - target_key
+        - name
+      properties:
+        target_key:
+          type: string
+        name:
+          type:
+            - string
+            - 'null'
+    InvestigationSection:
+      type: object
+      additionalProperties: false
+      required:
+        - ai_status
+        - ai_unavailable_reason
+        - ai_status_changed_at
+        - ai_last_request_group_id
+        - result
+        - summary
+      properties:
+        ai_status:
+          type: string
+          enum:
+            - not_run
+            - available
+            - unavailable
+        ai_unavailable_reason:
+          type:
+            - string
+            - 'null'
+          enum:
+            - no_provider_reachable
+            - no_provider_allowed
+            - output_failed_checks
+            - null
+        ai_status_changed_at:
+          type:
+            - string
+            - 'null'
+        ai_last_request_group_id:
+          type:
+            - string
+            - 'null'
+        result:
+          oneOf:
+            - $ref: '#/components/schemas/InvestigationResult'
+            - type: 'null'
+        summary:
+          oneOf:
+            - type: object
+              additionalProperties: false
+              required:
+                - text
+                - source
+              properties:
+                text:
+                  type: string
+                source:
+                  type: string
+                  enum:
+                    - ai
+                    - template
+            - type: 'null'
+    InvestigationResult:
+      type: object
+      additionalProperties: false
+      required:
+        - likely_cause
+        - verdict
+        - evidence_used
+        - uncertainty
+        - runbooks_supplied
+        - runbooks_cited
+        - provider_kind
+        - model_name
+        - created_at
+        - origin
+        - requested_by
+      properties:
+        likely_cause:
+          type:
+            - string
+            - 'null'
+        verdict:
+          type:
+            - string
+            - 'null'
+          enum:
+            - confirms
+            - disputes
+            - null
+        evidence_used:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - evidence_entry_id
+              - summary
+            properties:
+              evidence_entry_id:
+                type: string
+              summary:
+                type: string
+        uncertainty:
+          type:
+            - string
+            - 'null'
+        runbooks_supplied:
+          type: array
+          items:
+            type: string
+        runbooks_cited:
+          type: array
+          items:
+            type: string
+        provider_kind:
+          type:
+            - string
+            - 'null'
+        model_name:
+          type: string
+        created_at:
+          type: string
+        origin:
+          type: string
+          enum:
+            - workflow_step
+            - rerun
+        requested_by:
+          oneOf:
+            - $ref: '#/components/schemas/UserName'
+            - type: 'null'
+    ResponseSection:
+      type: object
+      additionalProperties: false
+      required:
+        - similar
+        - proposal
+        - no_proposal
+        - approvals
+        - executions
+      properties:
+        similar:
+          oneOf:
+            - $ref: '#/components/schemas/SimilarIncident'
+            - type: 'null'
+        proposal:
+          oneOf:
+            - $ref: '#/components/schemas/ProposedAction'
+            - type: 'null'
+        no_proposal:
+          type: boolean
+        approvals:
+          type: array
+          items:
+            $ref: '#/components/schemas/RunApproval'
+        executions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RunExecution'
+    SimilarIncident:
+      type: object
+      additionalProperties: false
+      required:
+        - state
+        - outcome
+        - past_incident
+        - score
+        - success_count
+        - min_similarity
+      properties:
+        state:
+          type: string
+          enum:
+            - done
+            - unavailable
+        outcome:
+          type:
+            - string
+            - 'null'
+          enum:
+            - match
+            - no_match
+            - null
+        past_incident:
+          oneOf:
+            - type: object
+              additionalProperties: false
+              required:
+                - past_incident_key
+                - title
+                - record_label
+                - fix_description
+              properties:
+                past_incident_key:
+                  type: string
+                title:
+                  type: string
+                record_label:
+                  type: string
+                fix_description:
+                  type: string
+            - type: 'null'
+        score:
+          type:
+            - string
+            - 'null'
+        success_count:
+          type:
+            - integer
+            - 'null'
+        min_similarity:
+          type:
+            - string
+            - 'null'
+    ProposedAction:
+      type: object
+      additionalProperties: false
+      required:
+        - action_name
+        - parameters
+        - target
+        - policy_outcome
+      properties:
+        action_name:
+          type: string
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParameterValue'
+        target:
+          $ref: '#/components/schemas/Target'
+        policy_outcome:
+          type:
+            - string
+            - 'null'
+          enum:
+            - blocked
+            - approval_required
+            - preauthorized
+            - null
+    RunApproval:
+      type: object
+      additionalProperties: false
+      required:
+        - approval_request_id
+        - sequence_in_run
+        - eligible_teams
+        - state
+        - refusal_reason
+        - decided
+        - expires_at
+      properties:
+        approval_request_id:
+          type: string
+        sequence_in_run:
+          type: integer
+        eligible_teams:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamName'
+        state:
+          $ref: '#/components/schemas/ApprovalRequestState'
+        refusal_reason:
+          $ref: '#/components/schemas/ApprovalRefusalReason'
+        decided:
+          $ref: '#/components/schemas/Acknowledged'
+        expires_at:
+          type: string
+    ApprovalRequestState:
+      type: string
+      enum:
+        - pending
+        - approved
+        - rejected
+        - expired
+        - preauthorized
+        - blocked
+        - refused
+        - cancelled
+    ApprovalRefusalReason:
+      type:
+        - string
+        - 'null'
+      enum:
+        - attempt_limit_reached
+        - unresolved_execution
+        - null
+    RunExecution:
+      type: object
+      additionalProperties: false
+      required:
+        - action_execution_id
+        - attempt_number
+        - attempt_limit
+        - state
+        - recheck
+        - result_summary
+        - started_at
+        - finished_at
+      properties:
+        action_execution_id:
+          type: string
+        attempt_number:
+          type: integer
+        attempt_limit:
+          type:
+            - integer
+            - 'null'
+        state:
+          type: string
+          enum:
+            - recorded
+            - rechecking
+            - not_executed
+            - executing
+            - reconciling
+            - succeeded
+            - failed
+            - unresolved
+        recheck:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - check
+              - passed
+              - detail
+            properties:
+              check:
+                type: string
+                enum:
+                  - approval_valid
+                  - unchanged
+                  - incident_open
+                  - precondition
+              passed:
+                type: boolean
+              detail:
+                type: string
+        result_summary:
+          type:
+            - string
+            - 'null'
+        started_at:
+          type: string
+        finished_at:
+          type:
+            - string
+            - 'null'
+    RecoverySection:
+      type: object
+      additionalProperties: false
+      required:
+        - verifications
+      properties:
+        verifications:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - recovery_verification_id
+              - check_name
+              - state
+              - observation_window_seconds
+              - started_at
+              - max_wait_until
+              - window_started_at
+              - decided_at
+              - conditions
+              - sources_healthy
+              - unhealthy_sources
+            properties:
+              recovery_verification_id:
+                type: string
+              check_name:
+                type: string
+              state:
+                type: string
+                enum:
+                  - observing
+                  - recovered
+                  - not_recovered
+                  - cancelled
+              observation_window_seconds:
+                type: integer
+              started_at:
+                type: string
+              max_wait_until:
+                type: string
+              window_started_at:
+                type:
+                  - string
+                  - 'null'
+              decided_at:
+                type:
+                  - string
+                  - 'null'
+              conditions:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  required:
+                    - detail
+                    - held
+                  properties:
+                    detail:
+                      type: string
+                    held:
+                      type: boolean
+              sources_healthy:
+                type:
+                  - boolean
+                  - 'null'
+              unhealthy_sources:
+                type: array
+                items:
+                  type: string
+    AcknowledgePage:
+      type: object
+      additionalProperties: false
+      required:
+        - incident_id
+        - number
+        - title
+        - severity
+        - owner
+        - first_alert_fired_at
+        - alert_count
+        - summary
+        - state
+        - acknowledged
+        - may_act
+        - refusal
+      properties:
+        incident_id:
+          type: string
+        number:
+          type: integer
+        title:
+          type: string
+        severity:
+          type:
+            - string
+            - 'null'
+          enum:
+            - P1
+            - P2
+            - P3
+            - P4
+            - null
+        owner:
+          oneOf:
+            - $ref: '#/components/schemas/TeamName'
+            - type: 'null'
+        first_alert_fired_at:
+          type: string
+        alert_count:
+          type: integer
+        summary:
+          type:
+            - string
+            - 'null'
+        state:
+          type: string
+          enum:
+            - open
+            - resolved
+            - closed
+        acknowledged:
+          $ref: '#/components/schemas/Acknowledged'
+        may_act:
+          type: boolean
+        refusal:
+          $ref: '#/components/schemas/Refusal'
+    NewAcknowledgement:
+      type: object
+      additionalProperties: false
+      required:
+        - user
+        - at
+      properties:
+        user:
+          $ref: '#/components/schemas/UserName'
+        at:
+          type: string
+    ApprovalPage:
+      type: object
+      additionalProperties: false
+      required:
+        - approval_request_id
+        - sequence_in_run
+        - incident
+        - state
+        - refusal_reason
+        - snapshot_hash
+        - action_name
+        - parameters
+        - target
+        - limits
+        - attempt_number
+        - attempt_limit
+        - expires_at
+        - based_on
+        - evidence
+        - recovery_checks
+        - decided
+        - may_act
+        - refusal
+      properties:
+        approval_request_id:
+          type: string
+        sequence_in_run:
+          type: integer
+        incident:
+          type: object
+          additionalProperties: false
+          required:
+            - incident_id
+            - number
+            - title
+          properties:
+            incident_id:
+              type: string
+            number:
+              type:
+                - integer
+                - 'null'
+            title:
+              type:
+                - string
+                - 'null'
+        state:
+          $ref: '#/components/schemas/ApprovalRequestState'
+        refusal_reason:
+          $ref: '#/components/schemas/ApprovalRefusalReason'
+        snapshot_hash:
+          type: string
+        action_name:
+          type: string
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParameterValue'
+        target:
+          $ref: '#/components/schemas/Target'
+        limits:
+          type: array
+          items:
+            type: string
+        attempt_number:
+          type: integer
+        attempt_limit:
+          type: integer
+        expires_at:
+          type: string
+        based_on:
+          type: object
+          additionalProperties: false
+          required:
+            - past_incident_key
+            - past_incident_title
+            - record_label
+            - score
+            - success_count
+          properties:
+            past_incident_key:
+              type: string
+            past_incident_title:
+              type: string
+            record_label:
+              type: string
+            score:
+              type: string
+            success_count:
+              type: integer
+        evidence:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - evidence_entry_id
+              - kind
+              - summary
+              - collected_at
+            properties:
+              evidence_entry_id:
+                type: string
+              kind:
+                type: string
+                enum:
+                  - diagnostic_result
+                  - ai_investigation
+                  - similarity_match
+              summary:
+                type: string
+              collected_at:
+                type: string
+        recovery_checks:
+          type: object
+          additionalProperties: false
+          required:
+            - name
+            - conditions
+            - observation_window_seconds
+          properties:
+            name:
+              type: string
+            conditions:
+              type: array
+              items:
+                type: string
+            observation_window_seconds:
+              type: integer
+        decided:
+          $ref: '#/components/schemas/Acknowledged'
+        may_act:
+          type: boolean
+        refusal:
+          $ref: '#/components/schemas/Refusal'
+    DecisionRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - decision
+        - snapshot_hash_shown
+      properties:
+        decision:
+          type: string
+          enum:
+            - approve
+            - reject
+        snapshot_hash_shown:
+          type: string
+          minLength: 1
+          maxLength: 128
+    NewDecision:
+      type: object
+      additionalProperties: false
+      required:
+        - state
+        - user
+        - at
+      properties:
+        state:
+          type: string
+          enum:
+            - approved
+            - rejected
+        user:
+          $ref: '#/components/schemas/UserName'
+        at:
+          type: string
+    Dashboard:
+      type: object
+      additionalProperties: false
+      required:
+        - metrics
+        - live_incidents
+        - past_incidents
+        - record_labels
+      properties:
+        metrics:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - key
+              - unit
+              - value
+              - baseline_value
+              - baseline_label
+            properties:
+              key:
+                type: string
+                enum:
+                  - time_to_acknowledge
+                  - time_to_recover
+                  - alerts_suppressed
+                  - incidents_merged
+              unit:
+                type: string
+                enum:
+                  - minutes
+                  - count
+              value:
+                type:
+                  - number
+                  - 'null'
+              baseline_value:
+                type:
+                  - number
+                  - 'null'
+              baseline_label:
+                type:
+                  - string
+                  - 'null'
+        live_incidents:
+          type: integer
+        past_incidents:
+          type: integer
+        record_labels:
+          type: array
+          items:
+            type: string

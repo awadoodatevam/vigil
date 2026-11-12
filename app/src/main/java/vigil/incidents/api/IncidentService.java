@@ -129,6 +129,12 @@ public interface IncidentService {
    */
   AcknowledgementView acknowledge(TenantId tenantId, UUID incidentId, UUID userId);
 
+  /**
+   * DM-E35-R1, CTX-D-079 (3): the refusal of checks (2) to (4) of the acknowledgement that the user
+   * would get now, read without a lock; empty when none applies or the incident does not exist.
+   */
+  Optional<AcknowledgeRefusal> acknowledgeRefusal(TenantId tenantId, UUID incidentId, UUID userId);
+
   Optional<IncidentView> incident(TenantId tenantId, UUID incidentId);
 
   /** The incidents in the given states, by ascending {@code sequence}. */

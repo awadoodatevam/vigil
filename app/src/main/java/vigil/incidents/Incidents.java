@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import vigil.identity.api.IdentityService;
 import vigil.identity.api.Permission;
 import vigil.identity.api.TeamView;
 import vigil.identity.api.UserView;
+import vigil.incidents.api.AcknowledgeRefusal;
 import vigil.incidents.api.AcknowledgementView;
 import vigil.incidents.api.AffectedServiceCopy;
 import vigil.incidents.api.AiStatus;
@@ -814,45 +816,14 @@ class Incidents implements IncidentService {
     if (!identity.hasPermission(tenantId, userId, Permission.ACKNOWLEDGE)) {
       throw new VigilError(VigilError.Code.FORBIDDEN);
     }
-    if (row.state != IncidentState.OPEN) {
+    Optional<AcknowledgeRefusal> refusal = acknowledgeCheck(tenantId, row, userId);
+    if (refusal.isPresent()) {
       throw new VigilError(
-          VigilError.Code.REFUSED,
-          "This incident is " + row.state.key() + ". It does not need acknowledgement.",
-          Map.of("refusal", "not_open", "state", row.state.key()));
+          VigilError.Code.REFUSED, refusal.get().message(), Map.copyOf(refusal.get().details()));
     }
-    Optional<AcknowledgementView> existing = current(tenantId, row);
-    if (existing.isPresent()) {
-      AcknowledgementView first = existing.get();
-      throw new VigilError(
-          VigilError.Code.REFUSED,
-          "Already acknowledged by "
-              + userName(tenantId, first.userId())
-              + " at "
-              + IncidentTexts.outbound(first.at())
-              + ".",
-          Map.of(
-              "refusal",
-              "already_acknowledged",
-              "user_id",
-              first.userId().toString(),
-              "at",
-              IncidentJson.time(first.at())));
-    }
-    Optional<String> team =
-        records.notifiedTeams(tenantId, row.id).stream()
-            .map(NotifiedTeamView::teamKey)
-            .sorted(IncidentTexts.CODE_POINTS)
-            .filter(key -> identity.isMember(tenantId, userId, new Key(key)))
-            .findFirst();
-    if (team.isEmpty()) {
-      throw new VigilError(
-          VigilError.Code.REFUSED,
-          "You are not in a team that was notified about this incident.",
-          Map.of("refusal", "not_notified"));
-    }
+    String team = notifiedTeam(tenantId, row, userId).orElseThrow();
     UUID id =
-        records.insertAcknowledgement(
-            tenantId, row.id, userId, team.get(), row.episode(), change.now);
+        records.insertAcknowledgement(tenantId, row.id, userId, team, row.episode(), change.now);
     row.acknowledgedAt = change.now;
     row.acknowledgedBy = userId;
     row.updatedAt = change.now;
@@ -863,7 +834,63 @@ class Incidents implements IncidentService {
     change.events.add(new IncidentAcknowledged(tenantId, row.id, row.episode()));
     change.changed(row.id);
     change.publish();
-    return new AcknowledgementView(id, row.id, userId, team.get(), row.episode(), change.now);
+    return new AcknowledgementView(id, row.id, userId, team, row.episode(), change.now);
+  }
+
+  @Override
+  public Optional<AcknowledgeRefusal> acknowledgeRefusal(
+      TenantId tenantId, UUID incidentId, UUID userId) {
+    required(tenantId, incidentId, userId);
+    return records
+        .incident(tenantId, incidentId)
+        .flatMap(row -> acknowledgeCheck(tenantId, row, userId));
+  }
+
+  /**
+   * Checks (2) to (4) of the acknowledgement in their order (DM-E35-R1, DC-S04-05); the first that
+   * applies, or empty.
+   */
+  private Optional<AcknowledgeRefusal> acknowledgeCheck(
+      TenantId tenantId, IncidentRow row, UUID userId) {
+    if (row.state != IncidentState.OPEN) {
+      return acknowledgeRefusal(
+          "not_open",
+          "This incident is " + row.state.key() + ". It does not need acknowledgement.",
+          Map.of("state", row.state.key()));
+    }
+    Optional<AcknowledgementView> existing = current(tenantId, row);
+    if (existing.isPresent()) {
+      AcknowledgementView first = existing.get();
+      return acknowledgeRefusal(
+          "already_acknowledged",
+          "Already acknowledged by "
+              + userName(tenantId, first.userId())
+              + " at "
+              + IncidentTexts.outbound(first.at())
+              + ".",
+          Map.of("user_id", first.userId().toString(), "at", IncidentJson.time(first.at())));
+    }
+    if (notifiedTeam(tenantId, row, userId).isEmpty()) {
+      return acknowledgeRefusal(
+          "not_notified", "You are not in a team that was notified about this incident.", Map.of());
+    }
+    return Optional.empty();
+  }
+
+  /** The first notified team, in code point order, of which the user is an active member. */
+  private Optional<String> notifiedTeam(TenantId tenantId, IncidentRow row, UUID userId) {
+    return records.notifiedTeams(tenantId, row.id).stream()
+        .map(NotifiedTeamView::teamKey)
+        .sorted(IncidentTexts.CODE_POINTS)
+        .filter(key -> identity.isMember(tenantId, userId, new Key(key)))
+        .findFirst();
+  }
+
+  private static Optional<AcknowledgeRefusal> acknowledgeRefusal(
+      String key, String message, Map<String, String> details) {
+    Map<String, String> all = new HashMap<>(details);
+    all.put("refusal", key);
+    return Optional.of(new AcknowledgeRefusal(key, message, all));
   }
 
   // Reads.
