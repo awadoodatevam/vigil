@@ -134,6 +134,17 @@ public interface IncidentService {
   /** The incidents in the given states, by ascending {@code sequence}. */
   List<IncidentView> incidents(TenantId tenantId, Set<IncidentState> states);
 
+  /**
+   * The incidents in one of {@code states} that have a {@code number}, with {@code number <
+   * beforeNumber} when {@code beforeNumber} is not {@code null}, by {@code number} descending, at
+   * most {@code limit} (1 to 51); {@code states} not empty.
+   */
+  List<IncidentView> incidentPage(
+      TenantId tenantId, Set<IncidentState> states, Long beforeNumber, int limit);
+
+  /** The number of the tenant's {@code forming} incidents and the sum of their alert counts. */
+  FormingSummary formingSummary(TenantId tenantId);
+
   /** The incident of the alert's active membership. */
   Optional<UUID> incidentOfAlert(TenantId tenantId, UUID alertId);
 

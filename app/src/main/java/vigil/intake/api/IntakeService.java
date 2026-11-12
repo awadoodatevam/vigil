@@ -36,6 +36,15 @@ public interface IntakeService {
   /** The number of alerts of the tenant, firing or resolved (PM-I-39, DM-R-53). */
   long alertCount(TenantId tenantId);
 
+  /** The number of the tenant's alerts with {@code first_received_at} at or after {@code from}. */
+  long alertsReceivedSince(TenantId tenantId, Instant from);
+
+  /**
+   * The tenant's alerts by {@code first_received_at} descending, then {@code sequence} descending,
+   * at most {@code limit} (1 to 50).
+   */
+  List<AlertView> latestAlerts(TenantId tenantId, int limit);
+
   /** Every source, active or not, in code point order of {@code source_key} (PM-I-40). */
   List<SourceView> sources(TenantId tenantId);
 

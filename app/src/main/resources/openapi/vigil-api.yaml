@@ -400,6 +400,293 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /api/v1/alerts/strip:
+    get:
+      security:
+        - session: []
+      responses:
+        '200':
+          description: The incoming alerts strip (DC-S02-02)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertStrip'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/incidents:
+    get:
+      security:
+        - session: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: after
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A page of the incident list (DC-S02-04)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentPage'
+        '400':
+          description: bad_request (limit or after not valid)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/incidents/{incident_id}:
+    get:
+      security:
+        - session: []
+      parameters:
+        - name: incident_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The header, hypothesis and impact, or the incident it was merged into
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/IncidentHeader'
+                  - $ref: '#/components/schemas/MergedIncident'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found or unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/incidents/{incident_id}/alerts:
+    get:
+      security:
+        - session: []
+      parameters:
+        - name: incident_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The member alerts by type (DC-S03-05)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentAlerts'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found or unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/incidents/{incident_id}/evidence:
+    get:
+      security:
+        - session: []
+      parameters:
+        - name: incident_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The evidence entries (DC-S03-08)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceLines'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found or unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/incidents/{incident_id}/run:
+    get:
+      security:
+        - session: []
+      parameters:
+        - name: incident_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The latest live run, or null (DC-S03-06, DC-S03-07, DC-S03-12)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LatestRun'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found or unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/incidents/{incident_id}/timeline:
+    get:
+      security:
+        - session: []
+      parameters:
+        - name: incident_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The timeline, newest first (DC-S03-13)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTimeline'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found or unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/incidents/{incident_id}/notified-teams:
+    get:
+      security:
+        - session: []
+      parameters:
+        - name: incident_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The notified teams (DC-S03-14)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotifiedTeams'
+        '401':
+          description: session_ended or not_signed_in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found or unknown_host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   securitySchemes:
     session:
@@ -632,3 +919,789 @@ components:
           format: uuid
         set_at:
           type: string
+    TeamName:
+      type: object
+      additionalProperties: false
+      required:
+        - team_key
+        - name
+      properties:
+        team_key:
+          type: string
+        name:
+          type: string
+    UserName:
+      type: object
+      additionalProperties: false
+      required:
+        - user_id
+        - display_name
+      properties:
+        user_id:
+          type: string
+        display_name:
+          type: string
+    ActorName:
+      type: object
+      additionalProperties: false
+      required:
+        - kind
+        - user_id
+        - display_name
+      properties:
+        kind:
+          type: string
+          enum:
+            - user
+            - module
+        user_id:
+          type:
+            - string
+            - 'null'
+        display_name:
+          type:
+            - string
+            - 'null'
+    ComponentName:
+      type: object
+      additionalProperties: false
+      required:
+        - component_key
+        - name
+      properties:
+        component_key:
+          type: string
+        name:
+          type: string
+    AlertStrip:
+      type: object
+      additionalProperties: false
+      required:
+        - received_last_10_minutes
+        - forming
+        - sources
+        - latest
+      properties:
+        received_last_10_minutes:
+          type: integer
+        forming:
+          type: object
+          additionalProperties: false
+          required:
+            - incidents
+            - alerts
+          properties:
+            incidents:
+              type: integer
+            alerts:
+              type: integer
+        sources:
+          type: object
+          additionalProperties: false
+          required:
+            - healthy
+            - total
+            - not_healthy
+          properties:
+            healthy:
+              type: integer
+            total:
+              type: integer
+            not_healthy:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required:
+                  - source_key
+                  - name
+                  - health
+                properties:
+                  source_key:
+                    type: string
+                  name:
+                    type: string
+                  health:
+                    type: string
+                    enum:
+                      - stale
+                      - disconnected
+        latest:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - alert_id
+              - first_received_at
+              - source_kind
+              - alert_type_name
+              - title
+            properties:
+              alert_id:
+                type: string
+              first_received_at:
+                type: string
+              source_kind:
+                type: string
+                enum:
+                  - zabbix
+                  - alertmanager
+              alert_type_name:
+                type: string
+              title:
+                type: string
+    Acknowledged:
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      required:
+        - user
+        - at
+      properties:
+        user:
+          $ref: '#/components/schemas/UserName'
+        at:
+          type: string
+    Ticket:
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      required:
+        - key
+        - url
+      properties:
+        key:
+          type: string
+        url:
+          type: string
+    IncidentRow:
+      type: object
+      additionalProperties: false
+      required:
+        - incident_id
+        - number
+        - title
+        - severity
+        - state
+        - stage
+        - owner
+        - acknowledged
+        - alert_count
+        - first_alert_fired_at
+        - ticket
+      properties:
+        incident_id:
+          type: string
+        number:
+          type: integer
+        title:
+          type: string
+        severity:
+          type:
+            - string
+            - 'null'
+          enum:
+            - P1
+            - P2
+            - P3
+            - P4
+            - null
+        state:
+          type: string
+          enum:
+            - open
+            - resolved
+            - closed
+        stage:
+          type:
+            - string
+            - 'null'
+          enum:
+            - investigation
+            - response
+            - recovery
+            - null
+        owner:
+          oneOf:
+            - $ref: '#/components/schemas/TeamName'
+            - type: 'null'
+        acknowledged:
+          $ref: '#/components/schemas/Acknowledged'
+        alert_count:
+          type: integer
+        first_alert_fired_at:
+          type: string
+        ticket:
+          $ref: '#/components/schemas/Ticket'
+    IncidentPage:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - next_cursor
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/IncidentRow'
+        next_cursor:
+          type:
+            - string
+            - 'null'
+    IncidentHeader:
+      type: object
+      additionalProperties: false
+      required:
+        - incident_id
+        - number
+        - title
+        - state
+        - stage
+        - severity
+        - owner
+        - informed
+        - rule_name
+        - acknowledged
+        - escalation
+        - first_alert_fired_at
+        - resolved_at
+        - ticket
+        - reopen_count
+        - alert_count
+        - hypothesis
+        - affected_services
+      properties:
+        incident_id:
+          type: string
+        number:
+          type: integer
+        title:
+          type: string
+        state:
+          type: string
+          enum:
+            - open
+            - resolved
+            - closed
+        stage:
+          type:
+            - string
+            - 'null'
+          enum:
+            - investigation
+            - response
+            - recovery
+            - null
+        severity:
+          type:
+            - string
+            - 'null'
+          enum:
+            - P1
+            - P2
+            - P3
+            - P4
+            - null
+        owner:
+          oneOf:
+            - $ref: '#/components/schemas/TeamName'
+            - type: 'null'
+        informed:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamName'
+        rule_name:
+          type:
+            - string
+            - 'null'
+        acknowledged:
+          $ref: '#/components/schemas/Acknowledged'
+        escalation:
+          type:
+            - object
+            - 'null'
+          additionalProperties: false
+          required:
+            - level
+            - teams
+          properties:
+            level:
+              type: integer
+            teams:
+              type: array
+              items:
+                $ref: '#/components/schemas/TeamName'
+        first_alert_fired_at:
+          type: string
+        resolved_at:
+          type:
+            - string
+            - 'null'
+        ticket:
+          $ref: '#/components/schemas/Ticket'
+        reopen_count:
+          type: integer
+        alert_count:
+          type: integer
+        hypothesis:
+          type:
+            - object
+            - 'null'
+          additionalProperties: false
+          required:
+            - component_key
+            - name
+            - kind
+            - criticality
+            - other_affected_count
+            - dependent_count
+            - tie_break
+          properties:
+            component_key:
+              type: string
+            name:
+              type: string
+            kind:
+              type: string
+              enum:
+                - server
+                - application
+                - database
+                - queue
+                - check
+            criticality:
+              type:
+                - string
+                - 'null'
+              enum:
+                - critical
+                - high
+                - medium
+                - low
+                - null
+            other_affected_count:
+              type: integer
+            dependent_count:
+              type: integer
+            tie_break:
+              type: string
+              enum:
+                - none
+                - criticality
+                - component_key
+        affected_services:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - service_key
+              - name
+              - criticality
+              - via
+            properties:
+              service_key:
+                type: string
+              name:
+                type: string
+              criticality:
+                type:
+                  - string
+                  - 'null'
+                enum:
+                  - critical
+                  - high
+                  - medium
+                  - low
+                  - null
+              via:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ComponentName'
+    MergedIncident:
+      type: object
+      additionalProperties: false
+      required:
+        - merged_into_incident_id
+      properties:
+        merged_into_incident_id:
+          type: string
+    Reason:
+      type: object
+      additionalProperties: false
+      required:
+        - relation
+        - reopened
+        - related
+        - path
+        - time_delta_seconds
+        - identity
+      properties:
+        relation:
+          type: string
+          enum:
+            - same_component
+            - depends_on
+            - depended_on_by
+            - same_unknown_identity
+            - only_alert
+        reopened:
+          type: boolean
+        related:
+          type:
+            - object
+            - 'null'
+          additionalProperties: false
+          required:
+            - title
+            - source_kind
+          properties:
+            title:
+              type: string
+            source_kind:
+              type: string
+              enum:
+                - zabbix
+                - alertmanager
+        path:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComponentName'
+        time_delta_seconds:
+          type:
+            - integer
+            - 'null'
+        identity:
+          type:
+            - object
+            - 'null'
+          additionalProperties: false
+          required:
+            - name
+            - value
+          properties:
+            name:
+              type: string
+            value:
+              type: string
+    IncidentAlerts:
+      type: object
+      additionalProperties: false
+      required:
+        - firing
+        - resolved
+        - grouping_window_seconds
+        - groups
+      properties:
+        firing:
+          type: integer
+        resolved:
+          type: integer
+        grouping_window_seconds:
+          type:
+            - integer
+            - 'null'
+        groups:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - alert_type
+              - alert_type_name
+              - count
+              - alerts
+            properties:
+              alert_type:
+                type: string
+              alert_type_name:
+                type: string
+              count:
+                type: integer
+              alerts:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  required:
+                    - alert_id
+                    - fired_at
+                    - source_kind
+                    - title
+                    - component_name
+                    - status
+                    - reason
+                  properties:
+                    alert_id:
+                      type: string
+                    fired_at:
+                      type: string
+                    source_kind:
+                      type: string
+                      enum:
+                        - zabbix
+                        - alertmanager
+                    title:
+                      type: string
+                    component_name:
+                      type:
+                        - string
+                        - 'null'
+                    status:
+                      type:
+                        - string
+                        - 'null'
+                      enum:
+                        - firing
+                        - resolved
+                        - null
+                    reason:
+                      $ref: '#/components/schemas/Reason'
+    EvidenceLine:
+      type: object
+      additionalProperties: false
+      required:
+        - evidence_entry_id
+        - kind
+        - summary
+        - source_system
+        - collected_at
+        - output_values
+      properties:
+        evidence_entry_id:
+          type: string
+        kind:
+          type: string
+          enum:
+            - diagnostic_result
+            - ai_investigation
+            - similarity_match
+            - approval
+            - action_execution
+            - recovery_verification
+        summary:
+          type: string
+        source_system:
+          type: string
+        collected_at:
+          type: string
+        output_values:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - name
+              - value
+            properties:
+              name:
+                type: string
+              value:
+                {}
+    EvidenceLines:
+      type: object
+      additionalProperties: false
+      required:
+        - entries
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvidenceLine'
+    LiveRun:
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      required:
+        - run_id
+        - state
+        - run_number
+        - run_count
+        - current_step_execution_id
+        - content
+        - team_names
+        - step_executions
+      properties:
+        run_id:
+          type: string
+        state:
+          type: string
+          enum:
+            - running
+            - waiting
+            - finished
+            - cancelled
+            - failed
+        run_number:
+          type: integer
+        run_count:
+          type: integer
+        current_step_execution_id:
+          type:
+            - string
+            - 'null'
+        content:
+          type: object
+        team_names:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamName'
+        step_executions:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - step_execution_id
+              - step_id
+              - step_type
+              - visit
+              - state
+              - started_at
+              - named_output
+              - timer_due_at
+            properties:
+              step_execution_id:
+                type: string
+              step_id:
+                type: string
+              step_type:
+                type: string
+                enum:
+                  - trigger
+                  - condition
+                  - diagnostic
+                  - ai_task
+                  - approval
+                  - action
+                  - recovery_check
+                  - escalation
+                  - notification
+                  - ticket
+                  - wait
+              visit:
+                type: integer
+              state:
+                type: string
+                enum:
+                  - running
+                  - waiting
+                  - completed
+                  - cancelled
+              started_at:
+                type: string
+              named_output:
+                type:
+                  - string
+                  - 'null'
+              timer_due_at:
+                type:
+                  - string
+                  - 'null'
+    LatestRun:
+      type: object
+      additionalProperties: false
+      required:
+        - run
+      properties:
+        run:
+          $ref: '#/components/schemas/LiveRun'
+    IncidentTimeline:
+      type: object
+      additionalProperties: false
+      required:
+        - stable_grouping
+        - entries
+      properties:
+        stable_grouping:
+          type:
+            - object
+            - 'null'
+          additionalProperties: false
+          required:
+            - stable_at
+            - alert_count
+            - merged_group_count
+            - hypothesis_name
+          properties:
+            stable_at:
+              type: string
+            alert_count:
+              type: integer
+            merged_group_count:
+              type: integer
+            hypothesis_name:
+              type:
+                - string
+                - 'null'
+        entries:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - timeline_entry_id
+              - at
+              - actor
+              - entry_type
+              - text
+            properties:
+              timeline_entry_id:
+                type: string
+              at:
+                type: string
+              actor:
+                $ref: '#/components/schemas/ActorName'
+              entry_type:
+                type: string
+                enum:
+                  - created
+                  - alert_joined
+                  - merged_in
+                  - hypothesis_changed
+                  - impact_changed
+                  - assignment_changed
+                  - state_changed
+                  - acknowledged
+                  - escalated
+                  - evidence_added
+                  - ai_status_changed
+                  - notified_team_added
+                  - title_changed
+              text:
+                type: string
+    NotifiedTeams:
+      type: object
+      additionalProperties: false
+      required:
+        - teams
+      properties:
+        teams:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - team_key
+              - name
+              - purpose
+              - first_notified_at
+            properties:
+              team_key:
+                type: string
+              name:
+                type: string
+              purpose:
+                type: string
+                enum:
+                  - incident_notification
+                  - escalation
+                  - approval_request
+              first_notified_at:
+                type: string

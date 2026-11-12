@@ -2,7 +2,10 @@ package vigil.engine;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,11 +23,14 @@ import vigil.engine.api.RunMode;
 import vigil.engine.api.RunStarted;
 import vigil.engine.api.RunState;
 import vigil.engine.api.RunView;
+import vigil.engine.api.Stage;
 import vigil.engine.api.StepExecutionState;
 import vigil.engine.api.StepExecutionView;
+import vigil.engine.api.TimerView;
 import vigil.shared.Actor;
 import vigil.shared.Ids;
 import vigil.shared.Key;
+import vigil.shared.StepCall.StepType;
 import vigil.shared.TenantId;
 import vigil.shared.Timestamps;
 
@@ -139,6 +145,44 @@ class Engine implements EngineService {
   public List<StepExecutionView> stepExecutions(TenantId tenantId, UUID runId) {
     require(tenantId, runId);
     return records.steps(tenantId, runId).stream().map(StepRow::view).toList();
+  }
+
+  @Override
+  public Map<UUID, Stage> stages(TenantId tenantId, Collection<UUID> incidentIds) {
+    require(tenantId, incidentIds);
+    if (incidentIds.stream().anyMatch(Objects::isNull)) {
+      throw new IllegalArgumentException("an incident id is missing");
+    }
+    if (incidentIds.isEmpty()) {
+      return Map.of();
+    }
+    Map<UUID, Stage> stages = new HashMap<>();
+    records
+        .currentStepTypes(tenantId, incidentIds)
+        .forEach(
+            (incidentId, stepType) -> {
+              Stage stage = stage(stepType);
+              if (stage != null) {
+                stages.put(incidentId, stage);
+              }
+            });
+    return Map.copyOf(stages);
+  }
+
+  /** DC-TX-01 "Stage": the stage of a running or waiting step's type, or {@code null}. */
+  private static Stage stage(StepType stepType) {
+    return switch (stepType) {
+      case DIAGNOSTIC, AI_TASK -> Stage.INVESTIGATION;
+      case APPROVAL, ACTION -> Stage.RESPONSE;
+      case RECOVERY_CHECK -> Stage.RECOVERY;
+      default -> null;
+    };
+  }
+
+  @Override
+  public List<TimerView> pendingTimers(TenantId tenantId, UUID runId) {
+    require(tenantId, runId);
+    return List.copyOf(records.pendingTimers(tenantId, runId));
   }
 
   @Override

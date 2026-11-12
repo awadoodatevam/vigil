@@ -525,6 +525,26 @@ class IntakeRecords {
         .single();
   }
 
+  long alertsReceivedSince(TenantId tenantId, Instant from) {
+    return jdbc.sql(
+            "SELECT count(*) FROM intake.alert WHERE tenant_id = :tenantId"
+                + " AND first_received_at >= :from")
+        .param("tenantId", tenantId.value())
+        .param("from", Timestamp.from(from))
+        .query(Long.class)
+        .single();
+  }
+
+  List<AlertView> latestAlerts(TenantId tenantId, int limit) {
+    return jdbc.sql(
+            "SELECT * FROM intake.alert WHERE tenant_id = :tenantId"
+                + " ORDER BY first_received_at DESC, sequence DESC LIMIT :limit")
+        .param("tenantId", tenantId.value())
+        .param("limit", limit)
+        .query(IntakeRecords::alert)
+        .list();
+  }
+
   Optional<AlertView> alert(TenantId tenantId, UUID alertId) {
     return jdbc.sql("SELECT * FROM intake.alert WHERE tenant_id = :tenantId AND id = :id")
         .param("tenantId", tenantId.value())

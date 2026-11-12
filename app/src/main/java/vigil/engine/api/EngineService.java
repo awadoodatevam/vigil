@@ -1,6 +1,8 @@
 package vigil.engine.api;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import vigil.shared.Actor;
@@ -32,6 +34,15 @@ public interface EngineService {
 
   /** The run's step executions, by ascending {@code started_at}, then id. */
   List<StepExecutionView> stepExecutions(TenantId tenantId, UUID runId);
+
+  /**
+   * The stage of each given incident that has one: the step type of the latest {@code running} or
+   * {@code waiting} step execution of its latest live run, mapped to a stage (DC-TX-01 "Stage").
+   */
+  Map<UUID, Stage> stages(TenantId tenantId, Collection<UUID> incidentIds);
+
+  /** The run's {@code pending} durable timers, by {@code due_at}, then id. */
+  List<TimerView> pendingTimers(TenantId tenantId, UUID runId);
 
   /** Whether the incident's episode has a live run in any state. */
   boolean hasLiveRun(TenantId tenantId, UUID incidentId, long episode);

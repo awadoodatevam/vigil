@@ -37,6 +37,7 @@ import vigil.incidents.api.EscalationView;
 import vigil.incidents.api.EvidenceKind;
 import vigil.incidents.api.EvidenceView;
 import vigil.incidents.api.FinalReason;
+import vigil.incidents.api.FormingSummary;
 import vigil.incidents.api.GroupingReason;
 import vigil.incidents.api.HypothesisCopy;
 import vigil.incidents.api.IncidentAcknowledged;
@@ -66,6 +67,7 @@ import vigil.shared.VigilError;
 class Incidents implements IncidentService {
 
   private static final Logger LOG = LoggerFactory.getLogger(Incidents.class);
+  private static final int PAGE_MAX = 51;
 
   static final String INCIDENTS = "vigil-incidents";
   private static final String CORRELATION = "vigil-correlation";
@@ -879,6 +881,27 @@ class Incidents implements IncidentService {
       throw new IllegalArgumentException("states: at least one");
     }
     return records.incidents(tenantId, states).stream().map(IncidentRow::view).toList();
+  }
+
+  @Override
+  public List<IncidentView> incidentPage(
+      TenantId tenantId, Set<IncidentState> states, Long beforeNumber, int limit) {
+    required(tenantId, states);
+    if (states.isEmpty() || states.stream().anyMatch(Objects::isNull)) {
+      throw new IllegalArgumentException("states: at least one");
+    }
+    if (limit < 1 || limit > PAGE_MAX) {
+      throw new IllegalArgumentException("limit 1 to 51");
+    }
+    return records.incidentPage(tenantId, states, beforeNumber, limit).stream()
+        .map(IncidentRow::view)
+        .toList();
+  }
+
+  @Override
+  public FormingSummary formingSummary(TenantId tenantId) {
+    required(tenantId);
+    return records.formingSummary(tenantId);
   }
 
   @Override

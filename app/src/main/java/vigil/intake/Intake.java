@@ -48,6 +48,7 @@ class Intake implements IntakeService {
   private static final int SEVERITY_MAX = 50;
   private static final int PAIR_VALUE_MAX = 200;
   private static final int PAGE_MAX = 100;
+  private static final int LATEST_MAX = 50;
   static final String KEY_TOO_LONG = "the alert key is longer than 200 characters";
   static final String HOLDS_NUL = "the entry holds the character U+0000";
 
@@ -278,6 +279,22 @@ class Intake implements IntakeService {
   public long alertCount(TenantId tenantId) {
     required(tenantId, "tenantId");
     return records.alertCount(tenantId);
+  }
+
+  @Override
+  public long alertsReceivedSince(TenantId tenantId, Instant from) {
+    required(tenantId, "tenantId");
+    required(from, "from");
+    return records.alertsReceivedSince(tenantId, from);
+  }
+
+  @Override
+  public List<AlertView> latestAlerts(TenantId tenantId, int limit) {
+    required(tenantId, "tenantId");
+    if (limit < 1 || limit > LATEST_MAX) {
+      throw new IllegalArgumentException("limit 1 to 50");
+    }
+    return List.copyOf(records.latestAlerts(tenantId, limit));
   }
 
   @Override

@@ -34,6 +34,8 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 import vigil.identity.api.Permission;
+import vigil.knowledge.KnowledgeFixture;
+import vigil.notifications.NotificationsFixture;
 import vigil.shared.TenantId;
 import vigil.tenancy.api.TenantService;
 import vigil.testsupport.ApiClient;
@@ -52,6 +54,7 @@ class ContractIT {
   private static final String FILE_IRI = "https://vigil.invalid/vigil-api.yaml";
   private static final JsonMapper JSON = JsonMapper.builder().build();
   private static final String HOOKS = "hooks.test";
+  private static final String API_HOST = "api.contract.test";
 
   private static VigilTestApp app;
   private static ApiClient client;
@@ -61,6 +64,9 @@ class ContractIT {
   private static String readyImport;
   private static String provisioningTenant;
   private static JsonNode contract;
+  private static NotificationsFixture contractApi;
+  private static UUID openIncident;
+  private static UUID mergedIncident;
   private static SchemaRegistry schemas;
 
   @BeforeAll
@@ -99,6 +105,16 @@ class ContractIT {
         .getBean(TenantService.class)
         .setAlias(HOOKS, new TenantId(UUID.fromString(readyTenant)), "installation token");
     provisioningTenant = createTenant();
+    String closedPort = KnowledgeFixture.closedAddress();
+    contractApi =
+        NotificationsFixture.create(
+            app,
+            "Contract API",
+            API_HOST,
+            KnowledgeFixture.closedAddress(),
+            Integer.parseInt(closedPort.substring(closedPort.lastIndexOf(':') + 1)));
+    openIncident = contractApi.openIncident();
+    mergedIncident = contractApi.ticketing.investigation.mergedIncident();
   }
 
   private static Request installation(Request request) {
@@ -351,6 +367,7 @@ class ContractIT {
                 branding, logo, login, session, logout, tenant, live, password, loginBody));
     scenarios.addAll(installationScenarios());
     scenarios.addAll(webhookScenarios());
+    scenarios.addAll(workspaceScenarios());
     return scenarios;
   }
 
@@ -522,6 +539,82 @@ class ContractIT {
             live,
             "live nowhere.test",
             send(client.get(live.path() + "?topics=tenant").host("nowhere.test"))));
+  }
+
+  /** A new session of the user of the Contract API tenant on {@code request}. */
+  private static Request as(String username, Request request) {
+    Response login = client.login(API_HOST, username, contractApi.password(username));
+    assertThat(login.status()).isEqualTo(200);
+    String csrf = login.cookieValue("vigil_csrf");
+    return request
+        .host(API_HOST)
+        .cookie("vigil_session", login.cookieValue("vigil_session"))
+        .cookie("vigil_csrf", csrf)
+        .header("X-Vigil-CSRF", csrf);
+  }
+
+  /** The P-25 operations: every response of each (P-25 spec Section 6.12). */
+  private static List<Scenario> workspaceScenarios() {
+    Operation strip = new Operation("get", "/api/v1/alerts/strip");
+    Operation list = new Operation("get", "/api/v1/incidents");
+    List<Scenario> scenarios = new ArrayList<>();
+    for (Operation operation : List.of(strip, list)) {
+      scenarios.add(
+          new Scenario(
+              operation,
+              operation.path() + " as presenter",
+              () -> answer(as("presenter", client.get(operation.path())))));
+      scenarios.add(
+          new Scenario(
+              operation,
+              operation.path() + " as noc-l1",
+              () -> answer(as("noc-l1", client.get(operation.path())))));
+      scenarios.add(
+          new Scenario(
+              operation,
+              operation.path() + " without session",
+              send(client.get(operation.path()).host(API_HOST))));
+      scenarios.add(
+          new Scenario(
+              operation,
+              operation.path() + " nowhere.test",
+              send(client.get(operation.path()).host("nowhere.test"))));
+    }
+    scenarios.add(
+        new Scenario(
+            list,
+            "incidents limit=0",
+            () -> answer(as("presenter", client.get(list.path() + "?limit=0")))));
+    for (String section :
+        List.of("", "/alerts", "/evidence", "/run", "/timeline", "/notified-teams")) {
+      Operation operation = new Operation("get", "/api/v1/incidents/{incident_id}" + section);
+      String path = "/api/v1/incidents/" + openIncident + section;
+      scenarios.add(
+          new Scenario(
+              operation, path + " as presenter", () -> answer(as("presenter", client.get(path)))));
+      scenarios.add(
+          new Scenario(
+              operation, path + " as noc-l1", () -> answer(as("noc-l1", client.get(path)))));
+      scenarios.add(
+          new Scenario(
+              operation, path + " without session", send(client.get(path).host(API_HOST))));
+      scenarios.add(
+          new Scenario(
+              operation, path + " nowhere.test", send(client.get(path).host("nowhere.test"))));
+      String unknown = "/api/v1/incidents/" + UUID.randomUUID() + section;
+      scenarios.add(
+          new Scenario(
+              operation,
+              unknown + " unknown incident",
+              () -> answer(as("presenter", client.get(unknown)))));
+    }
+    String merged = "/api/v1/incidents/" + mergedIncident;
+    scenarios.add(
+        new Scenario(
+            new Operation("get", "/api/v1/incidents/{incident_id}"),
+            "merged incident",
+            () -> answer(as("presenter", client.get(merged)))));
+    return scenarios;
   }
 
   private static Supplier<Answer> send(Request request) {
