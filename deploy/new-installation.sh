@@ -44,8 +44,10 @@ vigil-db-app 24"
 
 existing=$(aws ssm describe-parameters --parameter-filters "Key=Path,Option=OneLevel,Values=/vigil/$I" --output json |
   json '[p["Name"].rsplit("/", 1)[-1] for p in d["Parameters"]]')
+# A here-string, not a pipe: with set -o pipefail, grep -q exiting at its match could end printf's later line writes
+# with SIGPIPE and make has fail for a name that exists (P-27, the flaky second run of test_first_and_second_run).
 has() {
-  printf '%s\n' "$existing" | grep -qx "$1"
+  grep -qx "$1" <<< "$existing"
 }
 
 for k in diag action; do

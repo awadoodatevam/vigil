@@ -5,7 +5,7 @@ import os
 import re
 import subprocess
 
-from conftest import keygen, search_path
+from conftest import REPOSITORY, keygen, search_path
 
 TOKENS = ["webhook-zabbix", "webhook-alertmanager", "installation-token", "faults-token"]
 PASSWORDS_20 = [
@@ -93,6 +93,21 @@ def test_first_and_second_run(harness, tmp_path):
     assert sorted(second.stdout.splitlines()) == sorted(f"{name}: kept" for name in ALL)
     assert len(harness.aws_calls("ssm", "put-parameter")) == 21
     assert {name.rsplit("/", 1)[1]: p["Value"] for name, p in harness.state()["parameters"].items()} == values
+
+
+def test_has_finds_a_name_when_grep_stops_early():
+    """AR-S-13 has() of new-installation.sh finds an existing name also when grep stops reading at its match (P-27)."""
+    script = (REPOSITORY / "deploy" / "new-installation.sh").read_text()
+    function = script[script.index("has() {") :]
+    function = function[: function.index("\n}\n") + 3]
+    program = (
+        "set -euo pipefail\n"
+        'existing=$(seq -f "name-%g" 1 200000)\n'
+        f"{function}"
+        "if has name-1; then echo found; else echo missing; fi\n"
+    )
+    result = subprocess.run(["bash", "-c", program], capture_output=True, text=True, check=True)
+    assert result.stdout == "found\n"
 
 
 def test_incomplete_pair(harness):
