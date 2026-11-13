@@ -6,7 +6,7 @@
 | Branch | `p-28-web-foundation-login-list` |
 | Pin date (BP-R-08) | 13 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (Temurin 25.0.4.1) |
-| State | Built. In this session (done-check item 3): `deploy/local.sh up` (exit 0), `deploy/local.sh e2e` (26 of 26 passed), `VIGIL_STORM_RESULTS=$HOME/storm-results tests/acceptance/storm/with-playwright.sh` (exit 0: the six `@storm` tests passed, the driver passed every check, AR-Q-07 passed) and `deploy/local.sh down --volumes` (exit 0) (Section 8); the gate command result is in Section 10. Open: the owner-run Mac step of spec Section 6.12 and the label `e2e` on the pull request. |
+| State | Built. In this session (done-check item 3): `deploy/local.sh up` (exit 0), `deploy/local.sh e2e` (26 of 26 passed), `VIGIL_STORM_RESULTS=$HOME/storm-results tests/acceptance/storm/with-playwright.sh` (exit 0: the six `@storm` tests passed, the driver passed every check, AR-Q-07 passed) and `deploy/local.sh down --volumes` (exit 0) (Section 8); the gate command passes (Section 10). Open: the owner-run Mac step of spec Section 6.12 and the label `e2e` on the pull request. |
 
 ## 1. What was built
 
@@ -114,7 +114,7 @@ Done-check item 3, in this session (cloud, lab profile `test`):
 
 ## 10. Gate command result
 
-GATE_RESULT
+`tools/check-all.sh` passed in this session (exit 0, "all checks passed"): step (0) Docker, (1) setup version, (1a) test images, (2) `./mvnw -B verify` (web: `npm ci`, `npm run generate`, lint, Prettier check, type check, Vitest 60 tests in 15 files, build; `tests/e2e/`: `npm ci`, lint, Prettier check, type check; `vigil-app` 197 unit tests and 776 integration tests, `demo-control` 3 tests, 0 failures, 0 errors; Spotless; `BUILD SUCCESS`), (3) `ruff` and pytest with the lab tests (the branch changes lab paths of CTX-D-067 (3)): 542 passed, 1 skipped, 4 deselected (the `installation` tests) in 12 min 14 s, (4) shellcheck, (5) data checks (49 checks, 0 failed), (6) compose validation, (7) traceability. Three earlier runs stopped on Maven Central misses (Section 4 item 3) and once on the P-26 image test (Section 3 item 13); the run reported here is the full run after both were dealt with.
 
 ## 11. Follow-up items for later packages
 
