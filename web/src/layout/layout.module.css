@@ -1,0 +1,65 @@
+.banner {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 16px;
+  background: var(--banner-background);
+  color: var(--banner-text);
+  font-weight: 600;
+  text-align: center;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  padding: 8px 16px;
+  background: var(--header-background);
+  border-bottom: 1px solid var(--border);
+}
+
+.product {
+  font-weight: 700;
+}
+
+.logo {
+  height: 24px;
+}
+
+.navigation {
+  display: flex;
+  gap: 16px;
+}
+
+.navItem {
+  color: var(--link);
+  text-decoration: none;
+  padding: 2px 0;
+}
+
+.navCurrent {
+  color: var(--text);
+  font-weight: 700;
+  border-bottom: 2px solid var(--text);
+}
+
+.zone {
+  color: var(--muted);
+}
+
+.user {
+  margin-left: auto;
+}
+
+.signOut {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.content {
+  padding: 16px;
+}

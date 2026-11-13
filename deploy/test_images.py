@@ -160,7 +160,11 @@ def test_e2e_image_version_equals_the_package():
     version = package["devDependencies"]["@playwright/test"]
     assert base_images("tests/e2e") == [base_images("tests/e2e")[0]]
     assert base_images("tests/e2e")[0].startswith(f"mcr.microsoft.com/playwright:v{version}-noble@sha256:")
-    assert not (ROOT / "tests" / "e2e" / "node_modules").exists()
+    # CTX-D-085 (10) amends CTX-D-081 (4): the Maven build's lint makes tests/e2e/node_modules on the host; it stays out
+    # of the image's build context and the e2e container hides it, so the image's node_modules is the only one used.
+    assert (ROOT / "tests" / "e2e" / ".dockerignore").read_text(encoding="utf-8").split() == ["node_modules"]
+    compose = (ROOT / "deploy" / "local" / "compose.yaml").read_text(encoding="utf-8")
+    assert "type: tmpfs\n        target: /e2e/tests/node_modules" in compose
 
 
 def test_local_needs_the_jar(tree):

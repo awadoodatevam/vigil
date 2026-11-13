@@ -165,3 +165,15 @@ def test_deploy_tests_count(tmp_path):
         ''',
     )
     assert trace_module.main(["--check"], tmp_path) == 0
+
+
+def test_node_modules_are_not_read(tmp_path, capsys):
+    """BP-R-15 files under node_modules are not read."""
+    spec(tmp_path, ["| AR-W-01 | | test |\n"])
+    write(tmp_path, "tests/e2e/node_modules/some-package/flow.spec.ts", "test('AR-W-01 routes', async () => {});\n")
+    write(tmp_path, "web/node_modules/some-package/app.test.ts", "it('AR-W-01 serving', () => {});\n")
+    write(tmp_path, "tests/e2e/node_modules/some-package/test_x.py", 'def test_x():\n    """AR-W-01 x."""\n')
+    assert trace_module.main(["--check"], tmp_path) == 1
+    assert "AR-W-01" in capsys.readouterr().out
+    write(tmp_path, "tests/e2e/flow.spec.ts", "test('AR-W-01 routes', async () => {});\n")
+    assert trace_module.main(["--check"], tmp_path) == 0

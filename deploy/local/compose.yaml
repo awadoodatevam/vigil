@@ -564,6 +564,8 @@ services:
         source: ../../tests/e2e
         target: /e2e/tests
         read_only: true
+      - type: tmpfs
+        target: /e2e/tests/node_modules
       - type: bind
         source: ${VIGIL_LOCAL_E2E:-/nonexistent}
         target: /e2e/run

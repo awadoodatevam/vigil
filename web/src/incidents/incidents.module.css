@@ -1,0 +1,61 @@
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 24px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+
+.item {
+  margin: 0;
+}
+
+.warning {
+  margin: 0;
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.source {
+  margin-left: 8px;
+}
+
+.latest {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex-basis: 100%;
+  font-size: 0.875rem;
+}
+
+.latest li {
+  display: flex;
+  gap: 12px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.row {
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--header-background);
+}
+
+.more {
+  margin-top: 12px;
+}

@@ -38,12 +38,16 @@ def first_word_id(name):
 
 
 def files_under(root, patterns, suffixes):
-    """Files below the root-relative glob patterns whose name ends with one of the suffixes."""
+    """Files below the root-relative glob patterns whose name ends with one of the suffixes, outside node_modules."""
     found = set()
     for pattern in patterns:
         for base in root.glob(pattern):
             if base.is_dir():
-                found.update(p for p in base.rglob("*") if p.is_file() and p.name.endswith(suffixes))
+                found.update(
+                    p
+                    for p in base.rglob("*")
+                    if p.is_file() and p.name.endswith(suffixes) and "node_modules" not in p.relative_to(root).parts
+                )
     return sorted(found)
 
 

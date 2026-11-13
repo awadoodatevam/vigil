@@ -160,7 +160,7 @@ def test_e2e_stops_the_ai_fakes(local):
     result, calls = local("e2e", STUB_LIST="  [chromium] › a.spec.ts:3:1 › x @ai-down\nTotal: 1 test in 1 file")
     assert result.returncode == 0, result.stdout + result.stderr
     assert playwright_runs(calls) == [
-        ["--grep-invert", "@ai-down"],
+        ["--grep-invert", "@ai-down|@storm"],
         ["--list", "--grep", "@ai-down"],
         ["--grep", "@ai-down"],
     ]
@@ -190,7 +190,7 @@ def test_e2e_without_ai_down_tests(local):
     """BP-R-28 the AI fakes are not stopped when the listing shows no @ai-down test."""
     result, calls = local("e2e", STUB_LIST="Error: No tests found")
     assert result.returncode == 0, result.stdout + result.stderr
-    assert playwright_runs(calls) == [["--grep-invert", "@ai-down"], ["--list", "--grep", "@ai-down"]]
+    assert playwright_runs(calls) == [["--grep-invert", "@ai-down|@storm"], ["--list", "--grep", "@ai-down"]]
     assert stop_start(calls) == []
 
 
@@ -204,6 +204,27 @@ def test_e2e_suite(local):
         ["--list", "--grep", pattern],
         ["--grep", pattern],
     ]
+
+
+def test_e2e_storm_suite(local):
+    """BP-W-02 the suite storm runs the tests tagged @storm, which the run without a suite leaves out (P-28)."""
+    result, calls = local("e2e", "storm", STUB_LIST="Error: No tests found")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert playwright_runs(calls) == [
+        ["--grep-invert", "@ai-down", "--grep", "@storm"],
+        ["--list", "--grep", "(?=.*@ai-down)(?=.*@storm)"],
+    ]
+
+
+def test_e2e_makes_the_node_modules_mount_point(local):
+    """BP-W-02 e2e makes tests/e2e/node_modules, the mount point of the container's tmpfs (P-28)."""
+    root = local.home.parent / "repository"
+    assert not (root / "tests" / "e2e" / "node_modules").exists()
+    result, _calls = local("e2e", STUB_LIST="Error: No tests found")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert (root / "tests" / "e2e" / "node_modules").is_dir()
+    compose = (ROOT / "deploy" / "local" / "compose.yaml").read_text(encoding="utf-8")
+    assert "type: tmpfs\n        target: /e2e/tests/node_modules" in compose
 
 
 def test_logs(local):
