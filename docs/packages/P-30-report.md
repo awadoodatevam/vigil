@@ -101,4 +101,4 @@ Done-check item 3, in the build session (cloud, lab profile `test`, mode `immedi
 
 ## 12. Pull request
 
-Opened with the GitHub tool (see the session); title "P-30: Mobile Acknowledge and Approval pages", base `main`.
+Opened with the GitHub tool: [awadoodatevam/vigil#35](https://github.com/awadoodatevam/vigil/pull/35), "P-30: Mobile Acknowledge and Approval pages", base `main`.
