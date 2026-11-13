@@ -1,0 +1,100 @@
+# P-27 owner-run step on the Mac (spec Section 6.9), 13 Nov 2026, branch p-27-headless-storm-acceptance at 4c73aeb.
+# Copied from the owner's terminal (the commands ran without tee); Docker build output and compose progress lines are
+# shortened as the terminal showed them. Instead of waiting 16 minutes after `up`, the owner checked that no file under
+# /data had changed in the last 15 minutes (the lab volume was kept from earlier runs), which is what the wait ensures.
+
+$ deploy/local.sh up --profile demo
+[ERROR] include: **/*.{test,spec}.?(c|m)[jt]s?(x)
+[ERROR] exclude:  **/node_modules/**, **/.git/**
+[ERROR]
+(images vigil/vigil-app:local, vigil/dev-fakes:local, vigil/e2e:local and vigil/storm-driver:local built)
+[+] up 12/12
+ ✔ Network vigil-local_lab-net Created
+ ✔ Container lab-db-01         Healthy
+ ✔ Container lab-alertmanager  Started
+ ✔ Container lab-zabbix-db     Healthy
+ ✔ Container lab-rpt-01        Healthy
+ ✔ Container lab-api-01        Healthy
+ ✔ Container lab-zabbix-server Started
+ ... 5 more
+[+] up 4/4
+ ✔ Container lab-zabbix-web       Running
+ ✔ Container lab-zabbix-server    Running
+ ✔ Container lab-zabbix-db        Healthy
+ ✔ Container lab-zabbix-provision Started
+[+] up 11/11
+ ✔ Network vigil-local_vigil-net Created
+ ✔ Container claude-fake         Started
+ ✔ Container openai-fake         Started
+ ✔ Container mailpit             Started
+ ✔ Container jira-fake           Started
+ ✔ Container ollama-llm-fake     Started
+ ✔ Container ollama-embed-fake   Started
+ ... 4 more
+Tenant 01a1d364-1c70-76e0-8c67-a1672265a766 is ready at demo.vigil.test.
+Vigil: http://demo.vigil.test:8080 (user presenter; password in /Users/awadood/.vigil-local/vigil-local/secrets/vigil-app/seed-password-presenter)
+
+$ docker exec lab-db-01 find /data -xdev -type f -cmin -15 | wc -l
+       0
+
+$ tests/acceptance/storm/run.sh --mode script
+[+] run 1/1
+ ✔ Container vigil-local-storm-driver-run-2b8591615874 Created
+step 1 Reset: tenant 01a1d372-f2c4-74c9-8ecd-817fc2ab6903, {"branch_a_seconds": 12.099, "quiet_seconds": 0.032, "branch_b_seconds": 1.053, "total_seconds": 12.113}
+step 2 Starting state: three users logged in, sources healthy
+step 3 Script start: the storm is injected at once (T0 is the script's 01:00)
+step 4 Storm: SL-F-1 and SL-F-3 injected (T0 2026-11-13T05:48:20.524Z)
+step 5 Incidents: storm INC-0002, report INC-0001
+step 6 Acknowledge: http://demo.vigil.test:8080/m/acknowledge/01a1d373-2a54-7257-ab01-3290e1d0f4bf at 2026-11-13T05:54:50.583Z
+step 7 Approve: http://demo.vigil.test:8080/m/approve/01a1d379-16d1-7398-911b-09a25e69f996 approved at 2026-11-13T05:56:20.586Z
+step 8 Recovery: resolved at 2026-11-13T05:57:55.971Z, ticket NOC-2 Done
+PASS SB-SET-07 incident list empty
+PASS SB-SET-07 sources healthy
+PASS SB-V-38 seeded dashboard
+PASS SB-V-39 baselines
+PASS SB-R-06 two incidents
+PASS SB-S01 storm alerts
+PASS SB-S01 storm alert types
+PASS SB-S01 report alert
+PASS SB-S01 storm within 120 s
+PASS SB-S02 storm header
+PASS SB-S02 grouping reasons
+PASS SB-S02 report incident
+PASS SB-S03 diagnostics
+PASS SB-S03 diagnostic values
+PASS SB-S04 routing
+PASS SB-S04 investigation
+PASS SB-S05 ticket
+PASS SB-S05 incident messages
+PASS SB-S05 acknowledge page
+PASS SB-S05 timeline acknowledgement
+PASS SB-S06 similar incident
+PASS SB-S06 proposal
+PASS SB-S06 approval messages
+PASS SB-S06 approval page
+PASS SB-S06 decision
+PASS SB-S06 action executed once
+PASS SB-S06 action result
+PASS SB-S06 action values
+PASS SB-S07 recovery
+PASS SB-S07 resolved
+PASS SB-S07 ticket resolved
+PASS SB-S07 ticket comment
+PASS SB-S08 storm run
+PASS SB-S09 dashboard formulas
+PASS SB-S09 dashboard values
+PASS SB-TL-05 no escalation
+PASS SB-R-06 repeatability result
+result file storm-script-20261113T054808Z.json
+AR-Q-07 passed: no secret of the installation in the log of this run.
+
+$ deploy/local.sh down
+[+] down 24/24
+ ✔ Container openai-fake      Removed
+ ✔ Container lab-prometheus   Removed
+ ✔ Container teams-fake       Removed
+ ✔ Container lab-alertmanager Removed
+ ✔ Container vigil-app        Removed
+ ✔ Container ollama-llm-fake  Removed
+ ✔ Container mailpit          Removed
+ ... 17 more

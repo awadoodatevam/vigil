@@ -31,6 +31,7 @@ LOCAL_CONTEXTS = {
     "vigil/vigil-app:local": "app",
     "vigil/dev-fakes:local": "dev/fakes",
     "vigil/e2e:local": "tests/e2e",
+    "vigil/storm-driver:local": "tests/acceptance/storm",
 }
 
 
@@ -140,8 +141,9 @@ def test_test_skips_the_optional_and_local_images(tree):
     assert any(image.startswith("axllent/mailpit:") for image in pulled(calls))
 
 
-def test_local_builds_the_three_images(tree):
-    """BP-R-04 --local builds vigil-app from app/, the dev fakes and the Playwright image, each from its context."""
+def test_local_builds_the_four_images(tree):
+    """BP-R-04 --local builds vigil-app from app/, the dev fakes, the Playwright image and the storm driver, each from
+    its context."""
     result, calls = tree("--local")
     assert result.returncode == 0, result.stdout + result.stderr
     builds = [call for call in calls if call[0] == "build"]
