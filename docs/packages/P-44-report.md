@@ -6,7 +6,7 @@
 | Branch | `p-44-visual-design-system` |
 | Pin date (BP-R-08) | 13 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (Temurin 25.0.4.1) |
-| State | Built; the gate command passes (Section 10). In this session (done-check item 3): `deploy/local.sh up` (exit 0), `deploy/local.sh e2e` (38 of 38 passed: the 26 tests of P-28 and P-26 and the 12 of `look.spec.ts`), `VIGIL_STORM_RESULTS=$HOME/storm-results tests/acceptance/storm/with-playwright.sh` (exit 0: the eight `@storm` tests passed, the driver passed, AR-Q-07 passed) and `deploy/local.sh down --volumes` (exit 0); the eleven screenshots are committed under `tests/acceptance/results/P-44/` (Section 8). Owner-run steps (spec Section 6.10): not yet run (Section 8). |
+| State | Built; the gate command passes (Section 10). In this session (done-check item 3): `deploy/local.sh up` (exit 0), `deploy/local.sh e2e` (38 of 38 passed: the 26 tests of P-28 and P-26 and the 12 of `look.spec.ts`), `VIGIL_STORM_RESULTS=$HOME/storm-results tests/acceptance/storm/with-playwright.sh` (exit 0: the eight `@storm` tests passed, the driver passed, AR-Q-07 passed) and `deploy/local.sh down --volumes` (exit 0); the eleven screenshots are committed under `tests/acceptance/results/P-44/` (Section 8). Owner-run Mac step done on 13 Nov 2026 (`tests/acceptance/results/P-44-mac.txt`, commit `354aed1`, `demo` profile): `up`, the suites (38 of 38), `with-playwright.sh` (the eight `@storm` tests, 33 of 33 driver checks, AR-Q-07), a second driver run for the look in the browser (33 of 33) and `down` (Section 8). Not in that commit: the folder `tests/acceptance/results/P-44-mac/` of the Mac's screenshots and a note of the look in the browser; the label `e2e` is not yet on the pull request (Section 8). |
 
 ## 1. What was built
 
@@ -90,11 +90,18 @@ None.
 
 ## 7. Values recorded under `docs/`
 
-None under `docs/` besides this report. The files of spec Section 9: `tests/acceptance/results/P-44/` (the eleven screenshots of this session: `login-1280`, `login-360`, `login-refused`, `login-signed-out`, `no-access-1280`, `not-found-1280`, `unknown-host`, `incidents-empty-1280`, `incidents-storm-grouping`, `incidents-storm-open`, `incidents-storm-rows`); `tests/acceptance/results/P-44-mac.txt` and `P-44-mac/` are the owner's (Section 8).
+None under `docs/` besides this report. The files of spec Section 9: `tests/acceptance/results/P-44/` (the eleven screenshots of this session: `login-1280`, `login-360`, `login-refused`, `login-signed-out`, `no-access-1280`, `not-found-1280`, `unknown-host`, `incidents-empty-1280`, `incidents-storm-grouping`, `incidents-storm-open`, `incidents-storm-rows`); the owner's `tests/acceptance/results/P-44-mac.txt` (commit `354aed1`) with the driver's result files `tests/acceptance/results/storm-immediate-20261113T161643Z.json` and `storm-immediate-20261113T162306Z.json`; `tests/acceptance/results/P-44-mac/` is not in the branch yet (Section 8).
 
 ## 8. Owner-run results
 
-Not yet run. The owner runs spec Section 6.10 on the Mac (`deploy/local.sh up --profile demo`, `deploy/local.sh e2e`, `tests/acceptance/storm/with-playwright.sh`, the eleven screenshots into `tests/acceptance/results/P-44-mac/`, a look in the browser during a second storm, `deploy/local.sh down`), commits `P-44-mac.txt` and `P-44-mac/`, and adds the label `e2e` to the pull request.
+Owner-run on the Mac, 13 Nov 2026 (spec Section 6.10; `tests/acceptance/results/P-44-mac.txt`, commit `354aed1`; lab profile `demo`, deliveries `fakes`):
+
+- `deploy/local.sh up --profile demo`: the images built, "Tenant 01a1d5b1-9668-75da-bf04-764ec50582f4 is ready at demo.vigil.test.".
+- `deploy/local.sh e2e`: **38 passed** (10.4 s, 4 workers): `smoke.spec.ts` 4, `login.spec.ts` 18, `incidents.spec.ts` 4, `look.spec.ts` 12. "VD-R-09 …" printed the same two font files as in the cloud session: `inter-latin-wght-normal-Dx4kXJAl.woff2` and `jetbrains-mono-latin-wght-normal-B9CIFXIH.woff2`, both from `http://demo.vigil.test:8080/assets/` (VD-ASM-01 holds on the Mac too).
+- `tests/acceptance/storm/with-playwright.sh` (mode `immediate`): the suite `storm` **8 passed** (3.1 min): DC-S01-04 (15.0 s), DC-S02-05, DC-S02-03 (1.2 min), SL-A1-02 (1.7 min), DC-U-08, VD-L-03, VD-C-07, DC-S02-04. The driver: reset 12.2 s (branch A 12.1 s, quiet 0.05 s, branch B 1.0 s); storm `INC-0002` (ticket `NOC-2`), report `INC-0001` (ticket `NOC-1`); **33 of 33** checks passed (4 under `not_run`, those of mode `script`), `passed: true` (`storm-immediate-20261113T161643Z.json`); "AR-Q-07 passed: no secret of the installation in the log of this run."
+- The look in the browser: the owner's second `tests/acceptance/storm/run.sh` (mode `immediate`) left `storm-immediate-20261113T162306Z.json`: reset 18.3 s (branch A 18.2 s, quiet 6.1 s, branch B 1.1 s), storm `INC-0002` (ticket `NOC-4`), report `INC-0001` (ticket `NOC-3`), **33 of 33** checks, `passed: true`. That run's console output and its AR-Q-07 line are not in `P-44-mac.txt`, and the file records no note of what was seen in the browser; the owner reviews that in the pull request (spec Section 10 item 4).
+- `deploy/local.sh down`: every container and both networks removed.
+- **Not yet done** (spec Section 6.10): the Mac's eleven screenshots are not committed (`tests/acceptance/results/P-44-mac/` does not exist on the branch; `P-44-mac.txt` has no copy step), and the label `e2e` is not on the pull request: `e2e.yml` runs 12 (`6d0d21c`) and 13 (`354aed1`) were skipped. The `ci.yml` job `gate` passed on `354aed1` (light gate: the commit changes only data paths).
 
 Done-check item 3, in the build session (cloud, lab profile `test`):
 
@@ -119,3 +126,4 @@ Font files of `npm run build` (VD-ASM-01; `dist/assets/`, bytes): Inter `latin` 
 - P-30: the destructive button, the confirmation dialog (`rgba(11, 21, 38, 0.5)` overlay) and the mobile layout (VD-L-04, controls at least 44px high).
 - P-31: the control panel's look is not bound by `45-visual-design`.
 - `CLAUDE.md`'s Maven note: Section 4 item 1.
+- The owner: commit `tests/acceptance/results/P-44-mac/` (`mkdir -p tests/acceptance/results/P-44-mac && cp ~/.vigil-local/vigil-local/e2e/screens/*.png tests/acceptance/results/P-44-mac/`, while the screens of the Mac run are still in that folder) and add the label `e2e` (Section 8).
