@@ -43,7 +43,7 @@ Under `docs/` you MAY change only: your package report; the values your spec nam
 | What | Command |
 | --- | --- |
 | Every check a package MUST pass (setup version, Java and web build and tests, Python checks and tests, shell checks, data checks, compose validation, traceability) | `tools/check-all.sh` (`--part java` or `--part rest`: one half, as `ci.yml` runs it; from P-42) |
-| Java and web build and tests only | `./mvnw -B verify` |
+| Java and web build and tests only (runs `npm run generate` first) | `./mvnw -B verify` |
 | Data checks | `/opt/vigil-tools/bin/python docs/31-demo-data/tools/check_data.py docs/31-demo-data` |
 | Lines of production code added and changed | `tools/loc.sh origin/main HEAD` |
 | Requirement IDs with and without tests | `tools/trace.py` |
@@ -54,6 +54,7 @@ Under `docs/` you MAY change only: your package report; the values your spec nam
 | Build the local images that tests use (from P-03); the images of a local installation (from P-26) | `deploy/images.sh --test` (the gate command runs it); `deploy/images.sh --local` (`deploy/local.sh up` runs it) |
 | Storm driver (from P-27) | `tests/acceptance/storm/run.sh [--mode immediate|script] [--deliveries fakes|checklist] [--project NAME]` |
 | Playwright tests (from P-26) | `deploy/local.sh e2e [suite]` |
+| Storm driver with the Playwright suite `storm` (from P-28) | `tests/acceptance/storm/with-playwright.sh [--mode immediate|script] [--project NAME]` |
 | Demo installation on AWS (owner-run, from the Mac; P-05): edge, secrets, images, deployment, status, GPU host, models | `deploy/edge.md` (the scripts `deploy/edge.sh`, `new-installation.sh`, `build.sh`, `deploy.sh`, `status.sh`, `gpu.sh`, `models.sh`) |
 
 Builds with Testcontainers take longer than 2 minutes: run them with a longer timeout or in the background and wait for the result. A foreground command stops waiting after at most 10 minutes. In cloud sessions use the lab profile `test`.

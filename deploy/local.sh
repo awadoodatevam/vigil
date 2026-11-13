@@ -637,8 +637,10 @@ logs() {
   fi
 }
 
-# Runs Playwright in the e2e container: {pw} of the P-26 spec Section 6.3 with the given arguments.
+# Runs Playwright in the e2e container: {pw} of the P-26 spec Section 6.3 with the given arguments. The folder
+# tests/e2e/node_modules is the mount point of the container's tmpfs, which hides the host's node_modules (P-28).
 playwright() {
+  mkdir -p tests/e2e/node_modules
   docker compose -f "$COMPOSE_FILE" -p "$PROJECT" --profile e2e run --rm e2e \
     /e2e/node_modules/.bin/playwright test -c /e2e/tests/playwright.config.ts "$@"
 }
@@ -658,7 +660,7 @@ e2e() {
     playwright --grep-invert @ai-down --grep "@$suite" || status=1
     pattern="(?=.*@ai-down)(?=.*@$suite)"
   else
-    playwright --grep-invert @ai-down || status=1
+    playwright --grep-invert "@ai-down|@storm" || status=1
   fi
   listing=$(playwright --list --grep "$pattern" 2>&1 || true)
   count=$(printf '%s\n' "$listing" | sed -n 's/^Total: \([0-9][0-9]*\) test.*/\1/p' | head -n 1)
