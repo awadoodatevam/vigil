@@ -110,7 +110,6 @@
   background: var(--vd-surface);
   border: 1px solid var(--vd-gray-500);
   border-radius: var(--vd-radius-sm);
-  transition: border-color var(--vd-fast);
 }
 
 .field input:focus {

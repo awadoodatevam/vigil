@@ -118,7 +118,6 @@
   font-weight: 500;
   color: var(--vd-on-navy-3);
   border-bottom: 2px solid transparent;
-  transition: color var(--vd-fast);
 }
 
 .navItem:hover,
