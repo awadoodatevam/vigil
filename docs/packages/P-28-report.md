@@ -6,7 +6,7 @@
 | Branch | `p-28-web-foundation-login-list` |
 | Pin date (BP-R-08) | 13 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (Temurin 25.0.4.1) |
-| State | Built. In this session (done-check item 3): `deploy/local.sh up` (exit 0), `deploy/local.sh e2e` (26 of 26 passed), `VIGIL_STORM_RESULTS=$HOME/storm-results tests/acceptance/storm/with-playwright.sh` (exit 0: the six `@storm` tests passed, the driver passed every check, AR-Q-07 passed) and `deploy/local.sh down --volumes` (exit 0) (Section 8); the gate command passes (Section 10). Open: the owner-run Mac step of spec Section 6.12 and the label `e2e` on the pull request. |
+| State | Built. In this session (done-check item 3): `deploy/local.sh up` (exit 0), `deploy/local.sh e2e` (26 of 26 passed), `VIGIL_STORM_RESULTS=$HOME/storm-results tests/acceptance/storm/with-playwright.sh` (exit 0: the six `@storm` tests passed, the driver passed every check, AR-Q-07 passed) and `deploy/local.sh down --volumes` (exit 0) (Section 8); the gate command passes (Section 10). Owner-run Mac step done on 13 Nov 2026 (`tests/acceptance/results/P-28-mac.txt`, `demo` profile): `up`, the suites (26 of 26), `with-playwright.sh` (the six `@storm` tests, 33 of 33 driver checks, AR-Q-07), a second driver run for the browser look (33 of 33) and `down` (Section 8). The label `e2e` is on the pull request and `e2e.yml` run 10 on `941f0e7` passed (Section 8). |
 
 ## 1. What was built
 
@@ -95,13 +95,20 @@ None.
 
 ## 7. Values recorded under `docs/`
 
-None yet: `tests/acceptance/results/P-28-mac.txt` is written by the owner-run step (spec Section 9).
+The file of spec Section 9, committed by the owner (commit `941f0e7`): `tests/acceptance/results/P-28-mac.txt`, with the driver's result files `tests/acceptance/results/storm-immediate-20261113T093151Z.json` and `storm-immediate-20261113T093626Z.json`. No other file under `docs/` is changed.
 
 ## 8. Owner-run results
 
-Owner-run on the Mac (spec Section 6.12): not yet run; the owner runs `deploy/local.sh up --profile demo`, `deploy/local.sh e2e`, `tests/acceptance/storm/with-playwright.sh`, the look at the login and the list in a browser during a storm, and `deploy/local.sh down`, into `tests/acceptance/results/P-28-mac.txt`, and adds the label `e2e` to the pull request.
+Owner-run on the Mac, 13 Nov 2026 (spec Section 6.12; `tests/acceptance/results/P-28-mac.txt`, commit `941f0e7`; lab profile `demo`, deliveries `fakes`):
 
-Done-check item 3, in this session (cloud, lab profile `test`):
+- `deploy/local.sh up --profile demo`: the images built, "Tenant 01a1d43f-24ae-7144-b1e8-643c6c521ba5 is ready at demo.vigil.test.".
+- `deploy/local.sh e2e`: **26 passed** (7.9 s, 3 workers): `smoke.spec.ts` 4, `login.spec.ts` 18, `incidents.spec.ts` 4 (DC-S02-01 with "Times in UTC+05:00", DC-S02-02 on the tenant without alerts).
+- `tests/acceptance/storm/with-playwright.sh` (mode `immediate`): the suite `storm` **6 passed** (3.2 min): DC-S01-04 (16.0 s), DC-S02-05, DC-S02-03 (1.2 min), SL-A1-02 (1.7 min), DC-U-08, DC-S02-04. The driver: reset 12.2 s (branch A 12.2 s, quiet 0.05 s, branch B 1.0 s); storm `INC-0002` (ticket `NOC-2`), report `INC-0001` (ticket `NOC-1`); **33 of 33** checks passed (4 under `not_run`, those of mode `script`), `passed: true` (`storm-immediate-20261113T093151Z.json`); "AR-Q-07 passed: no secret of the installation in the log of this run." No line "The storm suite did not start." and no failure in the file, so the script exited 0.
+- The look in the browser: the owner's second `tests/acceptance/storm/run.sh` (mode `immediate`) left `storm-immediate-20261113T093626Z.json`: reset 18.3 s (branch A 18.2 s, quiet 6.1 s, after the first run's SL-F-3 alert; branch B 1.1 s), storm `INC-0002` (ticket `NOC-4`), report `INC-0001` (ticket `NOC-3`; the Jira fake keeps its issues across resets), **33 of 33** checks, `passed: true`. That run's console output and its AR-Q-07 line are not in `P-28-mac.txt`, and the file records no note of what was seen in the browser (banner, header, strip, rows); the owner reviews that in the pull request (spec Section 10 item 5).
+- `deploy/local.sh down`: every container and both networks removed.
+- The label `e2e` on the pull request: added by the owner; `e2e.yml` [run 10](https://github.com/awadoodatevam/vigil/actions/runs/43403919012) on `941f0e7` **passed** in 7 min 36 s: `test images`, `local installation` (2 min 31 s), `playwright suites` (11 s), `storm with the incident list` (3 min 12 s) all succeeded; the failure steps were skipped. The earlier runs 8 and 9 were skipped (no label yet).
+
+Done-check item 3, in the build session (cloud, lab profile `test`):
 
 - `deploy/images.sh --test` then `deploy/local.sh up`: exit 0, "Tenant … is ready at demo.vigil.test." (after the retry of Section 4 item 3).
 - `deploy/local.sh e2e`: **26 passed** (12.3 s): `login.spec.ts` 18, `incidents.spec.ts` 4, `smoke.spec.ts` 4; the `@ai-down` listing found no test.
