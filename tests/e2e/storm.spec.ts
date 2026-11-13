@@ -2,7 +2,7 @@
 // tests/acceptance/storm/with-playwright.sh starts before the driver. One serial file sharing one page.
 import { writeFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
-import { fillSignIn, signIn } from "./helpers";
+import { fillSignIn, screenshot, signIn } from "./helpers";
 
 const READY = "/e2e/run/storm-ready";
 const MINUTE = 60 * 1000;
@@ -95,9 +95,13 @@ test(
       for (const row of now.rows) {
         expect(row[0]).toMatch(/^INC-\d{4,}$/);
       }
-      seen.grouping ||= now.strip.some((text) =>
+      const grouping = now.strip.some((text) =>
         /^Grouping in progress: \d+ alerts? (is|are) being grouped$/.test(text),
       );
+      if (grouping && !seen.grouping) {
+        await screenshot(page, "incidents-storm-grouping");
+      }
+      seen.grouping ||= grouping;
       seen.received ||= now.strip.includes(
         "Alerts received in the last 10 minutes: 127",
       );
@@ -137,6 +141,7 @@ test("SL-A1-02 the storm and report rows", { tag: "@storm" }, async () => {
     await expect(cell(report, 7)).toHaveText("1", { timeout: 0 });
     await expect(cell(report, 6)).toHaveText("No", { timeout: 0 });
   }).toPass({ timeout: 20 * MINUTE });
+  await screenshot(page, "incidents-storm-open");
   const numbers = (await table.locator("td:first-child").allTextContents()).map(
     (text) => Number(text.slice(4)),
   );
@@ -162,6 +167,44 @@ test(
     ).toBe("P-28");
   },
 );
+
+test("VD-L-03 the incident table fits 1280 px", { tag: "@storm" }, async () => {
+  await expect(page.locator("tbody tr")).toHaveCount(2);
+  expect(page.viewportSize()?.width).toBe(1280);
+  const sizes = await page.evaluate(() => {
+    const table = document.querySelector("table")!;
+    return {
+      scrollWidth: document.documentElement.scrollWidth,
+      table: table.getBoundingClientRect().width,
+      card: table.parentElement!.clientWidth,
+    };
+  });
+  expect(sizes.scrollWidth).toBeLessThanOrEqual(1280);
+  expect(sizes.table).toBeLessThanOrEqual(sizes.card);
+});
+
+test("VD-C-07 the badge and chip colours", { tag: "@storm" }, async () => {
+  const table = page.locator("tbody tr");
+  const background = (row: string, column: number) =>
+    table
+      .filter({ hasText: row })
+      .locator("td")
+      .nth(column)
+      .locator("span")
+      .first()
+      .evaluate((element) => getComputedStyle(element).backgroundColor);
+  expect(await background(STORM_TITLE, 2)).toBe("rgb(217, 45, 32)");
+  await expect(
+    table.filter({ hasText: STORM_TITLE }).locator("td").nth(3),
+  ).toHaveText("Resolved");
+  expect(await background(STORM_TITLE, 3)).toBe("rgb(232, 247, 238)");
+  expect(await background(REPORT_TITLE, 2)).toBe("rgb(230, 234, 240)");
+  await expect(
+    table.filter({ hasText: REPORT_TITLE }).locator("td").nth(3),
+  ).toHaveText("Open");
+  expect(await background(REPORT_TITLE, 3)).toBe("rgb(234, 242, 255)");
+  await screenshot(page, "incidents-storm-rows");
+});
 
 test(
   "DC-S02-04 a click on a row opens the incident's address",

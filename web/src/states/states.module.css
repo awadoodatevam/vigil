@@ -1,28 +1,132 @@
+/* The screen states of docs/45-visual-design.md (VD-C-11 to VD-C-15). */
+
+/* Loading (VD-C-13): a 16px spinner, 10px before "Loading…". */
 .loading {
-  padding: 16px 0;
-  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: var(--vd-space-4);
+  font-size: var(--vd-size-14);
+  color: var(--vd-text-3);
 }
 
+.spinner {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 2px solid var(--vd-gray-200);
+  border-top-color: var(--vd-accent-500);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* The empty state (VD-C-12) in a card (VD-C-04). */
 .empty {
-  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 56px var(--vd-space-6);
+  text-align: center;
+  background: var(--vd-surface);
+  border: 1px solid var(--vd-border);
+  border-radius: var(--vd-radius);
+  box-shadow: var(--vd-shadow-1);
 }
 
+.ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+  background: var(--vd-green-50);
+}
+
+.ring::after {
+  content: "";
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border: 3px solid var(--vd-green-600);
+  border-radius: 50%;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: var(--vd-size-16);
+  font-weight: 500;
+  color: var(--vd-gray-700);
+}
+
+/* PageError and PartError: the error notice (VD-C-11), "Try again" on the right of the message. */
 .error {
-  padding: 16px 0;
+  display: flex;
+  align-items: center;
+  gap: var(--vd-space-3);
+  padding: var(--vd-space-3) 14px;
+  font-size: var(--vd-size-14);
+  color: var(--vd-red-700);
+  background: var(--vd-red-50);
+  border: 1px solid var(--vd-red-200);
+  border-radius: var(--vd-radius-sm);
 }
 
 .message {
-  margin: 0 0 8px;
+  flex: 1;
+  margin: 0;
 }
 
+/* "Try again": the secondary button at 13px (VD-C-09, VD-C-11). */
+.error > button {
+  flex: none;
+  padding: 5px var(--vd-space-3);
+  font: inherit;
+  font-size: var(--vd-size-13);
+  font-weight: 600;
+  color: var(--vd-text);
+  background: var(--vd-surface);
+  border: 1px solid var(--vd-border);
+  border-radius: var(--vd-radius-sm);
+  box-shadow: var(--vd-shadow-1);
+  cursor: pointer;
+  transition: background var(--vd-fast);
+}
+
+.error > button:hover {
+  background: var(--vd-gray-25);
+}
+
+/* Action failed (VD-C-15). */
 .actionFailed {
-  margin: 4px 0 0;
-  color: var(--error);
+  margin: var(--vd-space-1) 0 0;
+  font-size: var(--vd-size-13);
+  color: var(--vd-red-700);
 }
 
+/* The live-interrupted bar (VD-C-14): full width under the header. */
 .interrupted {
   margin: 0;
-  padding: 6px 16px;
-  background: var(--notice-background);
-  color: var(--text);
+  padding: var(--vd-space-2) var(--vd-space-6);
+  font-size: var(--vd-size-13);
+  font-weight: 600;
+  color: var(--vd-orange-700);
+  background: var(--vd-orange-50);
+  border-bottom: 1px solid var(--vd-orange-200);
+}
+
+@media (max-width: 599px) {
+  .error {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

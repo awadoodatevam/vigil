@@ -8,6 +8,7 @@ import {
   PageError,
   PartError,
 } from "./states";
+import styles from "./states.module.css";
 
 const text = (html: string) => html.replace(/<[^>]+>/g, "");
 
@@ -49,4 +50,17 @@ it("DC-U-09 the error states have a Try again button", () => {
   expect(
     renderToStaticMarkup(<PartError reason="x" onTryAgain={() => {}} />),
   ).toContain('<button type="button">Try again</button>');
+});
+
+it("VD-C-12 the empty state has its ring and text", () => {
+  expect(renderToStaticMarkup(<Empty text="No incidents yet." />)).toBe(
+    `<div class="${styles.empty}"><span class="${styles.ring}" aria-hidden="true"></span>` +
+      `<p class="${styles.emptyText}">No incidents yet.</p></div>`,
+  );
+});
+
+it("VD-C-13 Loading has its spinner and the text Loading…", () => {
+  expect(renderToStaticMarkup(<Loading />)).toBe(
+    `<p class="${styles.loading}" role="status"><span class="${styles.spinner}" aria-hidden="true"></span>Loading…</p>`,
+  );
 });

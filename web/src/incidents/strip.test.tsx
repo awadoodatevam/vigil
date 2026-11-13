@@ -7,8 +7,23 @@ import { Strip } from "./Strip";
 
 const render = (value: ReturnType<typeof strip>) =>
   renderToStaticMarkup(<Strip strip={value} now={NOW} zone="UTC" />);
+// The separators of the lines' parts and of the sources become "|"; every other span (the wrapping of VD-C-05) is
+// removed, so the item texts read as before (P-44 spec Section 6.1 item 3).
+const SEPARATED = [
+  styles.source,
+  styles.latestTime,
+  styles.latestKind,
+  styles.latestType,
+  styles.latestTitle,
+];
 const text = (html: string) =>
-  html.replace(/<[^>]+>/g, "|").replace(/\|+/g, "|");
+  html
+    .replace(/<span class="([^"]*)">/g, (span, name: string) =>
+      SEPARATED.includes(name) ? "|" : span,
+    )
+    .replace(/<span[^>]*>|<\/span>/g, "")
+    .replace(/<[^>]+>/g, "|")
+    .replace(/\|+/g, "|");
 
 function latest(n: number) {
   return Array.from({ length: n }, (_, i) => ({
@@ -79,8 +94,12 @@ describe("Strip", () => {
         },
       }),
     );
-    expect(html).toContain(
-      `<p class="${styles.warning}">Monitoring: 0 of 2 sources healthy`,
+    const item = /<p class="([^"]*)">((?:(?!<\/p>).)*Monitoring:.*?)<\/p>/.exec(
+      html,
+    );
+    expect(item?.[1].split(" ")).toContain(styles.warning);
+    expect(text(item![2])).toBe(
+      "Monitoring: 0 of 2 sources healthy|Lab Alertmanager: Stale|Lab Zabbix: Disconnected",
     );
     expect(text(html)).toContain(
       "|Monitoring: 0 of 2 sources healthy|Lab Alertmanager: Stale|Lab Zabbix: Disconnected|",
@@ -120,5 +139,72 @@ describe("Strip", () => {
       "|Grouping in progress: 126 alerts are being grouped|",
     );
     expect(html.match(/<li>/g)).toHaveLength(10);
+  });
+
+  it("VD-C-05 the tiles, the grouping tile and the warning item", () => {
+    const items = (html: string) =>
+      [...html.matchAll(/<p class="([^"]*)">(.*?)<\/p>/g)].map((match) => ({
+        classes: match[1].split(" "),
+        parts: [
+          ...match[2].matchAll(/<span class="([^"]*)"[^>]*>([^<]*)/g),
+        ].map((part) => [part[1], part[2]]),
+      }));
+    const storm = render(
+      strip({
+        received_last_10_minutes: 127,
+        forming: { incidents: 1, alerts: 126 },
+        sources: {
+          healthy: 1,
+          total: 2,
+          not_healthy: [
+            { source_key: "lab-zabbix", name: "Lab Zabbix", health: "stale" },
+          ],
+        },
+        latest: latest(10),
+      }),
+    );
+    expect(items(storm)).toEqual([
+      {
+        classes: [styles.tile],
+        parts: [
+          [styles.label, "Alerts received in the last 10 minutes: "],
+          [styles.value, "127"],
+        ],
+      },
+      {
+        classes: [styles.tile, styles.grouping],
+        parts: [
+          [styles.label, ""],
+          [styles.pulse, ""],
+          [styles.value, "126 alerts are being grouped"],
+        ],
+      },
+      {
+        classes: [styles.tile, styles.warning],
+        parts: [
+          [styles.label, "Monitoring: "],
+          [styles.health, ""],
+          [styles.dot, ""],
+          [styles.source, "Lab Zabbix: Stale"],
+        ],
+      },
+    ]);
+    expect(storm).toContain(
+      `<span class="${styles.pulse}" aria-hidden="true"></span>Grouping in progress: </span>`,
+    );
+    expect(storm).toContain(
+      `<span class="${styles.dot}" aria-hidden="true"></span>1 of 2 sources healthy</span>`,
+    );
+    expect(storm).toContain(
+      `<ol class="${styles.latest}" aria-label="Latest alerts">`,
+    );
+    const quiet = render(strip());
+    expect(items(quiet).map((item) => item.classes)).toEqual([
+      [styles.tile],
+      [styles.tile],
+      [styles.feedEmpty],
+    ]);
+    expect(quiet).not.toContain(styles.grouping);
+    expect(quiet).not.toContain(styles.warning);
   });
 });

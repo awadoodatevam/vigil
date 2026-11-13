@@ -1,4 +1,4 @@
-// DC-S02-02 The incoming alerts strip (complete list of items, left to right).
+// DC-S02-02 The incoming alerts strip (complete list of items, left to right), as the tiles and feed of VD-C-05.
 import type { AlertStrip } from "../api/types";
 import { count, isAre, sourceKindName } from "../format/names";
 import { viewerTime } from "../format/time";
@@ -26,21 +26,36 @@ export function Strip({
       aria-label="Incoming alerts"
       data-testid="alerts-strip"
     >
-      <p className={styles.item}>
-        Alerts received in the last 10 minutes: {received}
+      <p className={styles.tile}>
+        <span className={styles.label}>
+          {"Alerts received in the last 10 minutes: "}
+        </span>
+        <span className={styles.value}>{received}</span>
       </p>
       {strip.forming.incidents >= 1 && (
-        <p className={styles.item}>
-          Grouping in progress: {count(strip.forming.alerts, "alert", "alerts")}{" "}
-          {isAre(strip.forming.alerts)} being grouped
+        <p className={`${styles.tile} ${styles.grouping}`}>
+          <span className={styles.label}>
+            <span className={styles.pulse} aria-hidden="true" />
+            {"Grouping in progress: "}
+          </span>
+          <span className={styles.value}>
+            {count(strip.forming.alerts, "alert", "alerts")}{" "}
+            {isAre(strip.forming.alerts)} being grouped
+          </span>
         </p>
       )}
       <p
         className={
-          sources.healthy < sources.total ? styles.warning : styles.item
+          sources.healthy < sources.total
+            ? `${styles.tile} ${styles.warning}`
+            : styles.tile
         }
       >
-        Monitoring: {sources.healthy} of {sources.total} sources healthy
+        <span className={styles.label}>{"Monitoring: "}</span>
+        <span className={styles.health}>
+          <span className={styles.dot} aria-hidden="true" />
+          {sources.healthy} of {sources.total} sources healthy
+        </span>
         {sources.not_healthy.map((source) => (
           <span key={source.source_key} className={styles.source}>
             {source.name}: {HEALTH[source.health]}
@@ -48,15 +63,19 @@ export function Strip({
         ))}
       </p>
       {received === 0 ? (
-        <p className={styles.item}>No alerts in the last 10 minutes.</p>
+        <p className={styles.feedEmpty}>No alerts in the last 10 minutes.</p>
       ) : (
         <ol className={styles.latest} aria-label="Latest alerts">
           {strip.latest.map((alert) => (
             <li key={alert.alert_id}>
-              <span>{viewerTime(alert.first_received_at, now, zone)}</span>
-              <span>{sourceKindName(alert.source_kind)}</span>
-              <span>{alert.alert_type_name}</span>
-              <span>{alert.title}</span>
+              <span className={styles.latestTime}>
+                {viewerTime(alert.first_received_at, now, zone)}
+              </span>
+              <span className={styles.latestKind}>
+                {sourceKindName(alert.source_kind)}
+              </span>
+              <span className={styles.latestType}>{alert.alert_type_name}</span>
+              <span className={styles.latestTitle}>{alert.title}</span>
             </li>
           ))}
         </ol>

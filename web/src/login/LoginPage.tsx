@@ -73,50 +73,54 @@ export function LoginPage({ branding }: { branding: TenantSettings }) {
     <>
       <Banner label={branding.environment_label} />
       <div className={styles.page}>
-        <span className={styles.product}>{branding.product_display_name}</span>
-        <Customer settings={branding} />
-        {message !== null && <p className={styles.message}>{message}</p>}
-        <h1 className={styles.heading}>Sign in</h1>
-        {session.isPending ? (
-          <Loading />
-        ) : (
-          <form
-            className={styles.form}
-            onSubmit={(event) => void signIn(event)}
-          >
-            <label className={styles.field}>
-              Username
-              <input
-                type="text"
-                name="username"
-                autoComplete="username"
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-              />
-            </label>
-            <label className={styles.field}>
-              Password
-              <input
-                type="password"
-                name="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
-            </label>
-            <button type="submit" disabled={running}>
-              Sign in
-            </button>
-            {refusal !== null && (
-              <p className={styles.refusal} role="alert">
-                {refusal}
-              </p>
-            )}
-            {failure !== null && (
-              <ActionFailed action="sign in" reason={failure} />
-            )}
-          </form>
-        )}
+        <div className={styles.card}>
+          <span className={styles.product}>
+            {branding.product_display_name}
+          </span>
+          <Customer settings={branding} place="login" />
+          {message !== null && <p className={styles.message}>{message}</p>}
+          <h1 className={styles.heading}>Sign in</h1>
+          {session.isPending ? (
+            <Loading />
+          ) : (
+            <form
+              className={styles.form}
+              onSubmit={(event) => void signIn(event)}
+            >
+              <label className={styles.field}>
+                Username
+                <input
+                  type="text"
+                  name="username"
+                  autoComplete="username"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                />
+              </label>
+              <label className={styles.field}>
+                Password
+                <input
+                  type="password"
+                  name="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+              </label>
+              <button type="submit" disabled={running}>
+                Sign in
+              </button>
+              {refusal !== null && (
+                <p className={styles.refusal} role="alert">
+                  {refusal}
+                </p>
+              )}
+              {failure !== null && (
+                <ActionFailed action="sign in" reason={failure} />
+              )}
+            </form>
+          )}
+        </div>
       </div>
     </>
   );

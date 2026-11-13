@@ -177,3 +177,15 @@ def test_node_modules_are_not_read(tmp_path, capsys):
     assert "AR-W-01" in capsys.readouterr().out
     write(tmp_path, "tests/e2e/flow.spec.ts", "test('AR-W-01 routes', async () => {});\n")
     assert trace_module.main(["--check"], tmp_path) == 0
+
+
+def test_vd_ids_are_read(tmp_path, capsys):
+    """BP-R-15 VD- IDs are read in part 4 and in test titles."""
+    spec(tmp_path, ["| VD-R-04 | | test |\n", "| VD-C-01 | | test |\n"])
+    write(tmp_path, "web/src/app/tokens.test.ts", "it('VD-R-04 the tokens', () => {});\n")
+    assert trace_module.main(["--check"], tmp_path) == 1
+    out = capsys.readouterr().out
+    assert "VD-C-01" in out
+    assert "VD-R-04" not in out
+    write(tmp_path, "tests/e2e/look.spec.ts", 'test("VD-C-01 the banner", async () => {});\n')
+    assert trace_module.main(["--check"], tmp_path) == 0

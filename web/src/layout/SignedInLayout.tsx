@@ -95,7 +95,9 @@ export function SignedInLayout(props: SignedInLayoutProps) {
     return (
       <>
         <Banner label={branding.data?.environment_label} />
-        <Loading />
+        <div className={styles.content}>
+          <Loading />
+        </div>
       </>
     );
   }

@@ -1,41 +1,178 @@
+/* The login page and the no-access text of docs/45-visual-design.md (VD-S-01, VD-S-02, VD-C-09 to VD-C-11). */
+
 .page {
   display: flex;
-  flex-direction: column;
-  max-width: 360px;
-  margin: 0 auto;
-  padding: 24px 16px;
-  gap: 12px;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: var(--vd-space-10) var(--vd-space-5);
+  background-color: var(--vd-navy-900);
+  background-image:
+    radial-gradient(1200px 500px at 10% -10%, #24406f 0%, transparent 60%),
+    radial-gradient(900px 500px at 110% 110%, #1b3d73 0%, transparent 55%);
 }
 
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 424px;
+  box-sizing: border-box;
+  padding: var(--vd-space-8) var(--vd-space-8) 28px;
+  background: var(--vd-surface);
+  border-radius: var(--vd-radius-lg);
+  box-shadow: var(--vd-shadow-2);
+}
+
+/* The mark and {product} (the login role), the mark drawn as on the header (VD-C-02). */
 .product {
-  font-size: 1.5rem;
+  position: relative;
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: var(--vd-space-4);
+  font-size: var(--vd-size-20);
   font-weight: 700;
+  color: var(--vd-navy-900);
+}
+
+.product::before {
+  content: "";
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, var(--vd-accent-500), #5aa2ff);
+}
+
+.product::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 7px;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  box-sizing: border-box;
+  border: 2.5px solid #ffffff;
+  border-right-color: transparent;
+  border-radius: 50%;
+  transform: rotate(-30deg);
+}
+
+/* The messages of DC-S01-04: an info notice. */
+.message {
+  margin: 0 0 var(--vd-space-4);
+  padding: var(--vd-space-3) 14px;
+  font-size: var(--vd-size-14);
+  color: var(--vd-accent-700);
+  background: var(--vd-accent-50);
+  border: 1px solid var(--vd-accent-100);
+  border-radius: var(--vd-radius-sm);
 }
 
 .heading {
-  margin: 8px 0 0;
-  font-size: 1.25rem;
-}
-
-.message {
-  margin: 0;
-  padding: 8px;
-  background: var(--notice-background);
+  margin: 0 0 var(--vd-space-4);
+  font-size: var(--vd-size-20);
+  line-height: 28px;
+  letter-spacing: -0.01em;
+  font-weight: 650;
+  color: var(--vd-text);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 
+/* The fields (VD-C-10): the label above its input, 6px apart, 16px between fields. */
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  font-size: var(--vd-size-13);
+  font-weight: 600;
+  color: var(--vd-gray-700);
 }
 
+.field + .field {
+  margin-top: var(--vd-space-4);
+}
+
+.field input {
+  padding: 10px var(--vd-space-3);
+  font: inherit;
+  font-size: var(--vd-size-15);
+  font-weight: 400;
+  color: var(--vd-text);
+  background: var(--vd-surface);
+  border: 1px solid var(--vd-gray-500);
+  border-radius: var(--vd-radius-sm);
+  transition: border-color var(--vd-fast);
+}
+
+.field input:focus {
+  border-color: var(--vd-accent-500);
+}
+
+/* "Sign in": the primary button, full width (VD-C-09, VD-S-01). */
+.form > button {
+  width: 100%;
+  margin-top: var(--vd-space-6);
+  padding: 11px var(--vd-space-4);
+  font: inherit;
+  font-size: var(--vd-size-14);
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--vd-accent-500);
+  border: 1px solid var(--vd-accent-500);
+  border-radius: var(--vd-radius-sm);
+  cursor: pointer;
+  transition:
+    background var(--vd-fast),
+    border-color var(--vd-fast);
+}
+
+.form > button:hover {
+  background: var(--vd-accent-600);
+  border-color: var(--vd-accent-600);
+}
+
+.form > button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* The refusal: an error notice under the button (VD-C-11). */
 .refusal {
+  margin: var(--vd-space-3) 0 0;
+  padding: var(--vd-space-3) 14px;
+  font-size: var(--vd-size-14);
+  color: var(--vd-red-700);
+  background: var(--vd-red-50);
+  border: 1px solid var(--vd-red-200);
+  border-radius: var(--vd-radius-sm);
+}
+
+/* VD-S-02: the no-access text in a card. */
+.noAccess {
   margin: 0;
-  color: var(--error);
+  padding: var(--vd-space-6);
+  font-size: var(--vd-size-15);
+  background: var(--vd-surface);
+  border: 1px solid var(--vd-border);
+  border-radius: var(--vd-radius);
+  box-shadow: var(--vd-shadow-1);
+}
+
+@media (max-width: 599px) {
+  .page {
+    padding: var(--vd-space-6) 14px;
+  }
+
+  .card {
+    padding: 26px 22px;
+  }
 }
