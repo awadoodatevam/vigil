@@ -57,7 +57,9 @@ it("DC-U-09 PartError in the table when only the rows fail; the strip is shown",
     { data: strip(), failure: null },
     { rows: undefined, failure: "No connection." },
   );
-  expect(html).toContain("Alerts received in the last 10 minutes: 0");
+  expect(html.replace(/<[^>]+>/g, "")).toContain(
+    "Alerts received in the last 10 minutes: 0",
+  );
   expect(html).toContain("Could not load this part. No connection.");
   expect(html).not.toContain("Could not load this page.");
 });

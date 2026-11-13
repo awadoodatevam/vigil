@@ -5,6 +5,7 @@ import styles from "./states.module.css";
 export function Loading() {
   return (
     <p className={styles.loading} role="status">
+      <span className={styles.spinner} aria-hidden="true" />
       Loading…
     </p>
   );
@@ -12,7 +13,12 @@ export function Loading() {
 
 /** The screen's empty text. */
 export function Empty({ text }: { text: string }) {
-  return <p className={styles.empty}>{text}</p>;
+  return (
+    <div className={styles.empty}>
+      <span className={styles.ring} aria-hidden="true" />
+      <p className={styles.emptyText}>{text}</p>
+    </div>
+  );
 }
 
 interface ErrorProps {

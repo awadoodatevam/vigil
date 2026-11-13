@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { SignedInLayout } from "../layout/SignedInLayout";
 import { brandingQuery, tenantQuery } from "../session/queries";
+import styles from "./login.module.css";
 
 export function NoAccessPage() {
   return (
@@ -23,7 +24,7 @@ function NoAccess() {
   return (
     <>
       <h1>No access</h1>
-      <p>
+      <p className={styles.noAccess}>
         There is nothing to show here for your account. Open the link in your{" "}
         {product} message to acknowledge or approve.
       </p>

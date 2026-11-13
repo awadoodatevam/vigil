@@ -1,65 +1,231 @@
+/* The banner, header and desktop page of docs/45-visual-design.md (VD-C-01, VD-C-02, VD-C-15, VD-L-01). */
+
 .banner {
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 20;
   width: 100%;
+  min-height: 30px;
   box-sizing: border-box;
-  padding: 6px 16px;
-  background: var(--banner-background);
-  color: var(--banner-text);
-  font-weight: 600;
+  padding: 6px var(--vd-space-4);
   text-align: center;
+  font-size: var(--vd-size-13);
+  font-weight: 600;
+  color: var(--vd-banner-text);
+  background-color: var(--vd-banner);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(0, 0, 0, 0.06) 0 10px,
+    transparent 10px 20px
+  );
 }
 
 .header {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 8px 24px;
-  padding: 8px 16px;
-  background: var(--header-background);
-  border-bottom: 1px solid var(--border);
+  gap: var(--vd-space-6);
+  height: 56px;
+  box-sizing: border-box;
+  padding: 0 var(--vd-space-6);
+  background: var(--vd-navy-900);
+  color: var(--vd-on-navy-2);
 }
 
+/* The product with its mark, drawn by the element's own ::before and ::after (VD-C-02). */
 .product {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--vd-size-16);
   font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--vd-on-navy);
 }
 
-.logo {
+.product::before {
+  content: "";
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, var(--vd-accent-500), #5aa2ff);
+}
+
+.product::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 7px;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  box-sizing: border-box;
+  border: 2.5px solid #ffffff;
+  border-right-color: transparent;
+  border-radius: 50%;
+  transform: rotate(-30deg);
+}
+
+.customerHeader {
+  padding: 3px 9px;
+  font-size: var(--vd-size-12);
+  font-weight: 600;
+  color: var(--vd-on-navy-2);
+  background: var(--vd-navy-700);
+  border: 1px solid var(--vd-navy-600);
+  border-radius: var(--vd-radius-pill);
+}
+
+.logoHeader {
+  display: block;
   height: 24px;
 }
 
+/* The customer on the login card (VD-S-01): a light chip or a 28px logo, 22px above the next item. */
+.customerLogin {
+  align-self: flex-start;
+  margin-bottom: 22px;
+  padding: 3px 9px;
+  font-size: var(--vd-size-12);
+  font-weight: 600;
+  color: var(--vd-gray-600);
+  background: var(--vd-gray-50);
+  border: 1px solid var(--vd-border);
+  border-radius: var(--vd-radius-pill);
+}
+
+.logoLogin {
+  display: block;
+  align-self: flex-start;
+  height: 28px;
+  margin-bottom: 22px;
+}
+
+/* 8px after the customer, in a header with 24px gaps. */
 .navigation {
   display: flex;
-  gap: 16px;
+  align-self: stretch;
+  margin-left: calc(var(--vd-space-2) - var(--vd-space-6));
 }
 
 .navItem {
-  color: var(--link);
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0 var(--vd-space-3);
+  font-size: var(--vd-size-14);
+  font-weight: 500;
+  color: var(--vd-on-navy-3);
+  border-bottom: 2px solid transparent;
+}
+
+.navItem:hover,
+.navItem:focus-visible {
+  color: var(--vd-on-navy);
   text-decoration: none;
-  padding: 2px 0;
 }
 
 .navCurrent {
-  color: var(--text);
-  font-weight: 700;
-  border-bottom: 2px solid var(--text);
+  color: var(--vd-on-navy);
+  border-bottom-color: var(--vd-accent-500);
 }
 
 .zone {
-  color: var(--muted);
+  margin-left: auto;
+  font-size: var(--vd-size-13);
+  color: var(--vd-on-navy-4);
 }
 
+/* The zone note, or on the no-access header the display name, is pushed right (VD-C-02). */
 .user {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vd-space-2);
   margin-left: auto;
+  font-size: var(--vd-size-13);
+  font-weight: 500;
+  color: var(--vd-on-navy-2);
+}
+
+.zone + .user {
+  margin-left: 0;
+}
+
+.glyph {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--vd-radius-pill);
+  background: var(--vd-navy-600);
+  color: var(--vd-on-navy-2);
 }
 
 .signOut {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  position: relative;
+}
+
+/* The dark ghost button (VD-C-09). */
+.ghost {
+  padding: 6px var(--vd-space-3);
+  font: inherit;
+  font-size: var(--vd-size-13);
+  font-weight: 500;
+  color: var(--vd-on-navy-2);
+  background: transparent;
+  border: 1px solid var(--vd-navy-600);
+  border-radius: var(--vd-radius-sm);
+  cursor: pointer;
+  transition: background var(--vd-fast);
+}
+
+.ghost:hover {
+  background: var(--vd-navy-800);
+}
+
+.ghost:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* "Could not sign out. {reason}": an error notice under the button, over the content (VD-C-15). */
+.signOut > p[role="alert"] {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: max-content;
+  margin: var(--vd-space-1) 0 0;
+  padding: 6px 10px;
+  font-size: var(--vd-size-13);
+  color: var(--vd-red-700);
+  background: var(--vd-red-50);
+  border: 1px solid var(--vd-red-200);
+  border-radius: var(--vd-radius-sm);
 }
 
 .content {
-  padding: 16px;
+  flex: 1;
+  width: 100%;
+  max-width: 1440px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: var(--vd-space-6);
+}
+
+/* The parts of a page are 16px apart (VD-L-02). */
+.content > :not(:first-child) {
+  margin-top: var(--vd-space-4);
+}
+
+@media (max-width: 599px) {
+  .banner {
+    font-size: var(--vd-size-12);
+  }
+
+  .content {
+    padding: var(--vd-space-4);
+  }
 }

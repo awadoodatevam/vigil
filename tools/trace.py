@@ -11,7 +11,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-ID_PATTERN = r"\b(?:CTX|SL|PM|DM|SB|DD|DC|AR|BP)-[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*\b"
+ID_PATTERN = r"\b(?:CTX|SL|PM|DM|SB|DD|DC|AR|BP|VD)-[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*\b"
 ID_RE = re.compile(ID_PATTERN)
 ID_FULL_RE = re.compile(ID_PATTERN.replace(r"\b", ""))
 CELL_ID_RE = re.compile(r"(?:\*\*)?(" + ID_PATTERN.replace(r"\b", "") + r")(?:\*\*)?")

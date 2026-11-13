@@ -29,7 +29,7 @@ export function Header(props: HeaderProps) {
   return (
     <header className={styles.header}>
       <span className={styles.product}>{settings.product_display_name}</span>
-      <Customer settings={settings} />
+      <Customer settings={settings} place="header" />
       {full && props.withNavigation && (
         <nav className={styles.navigation} aria-label="Navigation">
           {NAVIGATION.map((item) => (
@@ -51,10 +51,27 @@ export function Header(props: HeaderProps) {
       {full && (
         <span className={styles.zone}>{zoneNote(props.now, props.zone)}</span>
       )}
-      <span className={styles.user}>{props.displayName}</span>
+      <span className={styles.user}>
+        <span className={styles.glyph} aria-hidden="true">
+          <svg
+            aria-hidden="true"
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.6}
+          >
+            <circle cx="7" cy="4.5" r="2.6" />
+            <path d="M1.8 13c0-2.9 2.3-4.8 5.2-4.8s5.2 1.9 5.2 4.8" />
+          </svg>
+        </span>
+        {props.displayName}
+      </span>
       <div className={styles.signOut}>
         <button
           type="button"
+          className={styles.ghost}
           onClick={props.onSignOut}
           disabled={props.signingOut}
         >

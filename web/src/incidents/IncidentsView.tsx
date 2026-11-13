@@ -64,7 +64,7 @@ export function IncidentsView(props: IncidentsViewProps) {
       {strip.failure !== null ? (
         <PartError reason={strip.failure} onTryAgain={props.onTryAgainStrip} />
       ) : strip.data === undefined ? (
-        <Loading />
+        <PartLoading />
       ) : (
         <Strip strip={strip.data} now={props.now} zone={props.zone} />
       )}
@@ -81,16 +81,16 @@ function RowsPart(props: IncidentsViewProps) {
     );
   }
   if (rows.rows === undefined) {
-    return <Loading />;
+    return <PartLoading />;
   }
   if (rows.rows.length === 0 && !rows.hasMore) {
     if (strip.failure !== null || strip.data === undefined) {
-      return <Loading />;
+      return <PartLoading />;
     }
     return <Empty text={emptyText(props.product, strip.data.sources.total)} />;
   }
   return (
-    <>
+    <div className={styles.tableCard}>
       <Rows
         rows={rows.rows}
         onOpen={props.onOpen}
@@ -111,6 +111,15 @@ function RowsPart(props: IncidentsViewProps) {
           )}
         </div>
       )}
-    </>
+    </div>
+  );
+}
+
+/** A part's Loading in a card, as the part it replaces (VD-C-13). */
+function PartLoading() {
+  return (
+    <div className={styles.partCard}>
+      <Loading />
+    </div>
   );
 }

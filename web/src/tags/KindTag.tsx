@@ -17,9 +17,27 @@ export type KindWord =
 
 export type KindTagProps = { word: KindWord } | { recordLabel: string };
 
+/** The `data-kind` of each word, for its colours (VD-C-16); a record label is `record`. */
+const KINDS: Record<KindWord, string> = {
+  Hypothesis: "hypothesis",
+  Observation: "observation",
+  "AI analysis": "ai-analysis",
+  "History match": "history-match",
+  "Proposed action": "proposed-action",
+  Approval: "approval",
+  "Execution result": "execution-result",
+  "Verified outcome": "verified-outcome",
+  "Not recovered": "not-recovered",
+  Test: "test",
+  "Illustrative baseline": "illustrative-baseline",
+};
+
 export function KindTag(props: KindTagProps) {
   return (
-    <span className={styles.tag}>
+    <span
+      className={styles.tag}
+      data-kind={"word" in props ? KINDS[props.word] : "record"}
+    >
       {"word" in props ? props.word : props.recordLabel}
     </span>
   );

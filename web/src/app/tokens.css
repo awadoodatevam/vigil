@@ -1,0 +1,173 @@
+/* The design tokens, base rules, focus ring and reduced-motion rule of docs/45-visual-design.md (VD-R-04, VD-R-11,
+   VD-R-12; CTX-D-087 (5)). The only global stylesheet: every component style is in its CSS Module (AR-T-08). */
+
+:root {
+  /* 4.1 Neutral and surface colours */
+  --vd-gray-0: #ffffff;
+  --vd-gray-25: #f8fafc;
+  --vd-gray-50: #f1f4f8;
+  --vd-gray-100: #e6eaf0;
+  --vd-gray-200: #d5dbe4;
+  --vd-gray-300: #b8c1cd;
+  --vd-gray-400: #8b97a8;
+  --vd-gray-500: #647083;
+  --vd-gray-600: #4a5567;
+  --vd-gray-700: #353f4f;
+  --vd-gray-900: #141a23;
+  --vd-text: var(--vd-gray-900);
+  --vd-text-2: var(--vd-gray-600);
+  --vd-text-3: var(--vd-gray-500);
+  --vd-canvas: var(--vd-gray-50);
+  --vd-surface: var(--vd-gray-0);
+  --vd-surface-2: var(--vd-gray-25);
+  --vd-border: var(--vd-gray-200);
+  --vd-border-2: var(--vd-gray-100);
+
+  /* 4.2 Brand colours */
+  --vd-navy-900: #0b1526;
+  --vd-navy-800: #12213a;
+  --vd-navy-700: #1c2f50;
+  --vd-navy-600: #2a4068;
+  --vd-on-navy: #ffffff;
+  --vd-on-navy-2: #cfdbf0;
+  --vd-on-navy-3: #aebbd1;
+  --vd-on-navy-4: #8fa0bb;
+  --vd-accent-50: #eaf2ff;
+  --vd-accent-100: #d3e3ff;
+  --vd-accent-200: #b3cdfb;
+  --vd-accent-500: #2f6fed;
+  --vd-accent-600: #1f5ad6;
+  --vd-accent-700: #1846ab;
+
+  /* 4.3 Status colours */
+  --vd-red-50: #fdecec;
+  --vd-red-200: #f6c7c3;
+  --vd-red-600: #d92d20;
+  --vd-red-700: #b42318;
+  --vd-orange-50: #fff1e6;
+  --vd-orange-100: #ffe2c7;
+  --vd-orange-200: #f6b98a;
+  --vd-orange-600: #e8590c;
+  --vd-orange-700: #b54708;
+  --vd-orange-800: #9a3d06;
+  --vd-warning: var(--vd-orange-700);
+  --vd-green-50: #e8f7ee;
+  --vd-green-600: #13955a;
+  --vd-green-700: #0e7448;
+  --vd-banner: #ffd23f;
+  --vd-banner-text: #1a1400;
+
+  /* 4.4 Kind tag colours */
+  --vd-tag-hypothesis-bg: #f1ecfd;
+  --vd-tag-hypothesis: #6e44d4;
+  --vd-tag-observation-bg: #eaf0f7;
+  --vd-tag-observation: #2d4e78;
+  --vd-tag-ai-bg: #ecebff;
+  --vd-tag-ai: #4338ca;
+  --vd-tag-history-bg: #e5f6f6;
+  --vd-tag-history: #0b6e70;
+  --vd-tag-proposed-bg: #fff3e0;
+  --vd-tag-proposed: #9a4a00;
+  --vd-tag-approval-bg: var(--vd-accent-50);
+  --vd-tag-approval: var(--vd-accent-700);
+  --vd-tag-execution-bg: #e6f6fb;
+  --vd-tag-execution: #0b7896;
+  --vd-tag-verified-bg: var(--vd-green-50);
+  --vd-tag-verified: var(--vd-green-700);
+  --vd-tag-not-recovered-bg: var(--vd-red-50);
+  --vd-tag-not-recovered: var(--vd-red-700);
+  --vd-tag-test-bg: #ffffff;
+  --vd-tag-test: #c026a3;
+  --vd-tag-baseline-bg: #ffffff;
+  --vd-tag-baseline: var(--vd-gray-600);
+  --vd-tag-record-bg: var(--vd-gray-100);
+  --vd-tag-record: var(--vd-gray-600);
+
+  /* 4.5 Type, space, radius and shadow */
+  --vd-font:
+    "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --vd-mono:
+    "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas,
+    monospace;
+  --vd-size-12: 12px;
+  --vd-size-13: 13px;
+  --vd-size-14: 14px;
+  --vd-size-15: 15px;
+  --vd-size-16: 16px;
+  --vd-size-20: 20px;
+  --vd-size-24: 24px;
+  --vd-size-30: 30px;
+  --vd-space-1: 4px;
+  --vd-space-2: 8px;
+  --vd-space-3: 12px;
+  --vd-space-4: 16px;
+  --vd-space-5: 20px;
+  --vd-space-6: 24px;
+  --vd-space-8: 32px;
+  --vd-space-10: 40px;
+  --vd-radius-sm: 6px;
+  --vd-radius: 10px;
+  --vd-radius-lg: 14px;
+  --vd-radius-pill: 999px;
+  --vd-shadow-1:
+    0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --vd-shadow-2:
+    0 8px 24px rgba(16, 24, 40, 0.1), 0 2px 6px rgba(16, 24, 40, 0.06);
+  --vd-focus-ring: 0 0 0 2px var(--vd-gray-0), 0 0 0 4px var(--vd-accent-500);
+
+  /* 4.6 Motion */
+  --vd-fast: 120ms ease-out;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  font-family: var(--vd-font);
+  font-size: var(--vd-size-15);
+  line-height: 1.45;
+  color: var(--vd-text);
+  background: var(--vd-canvas);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main h1 {
+  margin: 0 0 var(--vd-space-4);
+  font-size: var(--vd-size-24);
+  line-height: 32px;
+  letter-spacing: -0.015em;
+  font-weight: 650;
+  color: var(--vd-text);
+}
+
+a {
+  color: var(--vd-accent-600);
+  text-decoration: none;
+}
+
+a:hover,
+a:focus-visible {
+  text-decoration: underline;
+}
+
+:is(a, button, input):focus-visible {
+  outline: none;
+  box-shadow: var(--vd-focus-ring) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

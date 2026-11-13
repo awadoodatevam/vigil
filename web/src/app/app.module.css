@@ -1,29 +1,8 @@
-:global(:root) {
-  --text: #1f2933;
-  --muted: #52606d;
-  --border: #cbd2d9;
-  --background: #ffffff;
-  --header-background: #f5f7fa;
-  --link: #1d4ed8;
-  --error: #b42318;
-  --warning: #b54708;
-  --notice-background: #fef3c7;
-  --banner-background: #6d28d9;
-  --banner-text: #ffffff;
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
-  color: var(--text);
-  background: var(--background);
-}
-
-:global(body) {
-  margin: 0;
-}
-
+/* VD-S-03: the error state where there is no header (the unknown host, a failed AR-I-10). */
 .content {
-  padding: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 480px;
+  margin: 40px auto 0;
+  padding: 0 var(--vd-space-4);
 }

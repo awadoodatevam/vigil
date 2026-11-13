@@ -60,11 +60,25 @@ export function Rows({ rows, onOpen, now, zone }: RowsProps) {
           >
             <td>{incidentNumber(row.number)}</td>
             <td>{row.title}</td>
-            <td>{severityName(row.severity)}</td>
-            <td>{stateName(row.state)}</td>
-            <td>{stageName(row.stage)}</td>
+            <td>
+              <Severity name={severityName(row.severity)} />
+            </td>
+            <td>
+              <span className={styles.state} data-state={row.state}>
+                {stateName(row.state)}
+              </span>
+            </td>
+            <td>
+              <Stage name={stageName(row.stage)} />
+            </td>
             <td>{row.owner === null ? "" : row.owner.name}</td>
-            <td>{acknowledgedText(row, now, zone)}</td>
+            <td>
+              {row.acknowledged === null ? (
+                <span className={styles.no}>No</span>
+              ) : (
+                acknowledgedText(row, now, zone)
+              )}
+            </td>
             <td>{row.alert_count}</td>
             <td>{viewerTime(row.first_alert_fired_at, now, zone)}</td>
             <td>
@@ -76,6 +90,17 @@ export function Rows({ rows, onOpen, now, zone }: RowsProps) {
                   onClick={(event) => event.stopPropagation()}
                 >
                   {row.ticket.key}
+                  <svg
+                    aria-hidden="true"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path d="M5 2H2v8h8V7M7 1.5h3.5V5M10.5 1.5 5.5 6.5" />
+                  </svg>
                 </a>
               )}
             </td>
@@ -84,4 +109,20 @@ export function Rows({ rows, onOpen, now, zone }: RowsProps) {
       </tbody>
     </table>
   );
+}
+
+/** The severity badge (VD-C-07); an empty severity draws nothing. */
+function Severity({ name }: { name: string }) {
+  return (
+    name && (
+      <span className={styles.severity} data-severity={name}>
+        {name}
+      </span>
+    )
+  );
+}
+
+/** The stage chip (VD-C-07); an empty stage draws nothing. */
+function Stage({ name }: { name: string }) {
+  return name && <span className={styles.stage}>{name}</span>;
 }

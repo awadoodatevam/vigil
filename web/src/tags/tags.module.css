@@ -1,9 +1,74 @@
+/* The kind tag (VD-C-16): one class for every kind (PM-M24-05), the colours of its word (45-visual-design 4.4). */
 .tag {
-  display: inline-block;
-  padding: 0 6px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  font-size: 0.75rem;
-  line-height: 1.5;
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  box-sizing: border-box;
+  padding: 0 var(--vd-space-2);
+  font-size: var(--vd-size-12);
+  font-weight: 600;
   white-space: nowrap;
+  border-radius: var(--vd-radius-sm);
+}
+
+.tag[data-kind="hypothesis"] {
+  color: var(--vd-tag-hypothesis);
+  background: var(--vd-tag-hypothesis-bg);
+}
+
+.tag[data-kind="observation"] {
+  color: var(--vd-tag-observation);
+  background: var(--vd-tag-observation-bg);
+}
+
+.tag[data-kind="ai-analysis"] {
+  color: var(--vd-tag-ai);
+  background: var(--vd-tag-ai-bg);
+}
+
+.tag[data-kind="history-match"] {
+  color: var(--vd-tag-history);
+  background: var(--vd-tag-history-bg);
+}
+
+.tag[data-kind="proposed-action"] {
+  color: var(--vd-tag-proposed);
+  background: var(--vd-tag-proposed-bg);
+}
+
+.tag[data-kind="approval"] {
+  color: var(--vd-tag-approval);
+  background: var(--vd-tag-approval-bg);
+}
+
+.tag[data-kind="execution-result"] {
+  color: var(--vd-tag-execution);
+  background: var(--vd-tag-execution-bg);
+}
+
+.tag[data-kind="verified-outcome"] {
+  color: var(--vd-tag-verified);
+  background: var(--vd-tag-verified-bg);
+}
+
+.tag[data-kind="not-recovered"] {
+  color: var(--vd-tag-not-recovered);
+  background: var(--vd-tag-not-recovered-bg);
+}
+
+.tag[data-kind="test"] {
+  color: var(--vd-tag-test);
+  background: var(--vd-tag-test-bg);
+  border: 1.5px dashed var(--vd-tag-test);
+}
+
+.tag[data-kind="illustrative-baseline"] {
+  color: var(--vd-tag-baseline);
+  background: var(--vd-tag-baseline-bg);
+  border: 1.5px dashed var(--vd-gray-400);
+}
+
+.tag[data-kind="record"] {
+  color: var(--vd-tag-record);
+  background: var(--vd-tag-record-bg);
 }

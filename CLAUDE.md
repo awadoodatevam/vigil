@@ -63,6 +63,7 @@ Builds with Testcontainers take longer than 2 minutes: run them with a longer ti
 
 - Java 25 (Temurin) is installed by the setup script `tools/cloud-setup.sh` of the cloud environment `vigil`. If `java -version` shows 21: in package P-01, run `sudo bash tools/cloud-setup.sh` and go on; in any other package, say that the session was not started in the environment `vigil` and stop.
 - If `tools/check-all.sh` says the cloud environment is out of date, say so and stop: the owner updates the environment's setup script.
+- When Maven reports an artifact that exists as missing (Maven Central answered it as absent once), delete the `*.lastUpdated` markers under `~/.m2/repository`, run `./mvnw -B -q dependency:resolve dependency:resolve-plugins`, then the gate again (CTX-D-086 (4)).
 - Docker and `docker compose` are available. Testcontainers needs them. The Docker daemon may not be running when a session starts: `tools/check-all.sh` starts it in its step (0) (from P-03; with the registry mirror `mirror.gcr.io` from P-08, Docker Hub as fallback); to start it before that, run `tools/start-docker.sh` (or, before P-03 is merged, `sudo dockerd > /tmp/dockerd.log 2>&1 &` and wait until `docker info` succeeds). Build local images only with `deploy/images.sh`, never with a plain `docker build` (it passes the proxy settings and CA bundle the build needs). Tests use those images by their local tags.
 - Python tools (`ruff`, `pytest`, `PyYAML`) are in the virtual environment `/opt/vigil-tools`; Ubuntu's system Python refuses `pip install`. Run Python checks with `/opt/vigil-tools/bin/python`. Python images install their packages into `/opt/venv`.
 - Reachable: GitHub (including release downloads), Maven Central, npm, PyPI, Docker Hub (and its mirror `mirror.gcr.io`), `ghcr.io`, `mcr.microsoft.com`, `public.ecr.aws`, `nodejs.org`, Ubuntu package mirrors, `api.anthropic.com`.
@@ -87,6 +88,7 @@ Builds with Testcontainers take longer than 2 minutes: run them with a longer ti
 
 - Java: google-java-format through Spotless; logging through SLF4J in the JSON format of AR-S-11; no `System.out`.
 - TypeScript: ESLint, Prettier, `tsc --noEmit`; TanStack Query for data; CSS Modules for styles.
+- Styles follow `docs/45-visual-design.md`: tokens from `web/src/app/tokens.css` only, no text changed by styling (VD-R-01 to VD-R-13).
 - Python (`demo/`, `dev/`, `spikes/`, `tests/acceptance/`, `deploy/`): Python 3.12, standard library first; `ruff check` and `ruff format`; pytest in `test_*.py` files next to the code.
 - Shell: `set -euo pipefail`; `shellcheck` clean.
 - Tests: `*Test` for unit tests, `*IT` for tests that start PostgreSQL, WireMock, SSH, containers or a Spring context; `*.test.ts(x)` for Vitest; Playwright under `tests/e2e/`.
