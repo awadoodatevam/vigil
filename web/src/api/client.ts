@@ -74,6 +74,8 @@ type Body<P extends keyof paths, M extends Method> =
     : never;
 
 export interface RequestOptions<Q, B> {
+  /** The path parameters: each `{name}` of the path becomes `encodeURIComponent(params[name])`. */
+  params?: Record<string, string>;
   query?: Q;
   body?: B;
   signal?: AbortSignal;
@@ -132,7 +134,10 @@ async function send(
   if (options.body !== undefined) {
     headers["Content-Type"] = "application/json";
   }
-  let url = path;
+  let url = path.replace(/\{(\w+)\}/g, (_, name: string) =>
+    encodeURIComponent(options.params?.[name] ?? ""),
+  );
+  const base = url;
   const query = options.query as Record<string, string | undefined> | undefined;
   if (query) {
     const parameters = new URLSearchParams();
@@ -143,7 +148,7 @@ async function send(
     }
     const text = parameters.toString();
     if (text !== "") {
-      url = `${path}?${text}`;
+      url = `${base}?${text}`;
     }
   }
   try {
