@@ -1,0 +1,491 @@
+[ERROR] [plugin builtin:vite-reporter] 
+[ERROR] (!) Some chunks are larger than 500 kB after minification. Consider:
+[ERROR] - Using dynamic import() to code-split the application
+[ERROR] - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+[ERROR] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+docker.io/library/eclipse-temurin@sha256:d9a39a23634650173f1e2bbc176227af9728587ecf0f4b62d53e9355cd7a19ab: Pulling from library/eclipse-temurin
+Digest: sha256:d9a39a23634650173f1e2bbc176227af9728587ecf0f4b62d53e9355cd7a19ab
+Status: Image is up to date for eclipse-temurin@sha256:d9a39a23634650173f1e2bbc176227af9728587ecf0f4b62d53e9355cd7a19ab
+docker.io/library/eclipse-temurin:25.0.4.1_1-jre-noble@sha256:d9a39a23634650173f1e2bbc176227af9728587ecf0f4b62d53e9355cd7a19ab
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 442B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/eclipse-temurin:25.0.4.1_1-jre-noble@sha256:d9a39a23634650173f1e2bbc176227af9728587ecf0f4b62d53e9355cd7a19ab
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/2] FROM docker.io/library/eclipse-temurin:25.0.4.1_1-jre-noble@sha256:d9a39a23634650173f1e2bbc176227af9728587ecf0f4b62d53e9355cd7a19ab
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 50.55MB 0.5s done
+#5 DONE 0.5s
+
+#4 [1/2] FROM docker.io/library/eclipse-temurin:25.0.4.1_1-jre-noble@sha256:d9a39a23634650173f1e2bbc176227af9728587ecf0f4b62d53e9355cd7a19ab
+#4 CACHED
+
+#6 [2/2] COPY target/vigil-app.jar /app/vigil-app.jar
+#6 DONE 0.1s
+
+#7 exporting to image
+#7 exporting layers 0.1s done
+#7 writing image sha256:a0562008097916637e83d52419733a137a47e043f427945abd28d1ea2c3bb7cc done
+#7 naming to docker.io/vigil/vigil-app:local done
+#7 DONE 0.1s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/zb305xdkbdedqsfq0jp9eo1uc
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.71kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [stage-0 1/4] FROM docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 31B done
+#5 DONE 0.0s
+
+#6 [stage-0 2/4] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444     set -eu;     cp /etc/apt/sources.list.d/ubuntu.sources /tmp/ubuntu.sources.vigil-backup;     if [ -n "${UBUNTU_MIRROR:-}" ]; then       sed -i -e "s|http://archive.ubuntu.com/ubuntu/|${UBUNTU_MIRROR}|g"         -e "s|http://security.ubuntu.com/ubuntu/|${UBUNTU_MIRROR}|g" /etc/apt/sources.list.d/ubuntu.sources;     fi;     if [ -f /run/secrets/ca_bundle ]; then       echo 'Acquire::https::CAInfo "/run/secrets/ca_bundle";' > /etc/apt/apt.conf.d/99vigil-build-ca;       sed -i 's|http://|https://|g' /etc/apt/sources.list.d/ubuntu.sources;     fi;     apt-get -o Acquire::Retries=5 update --error-on=any;     DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=5 install -y --no-install-recommends python3 tzdata;     rm -f /etc/apt/apt.conf.d/99vigil-build-ca;     mv /tmp/ubuntu.sources.vigil-backup /etc/apt/sources.list.d/ubuntu.sources;     rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 [stage-0 3/4] COPY fakes.py /opt/fakes/
+#7 CACHED
+
+#8 [stage-0 4/4] WORKDIR /opt/fakes
+#8 CACHED
+
+#9 exporting to image
+#9 exporting layers done
+#9 writing image sha256:0ec8ab67ec42ceea622369b3d2f30e9c397d7648b78c828e6c3b860c2d363aa5 done
+#9 naming to docker.io/vigil/dev-fakes:local done
+#9 DONE 0.0s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/omf20fwk49lvfe4pdi6jry0we
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 692B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for mcr.microsoft.com/playwright:v1.65.0-noble@sha256:9beb546099e11f52d62e505537914870e01a67e0e6b00ae41da4775324e73dbe
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 53B done
+#3 DONE 0.0s
+
+#4 [stage-0 1/4] FROM mcr.microsoft.com/playwright:v1.65.0-noble@sha256:9beb546099e11f52d62e505537914870e01a67e0e6b00ae41da4775324e73dbe
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 72B done
+#5 DONE 0.0s
+
+#6 [stage-0 2/4] WORKDIR /e2e
+#6 CACHED
+
+#7 [stage-0 3/4] COPY package.json package-lock.json ./
+#7 CACHED
+
+#8 [stage-0 4/4] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444 sh -c 'if [ -f /run/secrets/ca_bundle ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/ca_bundle; fi; npm ci'
+#8 CACHED
+
+#9 exporting to image
+#9 exporting layers done
+#9 writing image sha256:ed60869f8ff1e6435326f7fb38d3de2fa8367e5f21f62883687ef958e23d6618 done
+#9 naming to docker.io/vigil/e2e:local done
+#9 DONE 0.0s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/vvxgo4r76dik99enpibing6a5
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.63kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 50B done
+#3 DONE 0.0s
+
+#4 [stage-0 1/3] FROM docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 99B done
+#5 DONE 0.0s
+
+#6 [stage-0 2/3] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444     set -eu;     cp /etc/apt/sources.list.d/ubuntu.sources /tmp/ubuntu.sources.vigil-backup;     if [ -n "${UBUNTU_MIRROR:-}" ]; then       sed -i -e "s|http://archive.ubuntu.com/ubuntu/|${UBUNTU_MIRROR}|g"         -e "s|http://security.ubuntu.com/ubuntu/|${UBUNTU_MIRROR}|g" /etc/apt/sources.list.d/ubuntu.sources;     fi;     if [ -f /run/secrets/ca_bundle ]; then       echo 'Acquire::https::CAInfo "/run/secrets/ca_bundle";' > /etc/apt/apt.conf.d/99vigil-build-ca;       sed -i 's|http://|https://|g' /etc/apt/sources.list.d/ubuntu.sources;     fi;     apt-get -o Acquire::Retries=5 update --error-on=any;     DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=5 install -y --no-install-recommends python3 ca-certificates tzdata;     rm -f /etc/apt/apt.conf.d/99vigil-build-ca;     mv /tmp/ubuntu.sources.vigil-backup /etc/apt/sources.list.d/ubuntu.sources;     rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 [stage-0 3/3] COPY *.py /opt/storm/
+#7 CACHED
+
+#8 exporting to image
+#8 exporting layers done
+#8 writing image sha256:1d91a6b253839d8411379c288753f8cce4322aef06d46b96df5cb78c8316d0b7 done
+#8 naming to docker.io/vigil/storm-driver:local done
+#8 DONE 0.0s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/vtarz0qfdle18cckvhidjvi4v
+ Network vigil-local_lab-net Creating 
+ Network vigil-local_lab-net Creating 
+ Network vigil-local_lab-net Created 
+ Network vigil-local_lab-net Created 
+ Container lab-rpt-01 Creating 
+ Container lab-zabbix-db Creating 
+ Container lab-db-01 Creating 
+ Container lab-alertmanager Creating 
+ Container lab-db-01 Created 
+ Container lab-rpt-01 Created 
+ Container lab-api-01 Creating 
+ Container lab-alertmanager Created 
+ Container lab-zabbix-db Created 
+ Container lab-zabbix-web Creating 
+ Container lab-zabbix-server Creating 
+ Container lab-api-01 Created 
+ Container lab-vas-01 Creating 
+ Container lab-zabbix-web Created 
+ Container lab-zabbix-server Created 
+ Container lab-vas-01 Created 
+ Container lab-probe-01 Creating 
+ Container lab-probe-01 Created 
+ Container demo-faults Creating 
+ Container lab-prometheus Creating 
+ Container demo-faults Created 
+ Container lab-prometheus Created 
+ Container lab-alertmanager Starting 
+ Container lab-db-01 Starting 
+ Container lab-rpt-01 Starting 
+ Container lab-zabbix-db Starting 
+ Container lab-alertmanager Started 
+ Container lab-db-01 Started 
+ Container lab-db-01 Waiting 
+ Container lab-rpt-01 Started 
+ Container lab-rpt-01 Waiting 
+ Container lab-zabbix-db Started 
+ Container lab-zabbix-db Waiting 
+ Container lab-db-01 Healthy 
+ Container lab-api-01 Starting 
+ Container lab-api-01 Started 
+ Container lab-api-01 Waiting 
+ Container lab-rpt-01 Healthy 
+ Container lab-zabbix-db Healthy 
+ Container lab-zabbix-web Starting 
+ Container lab-zabbix-server Starting 
+ Container lab-zabbix-web Started 
+ Container lab-zabbix-server Started 
+ Container lab-api-01 Healthy 
+ Container lab-vas-01 Starting 
+ Container lab-vas-01 Started 
+ Container lab-vas-01 Waiting 
+ Container lab-vas-01 Healthy 
+ Container lab-probe-01 Starting 
+ Container lab-probe-01 Started 
+ Container lab-probe-01 Waiting 
+ Container lab-probe-01 Healthy 
+ Container lab-prometheus Starting 
+ Container demo-faults Starting 
+ Container lab-prometheus Started 
+ Container demo-faults Started 
+ Container lab-zabbix-db Running 
+ Container lab-zabbix-web Running 
+ Container lab-zabbix-server Running 
+ Container lab-zabbix-provision Creating 
+ Container lab-zabbix-provision Created 
+ Container lab-zabbix-db Waiting 
+ Container lab-zabbix-db Healthy 
+ Container lab-zabbix-provision Starting 
+ Container lab-zabbix-provision Started 
+ Network vigil-local_vigil-net Creating 
+ Network vigil-local_vigil-net Creating 
+ Network vigil-local_vigil-net Created 
+ Network vigil-local_vigil-net Created 
+ Container vigil-db Creating 
+ Container mailpit Creating 
+ Container claude-fake Creating 
+ Container jira-fake Creating 
+ Container ollama-llm-fake Creating 
+ Container teams-fake Creating 
+ Container openai-fake Creating 
+ Container ollama-embed-fake Creating 
+ Container mailpit Created 
+ Container openai-fake Created 
+ Container ollama-embed-fake Created 
+ Container ollama-llm-fake Created 
+ Container claude-fake Created 
+ Container teams-fake Created 
+ Container jira-fake Created 
+ Container vigil-db Created 
+ Container vigil-migrate Creating 
+ Container vigil-migrate Created 
+ Container vigil-app Creating 
+ Container vigil-app Created 
+ Container claude-fake Starting 
+ Container openai-fake Starting 
+ Container mailpit Starting 
+ Container ollama-embed-fake Starting 
+ Container jira-fake Starting 
+ Container teams-fake Starting 
+ Container vigil-db Starting 
+ Container ollama-llm-fake Starting 
+ Container claude-fake Started 
+ Container mailpit Started 
+ Container openai-fake Started 
+ Container jira-fake Started 
+ Container ollama-embed-fake Started 
+ Container teams-fake Started 
+ Container vigil-db Started 
+ Container vigil-db Waiting 
+ Container ollama-llm-fake Started 
+ Container vigil-db Healthy 
+ Container vigil-migrate Starting 
+ Container vigil-migrate Started 
+ Container vigil-migrate Waiting 
+ Container vigil-migrate Exited 
+ Container vigil-app Starting 
+ Container vigil-app Started 
+Tenant 01a1d68d-3bc3-7646-b848-bbd2e65a88da is ready at demo.vigil.test.
+Vigil: http://demo.vigil.test:8080 (user presenter; password in /Users/awadood/.vigil-local/vigil-local/secrets/vigil-app/seed-password-presenter)
+ Container vigil-local-e2e-run-cd90a4d9f01d Creating 
+ Container vigil-local-e2e-run-cd90a4d9f01d Created 
+
+Running 39 tests using 4 workers
+
+  ✓   2 [chromium] › tests/smoke.spec.ts:10:1 › BP-R-24 Vigil answers at demo.vigil.test:8080 inside the compose network @smoke (538ms)
+  ✓   1 [chromium] › tests/login.spec.ts:5:1 › DC-S01-01 the login page is shown without a session @smoke (742ms)
+  ✓   5 [chromium] › tests/smoke.spec.ts:20:1 › BP-R-25 login over plain HTTP sets a session cookie without Secure @smoke (237ms)
+  ✓   7 [chromium] › tests/smoke.spec.ts:51:1 › AR-Q-10 the bundle built by bundle.py imported with all 17 parts succeeded @smoke (18ms)
+  ✓   8 [chromium] › tests/smoke.spec.ts:66:1 › AR-Q-10 the imported tenant answers its branding @smoke (31ms)
+  ✓   4 [chromium] › tests/incidents.spec.ts:7:1 › DC-S02-01 the incident list shows its heading, the header and the strip @smoke (1.3s)
+  ✓   3 [chromium] › tests/look.spec.ts:59:1 › DC-U-01 no element other than the banner uses its colour (1.4s)
+  ✓   6 [chromium] › tests/login.spec.ts:20:1 › DC-S01-02 the login page shows the banner, Techfinity, Jazz and the form, in one column at 375 px @smoke (710ms)
+  ✓  12 [chromium] › tests/login.spec.ts:52:1 › SL-A3-06 the customer name and environment label are the configured ones @smoke (340ms)
+  ✓   9 [chromium] › tests/workspace.spec.ts:5:1 › DC-S03-01 an unknown incident shows Could not load this page. Not found. (793ms)
+  ✓  10 [chromium] › tests/incidents.spec.ts:25:1 › PM-M24-01 the login and incident list screens exist (810ms)
+  ✓  11 [chromium] › tests/look.spec.ts:70:1 › VD-C-01 the banner is sticky, at least 30 px high, yellow with dark text (730ms)
+  ✓  13 [chromium] › tests/login.spec.ts:62:1 › SL-DR-03 the environment label is on the login page and the incident list (702ms)
+VD-R-09 font files requested: http://demo.vigil.test:8080/assets/inter-latin-wght-normal-Dx4kXJAl.woff2, http://demo.vigil.test:8080/assets/jetbrains-mono-latin-wght-normal-B9CIFXIH.woff2
+  ✓  15 [chromium] › tests/look.spec.ts:91:1 › VD-R-09 the fonts are bundled and nothing loads from another host (717ms)
+  ✓  14 [chromium] › tests/incidents.spec.ts:35:1 › DC-S02-02 the strip of a tenant without alerts (777ms)
+  ✓  18 [chromium] › tests/incidents.spec.ts:59:1 › SL-A4-02 the incident list opens after sign-in (591ms)
+  ✓  17 [chromium] › tests/look.spec.ts:122:1 › VD-R-10 no horizontal scrolling at 1280 × 720 (692ms)
+  ✓  16 [chromium] › tests/login.spec.ts:72:1 › PM-M24-02 the banner and the customer are on every screen of P-28 (1.2s)
+  ✓  19 [chromium] › tests/look.spec.ts:129:1 › VD-L-04 the login at 360 px in one column (190ms)
+  ✓  21 [chromium] › tests/look.spec.ts:138:1 › VD-R-12 the focus ring on Tab (270ms)
+  ✓  20 [chromium] › tests/login.spec.ts:102:1 › DC-U-02 Techfinity is shown on the login page and in the header (354ms)
+  ✓  22 [chromium] › tests/look.spec.ts:153:1 › VD-R-11 no animation under reduced motion (404ms)
+  ✓  24 [chromium] › tests/look.spec.ts:164:1 › VD-S-01 the login card is centred on the navy page (279ms)
+  ✓  23 [chromium] › tests/login.spec.ts:113:1 › DC-U-15 the tab titles (812ms)
+  ✓  26 [chromium] › tests/login.spec.ts:131:1 › DC-U-01 the banner stays at the top while the page scrolls (483ms)
+  ✓  25 [chromium] › tests/look.spec.ts:179:1 › VD-S-01 the login screens (855ms)
+  ✓  27 [chromium] › tests/login.spec.ts:148:1 › SL-A4-01 presenter signs in (363ms)
+  ✓  28 [chromium] › tests/look.spec.ts:198:1 › VD-S-02 the no-access page (332ms)
+  ✓  29 [chromium] › tests/login.spec.ts:155:1 › DC-S01-03 a wrong password is refused and the password field is emptied (261ms)
+  ✓  31 [chromium] › tests/login.spec.ts:168:1 › DC-S01-03 presenter signs in and sees the incident list (362ms)
+  ✓  30 [chromium] › tests/look.spec.ts:204:1 › VD-S-03 the error states (800ms)
+  ✓  32 [chromium] › tests/login.spec.ts:177:1 › DC-U-13 /login with a valid session opens next; a reload of /login shows no message (833ms)
+  ✓  33 [chromium] › tests/look.spec.ts:218:1 › VD-S-04 the empty incident list (562ms)
+  ✓  34 [chromium] › tests/login.spec.ts:193:1 › DC-U-13 a page opened without a session opens after sign-in (418ms)
+  ✓  35 [chromium] › tests/login.spec.ts:212:1 › DC-S01-05 noc-l1 sees the no-access page (470ms)
+  ✓  36 [chromium] › tests/login.spec.ts:237:1 › DC-U-05 a user without view never sees the incident list (465ms)
+  ✓  37 [chromium] › tests/login.spec.ts:253:1 › DC-S01-04 sign out shows You are signed out. (439ms)
+  ✓  38 [chromium] › tests/login.spec.ts:262:1 › AR-B-10 a host with no alias shows the error state (196ms)
+  ✓  39 [chromium] › tests/login.spec.ts:277:1 › AR-W-01 / opens the incident list (393ms)
+
+  39 passed (11.1s)
+ Container vigil-local-e2e-run-86658124f904 Creating 
+ Container vigil-local-e2e-run-86658124f904 Created 
+
+Running 26 tests using 1 worker
+
+ Container vigil-local-storm-driver-run-c04dc2b0193c Creating 
+ Container vigil-local-storm-driver-run-c04dc2b0193c Created 
+step 1 Reset: tenant 01a1d68e-0e70-76c2-9201-cbe6509c16ee, {"branch_a_seconds": 12.134, "quiet_seconds": 0.05, "branch_b_seconds": 1.039, "total_seconds": 12.158}
+step 2 Starting state: three users logged in, sources healthy
+step 3 Script start: the storm is injected at once (T0 is the script's 01:00)
+step 4 Storm: SL-F-1 and SL-F-3 injected (T0 2026-11-13T20:16:48.769Z)
+  ✓   1 [chromium] › tests/storm.spec.ts:134:1 › DC-S01-04 the reset ends the session and sign-in returns to the list @storm (15.1s)
+  ✓   2 [chromium] › tests/storm.spec.ts:163:1 › DC-S02-05 the new tenant's list is empty @storm (25ms)
+  ✓   3 [chromium] › tests/storm.spec.ts:178:1 › DC-S02-03 the storm builds and no forming incident is a row @storm (1.2m)
+  ✓   4 [chromium] › tests/storm.spec.ts:225:1 › SL-A1-08 the storm workspace opens and records the run @storm (331ms)
+step 5 Incidents: storm INC-0002, report INC-0001
+step 6 Acknowledge: http://demo.vigil.test:8080/m/acknowledge/01a1d68e-43e7-722f-966a-e40e897d58b3 at 2026-11-13T20:23:18.816Z
+step 7 Approve: http://demo.vigil.test:8080/m/approve/01a1d694-32e7-7486-94fa-cd745d827758 approved at 2026-11-13T20:24:48.815Z
+step 8 Recovery: resolved at 2026-11-13T20:26:17.140Z, ticket NOC-2 Done
+PASS SB-SET-07 incident list empty
+PASS SB-SET-07 sources healthy
+PASS SB-V-38 seeded dashboard
+PASS SB-V-39 baselines
+PASS SB-R-06 two incidents
+PASS SB-S01 storm alerts
+PASS SB-S01 storm alert types
+PASS SB-S01 report alert
+PASS SB-S01 storm within 120 s
+PASS SB-S02 storm header
+PASS SB-S02 grouping reasons
+PASS SB-S02 report incident
+PASS SB-S03 diagnostics
+PASS SB-S03 diagnostic values
+PASS SB-S04 routing
+PASS SB-S04 investigation
+PASS SB-S05 ticket
+PASS SB-S05 incident messages
+PASS SB-S05 acknowledge page
+PASS SB-S05 timeline acknowledgement
+PASS SB-S06 similar incident
+PASS SB-S06 proposal
+PASS SB-S06 approval messages
+PASS SB-S06 approval page
+PASS SB-S06 decision
+PASS SB-S06 action executed once
+PASS SB-S06 action result
+PASS SB-S06 action values
+PASS SB-S07 recovery
+PASS SB-S07 resolved
+PASS SB-S07 ticket resolved
+PASS SB-S07 ticket comment
+PASS SB-S08 storm run
+PASS SB-S09 dashboard formulas
+PASS SB-S09 dashboard values
+PASS SB-TL-05 no escalation
+PASS SB-R-06 repeatability result
+result file storm-script-20261113T201636Z.json
+  ✓   5 [chromium] › tests/storm.spec.ts:247:1 › SL-A1-02 the storm and report rows @storm (8.3m)
+AR-Q-07 passed: no secret of the installation in the log of this run.
+  ✓   6 [chromium] › tests/storm.spec.ts:287:1 › DC-U-08 the list changed without a reload @storm (7ms)
+  ✓   7 [chromium] › tests/storm.spec.ts:299:1 › VD-L-03 the incident table fits 1280 px @storm (15ms)
+  ✓   8 [chromium] › tests/storm.spec.ts:314:1 › VD-C-07 the badge and chip colours @storm (88ms)
+highlight delays (ms): [{"stepId":"s-investigate","delay":99},{"stepId":"s-summarise","delay":526},{"stepId":"s-ticket","delay":472},{"stepId":"s-notify","delay":458},{"stepId":"s-wait-ack","delay":220},{"stepId":"s-similar","delay":161},{"stepId":"s-approve","delay":491},{"stepId":"s-action","delay":529},{"stepId":"s-recover","delay":473},{"stepId":"s-resolve","delay":629}]
+  ✓   9 [chromium] › tests/storm.spec.ts:337:1 › SL-A1-08 the highlight followed every step change within 2 s @storm (157ms)
+follow distances: [{"stepId":"s-diagnose","distance":0.0000152587890625,"zoom":0.8},{"stepId":"s-wait-ack","distance":0.1562347412109375,"zoom":0.8},{"stepId":"s-approve","distance":0.1562652587890625,"zoom":0.8},{"stepId":"s-recover","distance":0.15625,"zoom":0.8}]
+  ✓  10 [chromium] › tests/storm.spec.ts:362:1 › DC-S03-06 follow mode keeps the current step in view @storm (155ms)
+  ✓  11 [chromium] › tests/storm.spec.ts:376:1 › DC-S03-07 countdowns and the observation window were counted @storm (912ms)
+  ✓  12 [chromium] › tests/storm.spec.ts:396:1 › SL-A1-02 the storm workspace header, hypothesis, impact and alerts @storm (395ms)
+  ✓  13 [chromium] › tests/storm.spec.ts:471:1 › SL-A1-03 the evidence lines @storm (105ms)
+  ✓  14 [chromium] › tests/storm.spec.ts:523:1 › SL-A1-04 the AI investigation section @storm (19ms)
+  ✓  15 [chromium] › tests/storm.spec.ts:548:1 › SL-A1-06 the Response section @storm (23ms)
+  ✓  16 [chromium] › tests/storm.spec.ts:601:1 › SL-A1-07 the Recovery section @storm (61ms)
+  ✓  17 [chromium] › tests/storm.spec.ts:621:1 › SB-S08 the finished run on the canvas and in the run steps @storm (1.5s)
+  ✓  18 [chromium] › tests/storm.spec.ts:712:1 › VD-C-18 the band and the expanded canvas @storm (591ms)
+  ✓  19 [chromium] › tests/storm.spec.ts:761:1 › DC-S03-13 the timeline and notified teams @storm (31ms)
+  ✓  20 [chromium] › tests/storm.spec.ts:810:1 › DC-U-08 the workspace changed without a reload @storm (16ms)
+  ✓  21 [chromium] › tests/storm.spec.ts:822:1 › DC-U-15 the workspace tab title @storm (17ms)
+  ✓  22 [chromium] › tests/storm.spec.ts:828:1 › VD-S-05 the workspace fits 1280 px with its two columns @storm (15ms)
+  ✓  23 [chromium] › tests/storm.spec.ts:849:1 › VD-C-22 the section cards and their headings @storm (19ms)
+  ✓  24 [chromium] › tests/storm.spec.ts:872:1 › VD-C-23 the outcome words in their colours @storm (31ms)
+  ✓  25 [chromium] › tests/storm.spec.ts:895:1 › DC-S03-01 the report incident's workspace @storm (729ms)
+  ✓  26 [chromium] › tests/storm.spec.ts:951:1 › DC-S02-04 a click on a row opens the incident's address @storm (39ms)
+
+  Slow test file: [chromium] › tests/storm.spec.ts (9.8m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  26 passed (9.8m)
+ Container lab-zabbix-provision Stopping 
+ Container lab-alertmanager Stopping 
+ Container claude-fake Stopping 
+ Container ollama-llm-fake Stopping 
+ Container lab-prometheus Stopping 
+ Container jira-fake Stopping 
+ Container ollama-embed-fake Stopping 
+ Container openai-fake Stopping 
+ Container mailpit Stopping 
+ Container demo-faults Stopping 
+ Container teams-fake Stopping 
+ Container vigil-app Stopping 
+ Container lab-zabbix-provision Stopped 
+ Container lab-zabbix-provision Removing 
+ Container lab-zabbix-provision Removed 
+ Container lab-zabbix-web Stopping 
+ Container lab-zabbix-server Stopping 
+ Container lab-prometheus Stopped 
+ Container lab-prometheus Removing 
+ Container lab-prometheus Removed 
+ Container lab-alertmanager Stopped 
+ Container lab-alertmanager Removing 
+ Container lab-alertmanager Removed 
+ Container lab-zabbix-web Stopped 
+ Container lab-zabbix-web Removing 
+ Container lab-zabbix-web Removed 
+ Container mailpit Stopped 
+ Container mailpit Removing 
+ Container mailpit Removed 
+ Container lab-zabbix-server Stopped 
+ Container lab-zabbix-server Removing 
+ Container lab-zabbix-server Removed 
+ Container lab-zabbix-db Stopping 
+ Container vigil-app Stopped 
+ Container vigil-app Removing 
+ Container vigil-app Removed 
+ Container vigil-migrate Stopping 
+ Container vigil-migrate Stopped 
+ Container vigil-migrate Removing 
+ Container vigil-migrate Removed 
+ Container vigil-db Stopping 
+ Container lab-zabbix-db Stopped 
+ Container lab-zabbix-db Removing 
+ Container lab-zabbix-db Removed 
+ Container vigil-db Stopped 
+ Container vigil-db Removing 
+ Container vigil-db Removed 
+ Container demo-faults Stopped 
+ Container demo-faults Removing 
+ Container demo-faults Removed 
+ Container lab-rpt-01 Stopping 
+ Container lab-probe-01 Stopping 
+ Container lab-probe-01 Stopped 
+ Container lab-probe-01 Removing 
+ Container lab-probe-01 Removed 
+ Container lab-vas-01 Stopping 
+ Container lab-rpt-01 Stopped 
+ Container lab-rpt-01 Removing 
+ Container lab-rpt-01 Removed 
+ Container openai-fake Stopped 
+ Container openai-fake Removing 
+ Container openai-fake Removed 
+ Container jira-fake Stopped 
+ Container jira-fake Removing 
+ Container jira-fake Removed 
+ Container claude-fake Stopped 
+ Container claude-fake Removing 
+ Container claude-fake Removed 
+ Container ollama-embed-fake Stopped 
+ Container ollama-embed-fake Removing 
+ Container ollama-embed-fake Removed 
+ Container ollama-llm-fake Stopped 
+ Container ollama-llm-fake Removing 
+ Container ollama-llm-fake Removed 
+ Container teams-fake Stopped 
+ Container teams-fake Removing 
+ Container teams-fake Removed 
+ Container lab-vas-01 Stopped 
+ Container lab-vas-01 Removing 
+ Container lab-vas-01 Removed 
+ Container lab-api-01 Stopping 
+ Container lab-api-01 Stopped 
+ Container lab-api-01 Removing 
+ Container lab-api-01 Removed 
+ Container lab-db-01 Stopping 
+ Container lab-db-01 Stopped 
+ Container lab-db-01 Removing 
+ Container lab-db-01 Removed 
+ Network vigil-local_lab-net Removing 
+ Network vigil-local_vigil-net Removing 
+ Network vigil-local_lab-net Removed 
+ Network vigil-local_vigil-net Removed 
