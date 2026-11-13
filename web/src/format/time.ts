@@ -102,3 +102,16 @@ export function countdown(dueAt: string, now: number): string {
 export function elapsedSeconds(from: string, now: number): number {
   return Math.max(0, Math.floor((now - Date.parse(from)) / 1000));
 }
+
+/**
+ * The expiry countdown "in {m} min {s} s" of DC-S05-03 (CTX-D-091 (5)): whole minutes and the remaining whole seconds
+ * to `dueAt`, counted up to the next whole second; null when `now` is not before `dueAt`.
+ */
+export function expiresIn(dueAt: string, now: number): string | null {
+  const left = Date.parse(dueAt) - now;
+  if (!(left > 0)) {
+    return null;
+  }
+  const seconds = Math.ceil(left / 1000);
+  return `in ${Math.floor(seconds / 60)} min ${seconds % 60} s`;
+}

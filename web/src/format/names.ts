@@ -1,4 +1,7 @@
 // Display names and counts (DC-TX-00 "Counts", DC-TX-01).
+import type { EvidenceLine } from "../api/types";
+import type { KindWord } from "../tags/KindTag";
+
 export function incidentNumber(n: number): string {
   return `INC-${String(n).padStart(4, "0")}`;
 }
@@ -210,4 +213,19 @@ export function listText(texts: readonly string[], empty = "none"): string {
   return texts.length === 0
     ? empty
     : [...texts].sort((a, b) => a.localeCompare(b, "en")).join(", ");
+}
+
+/** The kind word of each evidence kind (DC-U-10; P-30 spec Section 6.7). */
+export const EVIDENCE_KIND_WORDS: Record<EvidenceLine["kind"], KindWord> = {
+  diagnostic_result: "Observation",
+  ai_investigation: "AI analysis",
+  similarity_match: "History match",
+  approval: "Approval",
+  action_execution: "Execution result",
+  recovery_verification: "Verified outcome",
+};
+
+/** A value as its JSON text; a string without quotes. */
+export function valueText(value: unknown): string {
+  return typeof value === "string" ? value : JSON.stringify(value);
 }

@@ -17,6 +17,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.mockito.AdditionalAnswers;
+import org.mockito.MockMakers;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -33,6 +38,7 @@ import vigil.engine.EngineFixture;
 import vigil.engine.TestContents;
 import vigil.engine.TestHandlers;
 import vigil.engine.api.EngineService;
+import vigil.identity.api.IdentityService;
 import vigil.incidents.api.AlertCopy;
 import vigil.incidents.api.GroupingReason;
 import vigil.incidents.api.IdentityPairCopy;
@@ -42,8 +48,10 @@ import vigil.reporting.api.ReportingPart;
 import vigil.reporting.api.ReportingPart.BaselinePart;
 import vigil.shared.Actor;
 import vigil.shared.Ids;
+import vigil.shared.Key;
 import vigil.shared.StepCall;
 import vigil.shared.StepCall.StepType;
+import vigil.shared.TenantId;
 import vigil.testsupport.ApiClient;
 import vigil.testsupport.ApiClient.Request;
 import vigil.testsupport.ApiClient.Response;
@@ -80,6 +88,68 @@ public final class ApprovalApiFixture implements AutoCloseable {
     @Primary
     Clock testClock() {
       return clock;
+    }
+
+    /**
+     * Wraps the {@link IdentityService} bean so that, while {@link Membership} is armed for a user,
+     * {@code isMember} for that user gives the real answer at its first call and false at later
+     * calls (P-30 spec Section 6.9 item 3); otherwise every call goes to the bean.
+     */
+    @Bean
+    static BeanPostProcessor membershipWrapper() {
+      return new BeanPostProcessor() {
+        @Override
+        public Object postProcessAfterInitialization(Object bean, String beanName) {
+          if (!(bean instanceof IdentityService identity)
+              || Mockito.mockingDetails(bean).isMock()) {
+            return bean;
+          }
+          IdentityService wrapper =
+              Mockito.mock(
+                  IdentityService.class,
+                  Mockito.withSettings()
+                      .mockMaker(MockMakers.PROXY)
+                      .defaultAnswer(AdditionalAnswers.delegatesTo(identity)));
+          Mockito.doAnswer(
+                  call ->
+                      Membership.isMember(
+                          identity,
+                          call.getArgument(0, TenantId.class),
+                          call.getArgument(1, UUID.class),
+                          call.getArgument(2, Key.class)))
+              .when(wrapper)
+              .isMember(Mockito.any(), Mockito.any(), Mockito.any());
+          return wrapper;
+        }
+      };
+    }
+  }
+
+  /**
+   * The membership reads of one armed user: the first answers as the bean does, later ones false.
+   */
+  public static final class Membership {
+
+    private static volatile UUID armed;
+    private static final AtomicInteger CALLS = new AtomicInteger();
+
+    private Membership() {}
+
+    /** Arms the wrapper for {@code user}; {@link #disarm} in {@code finally}. */
+    public static void arm(UUID user) {
+      CALLS.set(0);
+      armed = user;
+    }
+
+    public static void disarm() {
+      armed = null;
+    }
+
+    static boolean isMember(IdentityService identity, TenantId tenant, UUID user, Key team) {
+      if (user != null && user.equals(armed) && CALLS.getAndIncrement() > 0) {
+        return false;
+      }
+      return identity.isMember(tenant, user, team);
     }
   }
 
@@ -144,6 +214,15 @@ public final class ApprovalApiFixture implements AutoCloseable {
    * aiOutput}. Returns once the run has started.
    */
   public ResponseRun responseRun(ActionsFixture tenant, boolean match, String aiOutput) {
+    return responseRun(tenant, match, aiOutput, 1);
+  }
+
+  /**
+   * As {@link #responseRun(ActionsFixture, boolean, String)} with {@code approvals} Approval steps
+   * (1 or 2) one after the other before the Action step (P-30 spec Section 6.9 item 3).
+   */
+  public ResponseRun responseRun(
+      ActionsFixture tenant, boolean match, String aiOutput, int approvals) {
     UUID incident = tenant.openIncident();
     if (match) {
       tenant.match(incident);
@@ -153,7 +232,9 @@ public final class ApprovalApiFixture implements AutoCloseable {
     handlers.answer(StepType.AI_TASK, call -> TestHandlers.completed(aiOutput));
     String content =
         TestContents.with(
-            TestContents.linear("ai_task", "approval", "action", "recovery_check"),
+            approvals == 2
+                ? TestContents.linear("ai_task", "approval", "approval", "action", "recovery_check")
+                : TestContents.linear("ai_task", "approval", "action", "recovery_check"),
             node -> {
               ObjectNode step = (ObjectNode) node.get("steps").get(1);
               step.putObject("parameters").put("task", "SL-T-3");

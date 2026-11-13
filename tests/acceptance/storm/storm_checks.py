@@ -271,6 +271,7 @@ class Data:
     mode: str
     deliveries: str
     profile: str
+    acts: str = "driver"
     t0: float | None = None
     start_strip: dict | None = None
     start_incidents: dict | None = None
@@ -643,6 +644,8 @@ def s05_incident_messages(d):
 
 
 def s05_acknowledge_page(d):
+    if d.acts == "pages":
+        return s05_acknowledge_page_after(d)
     before, after = need(d.ack_before), need(d.ack_after)
     summary = (part(d, "storm", "investigation").get("summary") or {}).get("text")
     found = {
@@ -666,6 +669,31 @@ def s05_acknowledge_page(d):
         "acknowledged": None,
         "answer": 201,
         "after": "Hira Baig (NOC L1)",
+    }
+    return compare(found, expected)
+
+
+def s05_acknowledge_page_after(d):
+    """With --acts pages: the read after the acknowledgement made on the page (P-30 spec Section 6.10 item 1)."""
+    after = need(d.ack_after)
+    summary = (part(d, "storm", "investigation").get("summary") or {}).get("text")
+    found = {
+        "title": after.get("title"),
+        "severity": after.get("severity"),
+        "owner": (after.get("owner") or {}).get("name"),
+        "summary": after.get("summary"),
+        "may_act": after.get("may_act"),
+        "refusal": (after.get("refusal") or {}).get("key"),
+        "acknowledged": ((after.get("acknowledged") or {}).get("user") or {}).get("display_name"),
+    }
+    expected = {
+        "title": STORM_TITLE,
+        "severity": "P1",
+        "owner": "Database Operations",
+        "summary": summary,
+        "may_act": True,
+        "refusal": "already_acknowledged",
+        "acknowledged": "Hira Baig (NOC L1)",
     }
     return compare(found, expected)
 
@@ -736,8 +764,9 @@ def s06_approval_messages(d):
 
 def s06_approval_page(d):
     page, read_at = need(d.approval_page, d.approval_read_at)
+    pages = d.acts == "pages"
     bad = []
-    if page.get("state") != "pending":
+    if page.get("state") != ("approved" if pages else "pending"):
         bad.append(f"state {page.get('state')}")
     if action_shape(page) != ACTION_SHAPE:
         bad.append(f"action {action_shape(page)}")
@@ -766,12 +795,17 @@ def s06_approval_page(d):
         60,
     ):
         bad.append(f"recovery_checks {checks}")
-    if page.get("may_act") is not True or page.get("refusal") is not None:
+    refusal = (page.get("refusal") or {}).get("key") if pages else page.get("refusal")
+    if page.get("may_act") is not True or refusal != ("already_decided" if pages else None):
         bad.append(f"may_act {page.get('may_act')}, refusal {page.get('refusal')}")
     return problems(bad)
 
 
 def s06_decision(d):
+    if d.acts == "pages":
+        answer = need(d.decision)
+        found = (answer.get("state"), (answer.get("user") or {}).get("display_name"))
+        return compare(found, ("approved", "Usman Tariq (DB Ops)"))
     answer = d.decision or {}
     found = (d.decision_status, answer.get("state"), (answer.get("user") or {}).get("display_name"))
     need(d.decision_status)

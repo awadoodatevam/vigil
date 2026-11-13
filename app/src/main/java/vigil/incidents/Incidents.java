@@ -816,12 +816,13 @@ class Incidents implements IncidentService {
     if (!identity.hasPermission(tenantId, userId, Permission.ACKNOWLEDGE)) {
       throw new VigilError(VigilError.Code.FORBIDDEN);
     }
-    Optional<AcknowledgeRefusal> refusal = acknowledgeCheck(tenantId, row, userId);
-    if (refusal.isPresent()) {
+    AcknowledgeCheck check = acknowledgeCheck(tenantId, row, userId);
+    if (check.refusal().isPresent()) {
+      AcknowledgeRefusal refusal = check.refusal().get();
       throw new VigilError(
-          VigilError.Code.REFUSED, refusal.get().message(), Map.copyOf(refusal.get().details()));
+          VigilError.Code.REFUSED, refusal.message(), Map.copyOf(refusal.details()));
     }
-    String team = notifiedTeam(tenantId, row, userId).orElseThrow();
+    String team = check.team();
     UUID id =
         records.insertAcknowledgement(tenantId, row.id, userId, team, row.episode(), change.now);
     row.acknowledgedAt = change.now;
@@ -843,38 +844,54 @@ class Incidents implements IncidentService {
     required(tenantId, incidentId, userId);
     return records
         .incident(tenantId, incidentId)
-        .flatMap(row -> acknowledgeCheck(tenantId, row, userId));
+        .flatMap(row -> acknowledgeCheck(tenantId, row, userId).refusal());
+  }
+
+  /**
+   * The result of the acknowledgement's checks: the refusal that applies, or none and the notified
+   * team of the user, read once (DM-E35-R1, CTX-D-080 (4)).
+   */
+  private record AcknowledgeCheck(Optional<AcknowledgeRefusal> refusal, String team) {
+
+    static AcknowledgeCheck refused(Optional<AcknowledgeRefusal> refusal) {
+      return new AcknowledgeCheck(refusal, null);
+    }
   }
 
   /**
    * Checks (2) to (4) of the acknowledgement in their order (DM-E35-R1, DC-S04-05); the first that
-   * applies, or empty.
+   * applies, or none with the user's notified team.
    */
-  private Optional<AcknowledgeRefusal> acknowledgeCheck(
-      TenantId tenantId, IncidentRow row, UUID userId) {
+  private AcknowledgeCheck acknowledgeCheck(TenantId tenantId, IncidentRow row, UUID userId) {
     if (row.state != IncidentState.OPEN) {
-      return acknowledgeRefusal(
-          "not_open",
-          "This incident is " + row.state.key() + ". It does not need acknowledgement.",
-          Map.of("state", row.state.key()));
+      return AcknowledgeCheck.refused(
+          acknowledgeRefusal(
+              "not_open",
+              "This incident is " + row.state.key() + ". It does not need acknowledgement.",
+              Map.of("state", row.state.key())));
     }
     Optional<AcknowledgementView> existing = current(tenantId, row);
     if (existing.isPresent()) {
       AcknowledgementView first = existing.get();
-      return acknowledgeRefusal(
-          "already_acknowledged",
-          "Already acknowledged by "
-              + userName(tenantId, first.userId())
-              + " at "
-              + IncidentTexts.outbound(first.at())
-              + ".",
-          Map.of("user_id", first.userId().toString(), "at", IncidentJson.time(first.at())));
+      return AcknowledgeCheck.refused(
+          acknowledgeRefusal(
+              "already_acknowledged",
+              "Already acknowledged by "
+                  + userName(tenantId, first.userId())
+                  + " at "
+                  + IncidentTexts.outbound(first.at())
+                  + ".",
+              Map.of("user_id", first.userId().toString(), "at", IncidentJson.time(first.at()))));
     }
-    if (notifiedTeam(tenantId, row, userId).isEmpty()) {
-      return acknowledgeRefusal(
-          "not_notified", "You are not in a team that was notified about this incident.", Map.of());
+    Optional<String> team = notifiedTeam(tenantId, row, userId);
+    if (team.isEmpty()) {
+      return AcknowledgeCheck.refused(
+          acknowledgeRefusal(
+              "not_notified",
+              "You are not in a team that was notified about this incident.",
+              Map.of()));
     }
-    return Optional.empty();
+    return new AcknowledgeCheck(Optional.empty(), team.get());
   }
 
   /** The first notified team, in code point order, of which the user is an active member. */

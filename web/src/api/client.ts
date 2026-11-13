@@ -31,13 +31,21 @@ export class ApiFailure extends Error {
   readonly status: number;
   readonly code: ErrorCode | null;
   readonly reason: string;
+  /** The error answer's `details` (AR-I-03), or null. */
+  readonly details: Record<string, unknown> | null;
 
-  constructor(status: number, code: ErrorCode | null, reason: string) {
+  constructor(
+    status: number,
+    code: ErrorCode | null,
+    reason: string,
+    details: Record<string, unknown> | null = null,
+  ) {
     super(reason);
     this.name = "ApiFailure";
     this.status = status;
     this.code = code;
     this.reason = reason;
+    this.details = details;
   }
 }
 
@@ -61,9 +69,13 @@ type Json<T> = T extends { content: { "application/json": infer B } }
   ? B
   : undefined;
 
-/** The body of the operation's success answer (200, else 204 without a body). */
+/** The body of the operation's success answer (200, else 201, else 204 without a body). */
 export type Answer<P extends keyof paths, M extends Method> =
-  Operation<P, M> extends { responses: { 200: infer R } } ? Json<R> : undefined;
+  Operation<P, M> extends { responses: { 200: infer R } }
+    ? Json<R>
+    : Operation<P, M> extends { responses: { 201: infer R } }
+      ? Json<R>
+      : undefined;
 type Query<P extends keyof paths, M extends Method> =
   Operation<P, M> extends { parameters: { query?: infer Q } } ? Q : never;
 type Body<P extends keyof paths, M extends Method> =
@@ -102,7 +114,9 @@ export async function failureOf(response: Response): Promise<ApiFailure> {
     body = null;
   }
   const error = (
-    body as { error?: { code?: unknown; message?: unknown } } | null
+    body as {
+      error?: { code?: unknown; message?: unknown; details?: unknown };
+    } | null
   )?.error;
   const code = typeof error?.code === "string" ? error.code : null;
   if (error && code !== null && Object.hasOwn(DEFAULT_MESSAGES, code)) {
@@ -111,7 +125,13 @@ export async function failureOf(response: Response): Promise<ApiFailure> {
       typeof error.message === "string" && error.message !== ""
         ? error.message
         : DEFAULT_MESSAGES[known];
-    return new ApiFailure(response.status, known, message);
+    const details =
+      typeof error.details === "object" &&
+      error.details !== null &&
+      !Array.isArray(error.details)
+        ? (error.details as Record<string, unknown>)
+        : null;
+    return new ApiFailure(response.status, known, message, details);
   }
   return new ApiFailure(response.status, null, SOMETHING_WENT_WRONG);
 }

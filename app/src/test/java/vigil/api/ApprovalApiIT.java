@@ -3,6 +3,7 @@ package vigil.api;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -217,6 +218,82 @@ class ApprovalApiIT {
     assertThat(api.actions.request(f.tenant, third.view().id()).orElseThrow().state().key())
         .isEqualTo("pending");
     assertThat(decide("presenter", third.view().id(), "approve", hash).status()).isEqualTo(403);
+  }
+
+  @Test
+  @DisplayName("AR-I-35 a body with a repeated member answers 400")
+  void repeatedMember() {
+    ApprovalApiFixture.PendingRequest r = pending();
+    String hash = r.view().snapshotHash();
+    UUID id = r.view().id();
+    List<Request> bad =
+        List.of(
+            api.client
+                .post(decisions(id))
+                .json(
+                    "{\"decision\":\"approve\",\"decision\":\"reject\","
+                        + "\"snapshot_hash_shown\":\""
+                        + hash
+                        + "\"}"),
+            api.client
+                .post(decisions(id))
+                .json(
+                    "{\"decision\":\"approve\",\"snapshot_hash_shown\":\""
+                        + hash
+                        + "\",\"snapshot_hash_shown\":\""
+                        + hash
+                        + "\"}"),
+            api.client.post(decisions(id)).json("{\"decision\":"),
+            api.client
+                .post(decisions(id))
+                .header("Content-Type", "text/plain")
+                .body(body("approve", hash).getBytes(StandardCharsets.UTF_8)));
+    for (Request request : bad) {
+      Response response = send("dbops-engineer", request);
+      assertThat(response.status()).isEqualTo(400);
+      assertThat(response.json().get("error").get("code").stringValue()).isEqualTo("bad_request");
+    }
+    assertThat(api.actions.request(f.tenant, id).orElseThrow().state().key()).isEqualTo("pending");
+    Response problem =
+        send(
+            "dbops-engineer",
+            api.client
+                .post(decisions(id))
+                .header("Content-Type", "application/problem+json")
+                .body(body("approve", hash).getBytes(StandardCharsets.UTF_8)));
+    assertThat(problem.status()).isEqualTo(201);
+  }
+
+  @Test
+  @DisplayName("DM-E59-R1 the membership is read once under the lock")
+  void membershipReadOnce() {
+    ApprovalApiFixture.PendingRequest r = pending();
+    UUID engineer = f.userId("dbops-engineer");
+    Request request =
+        api.as(
+            f,
+            "dbops-engineer",
+            api.client
+                .post(decisions(r.view().id()))
+                .json(body("approve", r.view().snapshotHash())));
+    Response done;
+    ApprovalApiFixture.Membership.arm(engineer);
+    try {
+      done = request.send();
+    } finally {
+      ApprovalApiFixture.Membership.disarm();
+    }
+    assertThat(done.status()).isEqualTo(201);
+    String team =
+        f.postgres()
+            .sql(
+                "SELECT team_key FROM actions.approval_decision WHERE tenant_id = :t"
+                    + " AND request_id = :r")
+            .param("t", f.tenant.value())
+            .param("r", r.view().id())
+            .query(String.class)
+            .single();
+    assertThat(team).isEqualTo("db-ops");
   }
 
   @Test

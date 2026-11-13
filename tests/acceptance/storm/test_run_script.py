@@ -19,7 +19,8 @@ import pytest
 
 ROOT = Path(__file__).resolve().parent.parent.parent.parent
 USAGE = (
-    "Usage: tests/acceptance/storm/run.sh [--mode immediate|script] [--deliveries fakes|checklist] [--project NAME]\n"
+    "Usage: tests/acceptance/storm/run.sh [--mode immediate|script] [--deliveries fakes|checklist] "
+    "[--acts driver|pages] [--project NAME]\n"
 )
 COMPOSE = ["compose", "-f", "deploy/local/compose.yaml", "-p"]
 STUB = textwrap.dedent(
@@ -107,6 +108,8 @@ def script(tmp_path):
         ["--mode"],
         ["--mode", "fast"],
         ["--deliveries", "email"],
+        ["--acts"],
+        ["--acts", "both"],
         ["--project"],
         ["--project", ""],
         ["extra"],
@@ -158,6 +161,8 @@ def test_compose_call_and_clean_log(script):
         "script",
         "--deliveries",
         "checklist",
+        "--acts",
+        "driver",
     ]
     environment = run["environment"]
     assert environment["VIGIL_LOCAL_SECRETS"] == str(secrets_dir)
@@ -187,7 +192,14 @@ def test_defaults_and_relative_results(script):
     result, calls = script("--project", "other", VIGIL_STORM_RESULTS="out/storm")
     assert result.returncode == 0, result.stdout + result.stderr
     run = calls[1]
-    assert run["arguments"][4] == "other" and run["arguments"][-4:] == ["--mode", "immediate", "--deliveries", "fakes"]
+    assert run["arguments"][4] == "other" and run["arguments"][-6:] == [
+        "--mode",
+        "immediate",
+        "--deliveries",
+        "fakes",
+        "--acts",
+        "driver",
+    ]
     assert run["environment"]["VIGIL_LAB_PROFILE"] == "test"
     assert run["environment"]["VIGIL_STORM_RESULTS"] == str(script.caller / "out" / "storm")
     assert (script.caller / "out" / "storm").is_dir()
@@ -216,3 +228,11 @@ def test_driver_failure_exits_one(script):
     assert result.returncode == 1
     assert "AR-Q-07 passed: no secret of the installation in the log of this run." in result.stdout
     assert "logs" in calls[-1]["arguments"]
+
+
+def test_acts_passed_on(script):
+    """SB-T-02 run.sh passes --acts on to the driver."""
+    script.installed()
+    result, calls = script("--acts", "pages")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert calls[1]["arguments"][-6:] == ["--mode", "immediate", "--deliveries", "fakes", "--acts", "pages"]

@@ -195,3 +195,39 @@ it("AR-W-02 path parameters are encoded into the path", async () => {
     "/api/v1/incidents?limit=50",
   ]);
 });
+
+it("AR-I-03 a failure keeps the error's details", async () => {
+  const refused = deps(() =>
+    Promise.resolve(
+      json(422, {
+        error: {
+          code: "refused",
+          message: "This request changed after you opened it.",
+          details: { refusal: "snapshot_changed" },
+        },
+      }),
+    ),
+  );
+  const result = await failure(
+    apiPost("/api/v1/approval-requests/{request_id}/decisions", {
+      params: { request_id: "r-1" },
+      body: { decision: "approve", snapshot_hash_shown: "h" },
+      deps: refused,
+    }),
+  );
+  expect(result.status).toBe(422);
+  expect(result.code).toBe("refused");
+  expect(result.details).toEqual({ refusal: "snapshot_changed" });
+
+  const without = deps(() =>
+    Promise.resolve(json(403, { error: { code: "forbidden", message: "" } })),
+  );
+  const forbidden = await failure(
+    apiPost("/api/v1/incidents/{incident_id}/acknowledgements", {
+      params: { incident_id: "i-1" },
+      deps: without,
+    }),
+  );
+  expect(forbidden.details).toBeNull();
+  expect(forbidden.reason).toBe("You do not have permission to do this.");
+});

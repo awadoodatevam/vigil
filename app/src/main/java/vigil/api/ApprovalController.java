@@ -6,13 +6,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.StreamReadFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import vigil.actions.api.ActionsService;
@@ -33,6 +39,14 @@ import vigil.shared.VigilError.Code;
 class ApprovalController {
 
   private static final JsonMapper JSON = JsonMapper.builder().build();
+
+  /** The reader of AR-I-35's body: a repeated member is an error (CTX-D-080 (4)). */
+  private static final JsonMapper STRICT_JSON =
+      JsonMapper.builder().enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION).build();
+
+  /** The media types the JSON converter accepts. */
+  private static final List<MediaType> JSON_TYPES =
+      List.of(MediaType.APPLICATION_JSON, new MediaType("application", "*+json"));
 
   /** The refusals that depend on the user (CTX-D-079 (2)). */
   private static final Set<String> PERSONAL = Set.of("not_eligible", "excluded");
@@ -121,10 +135,11 @@ class ApprovalController {
   @PostMapping("/api/v1/approval-requests/{request_id}/decisions")
   @RequiresPermission(Permission.APPROVE_ACTION)
   ResponseEntity<NewDecision> decide(
-      ApiCaller caller, @PathVariable("request_id") String requestId, @RequestBody JsonNode body) {
-    if (!isDecisionBody(body)) {
-      throw new VigilError(Code.BAD_REQUEST);
-    }
+      ApiCaller caller,
+      @PathVariable("request_id") String requestId,
+      @RequestHeader(value = HttpHeaders.CONTENT_TYPE, required = false) String contentType,
+      @RequestBody String text) {
+    JsonNode body = decisionBody(contentType, text);
     TenantId tenant = caller.tenantId();
     ApprovalRequestView request = request(tenant, requestId);
     Decision decision = Decision.fromKey(body.get("decision").stringValue()).orElseThrow();
@@ -142,6 +157,40 @@ class ApprovalController {
                 decided.state().key(),
                 names.user(decided.decidedBy()),
                 ApiTimes.format(decided.decidedAt())));
+  }
+
+  /**
+   * The body read as JSON with every member once, from a request of a JSON media type, that passes
+   * {@link #isDecisionBody}; else 400 {@code bad_request} (AR-I-03, CTX-D-080 (4)).
+   */
+  private static JsonNode decisionBody(String contentType, String text) {
+    if (!isJson(contentType)) {
+      throw new VigilError(Code.BAD_REQUEST);
+    }
+    JsonNode body;
+    try {
+      body = STRICT_JSON.readTree(text);
+    } catch (JacksonException e) {
+      throw new VigilError(Code.BAD_REQUEST);
+    }
+    if (!isDecisionBody(body)) {
+      throw new VigilError(Code.BAD_REQUEST);
+    }
+    return body;
+  }
+
+  /** Whether the media type is compatible with {@code application/json} or {@code *+json}. */
+  private static boolean isJson(String contentType) {
+    if (contentType == null || contentType.isBlank()) {
+      return false;
+    }
+    MediaType type;
+    try {
+      type = MediaType.parseMediaType(contentType);
+    } catch (InvalidMediaTypeException e) {
+      return false;
+    }
+    return JSON_TYPES.stream().anyMatch(json -> json.isCompatibleWith(type));
   }
 
   /** Exactly {@code decision} (approve or reject) and a hash of 1 to 128 code points. */

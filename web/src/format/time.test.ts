@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { viewerTime, zoneNote } from "./time";
+import { expiresIn, viewerTime, zoneNote } from "./time";
 
 describe("viewerTime", () => {
   const now = new Date("2026-10-09T12:00:00Z");
@@ -83,4 +83,15 @@ describe("countdown and elapsedSeconds", () => {
     expect(elapsedSeconds(from, at("2026-10-10T10:20:00.000Z"))).toBe(17);
     expect(elapsedSeconds(from, at("2026-10-10T10:20:01.000Z"))).toBe(18);
   });
+});
+
+it("DC-S05-03 the expiry countdown", () => {
+  const due = "2026-10-10T10:15:00.000Z";
+  const before = (ms: number) => Date.parse(due) - ms;
+  expect(expiresIn(due, before(899_000))).toBe("in 14 min 59 s");
+  expect(expiresIn(due, before(120_000))).toBe("in 2 min 0 s");
+  expect(expiresIn(due, before(1_000))).toBe("in 0 min 1 s");
+  expect(expiresIn(due, before(400))).toBe("in 0 min 1 s");
+  expect(expiresIn(due, before(0))).toBeNull();
+  expect(expiresIn(due, before(-1_000))).toBeNull();
 });

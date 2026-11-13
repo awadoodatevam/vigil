@@ -3,7 +3,7 @@
 The storm driver runs the primary demo headless on a local installation and checks its result (SB-T-02 with amendment BP-A-11, SL-A3-04; `docs/packages/P-27.md`). It runs as the container `storm-driver` (image `vigil/storm-driver:local`, built by `deploy/images.sh --local`) in the compose profile `acceptance` on `lab-net`.
 
 ```bash
-tests/acceptance/storm/run.sh [--mode immediate|script] [--deliveries fakes|checklist] [--project NAME]
+tests/acceptance/storm/run.sh [--mode immediate|script] [--deliveries fakes|checklist] [--acts driver|pages] [--project NAME]
 ```
 
 `run.sh` needs a local installation (`deploy/local.sh up`). It runs the driver with the lab profile `up` used (`state/lab-profile`), then writes the whole logs of `vigil-app` and `vigil-migrate` to `~/.vigil-local/{project}/acceptance/vigil-{UTC time}.log` and scans them for every value of the project's secrets folder (AR-Q-07, `tests/acceptance/log_scan.py --ignore-fields username,email,expires_on`). It exits 0 when the driver passed and no secret is in the log. The result file `storm-{mode}-{UTC time}.json` goes to `VIGIL_STORM_RESULTS` (default `tests/acceptance/results/`).
@@ -27,6 +27,8 @@ A wait that reaches its limit ends the run with the entry `SB-T-02` "step {k} {n
 - `immediate` (CI, cloud sessions): acts as soon as possible; checks every value that does not depend on the timing or the size profile, the diagnostic summaries by form and the dashboard by the formulas of DM-R-53 over the run's own times.
 - `script` (the owner's Mac): follows the script clock and also checks SB-S01's 120 s and SB-S09's exact dashboard values; with the lab profile `demo` also the diagnostic summaries and the action's values against `development_values` of `10-lab-and-faults.yaml`. Wait at least 16 minutes after `deploy/local.sh up` (the 15-minute period of `disk_growth`).
 - `--deliveries fakes` (default): checks the Teams calls, the emails in Mailpit and the Jira issue of the dev fakes. `--deliveries checklist` (P-32, the demo installation): skips those checks and writes `storm-checklist-{UTC time}.md` with the messages the owner checks in the channels and mailboxes.
+
+- `--acts driver` (default): the driver acknowledges (step 6) and approves (step 7) as above. `--acts pages` (mode `immediate` only; P-30, `with-playwright.sh` in mode `immediate`): the driver sends no acknowledgement or decision; step 6 prints `step 6 Acknowledge: waiting for the page at {link}` and reads the Acknowledge page as `noc-l1` every 2 s until it is acknowledged (300 s from the link); step 7 takes the run's first approval request in any state, prints `step 7 Approve: waiting for the page at {link}` and reads the Approval page as `dbops-engineer` every 2 s until it is approved (300 s). `SB-S05 acknowledge page`, `SB-S06 approval page` and `SB-S06 decision` then compare the reads after the action. The result file records `acts`.
 
 The SB-TL times are recorded in the result file (`times`, seconds after T0), not checked.
 

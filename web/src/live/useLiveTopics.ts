@@ -7,7 +7,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { LiveConnection, type LiveHandlers } from "./live";
 
-/** The query keys a topic re-reads, matched by prefix (complete list, P-29 spec Section 6.2 item 4). */
+/** The query keys a topic re-reads, matched by prefix (complete list, P-29 spec Section 6.2 item 4, P-30 spec 6.2 item 5). */
 export function topicQueries(topic: string): QueryKey[] {
   switch (topic) {
     case "tenant":
@@ -24,10 +24,15 @@ export function topicQueries(topic: string): QueryKey[] {
     return [
       ["incident", id],
       ["incident-alerts", id],
+      ["acknowledgement", id],
+      ["approval-request"],
     ];
   }
   if (topic.startsWith("run:")) {
     return [["incident"]];
+  }
+  if (topic.startsWith("approval:")) {
+    return [["approval-request", topic.slice("approval:".length)]];
   }
   return [];
 }

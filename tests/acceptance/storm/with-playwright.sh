@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Runs the Playwright suite storm alongside the storm driver (P-28 spec Section 6.11, CTX-D-085 (9), BP-W-02): writes the
 # driver's mode into the run folder (storm-mode, P-29 spec Section 6.11 item 3), starts deploy/local.sh e2e storm, waits
-# until its test has signed in (the marker storm-ready in the run folder), then runs tests/acceptance/storm/run.sh;
-# exits 0 only when both pass.
+# until its test has signed in (the marker storm-ready in the run folder), then runs tests/acceptance/storm/run.sh with
+# --acts pages in mode immediate (the pages acknowledge and approve) and --acts driver in mode script (P-30 spec
+# Section 6.10 item 2); exits 0 only when both pass.
 #   tests/acceptance/storm/with-playwright.sh [--mode immediate|script] [--project NAME]
 # Runs with macOS's bash 3.2: no empty arrays under set -u.
 set -euo pipefail
@@ -80,7 +81,11 @@ while [ ! -f "$marker" ]; do
   waited=$((waited + 1))
 done
 
-if ! tests/acceptance/storm/run.sh --mode "$mode" --project "$project"; then
+acts=pages
+if [ "$mode" = script ]; then
+  acts=driver
+fi
+if ! tests/acceptance/storm/run.sh --mode "$mode" --acts "$acts" --project "$project"; then
   stop_suite
   exit 1
 fi

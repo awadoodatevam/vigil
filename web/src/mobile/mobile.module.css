@@ -1,0 +1,216 @@
+/* The mobile content and the action area of docs/45-visual-design.md (VD-C-25, VD-C-26, VD-L-06). */
+
+/* The content card (VD-C-04), padding 16px. */
+.card {
+  padding: var(--vd-space-4);
+  background: var(--vd-surface);
+  border: 1px solid var(--vd-border);
+  border-radius: var(--vd-radius);
+  box-shadow: var(--vd-shadow-1);
+}
+
+.heading {
+  margin: 0 0 var(--vd-space-2);
+  font-size: var(--vd-size-20);
+  line-height: 28px;
+  font-weight: 650;
+  color: var(--vd-text);
+}
+
+.incident {
+  margin: 0;
+  font-size: var(--vd-size-16);
+  font-weight: 600;
+  color: var(--vd-text);
+}
+
+.number {
+  font-family: var(--vd-mono);
+  font-weight: 500;
+  color: var(--vd-accent-700);
+}
+
+/* The labelled values, one per line, 6px apart. */
+.value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 6px;
+  margin: 6px 0 0;
+}
+
+.label {
+  font-size: var(--vd-size-15);
+  font-weight: 500;
+  color: var(--vd-text-2);
+}
+
+.valueText {
+  font-size: var(--vd-size-16);
+  font-weight: 600;
+  color: var(--vd-text);
+}
+
+.time {
+  font-family: var(--vd-mono);
+  font-size: var(--vd-size-15);
+  font-weight: 500;
+}
+
+/* The parts of the Approval page, each under its heading (the section heading role). */
+.part {
+  margin: var(--vd-space-4) 0 6px;
+  font-size: var(--vd-size-16);
+  line-height: 24px;
+  font-weight: 650;
+  color: var(--vd-text);
+}
+
+.line {
+  margin: 0;
+}
+
+.line + .line {
+  margin-top: 6px;
+}
+
+.param {
+  margin: 0;
+  font-family: var(--vd-mono);
+  font-size: var(--vd-size-14);
+  color: var(--vd-text);
+  overflow-wrap: anywhere;
+}
+
+.limits {
+  margin: 0;
+  padding-left: var(--vd-space-5);
+  list-style: disc;
+}
+
+.countdown {
+  margin: 0;
+  font-family: var(--vd-mono);
+  font-size: var(--vd-size-15);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--vd-accent-700);
+}
+
+.evidence {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.evidence > li {
+  margin-top: var(--vd-space-2);
+}
+
+.tagged {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--vd-space-1) var(--vd-space-2);
+  margin: 0;
+}
+
+.collected {
+  margin: 0;
+  font-family: var(--vd-mono);
+  font-size: var(--vd-size-14);
+  color: var(--vd-text-2);
+}
+
+/* Notices (VD-C-11, VD-C-26). */
+.info,
+.outcomeInfo,
+.warning,
+.success {
+  margin: 0;
+  padding: var(--vd-space-3) 14px;
+  border: 1px solid transparent;
+  border-radius: var(--vd-radius-sm);
+}
+
+/* "Approval {n}: …" above the incident line. */
+.info {
+  margin-bottom: var(--vd-space-2);
+  font-size: var(--vd-size-14);
+  color: var(--vd-accent-700);
+  background: var(--vd-accent-50);
+  border-color: var(--vd-accent-100);
+}
+
+.outcomeInfo {
+  font-size: var(--vd-size-16);
+  color: var(--vd-accent-700);
+  background: var(--vd-accent-50);
+  border-color: var(--vd-accent-100);
+}
+
+.warning {
+  font-size: var(--vd-size-16);
+  color: var(--vd-orange-700);
+  background: var(--vd-orange-50);
+  border-color: var(--vd-orange-200);
+}
+
+.success {
+  font-size: var(--vd-size-16);
+  color: var(--vd-green-700);
+  background: var(--vd-green-50);
+  border: none;
+}
+
+/* The action area (VD-C-26). */
+.area > * + * {
+  margin-top: var(--vd-space-3);
+}
+
+.area .button {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 9px var(--vd-space-4);
+  font: inherit;
+  font-size: var(--vd-size-16);
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--vd-accent-500);
+  border: 1px solid transparent;
+  border-radius: var(--vd-radius-sm);
+  cursor: pointer;
+  transition: background var(--vd-fast);
+}
+
+.area .button:hover {
+  background: var(--vd-accent-600);
+}
+
+.area .destructive {
+  background: var(--vd-red-600);
+}
+
+.area .destructive:hover {
+  background: var(--vd-red-600);
+}
+
+.area .button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.viewOnly {
+  margin: 0;
+  font-size: var(--vd-size-15);
+  color: var(--vd-text-2);
+}
+
+/* "You do not have permission to do this." and "Could not … {reason}", 6px under the buttons. */
+.area .failed {
+  margin: 6px 0 0;
+  font-size: var(--vd-size-15);
+  color: var(--vd-red-700);
+}

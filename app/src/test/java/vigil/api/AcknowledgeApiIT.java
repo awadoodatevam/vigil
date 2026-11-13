@@ -206,6 +206,24 @@ class AcknowledgeApiIT {
                 + ".");
   }
 
+  @Test
+  @DisplayName("DM-E35-R1 the membership is read once under the lock")
+  void membershipReadOnce() {
+    UUID incident = notifiedIncident();
+    UUID nocL1 = f.userId("noc-l1");
+    Request request = api.as(f, "noc-l1", api.client.post(action(incident)));
+    Response done;
+    ApprovalApiFixture.Membership.arm(nocL1);
+    try {
+      done = request.send();
+    } finally {
+      ApprovalApiFixture.Membership.disarm();
+    }
+    assertThat(done.status()).isEqualTo(201);
+    assertThat(incidents.acknowledgement(f.tenant, incident).orElseThrow().teamKey())
+        .isEqualTo("noc-l1");
+  }
+
   /** The refusal read now, then the acknowledgement's refusal: the same key, text and details. */
   private void sameRefusal(UUID incident, String username, String key) {
     UUID user = f.userId(username);

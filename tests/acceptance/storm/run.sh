@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Runs the storm driver on the local installation and then checks the logs of vigil-app and vigil-migrate for the
 # installation's secrets (P-27 spec Section 6.6; SB-T-02, AR-Q-07).
-#   tests/acceptance/storm/run.sh [--mode immediate|script] [--deliveries fakes|checklist] [--project NAME]
+#   tests/acceptance/storm/run.sh [--mode immediate|script] [--deliveries fakes|checklist] [--acts driver|pages]
+#     [--project NAME]
 # Runs with macOS's bash 3.2: no empty arrays under set -u.
 set -euo pipefail
 
@@ -13,12 +14,13 @@ COMPOSE_FILE=deploy/local/compose.yaml
 IMAGE=vigil/storm-driver:local
 
 usage() {
-  echo "Usage: tests/acceptance/storm/run.sh [--mode immediate|script] [--deliveries fakes|checklist] [--project NAME]"
+  echo "Usage: tests/acceptance/storm/run.sh [--mode immediate|script] [--deliveries fakes|checklist] [--acts driver|pages] [--project NAME]"
   exit 2
 }
 
 mode=immediate
 deliveries=fakes
+acts=driver
 project=vigil-local
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -30,6 +32,11 @@ while [ "$#" -gt 0 ]; do
     --deliveries)
       if [ "$#" -lt 2 ]; then usage; fi
       case "$2" in fakes | checklist) deliveries=$2 ;; *) usage ;; esac
+      shift
+      ;;
+    --acts)
+      if [ "$#" -lt 2 ]; then usage; fi
+      case "$2" in driver | pages) acts=$2 ;; *) usage ;; esac
       shift
       ;;
     --project)
@@ -82,7 +89,7 @@ export VIGIL_STORM_RESULTS
 # Step 4: the driver.
 driver=0
 docker compose -f "$COMPOSE_FILE" -p "$project" --profile acceptance run --rm -T storm-driver \
-  --mode "$mode" --deliveries "$deliveries" || driver=$?
+  --mode "$mode" --deliveries "$deliveries" --acts "$acts" || driver=$?
 
 # Step 5: AR-Q-07, the whole logs of vigil-app and vigil-migrate (which include this run).
 folder="$base/$project/acceptance"

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import vigil.actions.ActionsFixture;
 import vigil.actions.api.ActionExecutionView;
 import vigil.actions.api.ApprovalRequestView;
@@ -30,6 +31,7 @@ import vigil.testsupport.ApiClient.Response;
 class ResponseApiIT {
 
   private static final Duration WAIT = Duration.ofSeconds(60);
+  private static final JsonMapper JSON = JsonMapper.builder().build();
 
   private ApprovalApiFixture api;
   private ActionsFixture f;
@@ -239,5 +241,50 @@ class ResponseApiIT {
     Response merged = get(api.mergedIncident(f));
     assertThat(merged.status()).isEqualTo(404);
     assertThat(merged.json().get("error").get("code").stringValue()).isEqualTo("not_found");
+  }
+
+  @Test
+  @DisplayName("AR-I-27 a run of two approval requests")
+  void twoRequests() {
+    ApprovalApiFixture.ResponseRun r = api.responseRun(f, true, "done", 2);
+    await(
+        () ->
+            !requests(r.run()).isEmpty()
+                && requests(r.run()).getFirst().state().key().equals("pending"));
+    ApprovalRequestView first = requests(r.run()).getFirst();
+    Response decided =
+        api.as(
+                f,
+                "dbops-engineer",
+                api.client
+                    .post("/api/v1/approval-requests/" + first.id() + "/decisions")
+                    .json(
+                        "{\"decision\":\"approve\",\"snapshot_hash_shown\":\""
+                            + first.snapshotHash()
+                            + "\"}"))
+            .send();
+    assertThat(decided.status()).isEqualTo(201);
+    await(
+        () ->
+            requests(r.run()).size() == 2
+                && requests(r.run()).stream()
+                    .anyMatch(q -> q.sequenceInRun() == 2 && q.state().key().equals("pending")));
+    ApprovalRequestView second =
+        requests(r.run()).stream().filter(q -> q.sequenceInRun() == 2).findFirst().orElseThrow();
+
+    JsonNode body = read(r.incident());
+    JsonNode approvals = body.get("approvals");
+    assertThat(approvals).hasSize(2);
+    assertThat(approvals.valueStream().map(a -> a.get("sequence_in_run").longValue()))
+        .containsExactly(1L, 2L);
+    assertThat(approvals.valueStream().map(a -> a.get("approval_request_id").stringValue()))
+        .containsExactly(first.id().toString(), second.id().toString());
+    assertThat(approvals.valueStream().map(a -> a.get("state").stringValue()))
+        .containsExactly("approved", "pending");
+    JsonNode proposal = body.get("proposal");
+    assertThat(proposal.get("policy_outcome").stringValue())
+        .isEqualTo(second.policyOutcome().key());
+    assertThat(proposal.get("target").get("name").stringValue())
+        .isEqualTo(JSON.readTree(first.snapshotJson()).get("target_name").stringValue());
   }
 }
