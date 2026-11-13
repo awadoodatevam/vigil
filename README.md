@@ -224,10 +224,10 @@ Files under `~/.vigil-local/{project}/` (`VIGIL_LOCAL_HOME` replaces `~/.vigil-l
 The storm driver (SB-T-02, P-27) runs the primary demo headless on the installation that is up and checks its result:
 
 ```bash
-tests/acceptance/storm/run.sh [--mode immediate|script] [--deliveries fakes|checklist] [--project NAME]
+tests/acceptance/storm/run.sh [--mode immediate|script] [--deliveries fakes|checklist] [--acts driver|pages] [--project NAME]
 ```
 
-It resets as the control panel will (a new tenant, the bundle `up` built, the lab cleared, the alias last), injects the storm, acknowledges as `noc-l1` and approves as `dbops-engineer` through the links it builds, waits until the storm incident is resolved, and checks the values of SB-S01 to SB-S09 that need no screen, with the Teams calls, emails and Jira issue of the dev fakes (`--deliveries checklist` writes a checklist of the expected messages instead). Mode `immediate` (default; `e2e.yml`) acts at once; mode `script` follows the script clock and also checks the exact timing and dashboard values, and with the `demo` profile the diagnostic and action values: start it at least 16 minutes after `up` (the 15-minute period of `disk_growth`). It writes `storm-{mode}-{UTC time}.json` to `VIGIL_STORM_RESULTS` (default `tests/acceptance/results/`), then scans the whole logs of `vigil-app` and `vigil-migrate`, kept in `~/.vigil-local/{project}/acceptance/`, for every secret of the installation (AR-Q-07). `down` and `logs` include its compose profile `acceptance`. See `tests/acceptance/storm/README.md`.
+It resets as the control panel will (a new tenant, the bundle `up` built, the lab cleared, the alias last), injects the storm, acknowledges as `noc-l1` and approves as `dbops-engineer` through the links it builds, waits until the storm incident is resolved, and checks the values of SB-S01 to SB-S09 that need no screen, with the Teams calls, emails and Jira issue of the dev fakes (`--deliveries checklist` writes a checklist of the expected messages instead). With `--acts pages` (mode `immediate` only, P-30) it sends no acknowledgement or decision and waits up to 300 s each for the ones made on the Acknowledge and Approval pages, printing the page's link. Mode `immediate` (default; `e2e.yml`) acts at once; mode `script` follows the script clock and also checks the exact timing and dashboard values, and with the `demo` profile the diagnostic and action values: start it at least 16 minutes after `up` (the 15-minute period of `disk_growth`). It writes `storm-{mode}-{UTC time}.json` to `VIGIL_STORM_RESULTS` (default `tests/acceptance/results/`), then scans the whole logs of `vigil-app` and `vigil-migrate`, kept in `~/.vigil-local/{project}/acceptance/`, for every secret of the installation (AR-Q-07). `down` and `logs` include its compose profile `acceptance`. See `tests/acceptance/storm/README.md`.
 
 The Playwright suite `storm` (the incident list while the storm builds, P-28) runs alongside the driver:
 
@@ -235,7 +235,7 @@ The Playwright suite `storm` (the incident list while the storm builds, P-28) ru
 tests/acceptance/storm/with-playwright.sh [--mode immediate|script] [--project NAME]
 ```
 
-It starts `deploy/local.sh e2e storm` in the background, waits (at most `VIGIL_STORM_READY_WAIT`, default 180 s) until the suite's first test has signed in (the marker `~/.vigil-local/{project}/e2e/storm-ready`), then runs `run.sh --mode {mode}` (default `immediate`), and exits 0 only when both pass; when one fails it stops the other (the suite's `e2e` container is removed). The suite's test signs in again after the driver's reset ends its session.
+It starts `deploy/local.sh e2e storm` in the background, waits (at most `VIGIL_STORM_READY_WAIT`, default 180 s) until the suite's first test has signed in (the marker `~/.vigil-local/{project}/e2e/storm-ready`), then runs `run.sh --mode {mode} --acts {acts}` (default mode `immediate`; `--acts pages` in mode `immediate`, so the suite's mobile tests acknowledge and approve, and `--acts driver` in mode `script`), and exits 0 only when both pass; when one fails it stops the other (the suite's `e2e` container is removed). The suite's test signs in again after the driver's reset ends its session.
 
 The storm timing spike (SB-T-01, development run) runs against the lab that is up:
 
