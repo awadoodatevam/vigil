@@ -6,7 +6,7 @@
 | Branch | `p-29-incident-workspace-run-canvas` |
 | Pin date (BP-R-08) | 13 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (Temurin 25.0.4.1) |
-| State | RESULTS_STATE |
+| State | Built; the gate command passes (Section 10). In this session (done-check item 3): `deploy/local.sh up` (exit 0), `deploy/local.sh e2e` (39 of 39 passed: the 38 tests of P-26, P-28 and P-44 and `workspace.spec.ts`), `VIGIL_STORM_RESULTS=$HOME/storm-results tests/acceptance/storm/with-playwright.sh` (exit 0: the 26 `@storm` tests passed, the driver passed 33 of 33 checks, AR-Q-07 passed) and `deploy/local.sh down --volumes` (exit 0); the four screenshots are committed under `tests/acceptance/results/P-29/` (Section 8). The owner-run Mac step (spec Section 6.12) and the label `e2e` are open. |
 
 ## 1. What was built
 
@@ -34,7 +34,7 @@ No change to `app/`, the OpenAPI file, the database or `deploy/` (spec Section 5
 
 ## 2. Tests added
 
-Vitest (`web/src`, TESTS_VITEST): every test of spec Section 7, named as there, in the files the spec names (`api/client.test.ts`, `live/reopen.test.ts`, `live/topics.test.ts`, `app/routes.test.ts`, `format/names.test.ts`, `format/time.test.ts`, `workspace/queries.test.ts`, `workspace/page.test.tsx`, `workspace/header.test.tsx`, `workspace/hypothesis.test.tsx`, `workspace/reasons.test.ts`, `workspace/alerts.test.tsx`, `workspace/evidence.test.tsx`, `workspace/investigation.test.tsx`, `workspace/response.test.tsx`, `workspace/recovery.test.tsx`, `workspace/timeline.test.ts`, `workspace/side.test.tsx`, `workspace/sections.test.tsx`, `canvas/graph.test.ts`, `canvas/summaries.test.ts`, `canvas/follow.test.ts`, `canvas/card.test.tsx`, `canvas/band.test.tsx`, `badges/badges.test.tsx`, `app/contrast.test.ts`, `workspace/styles.test.ts`, `workspace/texts.test.tsx`). Fixtures typed by the generated types are in `web/src/test/` (`fixtures.ts`, `content.ts`: the seeded workflow version 1 with the stored parameter names, generated from `06-workflow.yaml`; `render.tsx`).
+Vitest (`web/src`, 146 tests in 42 files after P-44's 76 in 19: 70 new tests, in 23 new files and five extended ones (`api/client.test.ts`, `app/routes.test.ts`, `format/names.test.ts`, `format/time.test.ts`, `app/contrast.test.ts`)): every test of spec Section 7, named as there, in the files the spec names (`api/client.test.ts`, `live/reopen.test.ts`, `live/topics.test.ts`, `app/routes.test.ts`, `format/names.test.ts`, `format/time.test.ts`, `workspace/queries.test.ts`, `workspace/page.test.tsx`, `workspace/header.test.tsx`, `workspace/hypothesis.test.tsx`, `workspace/reasons.test.ts`, `workspace/alerts.test.tsx`, `workspace/evidence.test.tsx`, `workspace/investigation.test.tsx`, `workspace/response.test.tsx`, `workspace/recovery.test.tsx`, `workspace/timeline.test.ts`, `workspace/side.test.tsx`, `workspace/sections.test.tsx`, `canvas/graph.test.ts`, `canvas/summaries.test.ts`, `canvas/follow.test.ts`, `canvas/card.test.tsx`, `canvas/band.test.tsx`, `badges/badges.test.tsx`, `app/contrast.test.ts`, `workspace/styles.test.ts`, `workspace/texts.test.tsx`). Fixtures typed by the generated types are in `web/src/test/` (`fixtures.ts`, `content.ts`: the seeded workflow version 1 with the stored parameter names, generated from `06-workflow.yaml`; `render.tsx`).
 
 Playwright: `workspace.spec.ts` "DC-S03-01 an unknown incident shows Could not load this page. Not found."; `storm.spec.ts` `@storm`: "SL-A1-08 the storm workspace opens and records the run", "SL-A1-08 the highlight followed every step change within 2 s", "DC-S03-06 follow mode keeps the current step in view", "DC-S03-07 countdowns and the observation window were counted", "SL-A1-02 the storm workspace header, hypothesis, impact and alerts", "SL-A1-03 the evidence lines", "SL-A1-04 the AI investigation section", "SL-A1-06 the Response section", "SL-A1-07 the Recovery section", "SB-S08 the finished run on the canvas and in the run steps", "VD-C-18 the band and the expanded canvas", "DC-S03-13 the timeline and notified teams", "DC-U-08 the workspace changed without a reload", "DC-U-15 the workspace tab title", "VD-S-05 the workspace fits 1280 px with its two columns", "VD-C-22 the section cards and their headings", "VD-C-23 the outcome words in their colours", "DC-S03-01 the report incident's workspace".
 
@@ -46,7 +46,7 @@ pytest: `tests/acceptance/storm/test_with_playwright.py` "BP-W-02 the mode is wr
 
 None changes a text, value or behaviour the spec states. Readings of points the spec leaves open:
 
-1. **The run's last step in the highlight test.** The test measures every step execution that started after the first recorded current card (spec Section 7). The storm run's last execution (`s-resolve`, a Ticket step) has no later step, and when it runs and completes between two re-reads of the page, no card ever carries `data-current` for it (the run is then finished, `current_step_execution_id` is `null`). `highlightDelays` (in `tests/e2e/recorder.ts`) therefore measures the run's last execution only when a change to it was recorded; every other execution is measured as the spec says, and a missing change fails the test.
+1. **The run's last step in the highlight test** (a guard; not needed in this session's run, where a change to `s-resolve` was recorded 641 ms after its start). The test measures every step execution that started after the first recorded current card (spec Section 7). The storm run's last execution (`s-resolve`, a Ticket step) has no later step, and when it runs and completes between two re-reads of the page, no card ever carries `data-current` for it (the run is then finished, `current_step_execution_id` is `null`). `highlightDelays` (in `tests/e2e/recorder.ts`) therefore measures the run's last execution only when a change to it was recorded; every other execution is measured as the spec says, and a missing change fails the test.
 2. **`ariaLabel: null`** on the edges is cast through `unknown`, because the library's `Edge` type does not list `null`, which its code reads as "no `aria-label`" (CTX-D-089 (3)).
 3. **Handles** keep the library's classes `connectablestart` and `connectableend` (its defaults for `isConnectableStart`/`isConnectableEnd`); they have no effect while `isConnectable={false}`, and the class `connectable` is absent (the Playwright test checks that class).
 4. **The countdown** rounds the remaining time up to whole seconds, so it reads "0:00" exactly from `timer_due_at` on.
@@ -56,7 +56,8 @@ None changes a text, value or behaviour the spec states. Readings of points the 
 
 ## 4. Document feedback (CTX-Q-8)
 
-DOC_FEEDBACK
+1. **The Maven note of CTX-D-088 (4)** worked as written in this session, for a miss it does not name as an example: the first gate run stopped at step (2) because Maven Central answered `org.springframework.boot:spring-boot-starter-parent:pom:4.1.1` as absent (the parent POM of `app` and `demo/control`, so no project could be read; a direct request answered 200 a minute later). Deleting the `*.lastUpdated` markers and running the two `resolve` goals with full coordinates fetched it; `surefire-junit-platform` 3.5.6, `junit-platform-launcher` 6.0.3 and Spotless's `google-java-format` 1.36.1 (absent at its first request, fetched by the Spotless `check` run of the note on a second attempt) were fetched before the second gate run, which passed. No change to the note is suggested.
+2. **The canvas library's types** do not list `null` for `Edge.ariaLabel`, which its code reads as "no accessible name" (CTX-D-089 (3), spec 6.6 item 9); the code casts it (Section 3 item 2). This works in 12.12.1; P-37 keeps it in mind when the library is upgraded.
 
 ## 5. Blocking questions
 
@@ -77,19 +78,30 @@ None.
 
 ## 7. Values recorded under `docs/`
 
-None under `docs/` besides this report. The files of spec Section 9: `tests/acceptance/results/P-29/` (SCREENSHOTS); `tests/acceptance/results/P-29-mac.txt` and `tests/acceptance/results/P-29-mac/` are the owner's (Section 8).
+None under `docs/` besides this report. The files of spec Section 9: `tests/acceptance/results/P-29/` (the cloud session's `workspace-storm`, `workspace-canvas-fit`, `workspace-canvas-expanded` and `workspace-report`); `tests/acceptance/results/P-29-mac.txt` and `tests/acceptance/results/P-29-mac/` are the owner's (Section 8).
 
 ## 8. Owner-run results
 
-OWNER_RESULTS
+Owner-run on the Mac (spec Section 6.12): **not yet done** — `up --profile demo`, the suites, `with-playwright.sh --mode script` with the `demo` profile's exact values, the copy of the screenshots into `tests/acceptance/results/P-29-mac/`, the look at the workspace in a browser during a storm, `down`, and the label `e2e` on the pull request. The test reads the profile from `/run/state/lab-profile` and the mode from `/e2e/run/storm-mode`, so the Mac run checks DD-F-10's development values and the minimums of mode `script` (3 step executions, 3 follow distances, a "Waiting" sample of each of `s-wait-ack` and `s-approve`).
+
+Done-check item 3, in the build session (cloud, lab profile `test`, mode `immediate`):
+
+- `deploy/local.sh up`: exit 0, "Tenant 01a1d65e-3e78-7247-9aa1-2de56ca55384 is ready at demo.vigil.test."
+- `deploy/local.sh e2e`: **39 passed** (17.5 s): `login.spec.ts` 18, `look.spec.ts` 12, `incidents.spec.ts` 4, `smoke.spec.ts` 4, `workspace.spec.ts` 1 ("DC-S03-01 an unknown incident shows Could not load this page. Not found.").
+- `VIGIL_STORM_RESULTS=$HOME/storm-results tests/acceptance/storm/with-playwright.sh`: **exit 0**. The suite `storm`: **26 passed** (3.4 min), in the order of spec Section 6.11 item 1: DC-S01-04 (14.1 s), DC-S02-05, DC-S02-03 (1.2 min), SL-A1-08 opens, SL-A1-02 rows (1.8 min), DC-U-08 list, VD-L-03, VD-C-07, SL-A1-08 highlight, DC-S03-06, DC-S03-07, SL-A1-02 workspace, SL-A1-03, SL-A1-04, SL-A1-06, SL-A1-07, SB-S08 (2.3 s), VD-C-18, DC-S03-13, DC-U-08 workspace, DC-U-15, VD-S-05, VD-C-22, VD-C-23, DC-S03-01 report (1.3 s), DC-S02-04.
+  - Highlight delays (ms, from each step's `started_at` to the recorded highlight): `s-investigate` 114, `s-summarise` 223, `s-ticket` 197, `s-notify` 167, `s-wait-ack` 333, `s-similar` 296, `s-approve` 249, `s-action` 147, `s-recover` 408, `s-resolve` 641 (10 measured; limit 2,000; minimum 1 in mode `immediate`). The steps before `s-investigate` started before the workspace first showed the run.
+  - Follow distances 500 ms after each change (px, at zoom 0.8): `s-diagnose` 0.00, `s-notify` 0, `s-approve` 0.16, `s-action` 0, `s-recover` 0.16, `s-resolve` 0.16 (6 taken; limit 2).
+  - The driver (mode `immediate`): reset 12.2 s (branch A 12.2 s, quiet 0.04 s, branch B 1.0 s); storm `INC-0002`, report `INC-0001`; **33 of 33** checks passed, 4 under `not_run` (those of mode `script`), `passed: true` (`storm-immediate-20261113T192501Z.json`, kept outside the repository as in P-44); "AR-Q-07 passed: no secret of the installation in the log of this run."
+- Screenshots (spec Section 6.11 item 4), committed under `tests/acceptance/results/P-29/`: `workspace-storm.png` (the storm workspace at the end, in follow mode), `workspace-canvas-fit.png`, `workspace-canvas-expanded.png` (window only) and `workspace-report.png`. In the full-page shots the sticky banner appears where the page was scrolled to when the shot was taken, as in P-44's full-page shots.
+- `deploy/local.sh down --volumes`: exit 0.
 
 ## 9. Lines of production code (`tools/loc.sh origin/main HEAD`)
 
-LOC_RESULT
+**2,543** (BP-R-05 limit for L 3,500; spec estimate about 2,500): `web/src` TypeScript only. CSS Modules, tests, the fixtures under `web/src/test/` and `tests/e2e/` are not counted.
 
 ## 10. Gate command result
 
-GATE_RESULT
+`tools/check-all.sh` passed in this session (exit 0, "all checks passed"): step (0) Docker, (1) setup version, (1a) test images, (2) `./mvnw -B verify` (web: `npm ci`, `npm run generate`, lint, Prettier check, type check, Vitest **146 tests in 42 files**, build; `tests/e2e/`: `npm ci`, lint, Prettier check, type check; `vigil-app` 197 unit tests and 776 integration tests, `demo-control` 1 and 2 tests, 0 failures, 0 errors; Spotless; `BUILD SUCCESS`), (3) `ruff` and pytest: 509 passed, 1 skipped, 39 deselected ("lab tests skipped: no change to the lab", as the spec header says), (4) shellcheck, (5) data checks (49 checks, 0 failed), (6) compose validation, (7) traceability. The first run stopped at step (2) on a Maven Central miss before any project was read (Section 4 item 1); the run reported here is the full run after the note's steps.
 
 ## 11. Follow-up items for later packages
 
