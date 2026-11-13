@@ -47,7 +47,9 @@ test("SL-B-13 an Approval link without a session shows only the login", async ({
     new RegExp(`/login\\?next=${encodeURIComponent(APPROVE)}$`),
   );
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
-  await expect(page.getByText("Approve action")).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Approve action" }),
+  ).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Approve" })).toHaveCount(0);
   await fillSignIn(page, "noc-l1");
   await expect(page).toHaveURL(new RegExp(`${APPROVE}$`));
@@ -56,7 +58,9 @@ test("SL-B-13 an Approval link without a session shows only the login", async ({
       exact: true,
     }),
   ).toBeVisible();
-  await expect(page.getByText("Approve action")).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Approve action" }),
+  ).toHaveCount(0);
   await screenshot(page, "mobile-no-permission-360");
   await context.close();
 });
@@ -64,10 +68,15 @@ test("SL-B-13 an Approval link without a session shows only the login", async ({
 test("AR-W-07 the mobile pages load no canvas code", async ({ browser }) => {
   const context = await browser.newContext(MOBILE);
   const page = await context.newPage();
-  const scripts: Response[] = [];
-  page.on("response", (response) => {
+  const scripts: { url: string; body: Promise<string> }[] = [];
+  page.on("response", (response: Response) => {
     if (response.request().resourceType() === "script") {
-      scripts.push(response);
+      scripts.push({
+        url: response.url(),
+        body: response
+          .text()
+          .catch((error: unknown) => `unreadable: ${String(error)}`),
+      });
     }
   });
   await page.goto(APPROVE);
@@ -80,11 +89,13 @@ test("AR-W-07 the mobile pages load no canvas code", async ({ browser }) => {
     page.getByText("Could not load this page. Not found.", { exact: true }),
   ).toBeVisible();
   expect(scripts.length).toBeGreaterThan(0);
-  const names = scripts.map((response) => new URL(response.url()).pathname);
+  const names = scripts.map((script) => new URL(script.url).pathname);
   expect(names.some((name) => /AcknowledgePage/.test(name))).toBe(true);
   expect(names.some((name) => /ApprovalPage/.test(name))).toBe(true);
-  for (const response of scripts) {
-    expect(await response.text(), response.url()).not.toContain("react-flow__");
+  for (const script of scripts) {
+    const body = await script.body;
+    expect(body.startsWith("unreadable: "), script.url).toBe(false);
+    expect(body, script.url).not.toContain("react-flow__");
   }
   await context.close();
 });
