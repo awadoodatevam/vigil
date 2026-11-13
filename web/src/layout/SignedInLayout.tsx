@@ -20,11 +20,7 @@ import { ApiFailure, apiDelete, reasonOf } from "../api/client";
 import type { TenantSettings, User } from "../api/types";
 import { titleOf, useTitle } from "../app/title";
 import { viewerTime } from "../format/time";
-import {
-  lastUpdate,
-  queriesOf,
-  useLiveTopics,
-} from "../live/useLiveTopics";
+import { lastUpdate, queriesOf, useLiveTopics } from "../live/useLiveTopics";
 import { SESSION_ENDED, SIGNED_OUT } from "../session/messages";
 import { loginAddress } from "../session/next";
 import {

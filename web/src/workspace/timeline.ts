@@ -11,6 +11,8 @@ export interface ShownEntry {
   /** null for the module actor "{product} (automatic)". */
   actor: string | null;
   text: string;
+  /** Whether the entry collapses others (a disclosure). */
+  collapsed: boolean;
   /** The entries a collapsed entry holds, newest first; empty for a single entry. */
   holds: TimelineEntry[];
 }
@@ -26,6 +28,7 @@ const single = (entry: TimelineEntry): ShownEntry => ({
   at: entry.at,
   actor: actorOf(entry),
   text: entry.text,
+  collapsed: false,
   holds: [],
 });
 
@@ -54,6 +57,7 @@ export function collapse(timeline: IncidentTimeline): ShownEntry[] {
         at: holds[0].at,
         actor: null,
         text: `${count(holds.length, "alert", "alerts")} joined`,
+        collapsed: true,
         holds,
       });
     }
@@ -65,6 +69,7 @@ export function collapse(timeline: IncidentTimeline): ShownEntry[] {
       at: grouping.stable_at,
       actor: null,
       text: `Grouping: ${count(grouping.alert_count, "alert", "alerts")} joined; hypothesis ${grouping.hypothesis_name ?? "none"}; ${count(grouping.merged_group_count, "group", "groups")} merged`,
+      collapsed: true,
       holds: timeline.entries.filter(before),
     };
     const at = Date.parse(grouping.stable_at);

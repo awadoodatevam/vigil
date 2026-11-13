@@ -40,8 +40,3 @@ export function Section({
     </section>
   );
 }
-
-/** An empty text of a section (VD-C-22). */
-export function EmptyText({ text }: { text: string }) {
-  return <p className={styles.empty}>{text}</p>;
-}

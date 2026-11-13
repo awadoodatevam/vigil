@@ -68,3 +68,19 @@ describe("zoneNote", () => {
     expect(zoneNote(now, "America/Sao_Paulo")).toBe("Times in UTC-03:00");
   });
 });
+
+describe("countdown and elapsedSeconds", () => {
+  it("DC-U-07 the countdown and the elapsed seconds", async () => {
+    const { countdown, elapsedSeconds } = await import("./time");
+    const due = "2026-10-10T10:15:00.000Z";
+    const at = (iso: string) => Date.parse(iso);
+    expect(countdown(due, at("2026-10-10T10:00:01.000Z"))).toBe("14:59");
+    expect(countdown(due, at("2026-10-10T10:14:01.000Z"))).toBe("0:59");
+    expect(countdown(due, at("2026-10-10T10:15:00.000Z"))).toBe("0:00");
+    expect(countdown(due, at("2026-10-10T10:16:00.000Z"))).toBe("0:00");
+    const from = "2026-10-10T10:19:43.000Z";
+    expect(elapsedSeconds(from, at("2026-10-10T10:19:40.000Z"))).toBe(0);
+    expect(elapsedSeconds(from, at("2026-10-10T10:20:00.000Z"))).toBe(17);
+    expect(elapsedSeconds(from, at("2026-10-10T10:20:01.000Z"))).toBe(18);
+  });
+});

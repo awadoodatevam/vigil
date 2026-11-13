@@ -22,6 +22,7 @@ it("AR-W-01 the route table of P-28", () => {
     "/login",
     "/no-access",
     "/incidents",
+    "/incidents/:incidentId",
     "/",
     "*",
   ]);
@@ -33,7 +34,6 @@ it("AR-W-01 the route table of P-28", () => {
 
 it("AR-W-01 every other path, the paths not built yet included, shows the not-found state", () => {
   for (const path of [
-    "/incidents/00000000-0000-4000-8000-000000000000",
     "/m/acknowledge/00000000-0000-4000-8000-000000000000",
     "/m/approve/00000000-0000-4000-8000-000000000000",
     "/workflow",
@@ -46,6 +46,22 @@ it("AR-W-01 every other path, the paths not built yet included, shows the not-fo
   ]) {
     expect(screenOf(path), path).toBe("not-found");
   }
+});
+
+it("AR-W-01 /incidents/:incidentId is the workspace", () => {
+  expect(ROUTE_TABLE).toContainEqual({
+    path: "/incidents/:incidentId",
+    screen: "workspace",
+  });
+  expect(ROUTE_TABLE.at(-1)).toEqual({ path: "*", screen: "not-found" });
+});
+
+it("AR-I-100 the incident address /incidents/{incident id} opens the workspace screen", () => {
+  const id = "0192f1a2-7b3c-7d4e-8f50-6a7b8c9d0e1f";
+  expect(screenOf(`/incidents/${id}`)).toBe("workspace");
+  const matches = matchRoutes(routes(BRANDING), `/incidents/${id}`);
+  expect(matches?.[0].params.incidentId).toBe(id);
+  expect(screenOf(`/incidents/${id}/more`)).toBe("not-found");
 });
 
 // A type-level test: `tsc --noEmit` (npm run typecheck) fails when the client's types are not the generated ones.

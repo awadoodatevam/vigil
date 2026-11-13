@@ -169,3 +169,29 @@ it("AR-W-02 requests are same-origin under /api/v1 with the query", async () => 
   });
   expect(urls).toEqual(["/api/v1/incidents?limit=50&after=MTI"]);
 });
+
+it("AR-W-02 path parameters are encoded into the path", async () => {
+  const urls: string[] = [];
+  const answer = deps(async (url) => {
+    urls.push(url);
+    return json(200, { run: null });
+  });
+  await apiGet("/api/v1/incidents/{incident_id}/run", {
+    params: { incident_id: "0192f1a2-7b3c" },
+    deps: answer,
+  });
+  await apiGet("/api/v1/incidents/{incident_id}", {
+    params: { incident_id: "a/b c?d" },
+    deps: answer,
+  });
+  await apiGet("/api/v1/incidents", {
+    query: { limit: "50" },
+    params: {},
+    deps: answer,
+  });
+  expect(urls).toEqual([
+    "/api/v1/incidents/0192f1a2-7b3c/run",
+    "/api/v1/incidents/a%2Fb%20c%3Fd",
+    "/api/v1/incidents?limit=50",
+  ]);
+});

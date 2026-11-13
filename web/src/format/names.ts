@@ -76,9 +76,7 @@ const CRITICALITIES: Record<string, string> = {
 
 /** A criticality; an empty one is "not set". */
 export function criticalityName(criticality: string | null): string {
-  return criticality === null
-    ? "not set"
-    : (CRITICALITIES[criticality] ?? "");
+  return criticality === null ? "not set" : (CRITICALITIES[criticality] ?? "");
 }
 
 export const providerKindName = name({
