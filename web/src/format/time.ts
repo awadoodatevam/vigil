@@ -91,3 +91,14 @@ export function zoneNote(now: Date = new Date(), zone?: string): string {
   const size = Math.abs(minutes);
   return `Times in UTC${sign}${two(Math.floor(size / 60))}:${two(size % 60)}`;
 }
+
+/** The countdown "{m}:{ss}" to `dueAt` (DC-S03-07): whole minutes and two-digit seconds; "0:00" once due. */
+export function countdown(dueAt: string, now: number): string {
+  const left = Math.max(0, Math.ceil((Date.parse(dueAt) - now) / 1000));
+  return `${Math.floor(left / 60)}:${two(left % 60)}`;
+}
+
+/** The whole seconds from `from` to `now`, at least 0 (DC-S03-11 "Holding for {s} s"). */
+export function elapsedSeconds(from: string, now: number): number {
+  return Math.max(0, Math.floor((now - Date.parse(from)) / 1000));
+}

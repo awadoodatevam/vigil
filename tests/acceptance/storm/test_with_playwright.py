@@ -34,11 +34,13 @@ RECORD = textwrap.dedent(
 )
 SUITE = RECORD + textwrap.dedent(
     """\
-    record("suite")
+    project = sys.argv[sys.argv.index("--project") + 1]
+    mode_file = os.path.join(os.environ["VIGIL_LOCAL_HOME"], project, "e2e", "storm-mode")
+    mode = open(mode_file).read() if os.path.exists(mode_file) else None
+    record("suite", mode=mode)
     ready = os.environ.get("STUB_SUITE_READY", "")
     if ready != "":
         time.sleep(float(ready))
-        project = sys.argv[sys.argv.index("--project") + 1]
         folder = os.path.join(os.environ["VIGIL_LOCAL_HOME"], project, "e2e")
         os.makedirs(folder, exist_ok=True)
         open(os.path.join(folder, "storm-ready"), "w").close()
@@ -228,3 +230,17 @@ def test_relative_results_folder(script):
     assert driver[0]["results"] == str(script.caller / "storm-results")
     absolute, calls = script(STUB_SUITE_READY="0", VIGIL_STORM_RESULTS="/x/storm")
     assert [call for call in calls if call["name"] == "driver"][0]["results"] == "/x/storm"
+
+
+def test_mode_written_before_the_suite(script):
+    """BP-W-02 the mode is written to storm-mode before the suite starts."""
+    script.installed("p3")
+    old = script.home / "p3" / "e2e" / "storm-mode"
+    result, calls = script("--mode", "script", "--project", "p3", STUB_SUITE_READY="0")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert calls[0]["name"] == "suite"
+    assert calls[0]["mode"] == "script\n"
+    assert old.read_text(encoding="utf-8") == "script\n"
+    result, calls = script("--project", "p3", STUB_SUITE_READY="0")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert calls[0]["mode"] == "immediate\n"

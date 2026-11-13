@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it } from "vitest";
 import { NOW, row } from "./fixtures";
+import badges from "../badges/badges.module.css";
 import styles from "./incidents.module.css";
 import { COLUMNS, Rows } from "./Rows";
 
@@ -119,7 +120,7 @@ it("VD-C-07 each severity, state and stage has its badge or chip; an empty one d
     ].map((match) => match[1]);
   for (const severity of ["P1", "P2", "P3", "P4"] as const) {
     expect(cellsOf({ severity })[2]).toBe(
-      `<span class="${styles.severity}" data-severity="${severity}">${severity}</span>`,
+      `<span class="${badges.severity}" data-severity="${severity}">${severity}</span>`,
     );
   }
   for (const [state, name] of [
@@ -128,7 +129,7 @@ it("VD-C-07 each severity, state and stage has its badge or chip; an empty one d
     ["closed", "Closed"],
   ] as const) {
     expect(cellsOf({ state })[3]).toBe(
-      `<span class="${styles.state}" data-state="${state}">${name}</span>`,
+      `<span class="${badges.state}" data-state="${state}">${name}</span>`,
     );
   }
   for (const [stage, name] of [
@@ -137,7 +138,7 @@ it("VD-C-07 each severity, state and stage has its badge or chip; an empty one d
     ["recovery", "Recovery"],
   ] as const) {
     expect(cellsOf({ stage })[4]).toBe(
-      `<span class="${styles.stage}">${name}</span>`,
+      `<span class="${badges.stage}">${name}</span>`,
     );
   }
   const empty = cellsOf({ severity: null, stage: null, acknowledged: null });

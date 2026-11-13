@@ -1,11 +1,7 @@
 // DC-S02-04 The rows of the incident list, in the answer's order; a click outside the ticket link opens the incident.
 import type { IncidentRow } from "../api/types";
-import {
-  incidentNumber,
-  severityName,
-  stageName,
-  stateName,
-} from "../format/names";
+import { SeverityBadge, StageChip, StateChip } from "../badges/Badges";
+import { incidentNumber } from "../format/names";
 import { viewerTime } from "../format/time";
 import styles from "./incidents.module.css";
 
@@ -61,15 +57,13 @@ export function Rows({ rows, onOpen, now, zone }: RowsProps) {
             <td>{incidentNumber(row.number)}</td>
             <td>{row.title}</td>
             <td>
-              <Severity name={severityName(row.severity)} />
+              <SeverityBadge severity={row.severity} />
             </td>
             <td>
-              <span className={styles.state} data-state={row.state}>
-                {stateName(row.state)}
-              </span>
+              <StateChip state={row.state} />
             </td>
             <td>
-              <Stage name={stageName(row.stage)} />
+              <StageChip stage={row.stage} />
             </td>
             <td>{row.owner === null ? "" : row.owner.name}</td>
             <td>
@@ -109,20 +103,4 @@ export function Rows({ rows, onOpen, now, zone }: RowsProps) {
       </tbody>
     </table>
   );
-}
-
-/** The severity badge (VD-C-07); an empty severity draws nothing. */
-function Severity({ name }: { name: string }) {
-  return (
-    name && (
-      <span className={styles.severity} data-severity={name}>
-        {name}
-      </span>
-    )
-  );
-}
-
-/** The stage chip (VD-C-07); an empty stage draws nothing. */
-function Stage({ name }: { name: string }) {
-  return name && <span className={styles.stage}>{name}</span>;
 }

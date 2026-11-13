@@ -95,6 +95,9 @@ const TEXT = [
   ["--vd-gray-700", "--vd-surface"],
   ["--vd-gray-600", "--vd-gray-50"],
   ["--vd-accent-700", "#f5f9ff"],
+  // 45-visual-design v1.1 contrast (P-29 spec Section 6.10).
+  ...pairs(["--vd-green-700"], ["--vd-surface", "--vd-surface-2"]),
+  ["--vd-accent-700", "--vd-surface"],
 ] as const;
 
 // Status dots, the input border and the focus ring: at least 3:1.
@@ -104,10 +107,11 @@ const GRAPHIC = [
     ["--vd-surface"],
   ),
   ["--vd-accent-500", "--vd-navy-900"],
+  ["--vd-accent-500", "--vd-surface-2"],
 ] as const;
 
 it("VD-R-05 every listed pair meets its contrast", () => {
-  expect(TEXT).toHaveLength(51);
+  expect(TEXT).toHaveLength(54);
   for (const [foreground, background] of TEXT) {
     expect(
       contrast(foreground, background),

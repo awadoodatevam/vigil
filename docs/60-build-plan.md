@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.32 |
+| Version | 1.33 |
 | Date | 13 November 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
@@ -513,7 +513,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | S (CTX-D-087 (7)); P-28; none |
+| Size; depends on; owner tasks | S (`tools/loc.sh` 210, CTX-D-088 (1)); P-28; none |
 | Builds | `45-visual-design` (CTX-D-087) applied to every screen and state P-28 built (VD-S-01 to VD-S-04): `web/src/app/tokens.css` with the tokens of its Section 4, the base rules, the focus ring and the reduced-motion rule; the bundled fonts (VD-R-09); the CSS Modules of `web/src` rewritten to its Sections 5 to 7; the markup changes VD-R-01 allows (wrapping elements, class names, the decorative elements of VD-R-02). No text, route, request or behaviour changes. `CLAUDE.md`: the style line and the Maven note (CTX-D-087 (8)). Built after P-28 and before P-29. |
 | Requirements built | VD-R-01 to VD-R-12; VD-C-01 to VD-C-16 (VD-C-09 without the destructive button, which P-30 uses); VD-L-01 to VD-L-04 (VD-L-04 without the mobile pages, P-30); VD-S-01 to VD-S-04; DC-U-01 (the banner's colour). |
 | Tests | Vitest: the tokens equal `45-visual-design` Section 4; every `var()` is declared; literal colours only where Section 7 states them; no text transform or cut; the banner token only on the banner; the reduced-motion and focus rules; the contrast of the listed pairs; the decorative elements; the texts of the P-28 screens unchanged; the class of each severity, state, stage and kind tag. Playwright on the local installation: no element other than the banner uses its colour; the fonts load from the same origin and nothing from another host; no horizontal scrolling at 1280 × 720 px and, for the login, at 360 px; the focus ring; screenshots of the screens, also during the storm run (CTX-D-087 (6)). Every P-28 test passes with its expected texts unchanged. |
@@ -523,10 +523,10 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | L; P-44 (CTX-D-087 (2)); none |
-| Builds | DC-S03 complete except the "Re-run AI investigation" control and the usage link of DC-S03-09 (P-39); the read-only canvas with one node type per step type, card content of DC-S06-05, styles of DC-S03-07, follow mode, zoom, Fit and Expand (AR-W-03, AR-T-09). |
-| Requirements built | SL-A4-03 (without the re-run control); SL-WE-10; DC-S03-01 to DC-S03-14 (DC-S03-09 without the control and link); DC-S06-05 (card content); DC-TX-02, DC-TX-03 (display); AR-W-03 (read-only), AR-T-09 (React Flow); SL-A1-02, SL-A1-03, SL-A1-04, SL-A1-06, SL-A1-07, SL-A1-08 (screens). |
-| Tests | Playwright during a storm driver run: the values of SB-S02 to SB-S07 that DC-S03 shows (exact in the `demo` profile owner-run, by form in `test`); the highlight moves within 2 s of each step change, measured from the commit time the server logs for `StepChanged`. |
+| Size; depends on; owner tasks | L (estimate about 2,500, CTX-D-089 (14)); P-44 (CTX-D-087 (2)); none |
+| Builds | DC-S03 complete except the "Re-run AI investigation" control and the usage link of DC-S03-09 (P-39); the read-only canvas with one node type per step type, card content of DC-S06-05, styles of DC-S03-07, follow mode, zoom, Fit and Expand (AR-W-03, AR-T-09; `@xyflow/react` 12.12.1, CTX-D-089 (14)); the look of `45-visual-design` v1.1 (VD-S-05, CTX-D-089 (15)); the badges shared by the list and the workspace (CTX-D-089 (11)); path parameters in the API client (CTX-D-089 (13)). |
+| Requirements built | SL-A4-03 (without the re-run control); SL-WE-10; DC-S03-01 to DC-S03-14 (DC-S03-09 without the control and link); DC-S06-05 (card content); DC-TX-02, DC-TX-03 (display); AR-W-03 (read-only), AR-T-09 (React Flow); SL-A1-02, SL-A1-03, SL-A1-04, SL-A1-06, SL-A1-07, SL-A1-08 (screens); VD-L-05, VD-C-17 to VD-C-23, VD-R-14, VD-S-05. |
+| Tests | Playwright during a storm driver run (suite `@storm`): the workspace opened through the incident's address and a sign-in (DC-U-13); the values of SB-S02 to SB-S08 that DC-S03 shows (exact in the `demo` profile owner-run in mode `script`, by form in `test`); the highlight moves within 2 s of each step change, measured from each step execution's `started_at` (CTX-D-089 (1), (12)). Vitest for every text the workspace composes. |
 | Runs in | BP-E-01, BP-E-02, BP-E-03 |
 
 #### P-30 Mobile Acknowledge and Approval pages
@@ -1094,4 +1094,5 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.29 | 12 Nov 2026 | From the P-43 report (BP-L-8, CTX-D-080): the P-43 entry is size M (`tools/loc.sh` 1,523; Section 7.7). For the P-26 spec (BP-L-1, CTX-D-081): the P-26 entry is size M from its estimate and names `deploy/images.sh --local` and its smoke tests; P-28's tests add the login page and the banner to the smoke suite; the Playwright runner is the image `vigil/e2e:local` built with `npm ci` (BP-R-04, BP-ASM-03, Section 11.1); BP-OT-10 asks for Temurin 25 on the Mac. No behaviour of Vigil changes. |
 | 1.30 | 12 Nov 2026 | From the P-26 report (BP-L-8, CTX-D-082): the P-26 entry records `tools/loc.sh` 1,317 (M). For the P-27 spec (BP-L-1, CTX-D-083): the P-27 entry is size S from its estimate (the driver is under `tests/`), names the reads beyond `vigil-api` and `demo-faults`, `run.sh` with its AR-Q-07 scan, the values of SB-S01 to SB-S09 and the `demo` action values; Section 7.7; BP-R-04 names the storm driver image among the `--local` images. No behaviour of Vigil changes. |
 | 1.31 | 13 Nov 2026 | From the P-27 report (BP-L-8, CTX-D-084): the P-27 entry records `tools/loc.sh` 11 (S); BP-ASM-04 holds for the storm too (`e2e.yml` on pull request #31). For the P-28 spec (BP-L-1, CTX-D-085): BP-W-02 runs the Playwright suites before the storm and the suite `@storm` alongside the driver; the P-28 entry's tests name the storm suite and the lint of `tests/e2e/`; the P-38 entry adds the link of DC-S02-02 item (3). No behaviour of Vigil changes. |
+| 1.33 | 13 Nov 2026 | From the P-44 report (BP-L-8, CTX-D-088): the P-44 entry records `tools/loc.sh` 210 (S); `CLAUDE.md`'s Maven note corrected. For the P-29 spec (BP-L-1, CTX-D-089): the P-29 entry's size (L, estimate), builds (`@xyflow/react` 12.12.1, `45-visual-design` v1.1, shared badges, path parameters), requirements (the VD items of v1.1) and tests (the workspace opened through its address; SB-S02 to SB-S08; the highlight measured from `started_at`). No behaviour of Vigil changes. |
 | 1.32 | 13 Nov 2026 | From the P-28 report (BP-L-8, CTX-D-086): the P-28 entry records `tools/loc.sh` 1,784 (M). Visual design (CTX-D-087): new package P-44 Visual design system (S, Phase C, after P-28 and before P-29; P-29 now depends on P-44; Sections 7.7, 8.1, 13.2); VD-R-01 to VD-R-13 join the cross-cutting items (Section 7 introduction); Section 15 names `45-visual-design`; BP-W-02 names P-44's label; BP-R-10 adds the prefix `VD-`, which P-44 adds to `tools/trace.py`. No behaviour of Vigil changes. |

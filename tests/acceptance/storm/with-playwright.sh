@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Runs the Playwright suite storm alongside the storm driver (P-28 spec Section 6.11, CTX-D-085 (9), BP-W-02): starts
-# deploy/local.sh e2e storm, waits until its test has signed in (the marker storm-ready in the run folder), then runs
-# tests/acceptance/storm/run.sh; exits 0 only when both pass.
+# Runs the Playwright suite storm alongside the storm driver (P-28 spec Section 6.11, CTX-D-085 (9), BP-W-02): writes the
+# driver's mode into the run folder (storm-mode, P-29 spec Section 6.11 item 3), starts deploy/local.sh e2e storm, waits
+# until its test has signed in (the marker storm-ready in the run folder), then runs tests/acceptance/storm/run.sh;
+# exits 0 only when both pass.
 #   tests/acceptance/storm/with-playwright.sh [--mode immediate|script] [--project NAME]
 # Runs with macOS's bash 3.2: no empty arrays under set -u.
 set -euo pipefail
@@ -48,6 +49,8 @@ fi
 
 marker="$base/$project/e2e/storm-ready"
 rm -f "$marker"
+mkdir -p "$base/$project/e2e"
+printf '%s\n' "$mode" > "$base/$project/e2e/storm-mode"
 
 deploy/local.sh e2e storm --project "$project" &
 suite=$!

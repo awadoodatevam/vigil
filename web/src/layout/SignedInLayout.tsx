@@ -8,6 +8,7 @@ import {
   type QueryKey,
 } from "@tanstack/react-query";
 import {
+  createContext,
   useCallback,
   useEffect,
   useRef,
@@ -19,7 +20,7 @@ import { ApiFailure, apiDelete, reasonOf } from "../api/client";
 import type { TenantSettings, User } from "../api/types";
 import { titleOf, useTitle } from "../app/title";
 import { viewerTime } from "../format/time";
-import { queriesOf, useLiveTopics } from "../live/useLiveTopics";
+import { lastUpdate, queriesOf, useLiveTopics } from "../live/useLiveTopics";
 import { SESSION_ENDED, SIGNED_OUT } from "../session/messages";
 import { loginAddress } from "../session/next";
 import {
@@ -44,6 +45,9 @@ export interface SignedInLayoutProps {
   live: boolean;
   children: ReactNode;
 }
+
+/** Whether the live-interrupted line is shown under the header (P-29 spec Section 6.6 item 8). */
+export const InterruptedContext = createContext(false);
 
 /** Opens the login screen on the first 401 of any read while the page is shown (CTX-D-085 (3)). */
 function useSessionEnd(leaving: { current: boolean }) {
@@ -165,8 +169,9 @@ function SignedIn(props: SignedInProps) {
     navigate("/login", { state: { message: SIGNED_OUT } });
   }
 
+  const lineShown = props.live && interrupted;
   return (
-    <>
+    <InterruptedContext value={lineShown}>
       <Banner label={settings?.environment_label} />
       {settings && (
         <Header
@@ -179,26 +184,18 @@ function SignedIn(props: SignedInProps) {
           signOutFailure={signOutFailure}
         />
       )}
-      {props.live && interrupted && (
-        <InterruptedLine keys={queriesOf(props.topics)} />
-      )}
+      {lineShown && <InterruptedLine keys={queriesOf(props.topics)} />}
       <main className={styles.content}>{props.children}</main>
-    </>
+    </InterruptedContext>
   );
 }
 
-/** "Last update {time}": the latest successful read of the screen's queries (CTX-D-085 (6)). */
+/** "Last update {time}": the latest successful read of the screen's queries, matched by prefix (CTX-D-085 (6)). */
 function InterruptedLine({ keys }: { keys: QueryKey[] }) {
   const client = useQueryClient();
   useIsFetching();
   const [shownAt] = useState(() => Date.now());
-  let latest = 0;
-  for (const queryKey of keys) {
-    latest = Math.max(
-      latest,
-      client.getQueryState(queryKey)?.dataUpdatedAt ?? 0,
-    );
-  }
+  const latest = lastUpdate(client, keys);
   return (
     <LiveInterrupted
       time={viewerTime(new Date(latest > 0 ? latest : shownAt))}

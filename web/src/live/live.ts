@@ -1,6 +1,7 @@
 // The live update client (AR-I-04, AR-W-02, P-28 spec Section 6.8): one stream per screen; each topic's queries are
 // invalidated at most once per 500 ms; every query of the screen on a reconnection; a stream closed by an error answer
-// is opened again after 1 s; the screen is told when the stream has been down for more than 5 s.
+// is opened again after 1 s; the screen is told when the stream has been down for more than 5 s. A stream opened because
+// the screen's topics changed re-reads every query of its topics on its first open too (P-29 spec Section 6.2 item 4).
 
 export const THROTTLE_MS = 500;
 export const REOPEN_MS = 1000;
@@ -55,7 +56,10 @@ export class LiveConnection {
     private readonly topics: readonly string[],
     private readonly handlers: LiveHandlers,
     private readonly factory: SourceFactory = browserSource,
-  ) {}
+    rereadOnFirstOpen = false,
+  ) {
+    this.opened = rereadOnFirstOpen;
+  }
 
   start(): void {
     this.stopped = false;

@@ -4,21 +4,38 @@ import {
   type QueryClient,
   type QueryKey,
 } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LiveConnection, type LiveHandlers } from "./live";
 
-/** The queries each topic re-reads (complete list for the screens built so far). */
-export const TOPIC_QUERIES: Record<string, readonly QueryKey[]> = {
-  tenant: [["tenant"]],
-  incidents: [["incidents"]],
-  alerts: [["strip"]],
-  sources: [["strip"]],
-};
+/** The query keys a topic re-reads, matched by prefix (complete list, P-29 spec Section 6.2 item 4). */
+export function topicQueries(topic: string): QueryKey[] {
+  switch (topic) {
+    case "tenant":
+      return [["tenant"]];
+    case "incidents":
+      return [["incidents"]];
+    case "alerts":
+      return [["strip"], ["incident-alerts"]];
+    case "sources":
+      return [["strip"]];
+  }
+  if (topic.startsWith("incident:")) {
+    const id = topic.slice("incident:".length);
+    return [
+      ["incident", id],
+      ["incident-alerts", id],
+    ];
+  }
+  if (topic.startsWith("run:")) {
+    return [["incident"]];
+  }
+  return [];
+}
 
 export function queriesOf(topics: readonly string[]): QueryKey[] {
   const keys: QueryKey[] = [];
   for (const topic of topics) {
-    for (const key of TOPIC_QUERIES[topic] ?? []) {
+    for (const key of topicQueries(topic)) {
       if (
         !keys.some((known) => JSON.stringify(known) === JSON.stringify(key))
       ) {
@@ -37,7 +54,7 @@ export function liveHandlers(
 ): LiveHandlers {
   return {
     invalidate: (topic) => {
-      for (const queryKey of TOPIC_QUERIES[topic] ?? []) {
+      for (const queryKey of topicQueries(topic)) {
         void client.invalidateQueries({ queryKey });
       }
     },
@@ -50,17 +67,35 @@ export function liveHandlers(
   };
 }
 
-/** Opens one stream for the topics while the screen is mounted; true while the stream is interrupted. */
+/** The latest successful read of every cached query that matches one of the keys by prefix; 0 when none. */
+export function lastUpdate(client: QueryClient, keys: QueryKey[]): number {
+  let latest = 0;
+  for (const queryKey of keys) {
+    for (const query of client.getQueryCache().findAll({ queryKey })) {
+      latest = Math.max(latest, query.state.dataUpdatedAt);
+    }
+  }
+  return latest;
+}
+
+/**
+ * Opens one stream for the topics while the screen is mounted; true while the stream is interrupted. A stream opened
+ * because the topics changed re-reads every query of its topics on its first open.
+ */
 export function useLiveTopics(topics: readonly string[]): boolean {
   const client = useQueryClient();
   const [interrupted, setInterrupted] = useState(false);
+  const first = useRef(true);
   const joined = topics.join(",");
   useEffect(() => {
     const list = joined.split(",");
     const connection = new LiveConnection(
       list,
       liveHandlers(client, list, setInterrupted),
+      undefined,
+      !first.current,
     );
+    first.current = false;
     connection.start();
     return () => {
       connection.stop();

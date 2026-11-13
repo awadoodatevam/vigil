@@ -1,0 +1,374 @@
+/* The incident workspace of docs/45-visual-design.md (VD-S-05): the layout (VD-L-05), the header card (VD-C-17), the
+   disclosure (VD-C-20), the section anchors (VD-C-21), the section cards (VD-C-22) and their lines (VD-C-23). */
+
+/* VD-L-05: header card, run band 16px below, then the two columns 16px below. */
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-4);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 66fr) minmax(0, 34fr);
+  gap: var(--vd-space-4);
+  align-items: start;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-4);
+  min-width: 0;
+}
+
+/* Cards (VD-C-04): the header, each section and the page's Loading. */
+.header,
+.section,
+.loadingCard {
+  background: var(--vd-surface);
+  border: 1px solid var(--vd-border);
+  border-radius: var(--vd-radius);
+  box-shadow: var(--vd-shadow-1);
+}
+
+/* VD-C-17 The workspace header. */
+.header {
+  padding: var(--vd-space-5) var(--vd-space-6);
+}
+
+.title {
+  margin: 0 0 var(--vd-space-3);
+  font-size: var(--vd-size-24);
+  line-height: 32px;
+  letter-spacing: -0.015em;
+  font-weight: 650;
+  color: var(--vd-text);
+}
+
+.values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vd-space-2) var(--vd-space-6);
+}
+
+.pair {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pairLabel {
+  font-size: var(--vd-size-13);
+  font-weight: 500;
+  color: var(--vd-text-2);
+}
+
+.pairValue {
+  font-size: var(--vd-size-14);
+  font-weight: 600;
+  color: var(--vd-text);
+}
+
+.pairValue .time {
+  font-size: var(--vd-size-13);
+  font-weight: 500;
+  color: var(--vd-text);
+}
+
+.no {
+  color: var(--vd-warning);
+}
+
+/* The ticket link (VD-C-08): mono, with the external-link glyph. */
+.ticket {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vd-space-1);
+  font-family: var(--vd-mono);
+  font-size: var(--vd-size-13);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* VD-C-21 Section anchors. */
+.anchors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vd-space-1) var(--vd-space-4);
+  font-size: var(--vd-size-14);
+  font-weight: 500;
+}
+
+/* VD-C-22 Section card. */
+.section {
+  padding: var(--vd-space-4) var(--vd-space-5) var(--vd-space-5);
+  scroll-margin-top: 40px;
+}
+
+.heading {
+  margin: 0 0 var(--vd-space-3);
+  font-size: var(--vd-size-16);
+  line-height: 24px;
+  font-weight: 650;
+  color: var(--vd-text);
+}
+
+.empty {
+  margin: 0;
+  font-size: var(--vd-size-14);
+  color: var(--vd-text-3);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list > li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--vd-border-2);
+}
+
+.list > li:first-child {
+  padding-top: 0;
+}
+
+.list > li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+/* VD-C-23 Workspace lines. */
+.line,
+.secondary {
+  margin: 0;
+}
+
+.line {
+  font-size: var(--vd-size-14);
+  line-height: 20px;
+  color: var(--vd-text);
+}
+
+.secondary {
+  font-size: var(--vd-size-13);
+  color: var(--vd-text-2);
+}
+
+.lead,
+.strong {
+  font-weight: 600;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vd-space-1);
+}
+
+.block + .block,
+.block + .line,
+.line + .block,
+p + .block,
+.block + p {
+  margin-top: var(--vd-space-3);
+}
+
+.tagged {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--vd-space-2);
+  margin: 0;
+  font-size: var(--vd-size-14);
+  line-height: 20px;
+}
+
+.time {
+  font-family: var(--vd-mono);
+  font-size: var(--vd-size-13);
+  font-variant-numeric: tabular-nums;
+  color: var(--vd-text-2);
+}
+
+.alert .time,
+.entryTop .time,
+.step .time {
+  font-size: var(--vd-size-12);
+}
+
+.outcome {
+  font-weight: 600;
+}
+
+.outcome[data-outcome="good"] {
+  color: var(--vd-green-700);
+}
+
+.outcome[data-outcome="warning"] {
+  color: var(--vd-warning);
+}
+
+.outcome[data-outcome="bad"] {
+  color: var(--vd-red-700);
+}
+
+.box {
+  margin: var(--vd-space-2) 0 0;
+  padding: var(--vd-space-2) 10px;
+  font-size: var(--vd-size-13);
+  color: var(--vd-text-2);
+  background: var(--vd-gray-25);
+  border-radius: var(--vd-radius-sm);
+}
+
+.boxLine {
+  margin: 0;
+}
+
+.parameter {
+  margin: 0;
+  font-family: var(--vd-mono);
+  font-size: var(--vd-size-13);
+  color: var(--vd-text);
+}
+
+/* The AI unavailable line: a warning notice (VD-C-11). */
+.warning {
+  margin: var(--vd-space-3) 0;
+  padding: var(--vd-space-3) 14px;
+  font-size: var(--vd-size-14);
+  color: var(--vd-orange-700);
+  background: var(--vd-orange-50);
+  border: 1px solid var(--vd-orange-200);
+  border-radius: var(--vd-radius-sm);
+}
+
+/* VD-C-20 Disclosure, with its chevron. */
+.disclosure {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vd-space-2);
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.chevron {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+}
+
+.disclosure[aria-expanded="true"] .chevron {
+  transform: rotate(45deg);
+}
+
+.opened,
+.held {
+  margin: var(--vd-space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.opened > li + li {
+  margin-top: var(--vd-space-2);
+}
+
+/* An alert line of DC-S03-05: a row that wraps. */
+.alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--vd-space-1) var(--vd-space-2);
+  font-size: var(--vd-size-13);
+}
+
+/* The source kind chip (VD-C-07). */
+.kind {
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vd-gray-700);
+  background: var(--vd-gray-100);
+  border-radius: var(--vd-radius-pill);
+}
+
+.component {
+  color: var(--vd-text-2);
+}
+
+/* "Why grouped": a button in the link colours (VD-C-08, VD-C-20). */
+.why {
+  padding: 0;
+  font: inherit;
+  font-size: var(--vd-size-13);
+  font-weight: 500;
+  color: var(--vd-accent-600);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.why:hover {
+  text-decoration: underline;
+}
+
+/* A run step line. */
+.stepTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vd-space-2);
+}
+
+.stepLabel {
+  font-size: var(--vd-size-14);
+  font-weight: 600;
+}
+
+.stepState {
+  font-size: var(--vd-size-12);
+  font-weight: 600;
+  color: var(--vd-accent-700);
+}
+
+.stepState[data-state="cancelled"] {
+  color: var(--vd-text-3);
+}
+
+/* A timeline entry. */
+.entryTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--vd-space-2);
+}
+
+.actor {
+  font-size: var(--vd-size-13);
+  font-weight: 600;
+}
+
+.entryText {
+  margin: 0;
+  font-size: var(--vd-size-14);
+}
+
+.held {
+  padding-left: var(--vd-space-4);
+  border-left: 2px solid var(--vd-border-2);
+}
+
+.held > li + li {
+  margin-top: var(--vd-space-2);
+}

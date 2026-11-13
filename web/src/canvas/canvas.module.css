@@ -1,0 +1,223 @@
+/* The run band and run canvas of docs/45-visual-design.md (VD-C-18, VD-C-19, VD-R-14): the colours that
+   @xyflow/react/dist/base.css gives the shown elements are replaced here with more specific selectors. */
+
+/* The band: a card with overflow hidden (VD-C-18). */
+.band {
+  overflow: hidden;
+  background: var(--vd-surface);
+  border: 1px solid var(--vd-border);
+  border-radius: var(--vd-radius);
+  box-shadow: var(--vd-shadow-1);
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--vd-space-2) var(--vd-space-3);
+  padding: var(--vd-space-3) var(--vd-space-4);
+  border-bottom: 1px solid var(--vd-border-2);
+}
+
+.heading {
+  margin: 0;
+  font-size: var(--vd-size-16);
+  line-height: 24px;
+  font-weight: 650;
+  color: var(--vd-text);
+}
+
+.runCount {
+  font-size: var(--vd-size-13);
+  color: var(--vd-text-2);
+}
+
+.controls {
+  display: flex;
+  gap: var(--vd-space-2);
+  margin-left: auto;
+}
+
+/* Small secondary buttons, as "Try again" (VD-C-09, VD-C-11). */
+.controls > button {
+  min-width: 32px;
+  padding: 5px var(--vd-space-3);
+  font: inherit;
+  font-size: var(--vd-size-13);
+  font-weight: 600;
+  color: var(--vd-text);
+  background: var(--vd-surface);
+  border: 1px solid var(--vd-border);
+  border-radius: var(--vd-radius-sm);
+  box-shadow: var(--vd-shadow-1);
+  cursor: pointer;
+  transition: background var(--vd-fast);
+}
+
+.controls > button:hover {
+  background: var(--vd-gray-25);
+}
+
+.controls > button[aria-pressed="true"] {
+  color: var(--vd-accent-700);
+  background: var(--vd-accent-50);
+  border-color: var(--vd-accent-200);
+}
+
+/* The canvas area: 240px high in the band. */
+.canvas {
+  height: 240px;
+  background: var(--vd-gray-25);
+}
+
+/* Expanded: the same card, fixed under the header (or the live-interrupted bar); top is set inline. */
+.expanded {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.expanded .canvas {
+  flex: 1;
+  height: auto;
+}
+
+/* VD-R-14: the pane, the connections and the handles in tokens. */
+.canvas :global(.react-flow__pane) {
+  background: var(--vd-gray-25);
+}
+
+.canvas :global(.react-flow__edge-path) {
+  stroke: var(--vd-gray-400);
+  stroke-width: 1.5px;
+}
+
+.canvas .taken :global(.react-flow__edge-path) {
+  stroke: var(--vd-accent-500);
+  stroke-width: 2px;
+}
+
+.canvas :global(.react-flow__handle) {
+  width: 8px;
+  height: 8px;
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
+  background: var(--vd-surface);
+  border: 1.5px solid var(--vd-gray-400);
+  border-radius: 50%;
+}
+
+.canvas :global(.react-flow__handle)[data-taken="true"] {
+  background: var(--vd-accent-500);
+  border-color: var(--vd-accent-500);
+}
+
+/* The step card (VD-C-19). */
+.card {
+  position: relative;
+  width: 180px;
+  box-sizing: border-box;
+  padding: var(--vd-space-2) 10px;
+  background: var(--vd-surface);
+  border: 1px solid var(--vd-border);
+  border-radius: var(--vd-radius-sm);
+  box-shadow: var(--vd-shadow-1);
+}
+
+.label {
+  font-size: var(--vd-size-13);
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--vd-text);
+}
+
+.type {
+  margin-top: 2px;
+  font-size: var(--vd-size-12);
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--vd-text-2);
+}
+
+.summary {
+  margin-top: var(--vd-space-1);
+  font-size: var(--vd-size-12);
+  line-height: 16px;
+  color: var(--vd-text-2);
+}
+
+.outputs {
+  margin-top: 6px;
+}
+
+/* An output row reaches the card's right edge, so its handle sits on that edge. */
+.output {
+  position: relative;
+  margin-right: -10px;
+  padding-right: 10px;
+  font-size: var(--vd-size-12);
+  line-height: 16px;
+  text-align: right;
+  color: var(--vd-text-2);
+}
+
+.state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.visit,
+.countdown {
+  font-family: var(--vd-mono);
+  font-size: var(--vd-size-12);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.visit {
+  color: var(--vd-text-2);
+}
+
+.waiting,
+.cancelled {
+  font-size: var(--vd-size-12);
+  font-weight: 600;
+}
+
+.waiting,
+.countdown {
+  color: var(--vd-accent-700);
+}
+
+.cancelled {
+  color: var(--vd-text-3);
+}
+
+/* States (DC-S03-07, VD-R-08): grey when not reached or cancelled; the accent outline and glow while running or
+   waiting. */
+.card[data-state="not-reached"],
+.card[data-state="cancelled"] {
+  border-color: var(--vd-gray-400);
+  box-shadow: none;
+}
+
+.card[data-state="not-reached"] *,
+.card[data-state="cancelled"] * {
+  color: var(--vd-text-3);
+}
+
+.card[data-state="running"],
+.card[data-state="waiting"] {
+  outline: 2px solid var(--vd-accent-500);
+  box-shadow: var(--vd-focus-ring);
+}
