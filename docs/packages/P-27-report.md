@@ -6,7 +6,7 @@
 | Branch | `p-27-headless-storm-acceptance` |
 | Pin date (BP-R-08) | 12 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (Temurin 25) |
-| State | Built; in this session `deploy/local.sh up`, the `installation` tests, two driver runs in mode `immediate` (every check passed, AR-Q-07 passed), the smoke suite and `down --volumes` pass (Section 8), and the gate command passes (Section 10). The owner-run steps of spec Section 6.9 are open (Section 8). |
+| State | Built; in this session `deploy/local.sh up`, the `installation` tests, two driver runs in mode `immediate` (every check passed, AR-Q-07 passed), the smoke suite and `down --volumes` pass (Section 8), and the gate command passes (Section 10). Owner-run Mac step done on 13 Nov 2026: the driver in mode `script` with the `demo` profile passed every check, 37 of 37, and AR-Q-07 passed (Section 8). Open: the label `e2e` on the pull request (`e2e.yml` has run only as skipped). |
 
 ## 1. What was built
 
@@ -57,6 +57,8 @@ None changes a behaviour the spec states. Readings and details the spec left ope
 1. **Incident numbers of the storm and the report.** In both cloud runs the report incident was `INC-0001` and the storm incident `INC-0002` (the report's single alert opens its incident before the storm's settle period ends). No document gives the order and no check depends on it; the checklist and the messages use the numbers read. Noted for P-29/P-33, where a screenshot or a narrator line might assume the storm is `INC-0001`.
 2. **The same pipe pattern elsewhere in `deploy/`.** `printf '%s\n' "$list" | grep -qx "$name"` under `set -o pipefail` (the cause of the flaky test, Section 8) also appears in `deploy/edge.sh` (lines 72, 124, 175, 700), `deploy/main/host-deploy.sh` (54, 123), `deploy/main/host-status.sh` (41, 72) and `deploy/gpu/host-gpu-status.sh` (19). With short lists it fails only when `grep` exits before the last write; not changed here (outside P-27's scope); a later package that changes those scripts may use a here-string.
 
+3. **The 16-minute wait of spec Section 6.9 can be a check.** The wait exists only so that no file under `/data` has a change time within the 15-minute `disk_growth` period (`recent_growth` uses `find … -cmin -15`). `lab-db-01` writes its baseline files only when its disk image is new, so after `up` with a kept `lab-db-01-data` volume no wait is needed. The owner used `docker exec lab-db-01 find /data -xdev -type f -cmin -15 | wc -l` (`0`: ready) instead of waiting. P-32 and P-34 (SB-T-02 runs in mode `script`) may state this check in place of the fixed wait; the driver itself could also refuse a `script` run with the `demo` profile while the count is not 0. No document text changed here.
+
 ## 5. Blocking questions
 
 None.
@@ -67,11 +69,40 @@ None. The driver image reuses the `ubuntu:24.04@sha256:534baea6…` pin of `dev/
 
 ## 7. Values recorded under `docs/`
 
-None yet: `tests/acceptance/results/P-27-mac.txt` and `tests/acceptance/results/storm-script-*.json` are written by the owner-run step (Section 8).
+The files of spec Section 9, committed by the owner (commit `b8ba6e3`): `tests/acceptance/results/P-27-mac.txt` and `tests/acceptance/results/storm-script-20261113T054808Z.json`. No other file under `docs/` or `docs/31-demo-data/` is changed: the Mac run reproduced the DD-F-10 development values, so nothing needs recording there (P-32 records the final values).
 
 ## 8. Owner-run results
 
-Open (spec Section 6.9): on the Mac, `deploy/local.sh up --profile demo 2>&1 | tee tests/acceptance/results/P-27-mac.txt`; wait at least 16 minutes after its last line; `tests/acceptance/storm/run.sh --mode script 2>&1 | tee -a tests/acceptance/results/P-27-mac.txt` (about 12 minutes); `deploy/local.sh down 2>&1 | tee -a tests/acceptance/results/P-27-mac.txt`; commit `P-27-mac.txt` and `tests/acceptance/results/storm-script-*.json`. Then the label `e2e` on the pull request, so that `e2e.yml` runs the driver in mode `immediate`.
+**Mac run (spec Section 6.9), 13 Nov 2026, branch at `4c73aeb`, profile `demo`** (`tests/acceptance/results/P-27-mac.txt`, result file `storm-script-20261113T054808Z.json`):
+
+| Step | Result |
+| --- | --- |
+| `deploy/local.sh up --profile demo` | `Tenant 01a1d364-1c70-76e0-8c67-a1672265a766 is ready at demo.vigil.test.`; the four local images built, `vigil/storm-driver:local` included |
+| Wait for the `disk_growth` period | Instead of a fixed 16 minutes, the owner checked `docker exec lab-db-01 find /data -xdev -type f -cmin -15 \| wc -l`, which gave `0` (the lab volume was kept from earlier runs, so its baseline files were already older than 15 minutes); this is what the wait ensures (Section 4 item 3) |
+| `tests/acceptance/storm/run.sh --mode script` | `finished` true, `passed` true; **37 of 37 checks passed**, `not_run` empty (the S and SD checks all made); `AR-Q-07 passed: no secret of the installation in the log of this run.` |
+| `deploy/local.sh down` | every container removed |
+
+Values of the script run:
+
+| Item | Value |
+| --- | --- |
+| Reset | branch A 12.099 s (`quiet_seconds` 0.032), branch B 1.053 s, total 12.113 s; tenant `01a1d372-f2c4-74c9-8ecd-817fc2ab6903` |
+| T0 | 2026-11-13T05:48:20.524Z |
+| Times after T0 (recorded, not checked) | SB-TL-01 30.5 s (latest storm `fired_at`); SB-TL-02 71.0 s (stable grouping); SB-TL-04 72.3 s (first storm incident message); SB-TL-06 390.1 s (acknowledgement; the script's 07:30); SB-TL-07 390.2 s (first approval request message); SB-TL-08 480.7 s (action finished; approval sent at T0 + 480 s, 09:00); SB-TL-10 575.4 s (resolved, 10:35 on the script clock, before SB-TL-10's 11:50) |
+| Incidents | storm `INC-0002` (`NOC-2`), report `INC-0001` (`NOC-1`), as in the cloud runs (Section 4 item 1) |
+| `SB-S01 storm within 120 s` | latest `fired_at` T0 + 30.5 s, none after T0 + 120 s |
+| `SB-S03 diagnostic values` (exact, `demo`) | the three summaries equal `development_values`: "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)", "Largest folder under /data: /data/txlog_archive (8.5 GiB)", "8.5 GiB written to 34 files under /data in the last 15 minutes" |
+| `SB-S06 action values` (exact, `demo`) | 34 files, 8.5 GiB, precondition value 100 (expected 34, `8.5`, 100) |
+| `SB-S09 dashboard values` (exact) | 5.7, 40.5, 650, 47; DM-R-53 over the run's own times gives the same values |
+| `SB-S04 investigation` | `runbooks_cited` [RB-DB-01]; `likely_cause` "Subscriber DB server (srv-db-01) is the likely cause: Disk usage of /data: /data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)." (the dev fake's wording, CTX-D-083 (5)) |
+
+Assumptions of spec Section 11 checked by this run (complete list): the SB-S09 exact values hold with the script clock (acknowledgement at T0 + 390 s, approval at T0 + 480 s: 5.7, 40.5, 650, 47); the DD-F-10 development values of the P-04 Mac run are reproduced by the same lab image on the same Mac (`SB-S03 diagnostic values` and `SB-S06 action values` passed, so there is no document feedback on them). The similarity assumption (score `1.00` for PI-1001) held in the cloud runs and on the Mac. BP-ASM-04's storm part is still open: it is checked when `e2e.yml` runs on this pull request.
+
+Notes on the Mac record (complete list):
+1. The owner ran the three commands without `tee` and copied the terminal output into `P-27-mac.txt` (its header says so); Docker's build output and compose progress lines are shortened there.
+2. The three `[ERROR] include: **/*.{test,spec}.?(c|m)[jt]s?(x)` lines at the start of `up` also appear in this session's `up` log. They come from the web build inside `./mvnw -B -q -pl app -DskipTests package` (Vitest finds no test files under `web/src` yet). The build exits 0 and they predate P-27 (P-28 brings the web tests).
+
+**Still open (spec Section 6.9): the label `e2e` on [awadoodatevam/vigil#31](https://github.com/awadoodatevam/vigil/pull/31).** `e2e.yml` ran twice on this pull request (runs 43299165912 and 43376607752), both `skipped` because the label is missing.
 
 Cloud session run (spec Section 8 item 3), profile `test`:
 
