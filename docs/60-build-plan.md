@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.33 |
-| Date | 13 November 2026 |
+| Version | 1.34 |
+| Date | 14 November 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
 
@@ -523,7 +523,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | L (estimate about 2,500, CTX-D-089 (14)); P-44 (CTX-D-087 (2)); none |
+| Size; depends on; owner tasks | L (`tools/loc.sh` 2,543, CTX-D-090 (1)); P-44 (CTX-D-087 (2)); none |
 | Builds | DC-S03 complete except the "Re-run AI investigation" control and the usage link of DC-S03-09 (P-39); the read-only canvas with one node type per step type, card content of DC-S06-05, styles of DC-S03-07, follow mode, zoom, Fit and Expand (AR-W-03, AR-T-09; `@xyflow/react` 12.12.1, CTX-D-089 (14)); the look of `45-visual-design` v1.1 (VD-S-05, CTX-D-089 (15)); the badges shared by the list and the workspace (CTX-D-089 (11)); path parameters in the API client (CTX-D-089 (13)). |
 | Requirements built | SL-A4-03 (without the re-run control); SL-WE-10; DC-S03-01 to DC-S03-14 (DC-S03-09 without the control and link); DC-S06-05 (card content); DC-TX-02, DC-TX-03 (display); AR-W-03 (read-only), AR-T-09 (React Flow); SL-A1-02, SL-A1-03, SL-A1-04, SL-A1-06, SL-A1-07, SL-A1-08 (screens); VD-L-05, VD-C-17 to VD-C-23, VD-R-14, VD-S-05. |
 | Tests | Playwright during a storm driver run (suite `@storm`): the workspace opened through the incident's address and a sign-in (DC-U-13); the values of SB-S02 to SB-S08 that DC-S03 shows (exact in the `demo` profile owner-run in mode `script`, by form in `test`); the highlight moves within 2 s of each step change, measured from each step execution's `started_at` (CTX-D-089 (1), (12)). Vitest for every text the workspace composes. |
@@ -533,11 +533,11 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | S; P-29; none |
-| Builds | DC-S04 and DC-S05 with the one-column layout (AR-W-07), refusals, countdown, polling and live state; the confirmation dialog component (DC-U-11) used for Approve and Reject. |
-| Requirements built | SL-A4-04, SL-A4-05; PM-M24-03; DC-S04-01 to DC-S04-06, DC-S05-01 to DC-S05-07; DC-U-11 (Approve, Reject); AR-W-07; SL-B-13 (pages). |
-| Tests | Playwright at 360 px: acknowledge as `noc-l1`; every refusal of DC-S04-05 and DC-S05-06; approve with confirmation; a changed snapshot refused. |
-| Runs in | BP-E-01, BP-E-02 |
+| Size; depends on; owner tasks | M (estimate about 1,100, CTX-D-091 (12)); P-29; none |
+| Builds | DC-S04 and DC-S05 with the one-column layout (AR-W-07; the mobile pages and the workspace load as lazy screens, CTX-D-091 (3)), refusals, countdown, polling and live state; the confirmation dialog component (DC-U-11) used for Approve and Reject; the look of `45-visual-design` v1.2 (VD-S-06, VD-S-07, CTX-D-091 (13)); the items carried from P-43 (one membership read in `acknowledge` and `decide`, a repeated member in AR-I-35's body refused, an AR-I-27 test with two requests; CTX-D-091 (10)); the storm driver's option `--acts pages`, used by `with-playwright.sh` in mode `immediate` (CTX-D-091 (7)). |
+| Requirements built | SL-A4-04, SL-A4-05; PM-M24-03; DC-S04-01 to DC-S04-06, DC-S05-01 to DC-S05-07; DC-U-11 (Approve, Reject); AR-W-07; SL-B-13 (pages); DM-E35-R1, DM-E59-R1, AR-I-35 (CTX-D-080 (4)); VD-L-06, VD-C-24 to VD-C-27, VD-S-06, VD-S-07. |
+| Tests | Playwright at 360 px during a storm driver run (suite `@storm`, the pages acting in mode `immediate`): acknowledge as `noc-l1` and approve with confirmation as `dbops-engineer`, each through the link and a sign-in, while a second user's page shows the change within 2 s; a changed snapshot refused; the refusals of DC-S04-05 and DC-S05-06 that the storm and the report incident reach (the others in Vitest); the permission texts. Java tests of the carried items. |
+| Runs in | BP-E-01, BP-E-02, BP-E-03 |
 
 #### P-31 Demo control panel and SL-F-4
 
@@ -725,7 +725,7 @@ Every workflow pins its actions by commit SHA, cancels an earlier run of the sam
 | ID | Workflow | Trigger | Steps (complete list) |
 | --- | --- | --- | --- |
 | BP-W-01 | `ci.yml`, summary job `gate` (from P-42, CTX-D-067) | Every pull request to `main`; manual run | A job `scope` chooses the light or the full gate. Light, when every file the pull request changes is a data path of CTX-D-067 (4) (`docs/` except `docs/31-demo-data/`, `spikes/results/`, `tests/acceptance/results/`, `dev/fakes/recordings/`; never a `.py`, `.sh`, `Dockerfile` or `compose.yaml` file), or when every file that differs between the last commit of the pull request whose `gate` passed and the merge commit the run checks out is a data path: `check_data.py` and `trace.py --check`. Full otherwise, and for a manual run: in parallel, job `java` (Temurin 25, Node.js 22, cached Maven and npm, `tools/check-all.sh --part java`) and job `rest` (Python 3.12, the pinned tools as BP-R-01, `shellcheck`, `tools/check-all.sh --part rest`); step (1) is skipped outside cloud sessions. In both: job `secrets`, `gitleaks` on the pull request's commits. The job `gate` passes only when the chosen jobs passed. |
-| BP-W-02 | `e2e.yml` | Pull requests labelled `e2e`; manual run; the specs of P-26 to P-40 and P-44 tell the owner to add the label | Build the local installation's images; `deploy/local.sh up` (dev fakes, `test` profile); the Playwright suites; the storm driver in mode `immediate` with the Playwright suite `@storm` alongside it (`tests/acceptance/storm/with-playwright.sh`, from P-28, CTX-D-085 (9)); upload logs, Playwright traces, the driver's result and the dev fakes' calls as artifacts on failure only. |
+| BP-W-02 | `e2e.yml` | Pull requests labelled `e2e`; manual run; the specs of P-26 to P-40 and P-44 tell the owner to add the label | Build the local installation's images; `deploy/local.sh up` (dev fakes, `test` profile); the Playwright suites; the storm driver in mode `immediate` with the Playwright suite `@storm` alongside it (`tests/acceptance/storm/with-playwright.sh`, from P-28, CTX-D-085 (9); from P-30 the pages acknowledge and approve, CTX-D-091 (7)); upload logs, Playwright traces, the driver's result and the dev fakes' calls as artifacts on failure only. |
 | BP-W-03 | `release.yml` | Manual run on `main` with a release name | `deploy/build.sh {release}`: build the product and demo-only images for `linux/amd64` and push them to the installation's ECR repositories, tagged with the release name (immutable tags), with the GitHub OIDC role (amendment BP-A-06). Nothing is committed. |
 
 ### 10.2 Minutes budget
@@ -1094,5 +1094,6 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.29 | 12 Nov 2026 | From the P-43 report (BP-L-8, CTX-D-080): the P-43 entry is size M (`tools/loc.sh` 1,523; Section 7.7). For the P-26 spec (BP-L-1, CTX-D-081): the P-26 entry is size M from its estimate and names `deploy/images.sh --local` and its smoke tests; P-28's tests add the login page and the banner to the smoke suite; the Playwright runner is the image `vigil/e2e:local` built with `npm ci` (BP-R-04, BP-ASM-03, Section 11.1); BP-OT-10 asks for Temurin 25 on the Mac. No behaviour of Vigil changes. |
 | 1.30 | 12 Nov 2026 | From the P-26 report (BP-L-8, CTX-D-082): the P-26 entry records `tools/loc.sh` 1,317 (M). For the P-27 spec (BP-L-1, CTX-D-083): the P-27 entry is size S from its estimate (the driver is under `tests/`), names the reads beyond `vigil-api` and `demo-faults`, `run.sh` with its AR-Q-07 scan, the values of SB-S01 to SB-S09 and the `demo` action values; Section 7.7; BP-R-04 names the storm driver image among the `--local` images. No behaviour of Vigil changes. |
 | 1.31 | 13 Nov 2026 | From the P-27 report (BP-L-8, CTX-D-084): the P-27 entry records `tools/loc.sh` 11 (S); BP-ASM-04 holds for the storm too (`e2e.yml` on pull request #31). For the P-28 spec (BP-L-1, CTX-D-085): BP-W-02 runs the Playwright suites before the storm and the suite `@storm` alongside the driver; the P-28 entry's tests name the storm suite and the lint of `tests/e2e/`; the P-38 entry adds the link of DC-S02-02 item (3). No behaviour of Vigil changes. |
-| 1.33 | 13 Nov 2026 | From the P-44 report (BP-L-8, CTX-D-088): the P-44 entry records `tools/loc.sh` 210 (S); `CLAUDE.md`'s Maven note corrected. For the P-29 spec (BP-L-1, CTX-D-089): the P-29 entry's size (L, estimate), builds (`@xyflow/react` 12.12.1, `45-visual-design` v1.1, shared badges, path parameters), requirements (the VD items of v1.1) and tests (the workspace opened through its address; SB-S02 to SB-S08; the highlight measured from `started_at`). No behaviour of Vigil changes. |
 | 1.32 | 13 Nov 2026 | From the P-28 report (BP-L-8, CTX-D-086): the P-28 entry records `tools/loc.sh` 1,784 (M). Visual design (CTX-D-087): new package P-44 Visual design system (S, Phase C, after P-28 and before P-29; P-29 now depends on P-44; Sections 7.7, 8.1, 13.2); VD-R-01 to VD-R-13 join the cross-cutting items (Section 7 introduction); Section 15 names `45-visual-design`; BP-W-02 names P-44's label; BP-R-10 adds the prefix `VD-`, which P-44 adds to `tools/trace.py`. No behaviour of Vigil changes. |
+| 1.33 | 13 Nov 2026 | From the P-44 report (BP-L-8, CTX-D-088): the P-44 entry records `tools/loc.sh` 210 (S); `CLAUDE.md`'s Maven note corrected. For the P-29 spec (BP-L-1, CTX-D-089): the P-29 entry's size (L, estimate), builds (`@xyflow/react` 12.12.1, `45-visual-design` v1.1, shared badges, path parameters), requirements (the VD items of v1.1) and tests (the workspace opened through its address; SB-S02 to SB-S08; the highlight measured from `started_at`). No behaviour of Vigil changes. |
+| 1.34 | 14 Nov 2026 | From the P-29 report (BP-L-8, CTX-D-090): the P-29 entry records `tools/loc.sh` 2,543 (L). For the P-30 spec (BP-L-1, CTX-D-091): BP-W-02 names the acting pages; the P-30 entry's size (M, estimate), builds (lazy screens, `45-visual-design` v1.2, the items carried from P-43, the driver's `--acts pages`), requirements and tests (the pages act during the storm in mode `immediate`). No behaviour of Vigil changes beyond the carried items. |

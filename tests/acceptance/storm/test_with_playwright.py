@@ -167,7 +167,7 @@ def test_order_and_success(script):
     assert result.returncode == 0, result.stdout + result.stderr
     assert names(calls) == ["suite", "marker", "driver", "suite finished"]
     assert calls[0]["arguments"] == ["e2e", "storm", "--project", "p2"]
-    assert calls[2]["arguments"] == ["--mode", "script", "--project", "p2"]
+    assert calls[2]["arguments"] == ["--mode", "script", "--acts", "driver", "--project", "p2"]
     assert calls[0]["cwd"] == str(script.root)
     assert not any(call["name"] == "docker" for call in calls)
 
@@ -178,7 +178,7 @@ def test_default_mode_is_immediate(script):
     result, calls = script(STUB_SUITE_READY="0")
     assert result.returncode == 0, result.stdout + result.stderr
     driver = [call for call in calls if call["name"] == "driver"]
-    assert driver[0]["arguments"] == ["--mode", "immediate", "--project", "vigil-local"]
+    assert driver[0]["arguments"] == ["--mode", "immediate", "--acts", "pages", "--project", "vigil-local"]
 
 
 def test_marker_never_comes(script):
@@ -244,3 +244,16 @@ def test_mode_written_before_the_suite(script):
     result, calls = script("--project", "p3", STUB_SUITE_READY="0")
     assert result.returncode == 0, result.stdout + result.stderr
     assert calls[0]["mode"] == "immediate\n"
+
+
+def test_acts_by_mode(script):
+    """BP-W-02 the pages act in mode immediate and the driver in mode script."""
+    script.installed("p4")
+    acts = {}
+    for mode in ("immediate", "script"):
+        result, calls = script("--mode", mode, "--project", "p4", STUB_SUITE_READY="0")
+        assert result.returncode == 0, result.stdout + result.stderr
+        driver = [call for call in calls if call["name"] == "driver"]
+        assert driver[0]["arguments"][:2] == ["--mode", mode]
+        acts[mode] = driver[0]["arguments"][2:4]
+    assert acts == {"immediate": ["--acts", "pages"], "script": ["--acts", "driver"]}

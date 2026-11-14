@@ -10,7 +10,8 @@ import {
   answered,
 } from "../test/fixtures";
 import { render, texts } from "../test/render";
-import { EvidenceContent, evidenceWord, valueText } from "./Evidence";
+import { valueText } from "../format/names";
+import { EvidenceContent, evidenceWord } from "./Evidence";
 import { mainSections } from "./WorkspaceView";
 
 const closed = { isOpen: () => false, toggle: () => {} };

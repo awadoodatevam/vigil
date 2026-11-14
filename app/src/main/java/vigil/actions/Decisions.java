@@ -64,7 +64,7 @@ class Decisions {
   Optional<DecisionRefusal> refusal(TenantId tenantId, UUID requestId, UUID userId) {
     return records
         .request(tenantId, requestId)
-        .flatMap(request -> check(tenantId, request, userId, Timestamps.now(clock)));
+        .flatMap(request -> check(tenantId, request, userId, Timestamps.now(clock)).refusal());
   }
 
   private ApprovalRequestView decideLocked(
@@ -77,10 +77,11 @@ class Decisions {
             .lockRequest(tenantId, requestId)
             .orElseThrow(() -> new VigilError(VigilError.Code.NOT_FOUND));
     Instant now = Timestamps.now(clock);
-    Optional<DecisionRefusal> refusal = check(tenantId, request, userId, now);
-    if (refusal.isPresent()) {
+    DecisionCheck check = check(tenantId, request, userId, now);
+    if (check.refusal().isPresent()) {
+      DecisionRefusal refusal = check.refusal().get();
       throw new VigilError(
-          VigilError.Code.REFUSED, refusal.get().message(), Map.copyOf(refusal.get().details()));
+          VigilError.Code.REFUSED, refusal.message(), Map.copyOf(refusal.details()));
     }
     if (!request.snapshotHash().equals(hashShown)) {
       throw new VigilError(
@@ -88,7 +89,7 @@ class Decisions {
           "This request changed after you opened it. Reload the page to see the current request.",
           Map.of("refusal", "snapshot_changed"));
     }
-    String team = eligibleTeam(tenantId, request, userId).orElseThrow();
+    String team = check.team();
     records.insertDecision(tenantId, requestId, userId, team, decision.key(), hashShown, now);
     RequestState state =
         decision == Decision.APPROVE ? RequestState.APPROVED : RequestState.REJECTED;
@@ -100,65 +101,86 @@ class Decisions {
     return decided;
   }
 
-  /** Checks 1 to 6 of DC-S05-06 in their order; the first that applies, or empty. */
-  private Optional<DecisionRefusal> check(
+  /**
+   * The result of checks 1 to 6: the refusal that applies, or none and the eligible team of the
+   * user, read once (DM-E59-R1, CTX-D-080 (4)).
+   */
+  private record DecisionCheck(Optional<DecisionRefusal> refusal, String team) {
+
+    static DecisionCheck refused(Optional<DecisionRefusal> refusal) {
+      return new DecisionCheck(refusal, null);
+    }
+  }
+
+  /**
+   * Checks 1 to 6 of DC-S05-06 in their order; the first that applies, or none with the user's
+   * eligible team.
+   */
+  private DecisionCheck check(
       TenantId tenantId, ApprovalRequestView request, UUID userId, Instant now) {
     switch (request.state()) {
       case CANCELLED -> {
-        return refusal(
-            "cancelled",
-            "This request was cancelled because the incident's workflow run ended.",
-            Map.of());
+        return DecisionCheck.refused(
+            refusal(
+                "cancelled",
+                "This request was cancelled because the incident's workflow run ended.",
+                Map.of()));
       }
       case PREAUTHORIZED, BLOCKED, REFUSED -> {
-        return refusal(
-            "not_pending",
-            ActionTexts.requestState(request.state(), request.refusalReason()),
-            Map.of("state", request.state().key()));
+        return DecisionCheck.refused(
+            refusal(
+                "not_pending",
+                ActionTexts.requestState(request.state(), request.refusalReason()),
+                Map.of("state", request.state().key())));
       }
       case APPROVED, REJECTED -> {
-        return refusal(
-            "already_decided",
-            "Already "
-                + (request.state() == RequestState.APPROVED ? "approved" : "rejected")
-                + " by "
-                + approvals.userName(tenantId, request.decidedBy())
-                + " at "
-                + ActionTexts.outbound(request.decidedAt())
-                + ".",
-            Map.of(
-                "state",
-                request.state().key(),
-                "user_id",
-                request.decidedBy().toString(),
-                "at",
-                ActionTexts.jsonTime(request.decidedAt())));
+        return DecisionCheck.refused(
+            refusal(
+                "already_decided",
+                "Already "
+                    + (request.state() == RequestState.APPROVED ? "approved" : "rejected")
+                    + " by "
+                    + approvals.userName(tenantId, request.decidedBy())
+                    + " at "
+                    + ActionTexts.outbound(request.decidedAt())
+                    + ".",
+                Map.of(
+                    "state",
+                    request.state().key(),
+                    "user_id",
+                    request.decidedBy().toString(),
+                    "at",
+                    ActionTexts.jsonTime(request.decidedAt()))));
       }
       default -> {
         // pending or expired: checked below.
       }
     }
     if (request.state() == RequestState.EXPIRED || !now.isBefore(request.expiresAt())) {
-      return refusal(
-          "expired",
-          "This request expired at " + ActionTexts.outbound(request.expiresAt()) + ".",
-          Map.of("at", ActionTexts.jsonTime(request.expiresAt())));
+      return DecisionCheck.refused(
+          refusal(
+              "expired",
+              "This request expired at " + ActionTexts.outbound(request.expiresAt()) + ".",
+              Map.of("at", ActionTexts.jsonTime(request.expiresAt()))));
     }
-    if (eligibleTeam(tenantId, request, userId).isEmpty()) {
-      return refusal(
-          "not_eligible",
-          "You are not in a team that can approve this action ("
-              + ActionTexts.list(approvals.teamNames(tenantId, request.eligibleTeamKeys()))
-              + ").",
-          Map.of());
+    Optional<String> team = eligibleTeam(tenantId, request, userId);
+    if (team.isEmpty()) {
+      return DecisionCheck.refused(
+          refusal(
+              "not_eligible",
+              "You are not in a team that can approve this action ("
+                  + ActionTexts.list(approvals.teamNames(tenantId, request.eligibleTeamKeys()))
+                  + ").",
+              Map.of()));
     }
     if (request.excludedUserIds().contains(userId)) {
-      return refusal(
-          "excluded",
-          "You approved an earlier step of this run. A different approver is needed.",
-          Map.of());
+      return DecisionCheck.refused(
+          refusal(
+              "excluded",
+              "You approved an earlier step of this run. A different approver is needed.",
+              Map.of()));
     }
-    return Optional.empty();
+    return new DecisionCheck(Optional.empty(), team.get());
   }
 
   /** The first eligible team, in code point order, of which the user is an active member. */

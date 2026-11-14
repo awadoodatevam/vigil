@@ -1,0 +1,675 @@
+ Volume vigil-local_demo-faults-state Creating 
+ Volume vigil-local_demo-faults-state Creating 
+ Volume vigil-local_lab-zabbix-db-data Creating 
+ Volume vigil-local_lab-zabbix-db-data Creating 
+ Network vigil-local_lab-net Creating 
+ Volume vigil-local_lab-db-01-data Creating 
+ Volume vigil-local_lab-db-01-data Creating 
+ Network vigil-local_lab-net Creating 
+ Volume vigil-local_lab-db-01-data Created 
+ Volume vigil-local_lab-db-01-data Created 
+ Volume vigil-local_demo-faults-state Created 
+ Volume vigil-local_demo-faults-state Created 
+ Volume vigil-local_lab-zabbix-db-data Created 
+ Volume vigil-local_lab-zabbix-db-data Created 
+ Network vigil-local_lab-net Created 
+ Network vigil-local_lab-net Created 
+ Container lab-zabbix-db Creating 
+ Container lab-rpt-01 Creating 
+ Container lab-alertmanager Creating 
+ Container lab-db-01 Creating 
+ Container lab-zabbix-db Created 
+ Container lab-zabbix-web Creating 
+ Container lab-zabbix-server Creating 
+ Container lab-alertmanager Created 
+ Container lab-rpt-01 Created 
+ Container lab-db-01 Created 
+ Container lab-api-01 Creating 
+ Container lab-zabbix-web Created 
+ Container lab-api-01 Created 
+ Container lab-vas-01 Creating 
+ Container lab-zabbix-server Created 
+ Container lab-vas-01 Created 
+ Container lab-probe-01 Creating 
+ Container lab-probe-01 Created 
+ Container demo-faults Creating 
+ Container lab-prometheus Creating 
+ Container demo-faults Created 
+ Container lab-prometheus Created 
+ Container lab-alertmanager Starting 
+ Container lab-db-01 Starting 
+ Container lab-rpt-01 Starting 
+ Container lab-zabbix-db Starting 
+ Container lab-alertmanager Started 
+ Container lab-db-01 Started 
+ Container lab-db-01 Waiting 
+ Container lab-rpt-01 Started 
+ Container lab-rpt-01 Waiting 
+ Container lab-zabbix-db Started 
+ Container lab-zabbix-db Waiting 
+ Container lab-db-01 Healthy 
+ Container lab-api-01 Starting 
+ Container lab-rpt-01 Healthy 
+ Container lab-api-01 Started 
+ Container lab-api-01 Waiting 
+ Container lab-zabbix-db Healthy 
+ Container lab-zabbix-web Starting 
+ Container lab-zabbix-server Starting 
+ Container lab-zabbix-web Started 
+ Container lab-zabbix-server Started 
+ Container lab-api-01 Healthy 
+ Container lab-vas-01 Starting 
+ Container lab-vas-01 Started 
+ Container lab-vas-01 Waiting 
+ Container lab-vas-01 Healthy 
+ Container lab-probe-01 Starting 
+ Container lab-probe-01 Started 
+ Container lab-probe-01 Waiting 
+ Container lab-probe-01 Healthy 
+ Container demo-faults Starting 
+ Container lab-prometheus Starting 
+ Container demo-faults Started 
+ Container lab-prometheus Started 
+ Container lab-zabbix-db Running 
+ Container lab-zabbix-server Running 
+ Container lab-zabbix-web Running 
+ Container lab-zabbix-provision Creating 
+ Container lab-zabbix-provision Created 
+ Container lab-zabbix-db Waiting 
+ Container lab-zabbix-db Healthy 
+ Container lab-zabbix-provision Starting 
+ Container lab-zabbix-provision Started 
+ Network vigil-local_vigil-net Creating 
+ Volume vigil-local_vigil-db-data Creating 
+ Volume vigil-local_vigil-db-data Creating 
+ Network vigil-local_vigil-net Creating 
+ Volume vigil-local_vigil-db-data Created 
+ Volume vigil-local_vigil-db-data Created 
+ Network vigil-local_vigil-net Created 
+ Network vigil-local_vigil-net Created 
+ Container vigil-db Creating 
+ Container ollama-embed-fake Creating 
+ Container openai-fake Creating 
+ Container ollama-llm-fake Creating 
+ Container teams-fake Creating 
+ Container jira-fake Creating 
+ Container claude-fake Creating 
+ Container mailpit Creating 
+ Container vigil-db Created 
+ Container claude-fake Created 
+ Container vigil-migrate Creating 
+ Container jira-fake Created 
+ Container ollama-llm-fake Created 
+ Container mailpit Created 
+ Container ollama-embed-fake Created 
+ Container teams-fake Created 
+ Container openai-fake Created 
+ Container vigil-migrate Created 
+ Container vigil-app Creating 
+ Container vigil-app Created 
+ Container openai-fake Starting 
+ Container jira-fake Starting 
+ Container mailpit Starting 
+ Container vigil-db Starting 
+ Container ollama-embed-fake Starting 
+ Container claude-fake Starting 
+ Container teams-fake Starting 
+ Container ollama-llm-fake Starting 
+ Container openai-fake Started 
+ Container jira-fake Started 
+ Container mailpit Started 
+ Container vigil-db Started 
+ Container vigil-db Waiting 
+ Container ollama-embed-fake Started 
+ Container teams-fake Started 
+ Container claude-fake Started 
+ Container ollama-llm-fake Started 
+ Container vigil-db Healthy 
+ Container vigil-migrate Starting 
+ Container vigil-migrate Started 
+ Container vigil-migrate Waiting 
+ Container vigil-migrate Exited 
+ Container vigil-app Starting 
+ Container vigil-app Started 
+Tenant 01a1d884-b164-760d-88c1-931c5fd217f5 is ready at demo.vigil.test.
+Vigil: http://demo.vigil.test:8080 (user presenter; password in /Users/awadood/.vigil-local/vigil-local/secrets/vigil-app/seed-password-presenter)
+ Container vigil-local-e2e-run-3ee3a7b2c521 Creating 
+ Container vigil-local-e2e-run-3ee3a7b2c521 Created 
+
+Running 45 tests using 4 workers
+
+  ✓   1 [chromium] › tests/login.spec.ts:5:1 › DC-S01-01 the login page is shown without a session @smoke (524ms)
+  ✓   2 [chromium] › tests/incidents.spec.ts:7:1 › DC-S02-01 the incident list shows its heading, the header and the strip @smoke (1.0s)
+  ✓   5 [chromium] › tests/login.spec.ts:20:1 › DC-S01-02 the login page shows the banner, Techfinity, Jazz and the form, in one column at 375 px @smoke (540ms)
+  ✓   4 [chromium] › tests/look.spec.ts:59:1 › DC-U-01 no element other than the banner uses its colour (1.3s)
+  ✓   7 [chromium] › tests/login.spec.ts:52:1 › SL-A3-06 the customer name and environment label are the configured ones @smoke (306ms)
+  ✓   3 [chromium] › tests/mobile.spec.ts:11:1 › DC-U-13 an Acknowledge link opens the login and then the page (1.4s)
+  ✓   8 [chromium] › tests/look.spec.ts:70:1 › VD-C-01 the banner is sticky, at least 30 px high, yellow with dark text (694ms)
+  ✓   6 [chromium] › tests/incidents.spec.ts:25:1 › PM-M24-01 the login and incident list screens exist (961ms)
+  ✓   9 [chromium] › tests/login.spec.ts:62:1 › SL-DR-03 the environment label is on the login page and the incident list (737ms)
+  ✓  12 [chromium] › tests/incidents.spec.ts:35:1 › DC-S02-02 the strip of a tenant without alerts (626ms)
+  ✓  10 [chromium] › tests/mobile.spec.ts:40:1 › SL-B-13 an Approval link without a session shows only the login (1.3s)
+VD-R-09 font files requested: http://demo.vigil.test:8080/assets/inter-latin-wght-normal-Dx4kXJAl.woff2, http://demo.vigil.test:8080/assets/jetbrains-mono-latin-wght-normal-B9CIFXIH.woff2
+  ✓  11 [chromium] › tests/look.spec.ts:91:1 › VD-R-09 the fonts are bundled and nothing loads from another host (846ms)
+  ✓  14 [chromium] › tests/incidents.spec.ts:59:1 › SL-A4-02 the incident list opens after sign-in (562ms)
+  ✓  13 [chromium] › tests/login.spec.ts:72:1 › PM-M24-02 the banner and the customer are on every screen of P-28 (1.2s)
+  ✓  17 [chromium] › tests/smoke.spec.ts:10:1 › BP-R-24 Vigil answers at demo.vigil.test:8080 inside the compose network @smoke (185ms)
+  ✓  16 [chromium] › tests/look.spec.ts:122:1 › VD-R-10 no horizontal scrolling at 1280 × 720 (764ms)
+  ✓  19 [chromium] › tests/smoke.spec.ts:20:1 › BP-R-25 login over plain HTTP sets a session cookie without Secure @smoke (162ms)
+  ✓  21 [chromium] › tests/smoke.spec.ts:51:1 › AR-Q-10 the bundle built by bundle.py imported with all 17 parts succeeded @smoke (67ms)
+  ✓  22 [chromium] › tests/smoke.spec.ts:66:1 › AR-Q-10 the imported tenant answers its branding @smoke (42ms)
+  ✓  18 [chromium] › tests/login.spec.ts:102:1 › DC-U-02 Techfinity is shown on the login page and in the header (524ms)
+  ✓  20 [chromium] › tests/look.spec.ts:129:1 › VD-L-04 the login at 360 px in one column (443ms)
+  ✓  25 [chromium] › tests/look.spec.ts:138:1 › VD-R-12 the focus ring on Tab (492ms)
+  ✓  15 [chromium] › tests/mobile.spec.ts:68:1 › AR-W-07 the mobile pages load no canvas code (2.2s)
+  ✓  23 [chromium] › tests/workspace.spec.ts:5:1 › DC-S03-01 an unknown incident shows Could not load this page. Not found. (1.3s)
+  ✓  26 [chromium] › tests/look.spec.ts:153:1 › VD-R-11 no animation under reduced motion (512ms)
+  ✓  24 [chromium] › tests/login.spec.ts:113:1 › DC-U-15 the tab titles (1.3s)
+  ✓  28 [chromium] › tests/look.spec.ts:164:1 › VD-S-01 the login card is centred on the navy page (232ms)
+  ✓  29 [chromium] › tests/login.spec.ts:131:1 › DC-U-01 the banner stays at the top while the page scrolls (507ms)
+  ✓  27 [chromium] › tests/mobile.spec.ts:103:1 › DC-S04-02 the bar at 360 px (940ms)
+  ✓  31 [chromium] › tests/login.spec.ts:148:1 › SL-A4-01 presenter signs in (326ms)
+  ✓  30 [chromium] › tests/look.spec.ts:179:1 › VD-S-01 the login screens (887ms)
+  ✓  33 [chromium] › tests/login.spec.ts:155:1 › DC-S01-03 a wrong password is refused and the password field is emptied (371ms)
+  ✓  32 [chromium] › tests/mobile.spec.ts:131:1 › VD-R-10 a mobile page at 360 px has no horizontal scrolling (828ms)
+  ✓  35 [chromium] › tests/login.spec.ts:168:1 › DC-S01-03 presenter signs in and sees the incident list (370ms)
+  ✓  34 [chromium] › tests/look.spec.ts:198:1 › VD-S-02 the no-access page (505ms)
+  ✓  37 [chromium] › tests/login.spec.ts:177:1 › DC-U-13 /login with a valid session opens next; a reload of /login shows no message (644ms)
+  ✓  36 [chromium] › tests/mobile.spec.ts:146:1 › VD-R-12 Tab reaches Sign out with the focus ring (768ms)
+  ✓  38 [chromium] › tests/look.spec.ts:204:1 › VD-S-03 the error states (955ms)
+  ✓  39 [chromium] › tests/login.spec.ts:193:1 › DC-U-13 a page opened without a session opens after sign-in (614ms)
+  ✓  40 [chromium] › tests/look.spec.ts:218:1 › VD-S-04 the empty incident list (362ms)
+  ✓  41 [chromium] › tests/login.spec.ts:212:1 › DC-S01-05 noc-l1 sees the no-access page (550ms)
+  ✓  42 [chromium] › tests/login.spec.ts:237:1 › DC-U-05 a user without view never sees the incident list (350ms)
+  ✓  43 [chromium] › tests/login.spec.ts:253:1 › DC-S01-04 sign out shows You are signed out. (411ms)
+  ✓  44 [chromium] › tests/login.spec.ts:262:1 › AR-B-10 a host with no alias shows the error state (153ms)
+  ✓  45 [chromium] › tests/login.spec.ts:277:1 › AR-W-01 / opens the incident list (299ms)
+
+  45 passed (11.2s)
+ Container vigil-local-e2e-run-af745dc88320 Creating 
+ Container vigil-local-e2e-run-af745dc88320 Created 
+
+Running 32 tests using 1 worker
+
+ Container vigil-local-storm-driver-run-9f8991bbc692 Creating 
+ Container vigil-local-storm-driver-run-9f8991bbc692 Created 
+step 1 Reset: tenant 01a1d8a3-8dce-71ef-afcc-9af8e420fff6, {"branch_a_seconds": 12.167, "quiet_seconds": 0.052, "branch_b_seconds": 1.064, "total_seconds": 12.177}
+step 2 Starting state: three users logged in, sources healthy
+step 3 Script start: the storm is injected at once (T0 is the script's 01:00)
+step 4 Storm: SL-F-1 and SL-F-3 injected (T0 2026-11-14T05:59:32.072Z)
+  ✓   1 [chromium] › tests/storm.spec.ts:144:1 › DC-S01-04 the reset ends the session and sign-in returns to the list @storm (15.1s)
+  ✓   2 [chromium] › tests/storm.spec.ts:173:1 › DC-S02-05 the new tenant's list is empty @storm (11ms)
+  ✓   3 [chromium] › tests/storm.spec.ts:188:1 › DC-S02-03 the storm builds and no forming incident is a row @storm (1.2m)
+step 5 Incidents: storm INC-0002, report INC-0001
+  ✓   4 [chromium] › tests/storm.spec.ts:235:1 › SL-A1-08 the storm workspace opens and records the run @storm (873ms)
+step 6 Acknowledge: http://demo.vigil.test:8080/m/acknowledge/01a1d8a3-c3f6-7457-8dae-93688db0fc59 at 2026-11-14T06:10:19.937Z
+FAIL SB-T-02 the script can be followed: Approval link by 09:30: the run ended: the script cannot be followed
+PASS SB-SET-07 incident list empty
+PASS SB-SET-07 sources healthy
+PASS SB-V-38 seeded dashboard
+PASS SB-V-39 baselines
+FAIL SB-R-06 two incidents: rows ['Balance-check API: Balance-check API errors — 2 services affected', 'Subscriber DB server: Disk full — 3 services affected', 'Report export job: Report export job failed — 1 service affected'] (expected the storm and the report incident)
+PASS SB-S01 storm alerts
+PASS SB-S01 storm alert types
+PASS SB-S01 report alert
+PASS SB-S01 storm within 120 s
+PASS SB-S02 storm header
+PASS SB-S02 grouping reasons
+PASS SB-S02 report incident
+PASS SB-S03 diagnostics
+PASS SB-S03 diagnostic values
+PASS SB-S04 routing
+PASS SB-S04 investigation
+PASS SB-S05 ticket
+PASS SB-S05 incident messages
+PASS SB-S05 acknowledge page
+PASS SB-S05 timeline acknowledgement
+PASS SB-S06 similar incident
+PASS SB-S06 proposal
+FAIL SB-S06 action executed once: expected [(1, 1, 'succeeded', [('approval_valid', True), ('unchanged', True), ('incident_open', True), ('precondition', True)])], found []; 0 action_execution entries (expected 1)
+FAIL SB-S06 action result: action_execution entries []; summary []; precondition detail None
+FAIL SB-S06 action values: expected (34, '8.5', 100), found (None, None, None)
+FAIL SB-S07 recovery: expected [('Subscriber DB services recovered', 'recovered', 60, [True, True], True)], found []
+FAIL SB-S07 resolved: expected state resolved with resolved_at, no escalation, every alert resolved; found ('open', False, None, {'resolved': 44, 'firing': 82})
+FAIL SB-S07 ticket comment: expected ['Resolved: recovery verified.'], found []
+FAIL SB-S08 storm run: expected ('finished', 1, 1, [('s-trigger', 'completed', 1), ('s-severity', 'completed', 1), ('s-diagnose', 'completed', 1), ('s-investigate', 'completed', 1), ('s-summarise', 'completed', 1), ('s-ticket', 'completed', 1), ('s-notify', 'completed', 1), ('s-wait-ack', 'completed', 1), ('s-similar', 'completed', 1), ('s-approve', 'completed', 1), ('s-action', 'completed', 1), ('s-recover', 'completed', 1), ('s-resolve', 'completed', 1)]), found ('running', 1, 1, [('s-trigger', 'completed', 1), ('s-severity', 'completed', 1), ('s-diagnose', 'completed', 1), ('s-investigate', 'completed', 1), ('s-summarise', 'completed', 1), ('s-ticket', 'completed', 1), ('s-notify', 'completed', 1), ('s-wait-ack', 'completed', 1), ('s-similar', 'completed', 1), ('s-approve', 'running', 1)])
+FAIL SB-S09 dashboard formulas: alerts_suppressed 693 (computed 650); incidents_merged 48 (computed 47); live 3, past 50 (expected 2, 50); computed time_to_acknowledge 5.8, time_to_recover 41.1, alerts_suppressed 650, incidents_merged 47
+FAIL SB-S09 dashboard values: expected ['5.7', '40.5', '650', '47'], found ['5.8', '41.1', '693', '48']
+PASS SB-TL-05 no escalation
+FAIL SB-R-06 repeatability result: not passed: SB-R-06 two incidents, SB-S06 action executed once, SB-S07 resolved, SB-S07 ticket resolved
+result file storm-script-20261114T055919Z.json
+
+AR-Q-07 passed: no secret of the installation in the log of this run.
+  ✓   5 [chromium] › tests/storm.spec.ts:395:1 › SL-A1-05 noc-l1 acknowledges on the page @storm (5.3m)
+
+ Container claude-fake Stopping 
+ Container lab-zabbix-provision Stopping 
+ Container ollama-llm-fake Stopping 
+ Container lab-prometheus Stopping 
+ Container lab-alertmanager Stopping 
+ Container teams-fake Stopping 
+ Container vigil-app Stopping 
+ Container demo-faults Stopping 
+ Container openai-fake Stopping 
+ Container ollama-embed-fake Stopping 
+ Container jira-fake Stopping 
+ Container mailpit Stopping 
+ Container lab-zabbix-provision Stopped 
+ Container lab-zabbix-provision Removing 
+ Container lab-zabbix-provision Removed 
+ Container lab-zabbix-server Stopping 
+ Container lab-zabbix-web Stopping 
+ Container lab-alertmanager Stopped 
+ Container lab-alertmanager Removing 
+ Container lab-alertmanager Removed 
+ Container lab-prometheus Stopped 
+ Container lab-prometheus Removing 
+ Container lab-prometheus Removed 
+ Container lab-zabbix-web Stopped 
+ Container lab-zabbix-web Removing 
+ Container lab-zabbix-web Removed 
+ Container mailpit Stopped 
+ Container mailpit Removing 
+ Container mailpit Removed 
+ Container lab-zabbix-server Stopped 
+ Container lab-zabbix-server Removing 
+ Container lab-zabbix-server Removed 
+ Container lab-zabbix-db Stopping 
+ Container vigil-app Stopped 
+ Container vigil-app Removing 
+ Container vigil-app Removed 
+ Container vigil-migrate Stopping 
+ Container vigil-migrate Stopped 
+ Container vigil-migrate Removing 
+ Container vigil-migrate Removed 
+ Container vigil-db Stopping 
+ Container lab-zabbix-db Stopped 
+ Container lab-zabbix-db Removing 
+ Container lab-zabbix-db Removed 
+ Container vigil-db Stopped 
+ Container vigil-db Removing 
+ Container vigil-db Removed 
+ Container demo-faults Stopped 
+ Container demo-faults Removing 
+ Container demo-faults Removed 
+ Container lab-rpt-01 Stopping 
+ Container lab-probe-01 Stopping 
+ Container lab-rpt-01 Stopped 
+ Container lab-rpt-01 Removing 
+ Container lab-rpt-01 Removed 
+ Container ollama-embed-fake Stopped 
+ Container ollama-embed-fake Removing 
+ Container ollama-embed-fake Removed 
+ Container lab-probe-01 Stopped 
+ Container lab-probe-01 Removing 
+ Container lab-probe-01 Removed 
+ Container lab-vas-01 Stopping 
+ Container jira-fake Stopped 
+ Container jira-fake Removing 
+ Container jira-fake Removed 
+ Container teams-fake Stopped 
+ Container teams-fake Removing 
+ Container teams-fake Removed 
+ Container claude-fake Stopped 
+ Container claude-fake Removing 
+ Container claude-fake Removed 
+ Container ollama-llm-fake Stopped 
+ Container ollama-llm-fake Removing 
+ Container ollama-llm-fake Removed 
+ Container openai-fake Stopped 
+ Container openai-fake Removing 
+ Container openai-fake Removed 
+ Container lab-vas-01 Stopped 
+ Container lab-vas-01 Removing 
+ Container lab-vas-01 Removed 
+ Container lab-api-01 Stopping 
+ Container lab-api-01 Stopped 
+ Container lab-api-01 Removing 
+ Container lab-api-01 Removed 
+ Container lab-db-01 Stopping 
+ Container lab-db-01 Stopped 
+ Container lab-db-01 Removing 
+ Container lab-db-01 Removed 
+ Volume vigil-local_lab-db-01-data Removing 
+ Volume vigil-local_vigil-db-data Removing 
+ Volume vigil-local_demo-faults-state Removing 
+ Volume vigil-local_lab-zabbix-db-data Removing 
+ Network vigil-local_vigil-net Removing 
+ Network vigil-local_lab-net Removing 
+ Volume vigil-local_lab-zabbix-db-data Removed 
+ Volume vigil-local_demo-faults-state Removed 
+ Volume vigil-local_lab-db-01-data Removed 
+ Volume vigil-local_vigil-db-data Removed 
+ Network vigil-local_lab-net Removed 
+ Network vigil-local_vigil-net Removed 
+ Volume vigil-local_demo-faults-state Creating 
+ Volume vigil-local_demo-faults-state Creating 
+ Volume vigil-local_lab-zabbix-db-data Creating 
+ Volume vigil-local_lab-zabbix-db-data Creating 
+ Network vigil-local_lab-net Creating 
+ Volume vigil-local_lab-db-01-data Creating 
+ Volume vigil-local_lab-db-01-data Creating 
+ Network vigil-local_lab-net Creating 
+ Volume vigil-local_demo-faults-state Created 
+ Volume vigil-local_demo-faults-state Created 
+ Volume vigil-local_lab-db-01-data Created 
+ Volume vigil-local_lab-db-01-data Created 
+ Volume vigil-local_lab-zabbix-db-data Created 
+ Volume vigil-local_lab-zabbix-db-data Created 
+ Network vigil-local_lab-net Created 
+ Network vigil-local_lab-net Created 
+ Container lab-zabbix-db Creating 
+ Container lab-rpt-01 Creating 
+ Container lab-db-01 Creating 
+ Container lab-alertmanager Creating 
+ Container lab-rpt-01 Created 
+ Container lab-db-01 Created 
+ Container lab-api-01 Creating 
+ Container lab-alertmanager Created 
+ Container lab-zabbix-db Created 
+ Container lab-zabbix-web Creating 
+ Container lab-zabbix-server Creating 
+ Container lab-api-01 Created 
+ Container lab-vas-01 Creating 
+ Container lab-zabbix-web Created 
+ Container lab-zabbix-server Created 
+ Container lab-vas-01 Created 
+ Container lab-probe-01 Creating 
+ Container lab-probe-01 Created 
+ Container demo-faults Creating 
+ Container lab-prometheus Creating 
+ Container lab-prometheus Created 
+ Container demo-faults Created 
+ Container lab-alertmanager Starting 
+ Container lab-db-01 Starting 
+ Container lab-rpt-01 Starting 
+ Container lab-zabbix-db Starting 
+ Container lab-alertmanager Started 
+ Container lab-db-01 Started 
+ Container lab-db-01 Waiting 
+ Container lab-rpt-01 Started 
+ Container lab-rpt-01 Waiting 
+ Container lab-zabbix-db Started 
+ Container lab-zabbix-db Waiting 
+ Container lab-db-01 Healthy 
+ Container lab-api-01 Starting 
+ Container lab-rpt-01 Healthy 
+ Container lab-api-01 Started 
+ Container lab-api-01 Waiting 
+ Container lab-zabbix-db Healthy 
+ Container lab-zabbix-web Starting 
+ Container lab-zabbix-server Starting 
+ Container lab-zabbix-web Started 
+ Container lab-zabbix-server Started 
+ Container lab-api-01 Healthy 
+ Container lab-vas-01 Starting 
+ Container lab-vas-01 Started 
+ Container lab-vas-01 Waiting 
+ Container lab-vas-01 Healthy 
+ Container lab-probe-01 Starting 
+ Container lab-probe-01 Started 
+ Container lab-probe-01 Waiting 
+ Container lab-probe-01 Healthy 
+ Container demo-faults Starting 
+ Container lab-prometheus Starting 
+ Container demo-faults Started 
+ Container lab-prometheus Started 
+ Container lab-zabbix-db Running 
+ Container lab-zabbix-server Running 
+ Container lab-zabbix-web Running 
+ Container lab-zabbix-provision Creating 
+ Container lab-zabbix-provision Created 
+ Container lab-zabbix-db Waiting 
+ Container lab-zabbix-db Healthy 
+ Container lab-zabbix-provision Starting 
+ Container lab-zabbix-provision Started 
+ Network vigil-local_vigil-net Creating 
+ Volume vigil-local_vigil-db-data Creating 
+ Volume vigil-local_vigil-db-data Creating 
+ Network vigil-local_vigil-net Creating 
+ Volume vigil-local_vigil-db-data Created 
+ Volume vigil-local_vigil-db-data Created 
+ Network vigil-local_vigil-net Created 
+ Network vigil-local_vigil-net Created 
+ Container openai-fake Creating 
+ Container claude-fake Creating 
+ Container ollama-llm-fake Creating 
+ Container ollama-embed-fake Creating 
+ Container mailpit Creating 
+ Container jira-fake Creating 
+ Container vigil-db Creating 
+ Container teams-fake Creating 
+ Container claude-fake Created 
+ Container jira-fake Created 
+ Container teams-fake Created 
+ Container ollama-llm-fake Created 
+ Container mailpit Created 
+ Container openai-fake Created 
+ Container ollama-embed-fake Created 
+ Container vigil-db Created 
+ Container vigil-migrate Creating 
+ Container vigil-migrate Created 
+ Container vigil-app Creating 
+ Container vigil-app Created 
+ Container claude-fake Starting 
+ Container openai-fake Starting 
+ Container jira-fake Starting 
+ Container teams-fake Starting 
+ Container vigil-db Starting 
+ Container ollama-embed-fake Starting 
+ Container mailpit Starting 
+ Container ollama-llm-fake Starting 
+ Container claude-fake Started 
+ Container openai-fake Started 
+ Container teams-fake Started 
+ Container vigil-db Started 
+ Container vigil-db Waiting 
+ Container ollama-embed-fake Started 
+ Container mailpit Started 
+ Container jira-fake Started 
+ Container ollama-llm-fake Started 
+ Container vigil-db Healthy 
+ Container vigil-migrate Starting 
+ Container vigil-migrate Started 
+ Container vigil-migrate Waiting 
+ Container vigil-migrate Exited 
+ Container vigil-app Starting 
+ Container vigil-app Started 
+Tenant 01a1dadc-a4d7-702d-9998-d51ef56c9e5a is ready at demo.vigil.test.
+Vigil: http://demo.vigil.test:8080 (user presenter; password in /Users/awadood/.vigil-local/vigil-local/secrets/vigil-app/seed-password-presenter)
+ Container vigil-local-e2e-run-4b814dd5e10e Creating 
+ Container vigil-local-e2e-run-4b814dd5e10e Created 
+
+Running 32 tests using 1 worker
+
+ Container vigil-local-storm-driver-run-a48abb1ed63b Creating 
+ Container vigil-local-storm-driver-run-a48abb1ed63b Created 
+step 1 Reset: tenant 01a1daea-f55e-77c7-a9df-93324483175d, {"branch_a_seconds": 12.114, "quiet_seconds": 0.038, "branch_b_seconds": 1.036, "total_seconds": 12.131}
+step 2 Starting state: three users logged in, sources healthy
+step 3 Script start: the storm is injected at once (T0 is the script's 01:00)
+step 4 Storm: SL-F-1 and SL-F-3 injected (T0 2026-11-14T16:36:46.027Z)
+  ✓   1 [chromium] › tests/storm.spec.ts:144:1 › DC-S01-04 the reset ends the session and sign-in returns to the list @storm (15.0s)
+  ✓   2 [chromium] › tests/storm.spec.ts:173:1 › DC-S02-05 the new tenant's list is empty @storm (42ms)
+  ✓   3 [chromium] › tests/storm.spec.ts:188:1 › DC-S02-03 the storm builds and no forming incident is a row @storm (1.2m)
+  ✓   4 [chromium] › tests/storm.spec.ts:235:1 › SL-A1-08 the storm workspace opens and records the run @storm (982ms)
+step 5 Incidents: storm INC-0002, report INC-0001
+step 6 Acknowledge: http://demo.vigil.test:8080/m/acknowledge/01a1daeb-36b3-76ce-b9bb-70c2c25ae996 at 2026-11-14T16:43:16.036Z
+  ✓   5 [chromium] › tests/storm.spec.ts:395:1 › SL-A1-05 noc-l1 acknowledges on the page @storm (5.3m)
+step 7 Approve: http://demo.vigil.test:8080/m/approve/01a1daf1-1979-7456-bf54-f8be5c556e47 approved at 2026-11-14T16:44:46.071Z
+  ✓   6 [chromium] › tests/storm.spec.ts:474:1 › SL-A1-06 dbops-engineer approves with confirmation @storm (1.5m)
+  ✓   7 [chromium] › tests/storm.spec.ts:630:1 › SL-A1-02 the storm and report rows @storm (1.7m)
+  ✓   8 [chromium] › tests/storm.spec.ts:670:1 › DC-U-08 the list changed without a reload @storm (9ms)
+  ✓   9 [chromium] › tests/storm.spec.ts:682:1 › VD-L-03 the incident table fits 1280 px @storm (31ms)
+  ✓  10 [chromium] › tests/storm.spec.ts:697:1 › VD-C-07 the badge and chip colours @storm (106ms)
+highlight delays (ms): [{"stepId":"s-investigate","delay":55},{"stepId":"s-summarise","delay":489},{"stepId":"s-ticket","delay":469},{"stepId":"s-notify","delay":452},{"stepId":"s-wait-ack","delay":318},{"stepId":"s-similar","delay":609},{"stepId":"s-approve","delay":484},{"stepId":"s-action","delay":111},{"stepId":"s-recover","delay":444},{"stepId":"s-resolve","delay":553}]
+  ✓  11 [chromium] › tests/storm.spec.ts:720:1 › SL-A1-08 the highlight followed every step change within 2 s @storm (201ms)
+follow distances: [{"stepId":"s-wait-ack","distance":0.1562347412109375,"zoom":0.8},{"stepId":"s-approve","distance":0.1562652587890625,"zoom":0.8},{"stepId":"s-action","distance":0,"zoom":0.8},{"stepId":"s-recover","distance":0.15625,"zoom":0.8},{"stepId":"s-resolve","distance":0.15625,"zoom":0.8}]
+  ✓  12 [chromium] › tests/storm.spec.ts:745:1 › DC-S03-06 follow mode keeps the current step in view @storm (114ms)
+step 8 Recovery: resolved at 2026-11-14T16:46:27.106Z, ticket NOC-2 Done
+PASS SB-SET-07 incident list empty
+PASS SB-SET-07 sources healthy
+PASS SB-V-38 seeded dashboard
+PASS SB-V-39 baselines
+PASS SB-R-06 two incidents
+PASS SB-S01 storm alerts
+PASS SB-S01 storm alert types
+PASS SB-S01 report alert
+PASS SB-S01 storm within 120 s
+PASS SB-S02 storm header
+PASS SB-S02 grouping reasons
+PASS SB-S02 report incident
+PASS SB-S03 diagnostics
+PASS SB-S03 diagnostic values
+PASS SB-S04 routing
+PASS SB-S04 investigation
+PASS SB-S05 ticket
+PASS SB-S05 incident messages
+PASS SB-S05 acknowledge page
+PASS SB-S05 timeline acknowledgement
+PASS SB-S06 similar incident
+PASS SB-S06 proposal
+PASS SB-S06 approval messages
+PASS SB-S06 approval page
+PASS SB-S06 decision
+PASS SB-S06 action executed once
+PASS SB-S06 action result
+PASS SB-S06 action values
+PASS SB-S07 recovery
+PASS SB-S07 resolved
+PASS SB-S07 ticket resolved
+PASS SB-S07 ticket comment
+PASS SB-S08 storm run
+PASS SB-S09 dashboard formulas
+PASS SB-S09 dashboard values
+PASS SB-TL-05 no escalation
+PASS SB-R-06 repeatability result
+result file storm-script-20261114T163633Z.json
+AR-Q-07 passed: no secret of the installation in the log of this run.
+  ✓  13 [chromium] › tests/storm.spec.ts:759:1 › DC-S03-07 countdowns and the observation window were counted @storm (1.2s)
+  ✓  14 [chromium] › tests/storm.spec.ts:779:1 › SL-A1-02 the storm workspace header, hypothesis, impact and alerts @storm (428ms)
+  ✓  15 [chromium] › tests/storm.spec.ts:854:1 › SL-A1-03 the evidence lines @storm (101ms)
+  ✓  16 [chromium] › tests/storm.spec.ts:906:1 › SL-A1-04 the AI investigation section @storm (20ms)
+  ✓  17 [chromium] › tests/storm.spec.ts:931:1 › SL-A1-06 the Response section @storm (28ms)
+  ✓  18 [chromium] › tests/storm.spec.ts:984:1 › SL-A1-07 the Recovery section @storm (26ms)
+  ✓  19 [chromium] › tests/storm.spec.ts:1004:1 › SB-S08 the finished run on the canvas and in the run steps @storm (1.5s)
+  ✓  20 [chromium] › tests/storm.spec.ts:1095:1 › VD-C-18 the band and the expanded canvas @storm (638ms)
+  ✓  21 [chromium] › tests/storm.spec.ts:1144:1 › DC-S03-13 the timeline and notified teams @storm (36ms)
+  ✓  22 [chromium] › tests/storm.spec.ts:1193:1 › DC-U-08 the workspace changed without a reload @storm (22ms)
+  ✓  23 [chromium] › tests/storm.spec.ts:1205:1 › DC-U-15 the workspace tab title @storm (63ms)
+  ✓  24 [chromium] › tests/storm.spec.ts:1211:1 › VD-S-05 the workspace fits 1280 px with its two columns @storm (19ms)
+  ✓  25 [chromium] › tests/storm.spec.ts:1232:1 › VD-C-22 the section cards and their headings @storm (26ms)
+  ✓  26 [chromium] › tests/storm.spec.ts:1255:1 › VD-C-23 the outcome words in their colours @storm (38ms)
+  ✓  27 [chromium] › tests/storm.spec.ts:1278:1 › DC-S04-05 the refusals of the Acknowledge page @storm (3.0s)
+  ✓  28 [chromium] › tests/storm.spec.ts:1322:1 › DC-S05-06 a decided request @storm (2.1s)
+  ✓  29 [chromium] › tests/storm.spec.ts:1347:1 › PM-M24-03 the Acknowledge page is usable at 360 px @storm (996ms)
+  ✓  30 [chromium] › tests/storm.spec.ts:1366:1 › VD-S-07 the Approval page at 360 px @storm (1.0s)
+  ✓  31 [chromium] › tests/storm.spec.ts:1399:1 › DC-S03-01 the report incident's workspace @storm (2.1s)
+  ✓  32 [chromium] › tests/storm.spec.ts:1455:1 › DC-S02-04 a click on a row opens the incident's address @storm (81ms)
+
+  Slow test file: [chromium] › tests/storm.spec.ts (10.2m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  32 passed (10.2m)
+ Container vigil-app Stopping 
+ Container lab-zabbix-provision Stopping 
+ Container demo-faults Stopping 
+ Container ollama-embed-fake Stopping 
+ Container claude-fake Stopping 
+ Container openai-fake Stopping 
+ Container mailpit Stopping 
+ Container teams-fake Stopping 
+ Container lab-alertmanager Stopping 
+ Container ollama-llm-fake Stopping 
+ Container lab-prometheus Stopping 
+ Container jira-fake Stopping 
+ Container lab-zabbix-provision Stopped 
+ Container lab-zabbix-provision Removing 
+ Container lab-zabbix-provision Removed 
+ Container lab-zabbix-server Stopping 
+ Container lab-zabbix-web Stopping 
+ Container lab-prometheus Stopped 
+ Container lab-prometheus Removing 
+ Container lab-prometheus Removed 
+ Container lab-alertmanager Stopped 
+ Container lab-alertmanager Removing 
+ Container lab-alertmanager Removed 
+ Container lab-zabbix-web Stopped 
+ Container lab-zabbix-web Removing 
+ Container lab-zabbix-web Removed 
+ Container mailpit Stopped 
+ Container mailpit Removing 
+ Container mailpit Removed 
+ Container vigil-app Stopped 
+ Container vigil-app Removing 
+ Container vigil-app Removed 
+ Container vigil-migrate Stopping 
+ Container vigil-migrate Stopped 
+ Container vigil-migrate Removing 
+ Container vigil-migrate Removed 
+ Container vigil-db Stopping 
+ Container lab-zabbix-server Stopped 
+ Container lab-zabbix-server Removing 
+ Container lab-zabbix-server Removed 
+ Container lab-zabbix-db Stopping 
+ Container vigil-db Stopped 
+ Container vigil-db Removing 
+ Container vigil-db Removed 
+ Container lab-zabbix-db Stopped 
+ Container lab-zabbix-db Removing 
+ Container lab-zabbix-db Removed 
+ Container demo-faults Stopped 
+ Container demo-faults Removing 
+ Container demo-faults Removed 
+ Container lab-probe-01 Stopping 
+ Container lab-rpt-01 Stopping 
+ Container lab-rpt-01 Stopped 
+ Container lab-rpt-01 Removing 
+ Container lab-rpt-01 Removed 
+ Container ollama-llm-fake Stopped 
+ Container ollama-llm-fake Removing 
+ Container ollama-llm-fake Removed 
+ Container lab-probe-01 Stopped 
+ Container lab-probe-01 Removing 
+ Container lab-probe-01 Removed 
+ Container lab-vas-01 Stopping 
+ Container claude-fake Stopped 
+ Container claude-fake Removing 
+ Container claude-fake Removed 
+ Container openai-fake Stopped 
+ Container openai-fake Removing 
+ Container openai-fake Removed 
+ Container jira-fake Stopped 
+ Container jira-fake Removing 
+ Container jira-fake Removed 
+ Container ollama-embed-fake Stopped 
+ Container ollama-embed-fake Removing 
+ Container ollama-embed-fake Removed 
+ Container teams-fake Stopped 
+ Container teams-fake Removing 
+ Container teams-fake Removed 
+ Container lab-vas-01 Stopped 
+ Container lab-vas-01 Removing 
+ Container lab-vas-01 Removed 
+ Container lab-api-01 Stopping 
+ Container lab-api-01 Stopped 
+ Container lab-api-01 Removing 
+ Container lab-api-01 Removed 
+ Container lab-db-01 Stopping 
+ Container lab-db-01 Stopped 
+ Container lab-db-01 Removing 
+ Container lab-db-01 Removed 
+ Network vigil-local_lab-net Removing 
+ Volume vigil-local_demo-faults-state Removing 
+ Volume vigil-local_lab-db-01-data Removing 
+ Volume vigil-local_vigil-db-data Removing 
+ Volume vigil-local_lab-zabbix-db-data Removing 
+ Network vigil-local_vigil-net Removing 
+ Volume vigil-local_vigil-db-data Removed 
+ Volume vigil-local_lab-zabbix-db-data Removed 
+ Volume vigil-local_demo-faults-state Removed 
+ Volume vigil-local_lab-db-01-data Removed 
+ Network vigil-local_lab-net Removed 
+ Network vigil-local_vigil-net Removed 
+
+i saw two pages by logging in with two users noc-l1 and db-ops, 
+i could not really observe how the first run failed probably machine slept 
+and was rerun with caffeinate.

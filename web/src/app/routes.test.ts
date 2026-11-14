@@ -3,7 +3,7 @@ import { expect, it } from "vitest";
 import type { Answer } from "../api/client";
 import { apiGet } from "../api/client";
 import type { components } from "../api/generated/vigil-api";
-import { ROUTE_TABLE, routes } from "./routes";
+import { LAZY_SCREENS, ROUTE_TABLE, routes } from "./routes";
 
 const BRANDING = {
   product_display_name: "Techfinity",
@@ -23,6 +23,8 @@ it("AR-W-01 the route table of P-28", () => {
     "/no-access",
     "/incidents",
     "/incidents/:incidentId",
+    "/m/acknowledge/:incidentId",
+    "/m/approve/:requestId",
     "/",
     "*",
   ]);
@@ -34,8 +36,6 @@ it("AR-W-01 the route table of P-28", () => {
 
 it("AR-W-01 every other path, the paths not built yet included, shows the not-found state", () => {
   for (const path of [
-    "/m/acknowledge/00000000-0000-4000-8000-000000000000",
-    "/m/approve/00000000-0000-4000-8000-000000000000",
     "/workflow",
     "/setup",
     "/routing",
@@ -62,6 +62,57 @@ it("AR-I-100 the incident address /incidents/{incident id} opens the workspace s
   const matches = matchRoutes(routes(BRANDING), `/incidents/${id}`);
   expect(matches?.[0].params.incidentId).toBe(id);
   expect(screenOf(`/incidents/${id}/more`)).toBe("not-found");
+});
+
+const ID = "00000000-0000-4000-8000-000000000000";
+
+it("AR-W-01 the mobile routes", () => {
+  expect(ROUTE_TABLE).toContainEqual({
+    path: "/m/acknowledge/:incidentId",
+    screen: "acknowledge",
+  });
+  expect(ROUTE_TABLE).toContainEqual({
+    path: "/m/approve/:requestId",
+    screen: "approve",
+  });
+  const paths = ROUTE_TABLE.map((route) => route.path);
+  expect(paths.indexOf("/m/acknowledge/:incidentId")).toBe(
+    paths.indexOf("/incidents/:incidentId") + 1,
+  );
+  expect(paths.indexOf("/m/approve/:requestId")).toBe(paths.indexOf("/") - 1);
+  expect(screenOf("/m/acknowledge")).toBe("not-found");
+  expect(screenOf("/m/approve")).toBe("not-found");
+  expect(screenOf(`/m/acknowledge/${ID}/more`)).toBe("not-found");
+});
+
+it("SL-A4-04 /m/acknowledge/{id} is the Acknowledge page", () => {
+  expect(screenOf(`/m/acknowledge/${ID}`)).toBe("acknowledge");
+});
+
+it("SL-A4-05 /m/approve/{id} is the Approval page", () => {
+  expect(screenOf(`/m/approve/${ID}`)).toBe("approve");
+});
+
+it("AR-I-101 the Acknowledge address takes an incident id", () => {
+  const matches = matchRoutes(routes(BRANDING), `/m/acknowledge/${ID}`);
+  expect(matches?.[0].params).toEqual({ incidentId: ID });
+});
+
+it("AR-I-102 the Approval address takes a request id", () => {
+  const matches = matchRoutes(routes(BRANDING), `/m/approve/${ID}`);
+  expect(matches?.[0].params).toEqual({ requestId: ID });
+});
+
+it("AR-W-07 the workspace and the mobile pages are the lazy screens", () => {
+  expect([...LAZY_SCREENS]).toEqual(["workspace", "acknowledge", "approve"]);
+  for (const route of routes(BRANDING)) {
+    const lazy = (LAZY_SCREENS as readonly string[]).includes(route.id!);
+    const element = route.element as {
+      props?: { children?: { type?: { $$typeof?: symbol } } };
+    };
+    const child = element.props?.children?.type?.$$typeof;
+    expect(child === Symbol.for("react.lazy"), route.id).toBe(lazy);
+  }
 });
 
 // A type-level test: `tsc --noEmit` (npm run typecheck) fails when the client's types are not the generated ones.

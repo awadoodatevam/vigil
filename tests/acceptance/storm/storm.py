@@ -1,14 +1,15 @@
 """The storm driver (P-27 spec Section 6.2; SB-T-02 with amendment BP-A-11, SL-A3-04): runs the primary demo headless
 on a local installation and checks its result.
 
-Usage: storm.py --mode immediate|script [--deliveries fakes|checklist]
+Usage: storm.py --mode immediate|script [--deliveries fakes|checklist] [--acts driver|pages]
 
 It resets as AR-B-03 does, injects the storm, acknowledges as noc-l1 and approves as dbops-engineer through links it
-builds from the identifiers it reads, waits until the storm incident is resolved, then checks the SB-R-06 result and
-the values of SB-S01 to SB-S09 that need no screen (storm_checks.py). It changes things only through vigil-api and
-demo-faults; it reads Zabbix and Alertmanager for the lab clear and, with deliveries fakes, the dev fakes and Mailpit.
-It writes /results/storm-{mode}-{UTC time}.json and exits 0 when every check passed, 1 otherwise, 2 for wrong
-arguments. Standard library only (BP-R-04); no secret value is printed or written.
+builds from the identifiers it reads (with --acts pages, mode immediate only, it waits for the acknowledgement and the
+decision made on the pages instead, P-30 spec Section 6.10 item 1), waits until the storm incident is resolved, then
+checks the SB-R-06 result and the values of SB-S01 to SB-S09 that need no screen (storm_checks.py). It changes things
+only through vigil-api and demo-faults; it reads Zabbix and Alertmanager for the lab clear and, with deliveries fakes,
+the dev fakes and Mailpit. It writes /results/storm-{mode}-{UTC time}.json and exits 0 when every check passed, 1
+otherwise, 2 for wrong arguments. Standard library only (BP-R-04); no secret value is printed or written.
 """
 
 import json
@@ -24,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import storm_api as api  # noqa: E402
 import storm_checks as checks  # noqa: E402
 
-USAGE = "Usage: storm.py --mode immediate|script [--deliveries fakes|checklist]"
+USAGE = "Usage: storm.py --mode immediate|script [--deliveries fakes|checklist] [--acts driver|pages]"
 STEP_NAMES = {
     1: "Reset",
     2: "Starting state",
@@ -45,6 +46,7 @@ SCRIPT_ACK_LATEST = 405
 APPROVAL_LIMIT = 180
 SCRIPT_APPROVE_AT = 480
 SCRIPT_APPROVE_LATEST = 510
+PAGES_LIMIT = 300
 RESOLVE_LIMIT = 480
 TICKET_LIMIT = 120
 INJECT_TIMEOUT = 180
@@ -72,35 +74,39 @@ def iso(epoch):
 
 
 def parse_arguments(arguments):
-    """(mode, deliveries) or None."""
-    mode, deliveries = None, "fakes"
+    """(mode, deliveries, acts) or None; --acts pages is refused with mode script."""
+    mode, deliveries, acts = None, "fakes", "driver"
+    values = {"--mode": ("immediate", "script"), "--deliveries": ("fakes", "checklist"), "--acts": ("driver", "pages")}
     index = 0
     seen = set()
     while index < len(arguments):
         flag = arguments[index]
-        if flag not in ("--mode", "--deliveries") or flag in seen or index + 1 >= len(arguments):
+        if flag not in values or flag in seen or index + 1 >= len(arguments):
             return None
         seen.add(flag)
         value = arguments[index + 1]
+        if value not in values[flag]:
+            return None
         if flag == "--mode":
-            if value not in ("immediate", "script"):
-                return None
             mode = value
-        else:
-            if value not in ("fakes", "checklist"):
-                return None
+        elif flag == "--deliveries":
             deliveries = value
+        else:
+            acts = value
         index += 2
-    return (mode, deliveries) if mode else None
+    if not mode or (acts == "pages" and mode == "script"):
+        return None
+    return (mode, deliveries, acts)
 
 
 class Config:
     """Where the driver reaches and what it reads (P-27 spec Sections 6.1 and 6.2); tests replace the addresses."""
 
-    def __init__(self, mode, deliveries, environ=None, root=Path("/")):
+    def __init__(self, mode, deliveries, environ=None, root=Path("/"), acts="driver"):
         environ = os.environ if environ is None else environ
         self.mode = mode
         self.deliveries = deliveries
+        self.acts = acts
         self.profile = environ.get("VIGIL_LAB_PROFILE", "test")
         self.base_url = environ.get("VIGIL_BASE_URL", "http://demo.vigil.test:8080").rstrip("/")
         self.faults_url = "http://172.31.0.1:8091"
@@ -123,7 +129,7 @@ class Driver:
         self.clock = clock
         self.sleep = sleep
         self.out = out or (lambda line: print(line, flush=True))
-        self.data = checks.Data(config.base_url, config.mode, config.deliveries, config.profile)
+        self.data = checks.Data(config.base_url, config.mode, config.deliveries, config.profile, config.acts)
         self.step = 0
         self.entries = []
         self.finished = False
@@ -312,6 +318,9 @@ class Driver:
         if script and self.clock() > d.t0 + SCRIPT_ACK_LATEST:
             raise ScriptAbort("the script can be followed: Acknowledge link by 07:45")
         link = f"{self.config.base_url}/m/acknowledge/{storm}"
+        if self.config.acts == "pages":
+            self.acknowledged_on_page(link)
+            return
         if script:
             self.sleep_until(d.t0 + SCRIPT_ACK_AT)
         noc = self.sessions["noc-l1"]
@@ -325,9 +334,65 @@ class Driver:
         d.ack_after = self.read(f"/api/v1/incidents/{storm}/acknowledgement", "noc-l1")
         self.say(f"step 6 Acknowledge: {link} at {d.ack_answer.get('at')}")
 
+    def read_as(self, user, path):
+        """A read as user inside a wait: the body of a 200 answer, or None (the wait retries)."""
+        status, body = self.sessions[user].get(path)
+        return body if status == 200 else None
+
+    def acknowledged_on_page(self, link):
+        """Step 6 with --acts pages: AR-I-32 as noc-l1 every 2 s until the acknowledgement made on the page."""
+        d = self.data
+        self.say(f"step 6 Acknowledge: waiting for the page at {link}")
+        path = f"/api/v1/incidents/{d.storm_id}/acknowledgement"
+
+        def acknowledged():
+            page = self.read_as("noc-l1", path)
+            return page if page and page.get("acknowledged") is not None else None
+
+        d.ack_after = self.until(acknowledged, self.clock() + PAGES_LIMIT, f"{PAGES_LIMIT} s")
+        d.ack_answer = d.ack_after["acknowledged"]
+        self.ack_done_at = self.clock()
+        self.say(f"step 6 Acknowledge: {link} at {d.ack_answer.get('at')}")
+
+    def approved_on_page(self):
+        """Step 7 with --acts pages: the run's first request in any state, then AR-I-34 until it is approved."""
+        d = self.data
+        storm = d.storm_id
+
+        def first():
+            response = self.view(f"/api/v1/incidents/{storm}/response") or {}
+            requests = sorted(response.get("approvals") or [], key=lambda a: a.get("sequence_in_run") or 0)
+            if not requests:
+                return None
+            request_id = requests[0]["approval_request_id"]
+            if self.config.deliveries == "fakes" and not self.teams_link(
+                "/teams-user-dbops-engineer", "Approve or reject: ", f"/m/approve/{request_id}"
+            ):
+                return None
+            return request_id
+
+        d.request_id = self.until(first, self.ack_done_at + APPROVAL_LIMIT, f"{APPROVAL_LIMIT} s")
+        d.approval_read_at = self.clock()
+        link = f"{self.config.base_url}/m/approve/{d.request_id}"
+        self.say(f"step 7 Approve: waiting for the page at {link}")
+        path = f"/api/v1/approval-requests/{d.request_id}"
+
+        def approved():
+            page = self.read_as("dbops-engineer", path)
+            return page if page and page.get("state") == "approved" else None
+
+        d.approval_page = self.until(approved, d.approval_read_at + PAGES_LIMIT, f"{PAGES_LIMIT} s")
+        decided = d.approval_page.get("decided") or {}
+        d.decision = {"state": d.approval_page.get("state"), "user": decided.get("user"), "at": decided.get("at")}
+        self.decided_at = self.clock()
+        self.say(f"step 7 Approve: {link} approved at {d.decision.get('at')}")
+
     def step7_approve(self):
         d, script = self.data, self.config.mode == "script"
         storm = d.storm_id
+        if self.config.acts == "pages":
+            self.approved_on_page()
+            return
 
         def pending():
             response = self.view(f"/api/v1/incidents/{storm}/response") or {}
@@ -545,6 +610,7 @@ class Driver:
             "driver": "storm",
             "mode": self.config.mode,
             "deliveries": self.config.deliveries,
+            "acts": self.config.acts,
             "profile": self.config.profile,
             "started_at": iso(self.started),
             "finished_at": iso(self.clock()),
@@ -571,8 +637,8 @@ def main(arguments, config=None, **driver_options):
     if parsed is None:
         print(USAGE)
         return 2
-    mode, deliveries = parsed
-    return Driver(config or Config(mode, deliveries), **driver_options).run()
+    mode, deliveries, acts = parsed
+    return Driver(config or Config(mode, deliveries, acts=acts), **driver_options).run()
 
 
 if __name__ == "__main__":

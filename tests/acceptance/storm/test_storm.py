@@ -783,6 +783,7 @@ KEYS = [
     "driver",
     "mode",
     "deliveries",
+    "acts",
     "profile",
     "started_at",
     "finished_at",
@@ -922,8 +923,113 @@ def test_usage(capsys):
     for arguments in ([], ["--mode"], ["--mode", "fast"], ["--deliveries", "fakes"], ["--mode", "script", "x"]):
         assert storm.main(arguments) == 2
         assert capsys.readouterr().out == storm.USAGE + "\n"
-    assert storm.parse_arguments(["--mode", "script", "--deliveries", "checklist"]) == ("script", "checklist")
-    assert storm.parse_arguments(["--mode", "immediate"]) == ("immediate", "fakes")
+    assert storm.parse_arguments(["--mode", "script", "--deliveries", "checklist"]) == ("script", "checklist", "driver")
+    assert storm.parse_arguments(["--mode", "immediate"]) == ("immediate", "fakes", "driver")
+    assert storm.parse_arguments(["--mode", "immediate", "--acts", "pages"]) == ("immediate", "fakes", "pages")
+    assert storm.USAGE == (
+        "Usage: storm.py --mode immediate|script [--deliveries fakes|checklist] [--acts driver|pages]"
+    )
+
+
+def test_pages_refused_in_mode_script(capsys):
+    """SB-T-02 --acts pages with mode script is refused with the usage line (exit 2)."""
+    for arguments in (
+        ["--mode", "script", "--acts", "pages"],
+        ["--acts", "pages", "--mode", "script", "--deliveries", "fakes"],
+        ["--mode", "immediate", "--acts", "both"],
+        ["--mode", "immediate", "--acts", "pages", "--acts", "pages"],
+    ):
+        assert storm.parse_arguments(arguments) is None
+        assert storm.main(arguments) == 2
+        assert capsys.readouterr().out == storm.USAGE + "\n"
+    assert storm.parse_arguments(["--mode", "script", "--acts", "driver"]) == ("script", "fakes", "driver")
+
+
+def on_pages(world, acknowledge=True):
+    """The world of a --acts pages run: the acknowledgement and the decision are made on the pages, each after the
+    driver's first read of its page."""
+    reads = {"ack": 0, "approval": 0}
+    ack_page, approval_page = world.ack_page, world.approval_page
+    engineer = {"user_id": "u-eng", "display_name": "Usman Tariq (DB Ops)"}
+
+    def acknowledgement():
+        reads["ack"] += 1
+        if acknowledge and reads["ack"] == 2 and world.acked_at is None:
+            world.acked_at = world.clock.time()
+        page = ack_page()
+        if world.acked_at is not None:
+            page.update(
+                may_act=True,
+                refusal={"key": "already_acknowledged", "message": "Already acknowledged by Hira Baig (NOC L1) at x."},
+            )
+        return page
+
+    def approval():
+        reads["approval"] += 1
+        if reads["approval"] == 2 and world.decided_at is None:
+            world.decided_at = world.clock.time()
+        page = approval_page()
+        if world.decided_at is not None:
+            page.update(
+                state="approved",
+                decided={"user": engineer, "at": iso(world.decided_at)},
+                refusal={"key": "already_decided", "message": "Already approved by Usman Tariq (DB Ops) at x."},
+            )
+        return page
+
+    world.ack_page = acknowledgement
+    world.approval_page = approval
+    return reads
+
+
+def pages_driver(world, tmp_path):
+    config = config_for(world, tmp_path)
+    config.acts = "pages"
+    lines = []
+    driver = storm.Driver(config, clock=world.clock.time, sleep=world.clock.sleep, out=lines.append)
+    code = driver.run()
+    result = json.loads(sorted(config.results.glob("storm-*.json"))[-1].read_text())
+    return code, result, driver, lines
+
+
+def test_pages_run_passes(world, tmp_path):
+    """SB-T-02 --acts pages: the driver sends no acknowledgement or decision, waits for the ones made on the pages
+    after its first reads, and passes every check."""
+    reads = on_pages(world)
+    code, result, driver, lines = pages_driver(world, tmp_path)
+    failed = [c for c in result["checks"] if not c["passed"]]
+    assert failed == []
+    assert code == 0 and result["passed"] is True and result["acts"] == "pages"
+    assert reads["ack"] >= 2 and reads["approval"] >= 2
+    posts = [path for method, path, _ in world.calls if method == "POST"]
+    assert not any(path.endswith("/acknowledgements") or path.endswith("/decisions") for path in posts)
+    link = f"{world.base}/m/acknowledge/{STORM_ID}"
+    assert f"step 6 Acknowledge: waiting for the page at {link}" in lines
+    assert f"step 6 Acknowledge: {link} at {iso(world.acked_at)}" in lines
+    approve = f"{world.base}/m/approve/{REQUEST_ID}"
+    assert f"step 7 Approve: waiting for the page at {approve}" in lines
+    assert f"step 7 Approve: {approve} approved at {iso(world.decided_at)}" in lines
+    d = driver.data
+    assert d.acts == "pages" and d.ack_before is None and d.ack_status is None and d.decision_status is None
+    assert d.decision == {
+        "state": "approved",
+        "user": {"user_id": "u-eng", "display_name": "Usman Tariq (DB Ops)"},
+        "at": iso(world.decided_at),
+    }
+    names = {f"{c['id']} {c['name']}" for c in result["checks"]}
+    assert {"SB-S05 acknowledge page", "SB-S06 approval page", "SB-S06 decision"} <= names
+
+
+def test_pages_run_without_acknowledgement_fails_at_its_limit(world, tmp_path, monkeypatch):
+    """SB-T-02 --acts pages: no acknowledgement on the page ends the run at step 6's (shortened) limit."""
+    monkeypatch.setattr(storm, "PAGES_LIMIT", 10)
+    on_pages(world, acknowledge=False)
+    code, result, _, lines = pages_driver(world, tmp_path)
+    assert code == 1 and result["finished"] is False and result["passed"] is False
+    entries = [c for c in result["checks"] if c["id"] == "SB-T-02"]
+    assert [e["name"] for e in entries] == ["step 6 Acknowledge finished within 10 s"]
+    assert world.acked_at is None
+    assert not any(method == "POST" and path.endswith("/acknowledgements") for method, path, _ in world.calls)
 
 
 # The checks one by one: a passing and a failing answer each

@@ -1,0 +1,54 @@
+/* The mobile page and the mobile bar of docs/45-visual-design.md (VD-L-06, VD-C-24). */
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--vd-space-2) var(--vd-space-3);
+  min-height: 56px;
+  box-sizing: border-box;
+  padding: 6px 14px;
+  background: var(--vd-navy-900);
+  color: var(--vd-on-navy-2);
+}
+
+/* The display name and "Sign out": one group pushed right that wraps to its own line. */
+.user {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--vd-space-2) var(--vd-space-3);
+  margin-left: auto;
+}
+
+.name {
+  font-size: var(--vd-size-14);
+  font-weight: 500;
+  color: var(--vd-on-navy-2);
+}
+
+.signOutButton {
+  min-height: 44px;
+}
+
+/* One column, at most 560px wide, body text 16px / 24px (DC-S04-02). */
+.content {
+  flex: 1;
+  width: 100%;
+  max-width: 560px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: var(--vd-space-4) var(--vd-space-4) var(--vd-space-8);
+  font-size: var(--vd-size-16);
+  line-height: 24px;
+}
+
+/* The parts of the page are 16px apart. */
+.content > :not(:first-child) {
+  margin-top: var(--vd-space-4);
+}
+
+/* Every control at least 44px high (VD-L-04), "Try again" of PageError included. */
+.content :where(button) {
+  min-height: 44px;
+}

@@ -1,31 +1,18 @@
 // DC-S03-08 Evidence (DC-U-10, DC-TX-03; P-29 spec Section 6.5 item 4), from AR-I-24: one entry per line in the
 // answer's order; a diagnostic entry's summary opens its output values.
 import type { EvidenceLine, EvidenceLines } from "../api/types";
+import { EVIDENCE_KIND_WORDS, valueText } from "../format/names";
 import { KindTag, type KindWord } from "../tags/KindTag";
 import type { OpenState } from "./Alerts";
 import { Disclosure, EmptyLine, Line, Time } from "./lines";
 import styles from "./workspace.module.css";
-
-const WORDS: Record<EvidenceLine["kind"], KindWord> = {
-  diagnostic_result: "Observation",
-  ai_investigation: "AI analysis",
-  similarity_match: "History match",
-  approval: "Approval",
-  action_execution: "Execution result",
-  recovery_verification: "Verified outcome",
-};
 
 /** The kind tag of an evidence line; a recovery verification by its summary (CTX-D-089 (7)). */
 export function evidenceWord(line: EvidenceLine): KindWord {
   return line.kind === "recovery_verification" &&
     line.summary.startsWith("Not recovered")
     ? "Not recovered"
-    : WORDS[line.kind];
-}
-
-/** A value as its JSON text; a string without quotes. */
-export function valueText(value: unknown): string {
-  return typeof value === "string" ? value : JSON.stringify(value);
+    : EVIDENCE_KIND_WORDS[line.kind];
 }
 
 export function EvidenceContent({

@@ -8,9 +8,9 @@ import {
   listText,
   policyResultName,
   recheckName,
+  valueText,
 } from "../format/names";
 import { KindTag } from "../tags/KindTag";
-import { valueText } from "./Evidence";
 import { Line, OutcomeWord, Time } from "./lines";
 import styles from "./workspace.module.css";
 

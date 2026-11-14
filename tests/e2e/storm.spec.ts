@@ -1,6 +1,7 @@
-// The incident list and the incident workspace during a storm driver run (P-28 and P-29 spec Section 7, CTX-D-085 (9),
-// CTX-D-089 (12)): run only by the suite storm, which tests/acceptance/storm/with-playwright.sh starts before the
-// driver. One serial file sharing one page for the list and a second browser context for the storm workspace.
+// The incident list, the incident workspace and the mobile pages during a storm driver run (P-28, P-29 and P-30 spec
+// Section 7, CTX-D-085 (9), CTX-D-089 (12), CTX-D-091 (7)): run only by the suite storm, which
+// tests/acceptance/storm/with-playwright.sh starts before the driver. One serial file sharing one page for the list
+// and further browser contexts for the storm workspace and the mobile pages.
 import { mkdirSync, writeFileSync } from "node:fs";
 import {
   expect,
@@ -10,6 +11,15 @@ import {
   type Page,
 } from "@playwright/test";
 import { fillSignIn, SCREENS, screenshot, signIn } from "./helpers";
+import {
+  blocks,
+  scrollWidth,
+  sharing,
+  signedInThrough,
+  viewerTime,
+  watch,
+  watched,
+} from "./mobile";
 import {
   highlightDelays,
   labProfile,
@@ -241,6 +251,379 @@ test(
     await workspace.evaluate(() => {
       (window as unknown as { __vigilMark?: string }).__vigilMark = "P-29";
     });
+  },
+);
+
+// The mobile pages during the storm (P-30 spec Section 6.10 item 3): in mode immediate the pages acknowledge and
+// approve and the driver waits for them; in mode script the driver acts and the pages show its action.
+let stormId = "";
+let requestId = "";
+const ACTION = "Purge archived transaction logs";
+const LIMITS = [
+  "Deletes only *.arc files directly under /data/txlog_archive",
+  "Deletes only files last modified more than 24 hours ago",
+  "Deletes at most 12 GiB, oldest files first",
+  "Runs only on the Subscriber DB server (lab-db-01)",
+];
+const KIND_WORDS: Record<string, string> = {
+  diagnostic_result: "Observation",
+  ai_investigation: "AI analysis",
+  similarity_match: "History match",
+};
+const SNAPSHOT_CHANGED =
+  "This request changed after you opened it. Reload the page to see the current request.";
+
+/** Closes a test's own context at its end (P-30 spec Section 6.10 item 3). */
+async function done(context: BrowserContext): Promise<void> {
+  await context.close();
+  contexts.splice(contexts.indexOf(context), 1);
+}
+
+/** A read of the page's operation with the page's own session. */
+async function readAs<T>(target: Page, path: string): Promise<T> {
+  const answer = await target.request.get(path);
+  expect(answer.status(), path).toBe(200);
+  return (await answer.json()) as T;
+}
+
+interface AcknowledgeAnswer {
+  number: number;
+  first_alert_fired_at: string;
+  alert_count: number;
+  summary: string | null;
+  acknowledged: { user: { display_name: string }; at: string } | null;
+}
+
+interface ApprovalAnswer {
+  sequence_in_run: number;
+  state: string;
+  incident: { number: number | null; title: string | null };
+  expires_at: string;
+  evidence: { kind: string; summary: string; collected_at: string }[];
+  recovery_checks: { conditions: string[] };
+  decided: { user: { display_name: string }; at: string } | null;
+}
+
+const number = (n: number | null) =>
+  n === null ? "" : `INC-${String(n).padStart(4, "0")}`;
+
+/** The content of DC-S04-03 (P-30 spec Section 7 introduction): exact texts, the rest compared with AR-I-32. */
+async function acknowledgeContent(target: Page, path: string): Promise<void> {
+  await expect(async () => {
+    const shown = (await blocks(target)).slice(0, 8);
+    const read = await readAs<AcknowledgeAnswer>(target, path);
+    expect(shown).toEqual([
+      "Acknowledge incident",
+      `${number(read.number)} ${STORM_TITLE}`,
+      "Severity: P1",
+      "Owner: Database Operations",
+      `Detected: ${await viewerTime(target, read.first_alert_fired_at)}`,
+      `Alerts: ${read.alert_count}`,
+      `Summary: ${read.summary ?? ""}`,
+      "State: Open",
+    ]);
+  }).toPass({ timeout: MINUTE });
+}
+
+/** The content of DC-S05-03 (P-30 spec Section 7 introduction): exact texts, the rest compared with AR-I-34. */
+async function approvalContent(target: Page, path: string): Promise<void> {
+  await expect(async () => {
+    const read = await readAs<ApprovalAnswer>(target, path);
+    const expected: (string | RegExp)[] = [
+      "Approve action",
+      ...(read.sequence_in_run > 1
+        ? [
+            `Approval ${read.sequence_in_run}: your approval must differ from earlier approvals in this run.`,
+          ]
+        : []),
+      `${number(read.incident.number)} ${read.incident.title ?? ""}`,
+      "State: Waiting for approval",
+      "Action",
+      ACTION,
+      "Parameters",
+      "path = /data/txlog_archive",
+      "older_than_minutes = 1440",
+      "max_bytes = 12884901888",
+      "Target server",
+      "Subscriber DB server (lab-db-01)",
+      "Limits",
+      ...LIMITS,
+      "Attempt 1 of 1",
+      "Expires",
+      await viewerTime(target, read.expires_at),
+      /^in \d+ min \d+ s$/,
+      "Based on",
+      "PI-1001 Subscriber DB /data full after archive catch-up runFictional record",
+      "Similarity 1.00",
+      "Fix succeeded 4 times",
+    ];
+    for (const entry of read.evidence) {
+      expected.push(`${KIND_WORDS[entry.kind]}${entry.summary}`);
+      expected.push(await viewerTime(target, entry.collected_at));
+    }
+    expected.push(
+      "Recovery checks that will be used",
+      "Check: Subscriber DB services recovered",
+      ...read.recovery_checks.conditions,
+      "Held for 60 s while every monitoring source is healthy.",
+    );
+    const shown = (await blocks(target)).slice(0, expected.length);
+    expect(shown).toHaveLength(expected.length);
+    expected.forEach((text, index) => {
+      if (text instanceof RegExp) {
+        expect(shown[index]).toMatch(text);
+      } else {
+        expect(shown[index]).toBe(text);
+      }
+    });
+    expect(read.incident.title).toBe(STORM_TITLE);
+    const words = read.evidence.map((entry) => KIND_WORDS[entry.kind]).sort();
+    expect(words).toEqual([
+      "AI analysis",
+      "History match",
+      "Observation",
+      "Observation",
+      "Observation",
+    ]);
+  }).toPass({ timeout: MINUTE });
+}
+
+/** The page's own buttons in its action area (not the dialog's). */
+const pageButton = (target: Page, name: string) =>
+  target.locator("main > div > button", { hasText: new RegExp(`^${name}$`) });
+
+test(
+  "SL-A1-05 noc-l1 acknowledges on the page",
+  { tag: "@storm" },
+  async ({ browser }) => {
+    stormId = await incidentId(STORM_TITLE);
+    await expect(async () => {
+      const teams = await readAs<{ teams: { team_key: string }[] }>(
+        page,
+        `/api/v1/incidents/${stormId}/notified-teams`,
+      );
+      expect(teams.teams.map((team) => team.team_key)).toContain("noc-l1");
+    }).toPass({ timeout: 10 * MINUTE });
+    const path = `/m/acknowledge/${stormId}`;
+    const api = `/api/v1/incidents/${stormId}/acknowledgement`;
+    const viewer = await sharing(page, path);
+    contexts.push(viewer.context);
+    await acknowledgeContent(viewer.page, api);
+    await expect(
+      viewer.page.getByText("View only.", { exact: true }),
+    ).toBeVisible();
+    await watch(viewer.page, "Already acknowledged by ");
+
+    const noc = await signedInThrough(browser, "noc-l1", path);
+    contexts.push(noc.context);
+    await acknowledgeContent(noc.page, api);
+    await screenshot(noc.page, "acknowledge-360");
+    if (MODE === "immediate") {
+      await pageButton(noc.page, "Acknowledge").click();
+      await expect(
+        noc.page.getByText(/^Acknowledged by Hira Baig \(NOC L1\) at /),
+      ).toBeVisible();
+    } else if (
+      (await readAs<AcknowledgeAnswer>(noc.page, api)).acknowledged === null
+    ) {
+      await expect(pageButton(noc.page, "Acknowledge")).toBeVisible();
+    }
+    await expect(async () => {
+      expect(
+        (await readAs<AcknowledgeAnswer>(noc.page, api)).acknowledged,
+      ).not.toBeNull();
+    }).toPass({ timeout: 10 * MINUTE });
+    const read = await readAs<AcknowledgeAnswer>(noc.page, api);
+    const at = read.acknowledged!.at;
+    const time = await viewerTime(noc.page, at);
+    if (MODE === "immediate") {
+      await expect(
+        noc.page.getByText(`Acknowledged by Hira Baig (NOC L1) at ${time}.`, {
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect(pageButton(noc.page, "Acknowledge")).toHaveCount(0);
+      await screenshot(noc.page, "acknowledge-done-360");
+    } else {
+      await expect(
+        noc.page.getByText(
+          `Already acknowledged by Hira Baig (NOC L1) at ${time}.`,
+          {
+            exact: true,
+          },
+        ),
+      ).toBeVisible({ timeout: 10 * MINUTE });
+    }
+    await expect(
+      viewer.page.getByText(
+        `Already acknowledged by Hira Baig (NOC L1) at ${time}.`,
+        {
+          exact: true,
+        },
+      ),
+    ).toBeVisible();
+    const seen = await watched(viewer.page);
+    expect(seen.sameDocument).toBe(true);
+    expect(seen.shown).not.toBeNull();
+    expect(seen.shown! - Date.parse(at)).toBeLessThanOrEqual(2000);
+    await done(noc.context);
+    await done(viewer.context);
+  },
+);
+
+test(
+  "SL-A1-06 dbops-engineer approves with confirmation",
+  { tag: "@storm" },
+  async ({ browser }) => {
+    await expect(async () => {
+      const response = await readAs<{
+        approvals: { approval_request_id: string; sequence_in_run: number }[];
+      }>(page, `/api/v1/incidents/${stormId}/response`);
+      const first = [...response.approvals].sort(
+        (a, b) => a.sequence_in_run - b.sequence_in_run,
+      )[0];
+      expect(first).toBeDefined();
+      requestId = first.approval_request_id;
+    }).toPass({ timeout: 10 * MINUTE });
+    const path = `/m/approve/${requestId}`;
+    const api = `/api/v1/approval-requests/${requestId}`;
+    const viewer = await sharing(page, path);
+    contexts.push(viewer.context);
+    const countdown = viewer.page.getByText(/^in \d+ min \d+ s$/);
+    await expect(countdown).toBeVisible({ timeout: MINUTE });
+    const first = (await countdown.textContent()) ?? "";
+    await expect(countdown).not.toHaveText(first, { timeout: 3000 });
+    await expect(
+      viewer.page.getByText("View only.", { exact: true }),
+    ).toBeVisible();
+    await watch(viewer.page, "Already approved by ");
+
+    const engineer = await signedInThrough(browser, "dbops-engineer", path);
+    contexts.push(engineer.context);
+    await approvalContent(engineer.page, api);
+    await screenshot(engineer.page, "approve-360");
+    if (MODE === "immediate") {
+      const sent: string[] = [];
+      engineer.page.on("request", (request) => {
+        if (
+          request.method() === "POST" &&
+          request.url().endsWith("/decisions")
+        ) {
+          sent.push(request.postData() ?? "");
+        }
+      });
+      const reject = pageButton(engineer.page, "Reject");
+      expect(
+        await reject.evaluate(
+          (button) => getComputedStyle(button).backgroundColor,
+        ),
+      ).toBe("rgb(217, 45, 32)");
+      const dialog = engineer.page.locator("dialog");
+      await engineer.page.route(
+        "**/decisions",
+        async (route) => {
+          const body = JSON.parse(route.request().postData() ?? "{}");
+          body.snapshot_hash_shown = `${body.snapshot_hash_shown}-changed`;
+          await route.continue({ postData: JSON.stringify(body) });
+        },
+        { times: 1 },
+      );
+      await pageButton(engineer.page, "Approve").click();
+      await expect(dialog).toBeVisible();
+      await dialog.getByRole("button", { name: "Approve" }).click();
+      await expect(
+        engineer.page.getByText(SNAPSHOT_CHANGED, { exact: true }),
+      ).toBeVisible();
+      await expect(pageButton(engineer.page, "Approve")).toHaveCount(0);
+      expect(sent).toHaveLength(1);
+
+      await engineer.page.reload();
+      await expect(pageButton(engineer.page, "Reject")).toBeVisible();
+      await pageButton(engineer.page, "Reject").click();
+      await expect(dialog).toBeVisible();
+      await expect(dialog.locator("p")).toHaveText(
+        `Reject ${ACTION} on Subscriber DB server?`,
+      );
+      await expect(
+        dialog.getByRole("button", { name: "Reject" }),
+      ).toBeVisible();
+      await dialog.getByRole("button", { name: "Cancel" }).click();
+      await expect(dialog).toBeHidden();
+
+      await pageButton(engineer.page, "Approve").click();
+      await expect(dialog).toBeVisible();
+      await expect(dialog.locator("p")).toHaveText(
+        `Approve ${ACTION} on Subscriber DB server?`,
+      );
+      expect(
+        await dialog.evaluate(
+          (element) => getComputedStyle(element, "::backdrop").backgroundColor,
+        ),
+      ).toBe("rgba(11, 21, 38, 0.5)");
+      expect(
+        await engineer.page.evaluate(() => document.activeElement?.textContent),
+      ).toBe("Cancel");
+      await engineer.page.screenshot({
+        path: `${SCREENS}/approve-dialog-360.png`,
+        fullPage: false,
+      });
+      await dialog.getByRole("button", { name: "Cancel" }).click();
+      await expect(dialog).toBeHidden();
+      expect(sent).toHaveLength(1);
+
+      await pageButton(engineer.page, "Approve").click();
+      await dialog.getByRole("button", { name: "Approve" }).click();
+      await expect(
+        engineer.page.getByText(/^Approved by Usman Tariq \(DB Ops\) at /),
+      ).toBeVisible();
+      expect(sent).toHaveLength(2);
+    } else if (
+      (await readAs<ApprovalAnswer>(engineer.page, api)).state === "pending"
+    ) {
+      await expect(pageButton(engineer.page, "Approve")).toBeVisible();
+      await expect(pageButton(engineer.page, "Reject")).toBeVisible();
+    }
+    await expect(async () => {
+      expect(
+        (await readAs<ApprovalAnswer>(engineer.page, api)).decided,
+      ).not.toBeNull();
+    }).toPass({ timeout: 10 * MINUTE });
+    const read = await readAs<ApprovalAnswer>(engineer.page, api);
+    expect(read.state).toBe("approved");
+    const at = read.decided!.at;
+    const time = await viewerTime(engineer.page, at);
+    if (MODE === "immediate") {
+      await expect(
+        engineer.page.getByText(
+          `Approved by Usman Tariq (DB Ops) at ${time}. Techfinity will check the conditions again before it runs the action.`,
+          { exact: true },
+        ),
+      ).toBeVisible();
+      await screenshot(engineer.page, "approve-done-360");
+    } else {
+      await expect(
+        engineer.page.getByText(
+          `Already approved by Usman Tariq (DB Ops) at ${time}.`,
+          {
+            exact: true,
+          },
+        ),
+      ).toBeVisible({ timeout: 10 * MINUTE });
+    }
+    await expect(
+      viewer.page.getByText(
+        `Already approved by Usman Tariq (DB Ops) at ${time}.`,
+        {
+          exact: true,
+        },
+      ),
+    ).toBeVisible();
+    const seen = await watched(viewer.page);
+    expect(seen.sameDocument).toBe(true);
+    expect(seen.shown).not.toBeNull();
+    expect(seen.shown! - Date.parse(at)).toBeLessThanOrEqual(2000);
+    await done(engineer.context);
+    await done(viewer.context);
   },
 );
 
@@ -891,6 +1274,127 @@ test(
     ).toBe(GREEN);
   },
 );
+
+test(
+  "DC-S04-05 the refusals of the Acknowledge page",
+  { tag: "@storm" },
+  async ({ browser }) => {
+    const report = await incidentId(REPORT_TITLE);
+    const noc = await signedInThrough(
+      browser,
+      "noc-l1",
+      `/m/acknowledge/${stormId}`,
+    );
+    contexts.push(noc.context);
+    await expect(
+      noc.page.getByText(
+        /^This incident is (resolved|closed)\. It does not need acknowledgement\.$/,
+      ),
+    ).toBeVisible({ timeout: MINUTE });
+    await expect(pageButton(noc.page, "Acknowledge")).toHaveCount(0);
+    await noc.page.goto(`/m/acknowledge/${report}`);
+    await expect(
+      noc.page.getByText(
+        "You are not in a team that was notified about this incident.",
+        { exact: true },
+      ),
+    ).toBeVisible();
+    await expect(pageButton(noc.page, "Acknowledge")).toHaveCount(0);
+    await screenshot(noc.page, "acknowledge-refused-360");
+    const viewer = await sharing(page, `/m/acknowledge/${report}`);
+    contexts.push(viewer.context);
+    await expect(
+      viewer.page.getByText("View only.", { exact: true }),
+    ).toBeVisible();
+    await expect(viewer.page.locator("main > div > button")).toHaveCount(0);
+    expect(
+      await viewer.page
+        .locator("main > div")
+        .nth(1)
+        .locator("p")
+        .allTextContents(),
+    ).toEqual(["View only."]);
+    await done(noc.context);
+    await done(viewer.context);
+  },
+);
+
+test("DC-S05-06 a decided request", { tag: "@storm" }, async ({ browser }) => {
+  const path = `/m/approve/${requestId}`;
+  const read = await readAs<ApprovalAnswer>(
+    page,
+    `/api/v1/approval-requests/${requestId}`,
+  );
+  const time = await viewerTime(page, read.decided!.at);
+  const text = `Already approved by Usman Tariq (DB Ops) at ${time}.`;
+  const lead = await signedInThrough(browser, "dbops-lead", path);
+  contexts.push(lead.context);
+  await expect(lead.page.getByText(text, { exact: true })).toBeVisible();
+  await expect(pageButton(lead.page, "Approve")).toHaveCount(0);
+  await expect(lead.page.getByText("View only.", { exact: true })).toHaveCount(
+    0,
+  );
+  const viewer = await sharing(page, path);
+  contexts.push(viewer.context);
+  await expect(viewer.page.getByText(text, { exact: true })).toBeVisible();
+  await expect(
+    viewer.page.getByText("View only.", { exact: true }),
+  ).toBeVisible();
+  await done(lead.context);
+  await done(viewer.context);
+});
+
+test(
+  "PM-M24-03 the Acknowledge page is usable at 360 px",
+  { tag: "@storm" },
+  async () => {
+    const viewer = await sharing(page, `/m/acknowledge/${stormId}`);
+    contexts.push(viewer.context);
+    await expect(
+      viewer.page.getByRole("heading", { name: "Acknowledge incident" }),
+    ).toBeVisible();
+    expect(await scrollWidth(viewer.page)).toBeLessThanOrEqual(360);
+    expect(
+      await viewer.page
+        .locator("main")
+        .evaluate((main) => getComputedStyle(main).fontSize),
+    ).toBe("16px");
+    await done(viewer.context);
+  },
+);
+
+test("VD-S-07 the Approval page at 360 px", { tag: "@storm" }, async () => {
+  const viewer = await sharing(page, `/m/approve/${requestId}`);
+  contexts.push(viewer.context);
+  await expect(
+    viewer.page.getByRole("heading", { name: "Approve action" }),
+  ).toBeVisible();
+  expect(await scrollWidth(viewer.page)).toBeLessThanOrEqual(360);
+  const parameters = viewer.page.locator("main p", {
+    hasText: /^(path|older_than_minutes|max_bytes) = /,
+  });
+  await expect(parameters).toHaveCount(3);
+  for (const font of await parameters.evaluateAll((elements) =>
+    elements.map((element) => getComputedStyle(element).fontFamily),
+  )) {
+    expect(font).toContain("JetBrains Mono");
+  }
+  const limits = viewer.page.locator("main ul li:not(:has(p))");
+  await expect(limits).toHaveText(LIMITS);
+  expect(
+    await limits.evaluateAll((elements) =>
+      elements.map((element) => getComputedStyle(element).display),
+    ),
+  ).toEqual(["list-item", "list-item", "list-item", "list-item"]);
+  expect(
+    await limits
+      .first()
+      .evaluate(
+        (element) => getComputedStyle(element.parentElement!).listStyleType,
+      ),
+  ).toBe("disc");
+  await done(viewer.context);
+});
 
 test(
   "DC-S03-01 the report incident's workspace",

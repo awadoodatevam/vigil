@@ -1,0 +1,72 @@
+/* The confirmation dialog of docs/45-visual-design.md (VD-C-27). */
+
+.dialog {
+  width: calc(100% - 32px);
+  max-width: 400px;
+  box-sizing: border-box;
+  margin: auto;
+  padding: var(--vd-space-5);
+  color: var(--vd-text);
+  background: var(--vd-surface);
+  border: none;
+  border-radius: var(--vd-radius-lg);
+  box-shadow: var(--vd-shadow-2);
+}
+
+.dialog::backdrop {
+  background: rgba(11, 21, 38, 0.5);
+}
+
+.question {
+  margin: 0 0 var(--vd-space-4);
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--vd-text);
+}
+
+.buttons {
+  display: flex;
+  gap: var(--vd-space-3);
+}
+
+/* The buttons (VD-C-09), side by side, each at least 48px high. */
+.dialog .cancel,
+.dialog .primary,
+.dialog .destructive {
+  flex: 1;
+  min-height: 48px;
+  padding: 9px var(--vd-space-4);
+  font: inherit;
+  font-size: var(--vd-size-16);
+  font-weight: 600;
+  border: 1px solid transparent;
+  border-radius: var(--vd-radius-sm);
+  cursor: pointer;
+  transition: background var(--vd-fast);
+}
+
+.dialog .cancel {
+  color: var(--vd-text);
+  background: var(--vd-surface);
+  border-color: var(--vd-border);
+  box-shadow: var(--vd-shadow-1);
+}
+
+.dialog .cancel:hover {
+  background: var(--vd-gray-25);
+}
+
+.dialog .primary {
+  color: #ffffff;
+  background: var(--vd-accent-500);
+}
+
+.dialog .primary:hover {
+  background: var(--vd-accent-600);
+}
+
+.dialog .destructive {
+  color: #ffffff;
+  background: var(--vd-red-600);
+}
