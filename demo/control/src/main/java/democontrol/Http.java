@@ -7,13 +7,15 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 /** HTTP calls without any proxy of the environment, and their JSON. */
 final class Http {
 
-  static final JsonMapper JSON = JsonMapper.builder().build();
+  static final JsonMapper JSON =
+      JsonMapper.builder().enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS).build();
   private static final HttpClient CLIENT =
       HttpClient.newBuilder()
           .proxy(HttpClient.Builder.NO_PROXY)

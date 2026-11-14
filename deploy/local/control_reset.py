@@ -62,14 +62,11 @@ def reset(url, password, clock=time.time, sleep=time.sleep):
     if status != 204:
         print(f"Sign-in to the control panel answered HTTP {status}.")
         return 1
-    cookie = None
-    for header in headers.get_all("Set-Cookie") or []:
-        if header.startswith("control_session="):
-            cookie = header.split(";", 1)[0]
+    cookie = (headers.get("Set-Cookie") or "").split(";", 1)[0]
     sent = clock()
     status, _headers, answer = call("POST", url + "/api/buttons/reset", {}, cookie)
     if status != 202:
-        reason = (answer or {}).get("reason") if isinstance(answer, dict) else None
+        reason = answer.get("reason") if isinstance(answer, dict) else None
         print(f"Reset was refused: {reason}" if reason else f"Reset answered HTTP {status}.")
         return 1
     end = sent + WAIT_SECONDS

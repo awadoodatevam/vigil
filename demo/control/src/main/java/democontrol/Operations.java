@@ -6,8 +6,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -86,63 +87,63 @@ class Operations {
     return LastResult.seconds(Duration.between(start, clock.instant()));
   }
 
+  private LastResult result(
+      String operation,
+      Instant started,
+      BigDecimal a,
+      BigDecimal quiet,
+      BigDecimal b,
+      String error) {
+    String outcome = error == null ? "completed" : "failed";
+    Instant now = clock.instant().truncatedTo(ChronoUnit.MILLIS);
+    return new LastResult(operation, outcome, now, since(started), a, quiet, b, error);
+  }
+
   private void inject(Button button, Instant started) {
     for (String fault : button.faults.stream().sorted().toList()) {
       try {
         lab.inject(fault);
       } catch (Failed e) {
-        LastResult result =
-            new LastResult(
-                button.label,
-                "failed",
-                clock.instant(),
-                since(started),
-                null,
-                null,
-                null,
-                e.getMessage());
+        LastResult result = result(button.label, started, null, null, null, e.getMessage());
         panel.faultButtonFailed(result);
         log(result);
         return;
       }
     }
-    LOG.info(
-        "{} ended at {} after {} s",
-        button.label,
-        Panel.iso(clock.instant()),
-        since(started).toPlainString());
+    LOG.info("{} ended after {} s", button.label, since(started).toPlainString());
   }
 
   private void clear(Instant started) {
     LabClear clear = new LabClear(started, new Stop());
+    String error = null;
     try {
       clear.run();
-      finish(
-          new LastResult(
-              Button.CLEAR.label,
-              "completed",
-              clock.instant(),
-              since(started),
-              null,
-              clear.quiet.get(),
-              null,
-              null),
-          true);
     } catch (Failed e) {
-      finish(
-          new LastResult(
-              Button.CLEAR.label,
-              "failed",
-              clock.instant(),
-              since(started),
-              null,
-              clear.quiet.get(),
-              null,
-              e.getMessage()),
-          clear.cleared.get());
+      error = e.getMessage();
     } catch (Stopped e) {
       throw new IllegalStateException(e);
     }
+    LastResult result = result(Button.CLEAR.label, started, null, clear.quiet.get(), null, error);
+    finish(result, error == null || clear.cleared.get());
+  }
+
+  private interface Branch {
+    void run() throws Failed, Stopped;
+  }
+
+  /** Runs a branch on its own thread: its outcome is "" or its error text. */
+  private void branch(BlockingQueue<String> outcomes, Branch branch) {
+    threads.execute(
+        () -> {
+          try {
+            branch.run();
+            outcomes.add("");
+          } catch (Failed e) {
+            outcomes.add(e.getMessage());
+          } catch (Stopped e) {
+            // the reset has already failed
+          }
+        });
   }
 
   private void reset(Instant started) {
@@ -152,65 +153,41 @@ class Operations {
     AtomicReference<BigDecimal> branchB = new AtomicReference<>();
     AtomicReference<String> tenant = new AtomicReference<>();
     BlockingQueue<String> outcomes = new ArrayBlockingQueue<>(2);
-    threads.execute(
+    branch(
+        outcomes,
         () -> {
-          try {
-            clear.run();
-            branchA.set(since(started));
-            panel.branchADone();
-            outcomes.add("");
-          } catch (Failed e) {
-            outcomes.add(e.getMessage());
-          } catch (Stopped e) {
-            // the reset has already failed
-          }
+          clear.run();
+          branchA.set(since(started));
+          panel.branchADone();
         });
-    threads.execute(
+    branch(
+        outcomes,
         () -> {
-          try {
-            tenant.set(prepare(started, stop));
-            branchB.set(since(started));
-            panel.branchBDone();
-            outcomes.add("");
-          } catch (Failed e) {
-            outcomes.add(e.getMessage());
-          } catch (Stopped e) {
-            // the reset has already failed
-          }
+          tenant.set(prepare(started, stop));
+          branchB.set(since(started));
+          panel.branchBDone();
         });
     String error = null;
     try {
       for (int branch = 0; branch < 2 && error == null; branch++) {
         String outcome = outcomes.take();
-        if (!outcome.isEmpty()) {
-          error = outcome;
-        }
+        error = outcome.isEmpty() ? null : outcome;
       }
+      if (error == null) {
+        vigil.setAlias(tenant.get(), Duration.ofSeconds(30));
+      }
+    } catch (Failed e) {
+      error = e.getMessage();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       error = "interrupted";
     }
-    if (error == null) {
-      try {
-        vigil.setAlias(tenant.get(), Duration.ofSeconds(30));
-      } catch (Failed e) {
-        error = e.getMessage();
-      }
-    }
     if (error != null) {
       stop.stop();
     }
-    finish(
-        new LastResult(
-            Button.RESET.label,
-            error == null ? "completed" : "failed",
-            clock.instant(),
-            since(started),
-            branchA.get(),
-            clear.quiet.get(),
-            branchB.get(),
-            error),
-        error == null || clear.cleared.get());
+    LastResult result =
+        result(Button.RESET.label, started, branchA.get(), clear.quiet.get(), branchB.get(), error);
+    finish(result, error == null || clear.cleared.get());
   }
 
   private void finish(LastResult result, boolean emptyRecord) {
@@ -219,20 +196,12 @@ class Operations {
   }
 
   private void log(LastResult result) {
-    if (result.completed()) {
-      LOG.info(
-          "{} completed at {} in {} s",
-          result.operation(),
-          Panel.iso(result.finishedAt()),
-          result.seconds().toPlainString());
-    } else {
-      LOG.info(
-          "{} failed at {} after {} s: {}",
-          result.operation(),
-          Panel.iso(result.finishedAt()),
-          result.seconds().toPlainString(),
-          result.error());
-    }
+    LOG.info(
+        "{} ended at {} after {} s: {}",
+        result.operation(),
+        Panel.iso(result.finishedAt()),
+        result.seconds().toPlainString(),
+        result.line());
   }
 
   /** Branch B: a new tenant with the seed bundle (AR-I-95 to AR-I-97); its id. */
@@ -242,8 +211,7 @@ class Operations {
     String tenantId =
         vigil.createTenant("jazz-demo " + TENANT_TIME.format(clock.instant()), left(deadline));
     stop.check();
-    Map<String, String> read = Values.read(values);
-    byte[] bundle = Bundle.build(read);
+    byte[] bundle = Bundle.build(Values.read(values));
     stop.check();
     String seedImportId = vigil.importBundle(tenantId, bundle, left(deadline));
     JsonNode answer;
@@ -258,11 +226,9 @@ class Operations {
       } catch (Failed e) {
         lastError = e.getMessage();
       }
-      if (answer != null) {
-        String state = answer.path("state").asString("");
-        if (state.equals("succeeded") || state.equals("failed")) {
-          break;
-        }
+      String state = answer == null ? "" : answer.path("state").asString("");
+      if (state.equals("succeeded") || state.equals("failed")) {
+        break;
       }
       if (!clock.instant().isBefore(deadline)) {
         throw new Failed(
@@ -272,33 +238,23 @@ class Operations {
       }
       stop.sleep(until(turn.plus(IMPORT_EVERY), deadline));
     }
-    StringBuilder failed = new StringBuilder();
-    boolean allSucceeded = true;
+    List<String> failed = new ArrayList<>();
+    boolean allSucceeded = answer.path("state").asString("").equals("succeeded");
     for (JsonNode part : answer.path("parts")) {
       String outcome = part.path("outcome").asString("");
-      if (!outcome.equals("succeeded")) {
-        allSucceeded = false;
-      }
+      allSucceeded &= outcome.equals("succeeded");
       if (outcome.equals("failed")) {
-        if (!failed.isEmpty()) {
-          failed.append("; ");
-        }
-        JsonNode error = part.get("error");
-        failed
-            .append(part.path("module").asString(""))
-            .append(": ")
-            .append(error != null && error.isString() ? error.stringValue() : "failed");
+        failed.add(part.path("module").asString("") + ": " + part.path("error").asString("failed"));
       }
     }
-    if (!answer.path("state").asString("").equals("succeeded") || !allSucceeded) {
-      throw new Failed("The seed import failed: " + failed);
+    if (!allSucceeded) {
+      throw new Failed("The seed import failed: " + String.join("; ", failed));
     }
     return tenantId;
   }
 
   private Duration left(Instant deadline) {
-    Duration left = Duration.between(clock.instant(), deadline);
-    return left.isNegative() ? Duration.ZERO : left;
+    return until(deadline, deadline);
   }
 
   private Duration until(Instant next, Instant deadline) {
@@ -357,17 +313,11 @@ class Operations {
     }
 
     private Failed notQuiet(String lastError, Lab.Counts counts) {
-      if (lastError != null) {
-        return new Failed("The lab could not be read: " + lastError + ".");
-      }
       return new Failed(
-          "Lab alerts were still firing after "
-              + limit.toSeconds()
-              + " s: Zabbix "
-              + counts.zabbix()
-              + ", Alertmanager "
-              + counts.alertmanager()
-              + ".");
+          lastError != null
+              ? "The lab could not be read: " + lastError + "."
+              : "Lab alerts were still firing after %d s: Zabbix %d, Alertmanager %d."
+                  .formatted(limit.toSeconds(), counts.zabbix(), counts.alertmanager()));
     }
   }
 

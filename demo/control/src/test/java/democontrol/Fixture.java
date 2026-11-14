@@ -210,11 +210,8 @@ final class Fixture implements AutoCloseable {
     throw new AssertionError("no result of " + operation + " within " + within);
   }
 
-  @SuppressWarnings("unchecked")
   LastResult lastResult() {
-    java.util.Map<String, Object> map =
-        (java.util.Map<String, Object>) panel.view().get("last_result");
-    return map == null ? null : LastResult.of(Http.JSON.valueToTree(map));
+    return (LastResult) panel.view().get("last_result");
   }
 
   static void sleep(Duration duration) {

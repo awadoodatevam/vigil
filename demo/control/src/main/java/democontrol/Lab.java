@@ -1,22 +1,25 @@
 package democontrol;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 
 /**
  * The lab: demo-faults (AR-X-03; one call at a time, in the order asked), and Zabbix's and
  * Alertmanager's read-only APIs (AR-B-03 branch A).
  */
+@Component
 class Lab {
 
   /** The five Alertmanager catalogue alert names of 03-monitoring.yaml. */
@@ -60,31 +63,18 @@ class Lab {
 
   private void faults(String path, Object body, Duration timeout) throws Failed {
     long started = System.nanoTime();
-    try {
-      if (!faultsCalls.tryLock(timeout.toNanos(), TimeUnit.NANOSECONDS)) {
-        throw new Failed("demo-faults: request timed out");
-      }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new Failed("demo-faults: interrupted");
-    }
+    faultsCalls.lock();
     try {
       Duration left = timeout.minusNanos(System.nanoTime() - started);
-      Http.Answer answer;
-      try {
-        answer =
-            Http.send(
-                Http.request(settings.faultsUrl() + path, left)
-                    .header("Authorization", "Bearer " + secrets.value("faults-token"))
-                    .header("Content-Type", "application/json")
-                    .POST(Http.json(body))
-                    .build());
-      } catch (IOException e) {
-        throw new Failed("demo-faults: " + Failed.text(e));
-      }
+      Http.Answer answer =
+          send(
+              "demo-faults",
+              Http.request(settings.faultsUrl() + path, left)
+                  .header("Authorization", "Bearer " + secrets.value("faults-token"))
+                  .header("Content-Type", "application/json")
+                  .POST(Http.json(body)));
+      JsonNode error = answer.json() == null ? null : answer.json().get("error");
       if (answer.status() != 200) {
-        JsonNode json = answer.json();
-        JsonNode error = json == null ? null : json.get("error");
         throw new Failed(
             error != null && error.isString()
                 ? error.stringValue()
@@ -95,78 +85,53 @@ class Lab {
     }
   }
 
+  private static Http.Answer send(String who, HttpRequest.Builder request) throws Failed {
+    try {
+      return Http.send(request.build());
+    } catch (IOException e) {
+      throw new Failed(who + ": " + Failed.text(e));
+    }
+  }
+
+  /** The JSON array of an answer read with 200 (the whole answer, or the member given). */
+  private static JsonNode array(String who, HttpRequest.Builder request, String member)
+      throws Failed {
+    Http.Answer answer = send(who, request);
+    JsonNode json = answer.json();
+    JsonNode array = json == null || member == null ? json : json.get(member);
+    if (answer.status() != 200 || array == null || !array.isArray()) {
+      throw new Failed(who + ": answered HTTP " + answer.status());
+    }
+    return array;
+  }
+
   /** Zabbix problem.get (tag vigil=lab) and Alertmanager's catalogue alerts. */
   Counts read() throws Failed {
-    int zabbix = zabbixProblems();
-    int alertmanager = alertmanagerAlerts();
-    return new Counts(zabbix, alertmanager);
-  }
-
-  private int zabbixProblems() throws Failed {
-    Map<String, Object> body =
-        Map.of(
-            "jsonrpc",
-            "2.0",
-            "method",
-            "problem.get",
-            "params",
-            Map.of(
-                "output",
-                List.of("eventid", "name"),
-                "tags",
-                List.of(Map.of("tag", "vigil", "value", "lab", "operator", 1))),
-            "id",
-            1);
-    Http.Answer answer;
-    try {
-      answer =
-          Http.send(
-              Http.request(settings.zabbixUrl(), READ_TIMEOUT)
-                  .header("Authorization", "Bearer " + secrets.value("zabbix-api"))
-                  .header("Content-Type", "application/json-rpc")
-                  .POST(Http.json(body))
-                  .build());
-    } catch (IOException e) {
-      throw new Failed("Zabbix: " + Failed.text(e));
-    }
-    JsonNode json = answer.json();
-    JsonNode result = json == null ? null : json.get("result");
-    if (answer.status() != 200 || result == null || !result.isArray()) {
-      throw new Failed("Zabbix: answered HTTP " + answer.status());
-    }
-    return result.size();
-  }
-
-  private int alertmanagerAlerts() throws Failed {
-    String basic =
-        Base64.getEncoder()
-            .encodeToString(
-                ("vigil:" + secrets.value("alertmanager-password"))
-                    .getBytes(StandardCharsets.UTF_8));
-    Http.Answer answer;
-    try {
-      answer =
-          Http.send(
-              Http.request(settings.alertmanagerUrl() + "/api/v2/alerts", READ_TIMEOUT)
-                  .header("Authorization", "Basic " + basic)
-                  .header("Accept", "application/json")
-                  .GET()
-                  .build());
-    } catch (IOException e) {
-      throw new Failed("Alertmanager: " + Failed.text(e));
-    }
-    JsonNode alerts = answer.json();
-    if (answer.status() != 200 || alerts == null || !alerts.isArray()) {
-      throw new Failed("Alertmanager: answered HTTP " + answer.status());
-    }
+    String body =
+        "{\"jsonrpc\":\"2.0\",\"method\":\"problem.get\",\"params\":{\"output\":[\"eventid\","
+            + "\"name\"],\"tags\":[{\"tag\":\"vigil\",\"value\":\"lab\",\"operator\":1}]},\"id\":1}";
+    JsonNode problems =
+        array(
+            "Zabbix",
+            Http.request(settings.zabbixUrl(), READ_TIMEOUT)
+                .header("Authorization", "Bearer " + secrets.value("zabbix-api"))
+                .header("Content-Type", "application/json-rpc")
+                .POST(HttpRequest.BodyPublishers.ofString(body)),
+            "result");
+    byte[] user = ("vigil:" + secrets.value("alertmanager-password")).getBytes(UTF_8);
+    JsonNode alerts =
+        array(
+            "Alertmanager",
+            Http.request(settings.alertmanagerUrl() + "/api/v2/alerts", READ_TIMEOUT)
+                .header("Authorization", "Basic " + Base64.getEncoder().encodeToString(user))
+                .header("Accept", "application/json"),
+            null);
     int count = 0;
     for (JsonNode alert : alerts) {
       JsonNode name = alert.path("labels").path("alertname");
-      if (name.isString() && CATALOGUE_ALERTS.contains(name.stringValue())) {
-        count++;
-      }
+      count += name.isString() && CATALOGUE_ALERTS.contains(name.stringValue()) ? 1 : 0;
     }
-    return count;
+    return new Counts(problems.size(), count);
   }
 
   /** A TCP connection to demo-faults within 2 s. */

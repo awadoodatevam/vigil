@@ -69,7 +69,7 @@ class ControlController {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
           .body(Map.of("product", panel.product()));
     }
-    return ResponseEntity.ok(panel.view());
+    return ResponseEntity.ok(Http.JSON.writeValueAsString(panel.view()));
   }
 
   @PostMapping(path = "/api/buttons/{key}", consumes = JSON, produces = JSON)

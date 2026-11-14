@@ -168,8 +168,7 @@ def host_run(command, deadline=DEADLINE_S):
     try:
         result = subprocess.run(command, capture_output=True, text=True, timeout=deadline, check=False)
     except subprocess.TimeoutExpired as expired:
-        output = expired.stdout or ""
-        raise CommandFailed(None, output if isinstance(output, str) else output.decode(errors="replace")) from None
+        raise CommandFailed(None, str(expired.stdout or "")) from None
     except OSError as error:
         return 127, str(error)
     return result.returncode, result.stdout + result.stderr
@@ -207,12 +206,7 @@ class CloudCut:
 
     @staticmethod
     def rule(source, address):
-        return ["-s", f"{source}/32", "-d", f"{address}/32", "-p", "tcp", "-m", "tcp", "--dport", "443"] + [
-            "-j",
-            "REJECT",
-            "--reject-with",
-            "tcp-reset",
-        ]
+        return f"-s {source}/32 -d {address}/32 -p tcp -m tcp --dport 443 -j REJECT --reject-with tcp-reset".split()
 
     def _must(self, command):
         code, output = self.host(command)

@@ -58,12 +58,10 @@ final class Bundle {
     for (String text : texts.values()) {
       for (int index = text.indexOf("${"); index >= 0; index = text.indexOf("${", index + 1)) {
         Matcher match = PLACEHOLDER.matcher(text).region(index, text.length());
-        String name;
-        if (match.lookingAt()) {
-          name = match.group(1);
-        } else {
-          name = text.substring(index + 2, Math.min(text.length(), index + 42)).split("\n")[0];
-        }
+        String name =
+            match.lookingAt()
+                ? match.group(1)
+                : text.substring(index + 2, Math.min(text.length(), index + 42)).split("\n")[0];
         if (!left.contains(name)) {
           left.add(name);
         }

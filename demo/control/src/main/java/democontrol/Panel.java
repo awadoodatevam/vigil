@@ -1,5 +1,7 @@
 package democontrol;
 
+import static democontrol.Button.FAULT_NAMES;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -24,12 +26,6 @@ import tools.jackson.databind.JsonNode;
  */
 class Panel {
 
-  enum Running {
-    NONE,
-    CLEAR,
-    RESET
-  }
-
   private final Clock clock;
   private final String product;
   private final String vigilUrl;
@@ -40,7 +36,7 @@ class Panel {
   private String stormLabel;
   private LastResult last;
 
-  private Running running = Running.NONE;
+  private Button running;
   private Instant runStarted;
   private boolean labClear;
   private boolean vigilReady;
@@ -72,7 +68,7 @@ class Panel {
   }
 
   synchronized boolean operationRunning() {
-    return running != Running.NONE;
+    return running != null;
   }
 
   synchronized Instant runStarted() {
@@ -81,10 +77,10 @@ class Panel {
 
   /** The guard text of DC-S12-03 that refuses the button now, or null. */
   synchronized String refusal(Button button) {
-    if (running == Running.CLEAR) {
+    if (running == Button.CLEAR) {
       return "Wait: Clear all faults is running.";
     }
-    if (running == Running.RESET) {
+    if (running == Button.RESET) {
       return "Wait: Reset is running.";
     }
     if (button.storm
@@ -123,7 +119,7 @@ class Panel {
       stormLabel = button.label;
     }
     if (button == Button.CLEAR || button == Button.RESET) {
-      running = button == Button.CLEAR ? Running.CLEAR : Running.RESET;
+      running = button;
       runStarted = now;
       labClear = false;
       vigilReady = false;
@@ -150,7 +146,7 @@ class Panel {
 
   /** Ends the running operation with its result; the record is emptied when asked. */
   synchronized void finish(LastResult result, boolean emptyRecord) {
-    running = Running.NONE;
+    running = null;
     runStarted = null;
     last = result;
     if (emptyRecord) {
@@ -182,23 +178,17 @@ class Panel {
 
   /** The status line of DC-S12-05. */
   synchronized String status() {
-    if (running == Running.CLEAR) {
-      return "Clearing faults… "
-          + elapsed()
-          + " s — firing lab alerts: Zabbix "
-          + counts.zabbix()
-          + ", Alertmanager "
-          + counts.alertmanager();
+    if (running == Button.CLEAR) {
+      return "Clearing faults… %d s — firing lab alerts: Zabbix %d, Alertmanager %d"
+          .formatted(elapsed(), counts.zabbix(), counts.alertmanager());
     }
-    if (running == Running.RESET) {
-      return "Resetting… "
-          + elapsed()
-          + " s — lab: "
-          + (labClear ? "Clear" : "Clearing")
-          + ", "
-          + product
-          + ": "
-          + (vigilReady ? "Ready" : "Resetting");
+    if (running == Button.RESET) {
+      return "Resetting… %d s — lab: %s, %s: %s"
+          .formatted(
+              elapsed(),
+              labClear ? "Clear" : "Clearing",
+              product,
+              vigilReady ? "Ready" : "Resetting");
     }
     if (labError != null) {
       return "Cannot reach the lab: " + labError + ".";
@@ -230,19 +220,14 @@ class Panel {
     view.put("connected", connected());
     List<Map<String, Object>> active = new ArrayList<>();
     record.forEach(
-        (fault, since) -> {
-          Map<String, Object> line = new LinkedHashMap<>();
-          line.put("fault", fault);
-          line.put("name", Button.FAULT_NAMES.get(fault));
-          line.put("since", iso(since));
-          active.add(line);
-        });
+        (fault, since) ->
+            active.add(
+                Map.of("fault", fault, "name", FAULT_NAMES.get(fault), "since", iso(since))));
     view.put("active", active);
     List<Map<String, Object>> buttons = new ArrayList<>();
     for (Button button : Button.values()) {
       Map<String, Object> entry = new LinkedHashMap<>();
-      entry.put("key", button.key);
-      entry.put("label", button.label);
+      entry.putAll(Map.of("key", button.key, "label", button.label));
       entry.put("description", button.description(product));
       entry.put("refused", refusal(button));
       buttons.add(entry);
@@ -250,8 +235,12 @@ class Panel {
     view.put("buttons", buttons);
     view.put("status", status());
     view.put("storm_clock", stormClock());
-    view.put("last_result", last == null ? null : last.toMap());
+    view.put("last_result", last);
     return view;
+  }
+
+  private static Instant instant(JsonNode node) {
+    return Instant.parse(node.asString());
   }
 
   private void load() {
@@ -264,26 +253,25 @@ class Panel {
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
-    for (JsonNode line : json.path("record")) {
-      record.put(line.path("fault").asString(), Instant.parse(line.path("since").asString()));
-    }
-    JsonNode storm = json.get("storm_clock");
-    if (storm != null && storm.isObject()) {
-      stormStarted = Instant.parse(storm.path("started").asString());
-      stormLabel = storm.path("label").asString();
-    }
-    last = LastResult.of(json.get("last_result"));
+    json.path("record").properties().forEach(e -> record.put(e.getKey(), instant(e.getValue())));
+    JsonNode storm = json.path("storm_clock");
+    stormStarted = storm.isObject() ? instant(storm.path("started")) : null;
+    stormLabel = storm.isObject() ? storm.path("label").asString() : null;
+    last =
+        json.path("last_result").isObject()
+            ? Http.JSON.treeToValue(json.get("last_result"), LastResult.class)
+            : null;
   }
 
   private void save() {
     Map<String, Object> state = new LinkedHashMap<>();
-    List<Map<String, Object>> lines = new ArrayList<>();
-    record.forEach((fault, since) -> lines.add(Map.of("fault", fault, "since", iso(since))));
+    Map<String, String> lines = new TreeMap<>();
+    record.forEach((fault, since) -> lines.put(fault, iso(since)));
     state.put("record", lines);
     state.put(
         "storm_clock",
         stormStarted == null ? null : Map.of("started", iso(stormStarted), "label", stormLabel));
-    state.put("last_result", last == null ? null : last.toMap());
+    state.put("last_result", last);
     try {
       Path folder = stateFile.toAbsolutePath().getParent();
       Files.createDirectories(folder);

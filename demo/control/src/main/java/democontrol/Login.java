@@ -12,12 +12,14 @@ import java.util.HexFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import org.springframework.stereotype.Component;
 
 /**
  * The control panel's login (AR-S-12): one user {@code operator} whose password is the secret
  * {@code control-password}, kept only as its Argon2id hash (AR-S-01); sessions of 12 h kept in
  * memory as the SHA-256 of their token (spec 6.3 items 1 and 2).
  */
+@Component
 class Login {
 
   static final String USERNAME = "operator";
