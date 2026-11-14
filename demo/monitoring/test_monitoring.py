@@ -509,9 +509,54 @@ def test_faults_unit(lab):
     """AR-U-07 demo-faults on the host network as user 0 with the Docker socket; token and unknown fault answers."""
     info = inspect("demo-faults")
     assert info["HostConfig"]["NetworkMode"] == "host" and info["Config"]["User"] == "0"
+    assert {"CAP_NET_ADMIN", "CAP_NET_RAW"} <= {
+        cap if cap.startswith("CAP_") else f"CAP_{cap}" for cap in info["HostConfig"]["CapAdd"] or []
+    }
     assert mounts("demo-faults")["/var/run/docker.sock"]["Source"] == "/var/run/docker.sock"
     assert lab.faults("/faults/clear", {"faults": []}, token=False) == (401, {"error": "unauthorized"})
-    assert lab.faults("/faults/clear", {"faults": ["SL-F-4"]}) == (500, {"error": "unknown fault SL-F-4"})
+    assert lab.faults("/faults/clear", {"faults": ["SL-F-5"]}) == (500, {"error": "unknown fault SL-F-5"})
+
+
+def docker_user_rules():
+    """The rules of the host's DOCKER-USER chain, read inside demo-faults with the iptables that holds it."""
+    for program in ("iptables-nft", "iptables-legacy"):
+        result = run(["docker", "exec", "demo-faults", program, "-S", "DOCKER-USER"], check=False)
+        if result.returncode == 0:
+            return result.stdout.splitlines()
+    raise AssertionError("the DOCKER-USER chain was not found")
+
+
+def test_sl_f_4_rules(lab):
+    """SL-A3-02 SL-F-4 adds and removes its rules on the host's DOCKER-USER chain."""
+    resolved = run(
+        [
+            "docker",
+            "exec",
+            "demo-faults",
+            "/usr/bin/python3",
+            "-c",
+            "import socket; print(' '.join(sorted({i[4][0] for i in "
+            "socket.getaddrinfo('api.anthropic.com', 443, socket.AF_INET, socket.SOCK_STREAM)})))",
+        ]
+    ).stdout.split()
+    assert resolved
+    assert lab.faults("/faults/SL-F-4/inject", {}) == (200, {"active": ["SL-F-4"]})
+    try:
+        rules = docker_user_rules()
+        for source in ("172.30.0.10", "172.31.0.10"):
+            for address in resolved:
+                expected = (
+                    f"-A DOCKER-USER -s {source}/32 -d {address}/32 -p tcp -m tcp --dport 443 "
+                    "-j REJECT --reject-with tcp-reset"
+                )
+                assert expected in rules, (expected, rules)
+        state = json.loads(run(["docker", "exec", "demo-faults", "cat", "/var/lib/demo-faults/state.json"]).stdout)
+        assert state["active"] == ["SL-F-4"] and set(resolved) <= set(state["sl_f_4_addresses"])
+    finally:
+        assert lab.faults("/faults/clear", {"faults": ["SL-F-4"]}) == (200, {"active": []})
+    assert not [rule for rule in docker_user_rules() if "--reject-with tcp-reset" in rule and "--dport 443" in rule]
+    state = json.loads(run(["docker", "exec", "demo-faults", "cat", "/var/lib/demo-faults/state.json"]).stdout)
+    assert state == {"active": []}
 
 
 def test_faults_interface(lab):

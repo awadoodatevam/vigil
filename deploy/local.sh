@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # The local installation (docs/60-build-plan.md Section 11): Vigil, the lab of P-03 and P-04, the dev fakes and
-# Mailpit on one Docker host (P-26).
+# Mailpit on one Docker host (P-26), and the control panel demo-control (P-31).
 #   deploy/local.sh up [--profile test|demo] [--values FILE] [--no-build] [--project NAME]
 #   deploy/local.sh up --lab-only [--profile test|demo] [--project NAME]
 #   deploy/local.sh down [--volumes] [--project NAME]
@@ -17,14 +17,13 @@ COMPOSE_FILE=deploy/local/compose.yaml
 LAB_HOSTS=(lab-db-01 lab-api-01 lab-vas-01 lab-probe-01 lab-rpt-01)
 IMAGE=vigil/demo-lab:local
 PROVISION_IMAGE=vigil/lab-zabbix-provision:local
-FAKES_IMAGE=vigil/dev-fakes:local
 E2E_IMAGE=vigil/e2e:local
 LOCAL_IMAGES=("$IMAGE" vigil/demo-faults:local "$PROVISION_IMAGE" vigil/recorder:local vigil/storm-spike:local)
 FAKES=(jira-fake teams-fake claude-fake openai-fake ollama-llm-fake ollama-embed-fake)
 # Every fixed container name of the compose file (other-project check).
 CONTAINERS=("${LAB_HOSTS[@]}" lab-zabbix-db lab-zabbix-server lab-zabbix-web lab-zabbix-provision lab-prometheus
   lab-alertmanager demo-faults dev-recorder storm-spike vigil-db vigil-migrate vigil-app "${FAKES[@]}" mailpit
-  vigil-embed e2e)
+  vigil-embed e2e demo-control)
 # The lab services started and waited for until healthy; up --lab-only adds the recorder (P-04).
 LAB_STARTED=("${LAB_HOSTS[@]}" lab-zabbix-db lab-zabbix-server lab-zabbix-web lab-prometheus lab-alertmanager
   demo-faults)
@@ -52,7 +51,8 @@ seed-password-noc-l1 password20 vigil-app e2e
 seed-password-dbops-engineer password20 vigil-app e2e
 seed-password-dbops-lead password20 vigil-app e2e
 seed-password-admin password20 vigil-app e2e
-installation-token token vigil-app
+installation-token token vigil-app demo-control
+control-password password20 demo-control e2e
 jira jira vigil-app
 smtp smtp vigil-app
 claude api-key vigil-app
@@ -68,18 +68,7 @@ teams-user-dbops-engineer teams vigil-app
 teams-user-dbops-lead teams vigil-app"
 READY_URL=http://127.0.0.1:8080/actuator/health/readiness
 WAIT_VIGIL=300
-FAULTS_URL=http://172.31.0.1:8091/faults/clear
-# Run in a one-off container of the dev fakes image on lab-net: clears SL-F-1 to SL-F-3 with the faults-token.
-CLEAR_FAULTS="import json, sys, urllib.request
-token = open('/run/secrets/vigil/faults-token').read()
-body = json.dumps({'faults': ['SL-F-1', 'SL-F-2', 'SL-F-3']}).encode()
-request = urllib.request.Request('$FAULTS_URL', data=body, method='POST',
-    headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'})
-try:
-    urllib.request.urlopen(request, timeout=120).read()
-except Exception as error:
-    print('Clearing the faults failed:', error)
-    sys.exit(1)"
+CONTROL_URL=http://127.0.0.1:8090
 
 if [ -x "${VIGIL_TOOLS:-/opt/vigil-tools}/bin/python" ]; then
   PY="${VIGIL_TOOLS:-/opt/vigil-tools}/bin/python"
@@ -272,7 +261,7 @@ export_environment() {
   export VIGIL_LOCAL_UID VIGIL_LOCAL_GID VIGIL_LOCAL_SECRETS="$base/$project/secrets"
   export VIGIL_LOCAL_GENERATED="$base/$project/generated" VIGIL_LOCAL_CONFIG="$base/$project/config"
   export VIGIL_LOCAL_RECORDINGS="$base/$project/recordings" VIGIL_LOCAL_STATE="$base/$project/state"
-  export VIGIL_LOCAL_E2E="$base/$project/e2e"
+  export VIGIL_LOCAL_E2E="$base/$project/e2e" VIGIL_LOCAL_DERIVED="$base/$project/values/derived.yaml"
   PROJECT=$project
 }
 
@@ -542,7 +531,7 @@ full_up() {
 
   # Step 2: build.
   if [ "$build" = yes ]; then
-    ./mvnw -B -q -pl app -DskipTests package
+    ./mvnw -B -q -pl app,demo/control -DskipTests package
     deploy/images.sh --local
   fi
   test_images
@@ -592,9 +581,25 @@ full_up() {
     fi
   fi
 
+  # The control panel, after vigil-app is ready (P-31), with the values file of this up.
+  export VIGIL_LOCAL_VALUES="$values_file"
+  if ! compose up -d demo-control; then
+    diagnostics demo-control
+    exit 1
+  fi
+  if ! wait_healthy 120 demo-control; then
+    fail "demo-control is not healthy after 120 s." demo-control
+  fi
+
   # Steps 7 and 8.
   install_tenant "$values_file"
-  echo "Vigil: http://demo.vigil.test:8080 (user presenter; password in $base/$project/secrets/vigil-app/seed-password-presenter)"
+  addresses "$base/$project"
+}
+
+# The addresses up prints (BP-R-24); argument: the project folder.
+addresses() {
+  echo "Vigil: http://demo.vigil.test:8080 (user presenter; password in $1/secrets/vigil-app/seed-password-presenter)"
+  echo "Control panel: http://control.vigil.test:8090 (user operator; password in $1/secrets/demo-control/control-password)"
 }
 
 lab_down() {
@@ -614,15 +619,12 @@ reset() {
     echo "Run deploy/local.sh up first."
     exit 1
   fi
-  local values_file
-  values_file=$(cat "$base/$project/state/values-file")
-  export_environment "$project"
-  if ! docker run --rm --network "${project}_lab-net" --user "$(id -u):$(id -g)" \
-    -v "$base/$project/secrets/demo-control:/run/secrets/vigil:ro" --entrypoint /usr/bin/python3 "$FAKES_IMAGE" \
-    -c "$CLEAR_FAULTS"; then
-    fail "The faults could not be cleared." demo-faults
+  # The control panel's Reset (AR-B-03, CTX-D-093 (10)).
+  if ! "$PY" deploy/local/control_reset.py --url "$CONTROL_URL" \
+    --password-file "$base/$project/secrets/demo-control/control-password"; then
+    export_environment "$project"
+    fail "The reset failed." demo-control
   fi
-  install_tenant "$values_file"
 }
 
 logs() {
@@ -660,7 +662,7 @@ e2e() {
     playwright --grep-invert @ai-down --grep "@$suite" || status=1
     pattern="(?=.*@ai-down)(?=.*@$suite)"
   else
-    playwright --grep-invert "@ai-down|@storm" || status=1
+    playwright --grep-invert "@ai-down|@storm|@control" || status=1
   fi
   listing=$(playwright --list --grep "$pattern" 2>&1 || true)
   count=$(printf '%s\n' "$listing" | sed -n 's/^Total: \([0-9][0-9]*\) test.*/\1/p' | head -n 1)

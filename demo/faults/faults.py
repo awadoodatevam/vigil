@@ -1,8 +1,10 @@
-"""demo-faults: injects and clears the lab faults SL-F-1 to SL-F-3 (AR-U-07, AR-X-03; P-04 spec Section 6.3).
+"""demo-faults: injects and clears the lab faults SL-F-1 to SL-F-4 (AR-U-07, AR-X-03; P-04 spec Section 6.3, P-31
+spec Section 6.6).
 
 HTTP interface (complete list): POST /faults/{id}/inject and POST /faults/clear with the body {"faults": [ids]},
-each only with "Authorization: Bearer {faults-token}". Fault commands run inside the lab containers through the
-Docker Engine API on the mounted socket, as "docker exec" does.
+each only with "Authorization: Bearer {faults-token}". The commands of SL-F-1 to SL-F-3 run inside the lab containers
+through the Docker Engine API on the mounted socket, as "docker exec" does; SL-F-4 runs iptables and conntrack on the
+host network itself.
 """
 
 import hmac
@@ -12,6 +14,7 @@ import os
 import re
 import socket
 import struct
+import subprocess
 import sys
 import tempfile
 import threading
@@ -24,7 +27,14 @@ STATE_FILE = "/var/lib/demo-faults/state.json"
 DOCKER_SOCKET = "/var/run/docker.sock"
 SCRIPTS = Path(__file__).resolve().parent / "scripts"
 DEADLINE_S = 60
-ORDER = ("SL-F-1", "SL-F-2", "SL-F-3")
+ORDER = ("SL-F-1", "SL-F-2", "SL-F-3", "SL-F-4")
+CLOUD = "SL-F-4"
+# SL-F-4 (DD-F-10, AR-X-03): the cloud AI API names and vigil-app's two addresses.
+CLOUD_NAMES = ("api.anthropic.com", "api.openai.com")
+SOURCES = ("172.30.0.10", "172.31.0.10")
+RESOLVE_EVERY_S = 30
+IPTABLES = ("iptables-nft", "iptables-legacy")
+NO_FLOW = "0 flow entries have been deleted."
 INJECT_PATH = re.compile(r"/faults/([^/]+)/inject")
 
 
@@ -153,29 +163,173 @@ def _demultiplex(stream):
     return payload
 
 
-class Faults:
-    """The fault state and the inject and clear operations; one operation at a time."""
+def host_run(command, deadline=DEADLINE_S):
+    """Runs a command on the host network: (exit code, standard output and error); CommandFailed after the deadline."""
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, timeout=deadline, check=False)
+    except subprocess.TimeoutExpired as expired:
+        output = expired.stdout or ""
+        raise CommandFailed(None, output if isinstance(output, str) else output.decode(errors="replace")) from None
+    except OSError as error:
+        return 127, str(error)
+    return result.returncode, result.stdout + result.stderr
 
-    def __init__(self, run, state_file=STATE_FILE, commands=None, log=None):
+
+def resolve(name):
+    """The IPv4 addresses of a name (the Docker networks have no IPv6); none when it does not resolve."""
+    try:
+        infos = socket.getaddrinfo(name, 443, socket.AF_INET, socket.SOCK_STREAM)
+    except OSError:
+        return []
+    return sorted({info[4][0] for info in infos})
+
+
+class ChainNotFound(Exception):
+    """Neither iptables-nft nor iptables-legacy holds the DOCKER-USER chain."""
+
+
+class CloudCut:
+    """SL-F-4: REJECT rules in the host's DOCKER-USER chain for vigil-app's addresses to the cloud AI APIs."""
+
+    def __init__(self, host=host_run, resolver=resolve, log=None):
+        self.host = host
+        self.resolver = resolver
+        self.log = log or (lambda line: print(line, flush=True))
+        self.addresses = []
+
+    def program(self):
+        """The iptables program whose DOCKER-USER chain exists (Docker's backend on the host decides)."""
+        for program in IPTABLES:
+            code, _output = self.host([program, "-S", "DOCKER-USER"])
+            if code == 0:
+                return program
+        raise ChainNotFound
+
+    @staticmethod
+    def rule(source, address):
+        return ["-s", f"{source}/32", "-d", f"{address}/32", "-p", "tcp", "-m", "tcp", "--dport", "443"] + [
+            "-j",
+            "REJECT",
+            "--reject-with",
+            "tcp-reset",
+        ]
+
+    def _must(self, command):
+        code, output = self.host(command)
+        if code != 0:
+            raise CommandFailed(code, output)
+
+    def block(self, program, address):
+        """The rule of each source to the address, inserted unless -C finds it, then its connections closed."""
+        for source in SOURCES:
+            rule = self.rule(source, address)
+            code, _output = self.host([program, "-C", "DOCKER-USER", *rule])
+            if code != 0:
+                self._must([program, "-I", "DOCKER-USER", *rule])
+            code, output = self.host(["conntrack", "-D", "-p", "tcp", "-s", source, "-d", address, "--dport", "443"])
+            if code != 0 and not (code == 1 and NO_FLOW in output):
+                raise CommandFailed(code, output)
+
+    def resolved(self):
+        """The addresses of both names now; a name that does not resolve is logged and adds none."""
+        found = []
+        for name in CLOUD_NAMES:
+            addresses = self.resolver(name)
+            if not addresses:
+                self.log(f"SL-F-4: {name} does not resolve")
+            found.extend(address for address in addresses if address not in found)
+        return found
+
+    def add_new(self):
+        """Blocks every resolved address that is not blocked yet; True when one was added."""
+        program = self.program()
+        added = False
+        for address in self.resolved():
+            if address not in self.addresses:
+                self.block(program, address)
+                self.addresses.append(address)
+                self.log(f"SL-F-4: blocked {address}")
+                added = True
+        return added
+
+    def restore(self, addresses):
+        """After a restart: the rules of the stored addresses, any missing one added."""
+        self.addresses = list(addresses)
+        program = self.program()
+        for address in self.addresses:
+            self.block(program, address)
+
+    def clear(self):
+        """Removes the rules of the stored addresses while -C finds them; the addresses are forgotten."""
+        program = self.program()
+        for address in list(self.addresses):
+            for source in SOURCES:
+                rule = self.rule(source, address)
+                while self.host([program, "-C", "DOCKER-USER", *rule])[0] == 0:
+                    self._must([program, "-D", "DOCKER-USER", *rule])
+            self.addresses.remove(address)
+
+
+class Faults:
+    """The fault state and the inject and clear operations; one operation at a time (the SL-F-4 loop included)."""
+
+    def __init__(self, run, state_file=STATE_FILE, commands=None, log=None, cloud=None, every=RESOLVE_EVERY_S):
         self.run = run
         self.state_file = Path(state_file)
         self.commands = commands or fault_commands()
         self.log = log or RequestLog()
+        self.cloud = cloud or CloudCut(log=self.log.write)
+        self.every = every
         self.lock = threading.Lock()
         self.active = set()
+        self.stop_loop = None
         if self.state_file.exists():
-            self.active = set(json.loads(self.state_file.read_text())["active"])
+            state = json.loads(self.state_file.read_text())
+            self.active = set(state["active"])
+            if CLOUD in self.active:
+                self._resume(state.get("sl_f_4_addresses") or [])
+
+    def _resume(self, addresses):
+        """After a restart with SL-F-4 active: the stored addresses' rules checked and added, the loop resumed."""
+        with self.lock:
+            try:
+                self.cloud.restore(addresses)
+            except (CommandFailed, ChainNotFound) as error:
+                self.cloud.addresses = list(addresses)
+                self.log.write(f"SL-F-4 resume failed{_describe(error)}")
+            self._start_loop()
+
+    def _start_loop(self):
+        self.stop_loop = threading.Event()
+        threading.Thread(target=self._loop, args=(self.stop_loop,), daemon=True).start()
+
+    def _loop(self, stop):
+        """Every 30 s while SL-F-4 is active: both names resolved again, new addresses blocked; errors tried again."""
+        while not stop.wait(self.every):
+            with self.lock:
+                if stop.is_set():
+                    return
+                try:
+                    if self.cloud.add_new():
+                        self._save()
+                except (CommandFailed, ChainNotFound) as error:
+                    self.log.write(f"SL-F-4 re-resolve failed{_describe(error)}")
 
     def _save(self):
         folder = self.state_file.parent
+        state = {"active": sorted(self.active)}
+        if CLOUD in self.active:
+            state["sl_f_4_addresses"] = list(self.cloud.addresses)
         with tempfile.NamedTemporaryFile("w", dir=folder, delete=False, prefix=".state-") as file:
-            json.dump({"active": sorted(self.active)}, file)
+            json.dump(state, file)
         os.replace(file.name, self.state_file)
 
     def _answer(self):
         return 200, {"active": sorted(self.active)}
 
     def _execute(self, fault, which):
+        if fault == CLOUD:
+            return self._cloud(which)
         container, inject, clear = self.commands[fault]
         try:
             output = self.run(container, inject if which == "inject" else clear)
@@ -185,9 +339,29 @@ class Faults:
         self.log(output.rstrip("\n"))
         return None
 
+    def _cloud(self, which):
+        if which == "clear" and CLOUD not in self.active:
+            return None
+        try:
+            if which == "inject":
+                self.cloud.add_new()
+            else:
+                if self.stop_loop is not None:
+                    self.stop_loop.set()
+                    self.stop_loop = None
+                self.cloud.clear()
+        except ChainNotFound:
+            return f"{CLOUD} {which} failed: the DOCKER-USER chain was not found"
+        except CommandFailed as failure:
+            self.log(failure.output.rstrip("\n"))
+            return f"{CLOUD} {which} failed ({failure.describe()}"
+        if which == "inject":
+            self._start_loop()
+        return None
+
     def inject(self, fault):
         with self.lock:
-            if fault not in self.commands:
+            if fault not in ORDER:
                 return 500, {"error": f"unknown fault {fault}"}
             if fault in self.active:
                 return self._answer()
@@ -204,7 +378,7 @@ class Faults:
             if not isinstance(faults, list) or not all(isinstance(fault, str) for fault in faults):
                 return 500, {"error": "invalid body"}
             for fault in faults:
-                if fault not in self.commands:
+                if fault not in ORDER:
                     return 500, {"error": f"unknown fault {fault}"}
             for fault in ORDER:
                 if fault not in faults:
@@ -215,6 +389,12 @@ class Faults:
                 self.active.discard(fault)
                 self._save()
             return self._answer()
+
+
+def _describe(error):
+    if isinstance(error, ChainNotFound):
+        return ": the DOCKER-USER chain was not found"
+    return f" ({error.describe()}"
 
 
 def make_handler(faults, token):
