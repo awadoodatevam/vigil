@@ -29,6 +29,7 @@ CONTEXTS = {
 }
 LOCAL_CONTEXTS = {
     "vigil/vigil-app:local": "app",
+    "vigil/demo-control:local": "demo/control",
     "vigil/dev-fakes:local": "dev/fakes",
     "vigil/e2e:local": "tests/e2e",
     "vigil/storm-driver:local": "tests/acceptance/storm",
@@ -74,13 +75,19 @@ def tree(tmp_path):
     log = tmp_path / "docker.log"
     log.write_text("", encoding="utf-8")
 
-    def run(*arguments, mirror=None, jar=True):
+    def run(*arguments, mirror=None, jar=True, control_jar=True):
         target = root / "app" / "target" / "vigil-app.jar"
         target.parent.mkdir(parents=True, exist_ok=True)
         if jar:
             target.write_bytes(b"jar")
         else:
             target.unlink(missing_ok=True)
+        control = root / "demo" / "control" / "target" / "demo-control.jar"
+        control.parent.mkdir(parents=True, exist_ok=True)
+        if control_jar:
+            control.write_bytes(b"jar")
+        else:
+            control.unlink(missing_ok=True)
         environment = dict(os.environ)
         environment.pop("VIGIL_UBUNTU_MIRROR", None)
         if mirror is not None:
@@ -142,8 +149,8 @@ def test_test_skips_the_optional_and_local_images(tree):
 
 
 def test_local_builds_the_four_images(tree):
-    """BP-R-04 --local builds vigil-app from app/, the dev fakes, the Playwright image and the storm driver, each from
-    its context."""
+    """BP-R-04 --local builds vigil-app from app/, demo-control (P-31), the dev fakes, the Playwright image and the
+    storm driver, each from its context."""
     result, calls = tree("--local")
     assert result.returncode == 0, result.stdout + result.stderr
     builds = [call for call in calls if call[0] == "build"]
@@ -172,6 +179,24 @@ def test_local_needs_the_jar(tree):
     result, calls = tree("--local", jar=False)
     assert result.returncode == 1
     assert result.stdout == "Run ./mvnw -B -pl app -DskipTests package first.\n"
+    assert calls == []
+
+
+def test_demo_control_image(tree):
+    """BP-R-04 the demo-control image copies the JAR and downloads nothing."""
+    dockerfile = (ROOT / "demo" / "control" / "Dockerfile").read_text(encoding="utf-8")
+    steps = [line.split()[0].upper() for line in dockerfile.splitlines() if line and not line.startswith("#")]
+    assert steps == ["FROM", "COPY", "RUN", "USER", "EXPOSE", "ENTRYPOINT"]
+    assert base_images("demo/control") == base_images("app")
+    assert "COPY target/demo-control.jar /app/demo-control.jar" in dockerfile
+    run_line = next(line for line in dockerfile.splitlines() if line.startswith("RUN "))
+    assert run_line == "RUN mkdir -p /var/lib/demo-control && chown 10001:10001 /var/lib/demo-control"
+    assert "USER 10001" in dockerfile and "EXPOSE 8090" in dockerfile
+    pom = (ROOT / "demo" / "control" / "pom.xml").read_text(encoding="utf-8")
+    assert "<finalName>demo-control</finalName>" in pom
+    result, calls = tree("--local", control_jar=False)
+    assert result.returncode == 1
+    assert result.stdout == "Run ./mvnw -B -pl app,demo/control -DskipTests package first.\n"
     assert calls == []
 
 

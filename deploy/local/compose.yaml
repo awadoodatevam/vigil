@@ -1,7 +1,7 @@
 # The local installation (docs/60-build-plan.md Section 11), started by deploy/local.sh: the lab hosts (P-03), Zabbix,
 # Prometheus, Alertmanager, demo-faults, the webhook recorder and the storm timing spike (P-04); vigil-db, vigil-migrate,
 # vigil-app, the dev fakes, Mailpit, vigil-embed (profile embed) and the Playwright runner (profile e2e) (P-26); the
-# storm driver (profile acceptance, P-27).
+# storm driver (profile acceptance, P-27); demo-control (P-31).
 # Subnets and container names are fixed, so one local installation runs per Docker host.
 
 networks:
@@ -22,6 +22,7 @@ volumes:
   lab-db-01-data:
   lab-zabbix-db-data:
   demo-faults-state:
+  demo-control-state:
   vigil-db-data:
   vigil-embed-models:
 
@@ -240,6 +241,7 @@ services:
     container_name: demo-faults
     network_mode: host
     user: "0"
+    cap_add: [NET_ADMIN, NET_RAW]
     environment:
       FAULTS_LISTEN: 172.31.0.1:8091
     depends_on: *lab-hosts-healthy
@@ -400,6 +402,50 @@ services:
           create_host_path: false
     restart: "no"
 
+  demo-control:
+    image: vigil/demo-control:local
+    container_name: demo-control
+    user: "10001"
+    command:
+      - --vigil.security.secure-cookies=false
+      - --demo-control.vigil-url=http://demo.vigil.test:8080
+      - --demo-control.values=file:/run/values/values.yaml,file:/run/values/derived.yaml
+    networks:
+      lab-net:
+        aliases: [control.vigil.test]
+    ports:
+      - "127.0.0.1:8090:8090"
+    volumes:
+      - demo-control-state:/var/lib/demo-control
+      - type: bind
+        source: ${VIGIL_LOCAL_SECRETS:-/nonexistent}/demo-control
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${VIGIL_LOCAL_VALUES:-/nonexistent}
+        target: /run/values/values.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${VIGIL_LOCAL_DERIVED:-/nonexistent}
+        target: /run/values/derived.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: "no"
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        - "exec 3<>/dev/tcp/127.0.0.1/8090 && printf 'GET /health HTTP/1.0\\r\\n\\r\\n' >&3 && head -n 1 <&3 | grep -q ' 200 '"
+      interval: 2s
+      timeout: 2s
+      retries: 60
+
   jira-fake:
     image: vigil/dev-fakes:local
     container_name: jira-fake
@@ -558,7 +604,7 @@ services:
     container_name: e2e
     profiles: ["e2e"]
     user: "${VIGIL_LOCAL_UID:-10001}:${VIGIL_LOCAL_GID:-10001}"
-    networks: [vigil-net]
+    networks: [vigil-net, lab-net]
     volumes:
       - type: bind
         source: ../../tests/e2e

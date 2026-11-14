@@ -10,3 +10,5 @@ mailbox.noc-management: vigil-noc-management@techfinity.ae
 mailbox.customer-care: vigil-customer-care@techfinity.ae
 mailbox.dbops-engineer: vigil-dbops-engineer@techfinity.ae
 mailbox.dbops-lead: vigil-dbops-lead@techfinity.ae
+# Control panel value (AR-X-04, CTX-D-093 (6)).
+product_display_name: Techfinity
