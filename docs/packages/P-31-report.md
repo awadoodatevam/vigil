@@ -103,4 +103,4 @@ Done-check item 3, in the build session (cloud, lab profile `test`):
 
 ## 12. Pull request
 
-Opened with the GitHub tool: see the pull request "P-31: Demo control panel and SL-F-4", base `main`, head `p-31-demo-control-panel`.
+Opened with the GitHub tool: [awadoodatevam/vigil#36](https://github.com/awadoodatevam/vigil/pull/36), "P-31: Demo control panel and SL-F-4", base `main`.
