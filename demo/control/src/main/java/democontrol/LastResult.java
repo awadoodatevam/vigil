@@ -1,5 +1,6 @@
 package democontrol;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
@@ -14,9 +15,9 @@ record LastResult(
     String outcome,
     Instant finishedAt,
     BigDecimal seconds,
-    BigDecimal branchASeconds,
+    @JsonProperty("branch_a_seconds") BigDecimal branchASeconds,
     BigDecimal quietSeconds,
-    BigDecimal branchBSeconds,
+    @JsonProperty("branch_b_seconds") BigDecimal branchBSeconds,
     String error) {
 
   static BigDecimal seconds(Duration duration) {

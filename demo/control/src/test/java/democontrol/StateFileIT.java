@@ -49,6 +49,19 @@ class StateFileIT {
         .isEqualTo("Storm: SL-F-1 + SL-F-3");
     assertThat(saved.path("last_result").path("seconds").decimalValue())
         .isEqualByComparingTo("44.123");
+    // the members of spec 6.3 item 4.
+    assertThat(saved.path("last_result").propertyNames())
+        .containsExactly(
+            "operation",
+            "outcome",
+            "finished_at",
+            "seconds",
+            "branch_a_seconds",
+            "quiet_seconds",
+            "branch_b_seconds",
+            "error");
+    assertThat(saved.path("last_result").path("finished_at").asString())
+        .isEqualTo("2026-11-14T09:59:00Z");
     try (var listing = Files.list(file.getParent())) {
       assertThat(listing.map(path -> path.getFileName().toString())).containsExactly("state.json");
     }
