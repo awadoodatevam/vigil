@@ -30,6 +30,11 @@ import {
 } from "./recorder";
 
 const READY = "/e2e/run/storm-ready";
+/** The Jira site's ticket links (P-32 spec Section 6.8 item 1): VIGIL_JIRA_URL, the Jira fake by default. */
+const JIRA = process.env.VIGIL_JIRA_URL ?? "http://jira.fakes:8000";
+const TICKET_LINK = new RegExp(
+  `^${JIRA.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")}\\/browse\\/NOC-\\d+$`,
+);
 const MINUTE = 60 * 1000;
 const EMPTY = "No incidents yet. Techfinity is watching 2 monitoring sources.";
 const HEALTHY = "Monitoring: 2 of 2 sources healthy";
@@ -641,11 +646,7 @@ test("SL-A1-02 the storm and report rows", { tag: "@storm" }, async () => {
     });
     await expect(cell(storm, 7)).toHaveText("126", { timeout: 0 });
     const link = cell(storm, 9).getByRole("link");
-    await expect(link).toHaveAttribute(
-      "href",
-      /^http:\/\/jira\.fakes:8000\/browse\/NOC-\d+$/,
-      { timeout: 0 },
-    );
+    await expect(link).toHaveAttribute("href", TICKET_LINK, { timeout: 0 });
     await expect(link).toHaveAttribute("target", "_blank", { timeout: 0 });
     await expect(cell(report, 2)).toHaveText("P4", { timeout: 0 });
     await expect(cell(report, 5)).toHaveText("IT Applications", { timeout: 0 });
@@ -801,10 +802,7 @@ test(
     expect(values[8]).toMatch(/^Ticket: Jira NOC-\d+$/);
     expect(values).toHaveLength(9);
     const link = workspace.locator("main h1 + div a");
-    await expect(link).toHaveAttribute(
-      "href",
-      /^http:\/\/jira\.fakes:8000\/browse\/NOC-\d+$/,
-    );
+    await expect(link).toHaveAttribute("href", TICKET_LINK);
     expect(await link.getAttribute("href")).toMatch(
       new RegExp(`/${values[8].slice("Ticket: Jira ".length)}$`),
     );

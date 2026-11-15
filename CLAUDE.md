@@ -55,7 +55,8 @@ Under `docs/` you MAY change only: your package report; the values your spec nam
 | Storm driver (from P-27) | `tests/acceptance/storm/run.sh [--mode immediate|script] [--deliveries fakes|checklist] [--acts driver|pages] [--project NAME]` (`--acts` from P-30) |
 | Playwright tests (from P-26) | `deploy/local.sh e2e [suite]` |
 | Storm driver with the Playwright suite `storm` (from P-28) | `tests/acceptance/storm/with-playwright.sh [--mode immediate|script] [--project NAME]` |
-| Demo installation on AWS (owner-run, from the Mac; P-05): edge, secrets, images, deployment, status, GPU host, models | `deploy/edge.md` (the scripts `deploy/edge.sh`, `new-installation.sh`, `build.sh`, `deploy.sh`, `status.sh`, `gpu.sh`, `models.sh`) |
+| Demo installation on AWS (owner-run, from the Mac; P-05, P-32): edge, secrets, images, deployment (`--spike` from P-32), status, file fetch (from P-32), GPU host, models | `deploy/edge.md` (the scripts `deploy/edge.sh`, `new-installation.sh`, `build.sh`, `deploy.sh`, `status.sh`, `fetch.sh`, `gpu.sh`, `models.sh`) |
+| Runs against the demo installation (owner-run, from the Mac; from P-32) | `spikes/storm-timing/main-host.sh {installation} {release}`; `tests/acceptance/demo-host/secrets.sh`, `e2e.sh`, `storm.sh`, `check.sh`, `ai-cut.sh`, `sample.sh` (`docs/packages/P-32.md` Section 6.11) |
 
 Builds with Testcontainers take longer than 2 minutes: run them with a longer timeout or in the background and wait for the result. A foreground command stops waiting after at most 10 minutes. In cloud sessions use the lab profile `test`.
 

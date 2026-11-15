@@ -1,6 +1,17 @@
-# Deployment values of the demo installation (AR-B-07); P-32 adds the other values.
+# Deployment values of the demo installation (AR-B-07, with the lab values and the control panel value of AR-X-04);
+# their owner is the operator (BP-OT-14). lab_db_host_key_sha256 is not written here: deploy/secrets.sh derives it on
+# the host into derived.yaml.
 demo_domain: vigil.solviclabs.com
+product_display_name: Techfinity
+lab_profile: demo
+webhook_base_url: https://demo.vigil.solviclabs.com
 endpoint.jira: https://techfinity-noc.atlassian.net
+endpoint.smtp: smtp://email-smtp.us-east-1.amazonaws.com:587
+smtp_starttls: true
+endpoint.claude: https://api.anthropic.com
+endpoint.openai: https://api.openai.com
+endpoint.local_embedding: http://vigil-embed:11434
+gpu_host_ip: 10.40.1.20
 mailbox.noc-l1: vigil-noc-l1@techfinity.ae
 mailbox.db-ops: vigil-db-ops@techfinity.ae
 mailbox.vas-service-owners: vigil-vas-service-owners@techfinity.ae
@@ -10,5 +21,3 @@ mailbox.noc-management: vigil-noc-management@techfinity.ae
 mailbox.customer-care: vigil-customer-care@techfinity.ae
 mailbox.dbops-engineer: vigil-dbops-engineer@techfinity.ae
 mailbox.dbops-lead: vigil-dbops-lead@techfinity.ae
-# Control panel value (AR-X-04, CTX-D-093 (6)).
-product_display_name: Techfinity

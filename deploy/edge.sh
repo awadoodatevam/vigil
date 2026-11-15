@@ -69,7 +69,7 @@ choose_zones() {
       --filters Name=instance-type,Values=m7i.xlarge,g6.xlarge --output json |
       json '[o["Location"] + " " + o["InstanceType"] for o in d["InstanceTypeOfferings"]]')
     for zone in $zones; do
-      if printf '%s\n' "$offered" | grep -qx "$zone m7i.xlarge" && printf '%s\n' "$offered" | grep -qx "$zone g6.xlarge"; then
+      if grep -qx "$zone m7i.xlarge" <<< "$offered" && grep -qx "$zone g6.xlarge" <<< "$offered"; then
         ZONE_A=$zone
         break
       fi
@@ -121,7 +121,7 @@ if [ -z "$IGW" ]; then
   line internet-gateway "vigil-$I" created
 else
   attached=$(printf '%s' "$IGW_JSON" | json '[a["VpcId"] for a in d["InternetGateways"][0].get("Attachments", [])]')
-  if printf '%s\n' "$attached" | grep -qx "$VPC"; then
+  if grep -qx "$VPC" <<< "$attached"; then
     line internet-gateway "vigil-$I" exists
   else
     aws ec2 attach-internet-gateway --internet-gateway-id "$IGW" --vpc-id "$VPC"
@@ -172,7 +172,7 @@ SUBNET_B=$SUBNET
 reservations=$(aws ec2 get-subnet-cidr-reservations --subnet-id "$SUBNET_A" --output json |
   json '[r["Cidr"] for r in d.get("SubnetIpv4CidrReservations", [])]')
 for cidr in 10.40.1.8/29 10.40.1.16/29; do
-  if printf '%s\n' "$reservations" | grep -qx "$cidr"; then
+  if grep -qx "$cidr" <<< "$reservations"; then
     line subnet-reservation "$cidr" exists
   else
     aws ec2 create-subnet-cidr-reservation --subnet-id "$SUBNET_A" --cidr "$cidr" --reservation-type explicit > /dev/null
@@ -430,7 +430,7 @@ ensure_role "vigil-$I-github-push" trust-github policy-github-push no
 PUSH_ROLE_ARN="arn:aws:iam::$ACCOUNT_ID:role/vigil-$I-github-push"
 
 # Step 6: ECR repositories and the deployment bucket (AR-H-11, BP-A-21).
-for image in vigil-app demo-control demo-lab demo-faults lab-zabbix-provision sse-probe; do
+for image in vigil-app demo-control demo-lab demo-faults lab-zabbix-provision sse-probe dev-recorder storm-spike; do
   repository="$I/$image"
   if call ecr describe-repositories --repository-names "$repository"; then
     aws ecr put-image-tag-mutability --repository-name "$repository" --image-tag-mutability IMMUTABLE > /dev/null
@@ -697,7 +697,7 @@ ensure_target() {
   local group=$1 arn=$2 port=$3 registered
   registered=$(aws elbv2 describe-target-health --target-group-arn "$arn" --output json |
     json '[t["Target"]["Id"] for t in d["TargetHealthDescriptions"]]')
-  if printf '%s\n' "$registered" | grep -qx "$MAIN_ID"; then
+  if grep -qx "$MAIN_ID" <<< "$registered"; then
     line target "$group/vigil-$I-main" exists
   elif [ "$main_state" = running ]; then
     aws elbv2 register-targets --target-group-arn "$arn" --targets "Id=$MAIN_ID,Port=$port"

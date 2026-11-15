@@ -160,7 +160,7 @@ def test_e2e_stops_the_ai_fakes(local):
     result, calls = local("e2e", STUB_LIST="  [chromium] › a.spec.ts:3:1 › x @ai-down\nTotal: 1 test in 1 file")
     assert result.returncode == 0, result.stdout + result.stderr
     assert playwright_runs(calls) == [
-        ["--grep-invert", "@ai-down|@storm|@control"],
+        ["--grep-invert", "@ai-down|@storm|@control|@live"],
         ["--list", "--grep", "@ai-down"],
         ["--grep", "@ai-down"],
     ]
@@ -190,7 +190,10 @@ def test_e2e_without_ai_down_tests(local):
     """BP-R-28 the AI fakes are not stopped when the listing shows no @ai-down test."""
     result, calls = local("e2e", STUB_LIST="Error: No tests found")
     assert result.returncode == 0, result.stdout + result.stderr
-    assert playwright_runs(calls) == [["--grep-invert", "@ai-down|@storm|@control"], ["--list", "--grep", "@ai-down"]]
+    assert playwright_runs(calls) == [
+        ["--grep-invert", "@ai-down|@storm|@control|@live"],
+        ["--list", "--grep", "@ai-down"],
+    ]
     assert stop_start(calls) == []
 
 
@@ -283,13 +286,22 @@ def test_e2e_control_suite(local):
     """BP-W-02 e2e leaves out @control unless asked; e2e control runs the tests tagged @control (P-31)."""
     result, calls = local("e2e", STUB_LIST="Error: No tests found")
     assert result.returncode == 0, result.stdout + result.stderr
-    assert playwright_runs(calls)[0] == ["--grep-invert", "@ai-down|@storm|@control"]
+    assert playwright_runs(calls)[0] == ["--grep-invert", "@ai-down|@storm|@control|@live"]
     result, calls = local("e2e", "control", STUB_LIST="Error: No tests found")
     assert result.returncode == 0, result.stdout + result.stderr
     assert playwright_runs(calls) == [
         ["--grep-invert", "@ai-down", "--grep", "@control"],
         ["--list", "--grep", "(?=.*@ai-down)(?=.*@control)"],
     ]
+
+
+def test_e2e_leaves_out_live(local):
+    """BP-R-24 e2e leaves out @live."""
+    result, calls = local("e2e", STUB_LIST="Error: No tests found")
+    assert result.returncode == 0, result.stdout + result.stderr
+    first = playwright_runs(calls)[0]
+    assert first[0] == "--grep-invert" and "@live" in first[1].split("|")
+    assert not any("@live" in " ".join(run) for run in playwright_runs(calls)[1:])
 
 
 def test_up_prints_the_control_panel_address(tmp_path):

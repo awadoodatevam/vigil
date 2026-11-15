@@ -260,6 +260,16 @@ def development_values(path):
     return values
 
 
+def measured_values(path):
+    """{key: text} of the measured values of a storm timing result file's first standard run (P-32 spec Section 6.7
+    item 2), as development_values gives them: numbers as written in the file."""
+    result = json.loads(Path(path).read_text(encoding="utf-8"), parse_float=Decimal)
+    runs = [run for run in result.get("runs") or [] if run.get("kind") == "standard"]
+    if not runs or not isinstance(runs[0].get("measured"), dict):
+        raise ValueError(f"{Path(path).name} has no standard run with measured values.")
+    return {key: str(value) for key, value in runs[0]["measured"].items() if value is not None}
+
+
 # The run's data
 
 

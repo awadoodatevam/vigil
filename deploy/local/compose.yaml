@@ -353,7 +353,9 @@ services:
           create_host_path: false
     restart: "no"
     healthcheck:
-      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "postgres", "-d", "vigil"]
+      test:
+        - CMD-SHELL
+        - "psql -h 127.0.0.1 -U postgres -d vigil -tAc \"select 1 from pg_roles where rolname = 'vigil_app'\" | grep -qx 1"
       interval: 2s
       timeout: 2s
       retries: 60

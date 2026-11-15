@@ -38,7 +38,7 @@ with open(sys.argv[1]) as file:
 ' "$DEPLOY/units.yaml")
   checked=0
   for unit in $units; do
-    if printf '%s\n' "$running" | grep -qx "$unit"; then
+    if grep -qx "$unit" <<< "$running"; then
       checked=$((checked + 1))
       if docker exec "$unit" sh -c 'ls /run/secrets/vigil > /dev/null' < /dev/null; then
         echo "$unit: secrets readable"
@@ -69,7 +69,7 @@ while read -r model unit recorded <&3; do
   case "$model" in
     "" | "#"*) continue ;;
   esac
-  if ! printf '%s\n' "$running" | grep -qx "$unit"; then
+  if ! grep -qx "$unit" <<< "$running"; then
     continue
   fi
   address=$(docker inspect --format '{{with index .NetworkSettings.Networks "vigil-net"}}{{.IPAddress}}{{end}}' "$unit" < /dev/null)

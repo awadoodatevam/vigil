@@ -1,7 +1,8 @@
-"""The storm driver (P-27 spec Section 6.2; SB-T-02 with amendment BP-A-11, SL-A3-04): runs the primary demo headless
-on a local installation and checks its result.
+"""The storm driver (P-27 spec Section 6.2; SB-T-02 with amendments BP-A-11 and BP-A-32, SL-A3-04): runs the primary
+demo headless on a local installation, or through the public names of the demo installation, and checks its result.
 
-Usage: storm.py --mode immediate|script [--deliveries fakes|checklist] [--acts driver|pages]
+Usage: storm.py --mode immediate|script [--deliveries fakes|checklist] [--acts driver|pages] [--via local|control]
+                [--measured FILE]
 
 It resets as AR-B-03 does, injects the storm, acknowledges as noc-l1 and approves as dbops-engineer through links it
 builds from the identifiers it reads (with --acts pages, mode immediate only, it waits for the acknowledgement and the
@@ -10,6 +11,12 @@ checks the SB-R-06 result and the values of SB-S01 to SB-S09 that need no screen
 only through vigil-api and demo-faults; it reads Zabbix and Alertmanager for the lab clear and, with deliveries fakes,
 the dev fakes and Mailpit. It writes /results/storm-{mode}-{UTC time}.json and exits 0 when every check passed, 1
 otherwise, 2 for wrong arguments. Standard library only (BP-R-04); no secret value is printed or written.
+
+With --via control (P-32 spec Section 6.7, the demo installation; needs --deliveries checklist) it resets and starts
+the storm with the control panel's buttons at VIGIL_CONTROL_URL as the operator, and reaches nothing of the lab; --acts
+pages is then allowed in mode script too (the SL-CP-1 run). --measured FILE compares SB-S03's and SB-S06's values with
+the first standard run of a storm timing result file instead of DD-F-10's development values. VIGIL_JIRA_URL is the
+Jira site (the Jira fake by default).
 """
 
 import json
@@ -25,7 +32,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import storm_api as api  # noqa: E402
 import storm_checks as checks  # noqa: E402
 
-USAGE = "Usage: storm.py --mode immediate|script [--deliveries fakes|checklist] [--acts driver|pages]"
+USAGE = (
+    "Usage: storm.py --mode immediate|script [--deliveries fakes|checklist] [--acts driver|pages]"
+    " [--via local|control] [--measured FILE]"
+)
 STEP_NAMES = {
     1: "Reset",
     2: "Starting state",
@@ -50,6 +60,9 @@ PAGES_LIMIT = 300
 RESOLVE_LIMIT = 480
 TICKET_LIMIT = 120
 INJECT_TIMEOUT = 180
+CONTROL_RESET_LIMIT = 120
+CONTROL_STORM_LIMIT = 135
+CONTROL_EVERY = 1
 USERS = ("presenter", "noc-l1", "dbops-engineer")
 
 
@@ -74,9 +87,16 @@ def iso(epoch):
 
 
 def parse_arguments(arguments):
-    """(mode, deliveries, acts) or None; --acts pages is refused with mode script."""
-    mode, deliveries, acts = None, "fakes", "driver"
-    values = {"--mode": ("immediate", "script"), "--deliveries": ("fakes", "checklist"), "--acts": ("driver", "pages")}
+    """(mode, deliveries, acts, via, measured) or None; --acts pages with mode script needs --via control, and --via
+    control needs --deliveries checklist."""
+    found = {"--mode": None, "--deliveries": "fakes", "--acts": "driver", "--via": "local", "--measured": None}
+    values = {
+        "--mode": ("immediate", "script"),
+        "--deliveries": ("fakes", "checklist"),
+        "--acts": ("driver", "pages"),
+        "--via": ("local", "control"),
+        "--measured": None,
+    }
     index = 0
     seen = set()
     while index < len(arguments):
@@ -85,35 +105,36 @@ def parse_arguments(arguments):
             return None
         seen.add(flag)
         value = arguments[index + 1]
-        if value not in values[flag]:
+        if (values[flag] is not None and value not in values[flag]) or not value:
             return None
-        if flag == "--mode":
-            mode = value
-        elif flag == "--deliveries":
-            deliveries = value
-        else:
-            acts = value
+        found[flag] = value
         index += 2
-    if not mode or (acts == "pages" and mode == "script"):
+    mode, deliveries, acts, via = found["--mode"], found["--deliveries"], found["--acts"], found["--via"]
+    if not mode or (acts == "pages" and mode == "script" and via != "control"):
         return None
-    return (mode, deliveries, acts)
+    if via == "control" and deliveries != "checklist":
+        return None
+    return (mode, deliveries, acts, via, found["--measured"])
 
 
 class Config:
     """Where the driver reaches and what it reads (P-27 spec Sections 6.1 and 6.2); tests replace the addresses."""
 
-    def __init__(self, mode, deliveries, environ=None, root=Path("/"), acts="driver"):
+    def __init__(self, mode, deliveries, environ=None, root=Path("/"), acts="driver", via="local", measured=None):
         environ = os.environ if environ is None else environ
         self.mode = mode
         self.deliveries = deliveries
         self.acts = acts
+        self.via = via
+        self.measured = measured
         self.profile = environ.get("VIGIL_LAB_PROFILE", "test")
         self.base_url = environ.get("VIGIL_BASE_URL", "http://demo.vigil.test:8080").rstrip("/")
+        self.control_url = environ.get("VIGIL_CONTROL_URL", "http://control.vigil.test:8090").rstrip("/")
+        self.jira_url = environ.get("VIGIL_JIRA_URL", "http://jira.fakes:8000").rstrip("/")
         self.faults_url = "http://172.31.0.1:8091"
         self.zabbix_url = "http://lab-zabbix-web:8080/api_jsonrpc.php"
         self.alertmanager_url = "http://lab-alertmanager:9093"
         self.teams_url = "http://teams.fakes:8000"
-        self.jira_fake_url = "http://jira.fakes:8000"
         self.mailpit_url = "http://mailpit:8025"
         self.vigil_app = root / "run" / "secrets" / "vigil-app"
         self.demo_control = root / "run" / "secrets" / "demo-control"
@@ -142,6 +163,7 @@ class Driver:
         self.ack_done_at = None
         self.decided_at = None
         self.checklist = None
+        self.control = None
 
     # Helpers
 
@@ -152,8 +174,9 @@ class Driver:
         self.entries.append({"id": "SB-T-02", "name": name, "passed": False, "detail": detail})
         self.say(f"FAIL SB-T-02 {name}: {detail}")
 
-    def until(self, condition, limit_at, limit_text):
-        """Calls condition every 2 s until it answers a true value (connection errors retried) or limit_at passes."""
+    def until(self, condition, limit_at, limit_text, every=EVERY):
+        """Calls condition every 2 s (or every) until it answers a true value (connection errors retried) or limit_at
+        passes."""
         while True:
             try:
                 value = condition()
@@ -164,7 +187,7 @@ class Driver:
             now = self.clock()
             if now >= limit_at:
                 raise WaitLimit(limit_text)
-            self.sleep(max(0.0, min(EVERY, limit_at - now)))
+            self.sleep(max(0.0, min(every, limit_at - now)))
 
     def sleep_until(self, moment):
         now = self.clock()
@@ -223,6 +246,9 @@ class Driver:
 
     def step1_reset(self):
         cfg = self.config
+        if cfg.via == "control":
+            self.reset_through_control()
+            return
         installation = api.Installation(cfg.base_url, self.secret(cfg.vigil_app, "installation-token"))
         lab = api.Lab(
             cfg.faults_url,
@@ -240,6 +266,55 @@ class Driver:
         finally:
             self.reset = reset.result
         self.say(f"step 1 Reset: tenant {self.tenant_id}, {json.dumps(self.reset)}")
+
+    def reset_through_control(self):
+        """Step 1 with --via control: "Reset" on the control panel, then its state every 1 s until the reset's result
+        is later than the press (P-32 spec Section 6.7 item 1, BP-A-32)."""
+        cfg = self.config
+        self.control = api.Control(cfg.control_url, self.secret(cfg.demo_control, "control-password"))
+        self.control.login()
+        pressed = self.clock()
+        status, body = self.control.press("reset")
+        if status != 202:
+            reason = body.get("reason") if isinstance(body, dict) else None
+            raise api.Failed(f"Reset was refused: {reason}" if reason else f"Reset answered HTTP {status}.")
+
+        def finished():
+            last = (self.control.state() or {}).get("last_result")
+            if isinstance(last, dict) and last.get("operation") == "Reset" and last.get("finished_at"):
+                return last if checks.epoch(last["finished_at"]) > pressed else None
+            return None
+
+        last = self.until(finished, pressed + CONTROL_RESET_LIMIT, f"{CONTROL_RESET_LIMIT} s", CONTROL_EVERY)
+
+        def number(key):
+            return float(last[key]) if last.get(key) is not None else None
+
+        self.reset = {
+            "branch_a_seconds": number("branch_a_seconds"),
+            "quiet_seconds": number("quiet_seconds"),
+            "branch_b_seconds": number("branch_b_seconds"),
+            "total_seconds": number("seconds"),
+        }
+        if last.get("outcome") != "completed":
+            raise api.Failed(f"The control panel's reset failed: {last.get('error')}")
+        self.say(f"step 1 Reset: through the control panel, {json.dumps(self.reset)}")
+
+    def storm_through_control(self):
+        """Step 4 with --via control: the storm button (T0 = the press), then the state every 1 s until SL-F-1 and
+        SL-F-3 are active (P-32 spec Section 6.7 item 1)."""
+        self.data.t0 = self.clock()
+        status, body = self.control.press("storm")
+        if status != 202:
+            reason = body.get("reason") if isinstance(body, dict) else None
+            raise api.Failed(f"Storm was refused: {reason}" if reason else f"Storm answered HTTP {status}.")
+
+        def active():
+            faults = {a.get("fault") for a in (self.control.state() or {}).get("active") or [] if isinstance(a, dict)}
+            return {"SL-F-1", "SL-F-3"} <= faults
+
+        self.until(active, self.data.t0 + CONTROL_STORM_LIMIT, f"T0 + {CONTROL_STORM_LIMIT} s", CONTROL_EVERY)
+        self.say(f"step 4 Storm: the storm button pressed, SL-F-1 and SL-F-3 active (T0 {iso(self.data.t0)})")
 
     def step2_starting_state(self):
         cfg = self.config
@@ -269,6 +344,9 @@ class Driver:
             self.say("step 3 Script start: mode immediate follows no script clock")
 
     def step4_storm(self):
+        if self.config.via == "control":
+            self.storm_through_control()
+            return
         lab = api.Lab(self.config.faults_url, "", "", self.secret(self.config.demo_control, "faults-token"), "", "")
         self.data.t0 = self.clock()
         for fault in ("SL-F-1", "SL-F-3"):
@@ -340,23 +418,29 @@ class Driver:
         return body if status == 200 else None
 
     def acknowledged_on_page(self, link):
-        """Step 6 with --acts pages: AR-I-32 as noc-l1 every 2 s until the acknowledgement made on the page."""
+        """Step 6 with --acts pages: AR-I-32 as noc-l1 every 2 s until the acknowledgement made on the page; in mode
+        script the limit counts from the script's time (P-32 spec Section 6.7 item 3)."""
         d = self.data
         self.say(f"step 6 Acknowledge: waiting for the page at {link}")
+        start = self.clock()
+        if self.config.mode == "script":
+            self.say("acknowledge at 07:30 (T0 + 390 s)")
+            start = max(start, d.t0 + SCRIPT_ACK_AT)
         path = f"/api/v1/incidents/{d.storm_id}/acknowledgement"
 
         def acknowledged():
             page = self.read_as("noc-l1", path)
             return page if page and page.get("acknowledged") is not None else None
 
-        d.ack_after = self.until(acknowledged, self.clock() + PAGES_LIMIT, f"{PAGES_LIMIT} s")
+        d.ack_after = self.until(acknowledged, start + PAGES_LIMIT, f"{PAGES_LIMIT} s")
         d.ack_answer = d.ack_after["acknowledged"]
         self.ack_done_at = self.clock()
         self.say(f"step 6 Acknowledge: {link} at {d.ack_answer.get('at')}")
 
     def approved_on_page(self):
-        """Step 7 with --acts pages: the run's first request in any state, then AR-I-34 until it is approved."""
-        d = self.data
+        """Step 7 with --acts pages: the run's first request in any state, then AR-I-34 until it is approved; in mode
+        script the request's link by 09:30 and the limit from the script's time (P-32 spec Section 6.7 item 3)."""
+        d, script = self.data, self.config.mode == "script"
         storm = d.storm_id
 
         def first():
@@ -371,17 +455,27 @@ class Driver:
                 return None
             return request_id
 
-        d.request_id = self.until(first, self.ack_done_at + APPROVAL_LIMIT, f"{APPROVAL_LIMIT} s")
+        if script:
+            try:
+                d.request_id = self.until(first, d.t0 + SCRIPT_APPROVE_LATEST, f"T0 + {SCRIPT_APPROVE_LATEST} s")
+            except WaitLimit:
+                raise ScriptAbort("the script can be followed: Approval link by 09:30") from None
+        else:
+            d.request_id = self.until(first, self.ack_done_at + APPROVAL_LIMIT, f"{APPROVAL_LIMIT} s")
         d.approval_read_at = self.clock()
         link = f"{self.config.base_url}/m/approve/{d.request_id}"
         self.say(f"step 7 Approve: waiting for the page at {link}")
+        start = d.approval_read_at
+        if script:
+            self.say("approve at 09:00 (T0 + 480 s)")
+            start = max(start, d.t0 + SCRIPT_APPROVE_AT)
         path = f"/api/v1/approval-requests/{d.request_id}"
 
         def approved():
             page = self.read_as("dbops-engineer", path)
             return page if page and page.get("state") == "approved" else None
 
-        d.approval_page = self.until(approved, d.approval_read_at + PAGES_LIMIT, f"{PAGES_LIMIT} s")
+        d.approval_page = self.until(approved, start + PAGES_LIMIT, f"{PAGES_LIMIT} s")
         decided = d.approval_page.get("decided") or {}
         d.decision = {"state": d.approval_page.get("state"), "user": decided.get("user"), "at": decided.get("at")}
         self.decided_at = self.clock()
@@ -501,7 +595,7 @@ class Driver:
             try:
                 d.teams_calls = self.teams_calls()[self.teams_seen :]
                 d.mail = self.new_mail()
-                status, issues = api.call_json("GET", f"{self.config.jira_fake_url}/_fakes/issues")
+                status, issues = api.call_json("GET", f"{self.config.jira_url}/_fakes/issues")
                 if status != 200 or not isinstance(issues, list):
                     raise api.Unreachable(f"Jira fake issues answered HTTP {status}")
                 d.jira_issues = issues
@@ -510,16 +604,18 @@ class Driver:
         try:
             d.past_rows = checks.past_incidents(self.config.data / "09-past-incidents.csv")
             if self.config.mode == "script" and self.config.profile == "demo":
-                d.dev_values = checks.development_values(self.config.data / "10-lab-and-faults.yaml")
-        except OSError as error:
+                if self.config.measured:
+                    d.dev_values = checks.measured_values(self.config.measured)
+                else:
+                    d.dev_values = checks.development_values(self.config.data / "10-lab-and-faults.yaml")
+        except (OSError, ValueError) as error:
             problems.append(str(error))
         return problems
 
     def times(self):
         d = self.data
-        result = {
-            key: None for key in ("SB-TL-01", "SB-TL-02", "SB-TL-04", "SB-TL-06", "SB-TL-07", "SB-TL-08", "SB-TL-10")
-        }
+        keys = ("SB-TL-01", "SB-TL-02", "SB-TL-03", "SB-TL-04", "SB-TL-06", "SB-TL-07", "SB-TL-08", "SB-TL-10")
+        result = {key: None for key in keys}
         if d.t0 is None:
             return result
 
@@ -530,12 +626,24 @@ class Driver:
         if alerts:
             result["SB-TL-01"] = round(max(checks.epoch(a["fired_at"]) for a in alerts) - d.t0, 3)
         result["SB-TL-02"] = after(((d.storm.get("timeline") or {}).get("stable_grouping") or {}).get("stable_at"))
+        # SB-TL-03: the last diagnostic result collected (P-32, for AR-SP-03).
+        collected = [
+            e.get("collected_at")
+            for e in (d.storm.get("evidence") or {}).get("entries") or []
+            if e.get("kind") == "diagnostic_result" and e.get("collected_at")
+        ]
+        result["SB-TL-03"] = round(max(checks.epoch(at) for at in collected) - d.t0, 3) if collected else None
         if d.teams_calls is not None:
             messages = [m for m in (checks.teams_message(c) for c in d.teams_calls) if m is not None]
             first = checks.holding(messages, "Acknowledge: ", f"/m/acknowledge/{d.storm_id}")
             result["SB-TL-04"] = after(first[0].at) if first and d.storm_id else None
             approvals = checks.holding(messages, "Approve or reject: ", f"/m/approve/{d.request_id}")
             result["SB-TL-07"] = after(approvals[0].at) if approvals and d.request_id else None
+        else:
+            # Deliveries checklist (P-32, for AR-SP-03): the messages are sent when the step after them starts.
+            steps = ((d.storm.get("run") or {}).get("run") or {}).get("step_executions") or []
+            waits = [s.get("started_at") for s in steps if s.get("step_id") == "s-wait-ack" and s.get("started_at")]
+            result["SB-TL-04"] = after(waits[0]) if waits else None
         result["SB-TL-06"] = after((d.ack_answer or {}).get("at"))
         executions = (d.storm.get("response") or {}).get("executions") or []
         result["SB-TL-08"] = after(executions[0].get("finished_at")) if executions else None
@@ -622,6 +730,7 @@ class Driver:
             "times": self.times(),
             "investigation": d.results.get("investigation", {"runbooks_cited": None, "likely_cause": None}),
             "checklist": self.checklist,
+            "measured": Path(self.config.measured).name if self.config.measured else None,
             "checks": all_checks,
             "not_run": not_run,
             "passed": passed,
@@ -637,8 +746,8 @@ def main(arguments, config=None, **driver_options):
     if parsed is None:
         print(USAGE)
         return 2
-    mode, deliveries, acts = parsed
-    return Driver(config or Config(mode, deliveries, acts=acts), **driver_options).run()
+    mode, deliveries, acts, via, measured = parsed
+    return Driver(config or Config(mode, deliveries, acts=acts, via=via, measured=measured), **driver_options).run()
 
 
 if __name__ == "__main__":

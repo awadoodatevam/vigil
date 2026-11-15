@@ -136,6 +136,10 @@ aws ec2 wait instance-stopped --instance-ids {instance id}
 
 From P-32 the main host runs always (AR-H-01).
 
+## The demo installation with Vigil (P-32)
+
+The owner-run steps of P-32 (`docs/packages/P-32.md` Section 6.11) deploy every unit of the main host: `deploy/edge.sh demo` once more (the ECR repositories `demo/dev-recorder` and `demo/storm-spike`); `deploy/build.sh p32-1` on the Mac (the JARs, then the seven images); `deploy/deploy.sh demo p32-1 --spike` and `spikes/storm-timing/main-host.sh demo p32-1` (SB-T-01 with the webhook recorder in place of `vigil-app`); `deploy/deploy.sh demo p32-1` (Vigil; the recorder is removed); then the checks and runs of `tests/acceptance/demo-host/`. After the merge `release.yml` builds the next release on `main`.
+
 ## The order of the first deployment
 
 1. The prerequisites above; BP-OT-09 (request the quota when it is lower than 4).

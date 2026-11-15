@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# The deployment sequence on the main host (AR-H-11; P-05 spec Section 6.8), run as root by host-fetch.sh from the
-# files in {VIGIL_ROOT}/deploy/: .env, compose check, secrets, pull, start, provision, generated secrets, the rest,
-# deployed.yaml and the models check.
-#   host-deploy.sh {installation} {release} {registry}
+# The deployment sequence on the main host (AR-H-11; P-05 spec Section 6.8, P-32 spec Section 6.4), run as root by
+# host-fetch.sh from the files in {VIGIL_ROOT}/deploy/: .env, the lab's folders and Alertmanager configuration,
+# compose check, secrets, pull, start, provision, generated secrets, the rest, deployed.yaml and the models check.
+# The compose profile is vigil (vigil-app, demo-control) or spike (the webhook recorder, CTX-D-095 (2)).
+#   host-deploy.sh {installation} {release} {registry} {profile}
 set -euo pipefail
 
 export AWS_REGION=us-east-1
@@ -19,14 +20,67 @@ pause() {
 installation=$1
 release=$2
 registry=$3
+profile=$4
 cd "$DEPLOY"
 
 compose() {
   docker compose -p vigil -f compose.yaml --env-file .env "$@"
 }
 
+# Prints a value of the values file: the text after "{name}: ", quotes removed; nothing when it is missing.
+value_of() {
+  awk -v prefix="$1: " 'index($0, prefix) == 1 {
+    value = substr($0, length(prefix) + 1); sub(/[ \t]+$/, "", value)
+    if (value ~ /^".*"$/) { value = substr(value, 2, length(value) - 2) }
+    print value; exit
+  }' "values/$installation.yaml" 2> /dev/null || true
+}
+
 # Step 1.
-printf 'VIGIL_REGISTRY=%s\nVIGIL_RELEASE=%s\nVIGIL_INSTALLATION=%s\n' "$registry" "$release" "$installation" > .env
+demo_domain=$(value_of demo_domain)
+webhook_base_url=$(value_of webhook_base_url)
+lab_profile=$(value_of lab_profile)
+for name in demo_domain webhook_base_url lab_profile; do
+  if [ -z "$(value_of "$name")" ]; then
+    echo "The value $name is missing in values/$installation.yaml."
+    exit 1
+  fi
+done
+{
+  printf 'VIGIL_REGISTRY=%s\nVIGIL_RELEASE=%s\nVIGIL_INSTALLATION=%s\n' "$registry" "$release" "$installation"
+  printf 'COMPOSE_PROFILES=%s\nVIGIL_DEMO_DOMAIN=%s\n' "$profile" "$demo_domain"
+  printf 'VIGIL_WEBHOOK_BASE_URL=%s\nVIGIL_LAB_PROFILE=%s\n' "$webhook_base_url" "$lab_profile"
+} > .env
+
+# Step 1a: the lab's folders and Alertmanager's configuration with webhook_base_url (as deploy/local.sh writes it);
+# with the profile spike also the recorder's folder.
+root=no
+if [ "$(id -u)" -eq 0 ]; then
+  root=yes
+fi
+if [ ! -d "$VIGIL_ROOT/generated" ]; then
+  mkdir -m 0700 "$VIGIL_ROOT/generated"
+  if [ "$root" = yes ]; then
+    chown 10001 "$VIGIL_ROOT/generated"
+  fi
+fi
+if [ ! -d "$VIGIL_ROOT/config" ]; then
+  mkdir -m 0755 "$VIGIL_ROOT/config"
+fi
+if [ "$profile" = spike ] && [ ! -d "$VIGIL_ROOT/spike/recordings" ]; then
+  mkdir -p "$VIGIL_ROOT/spike"
+  mkdir -m 0755 "$VIGIL_ROOT/spike/recordings"
+  if [ "$root" = yes ]; then
+    chown 10001 "$VIGIL_ROOT/spike/recordings"
+  fi
+fi
+awk -v url="$webhook_base_url" '{
+  out = ""; rest = $0
+  while ((i = index(rest, "${webhook_base_url}")) > 0) { out = out substr(rest, 1, i - 1) url; rest = substr(rest, i + 19) }
+  print out rest
+}' monitoring/alertmanager/alertmanager.yml > "$VIGIL_ROOT/config/.alertmanager.yml.tmp"
+chmod 0644 "$VIGIL_ROOT/config/.alertmanager.yml.tmp"
+mv -f "$VIGIL_ROOT/config/.alertmanager.yml.tmp" "$VIGIL_ROOT/config/alertmanager.yml"
 
 # Step 2 (AR-T-18).
 if ! compose config --quiet; then
@@ -42,16 +96,22 @@ aws ecr get-login-password | docker login --username AWS --password-stdin "$regi
 compose pull --quiet
 docker logout "$registry"
 
-# Step 6: every service except vigil-app and demo-control; containers of services that left the file are removed.
+# Step 6: the containers of the other profile's services are removed; then every service except vigil-app and
+# demo-control starts; containers of services that left the file are removed.
+if [ "$profile" = spike ]; then
+  compose --profile vigil rm -s -f vigil-app demo-control
+else
+  compose --profile spike rm -s -f dev-recorder
+fi
 services=$(compose config --services)
-first=$(printf '%s\n' "$services" | grep -vx -e vigil-app -e demo-control || true)
+first=$(grep -vx -e vigil-app -e demo-control <<< "$services" || true)
 if [ -n "$first" ]; then
   # shellcheck disable=SC2086 # one word per service
   compose up -d --remove-orphans $first
 fi
 
 # Step 7 (BP-A-19).
-if printf '%s\n' "$services" | grep -qx lab-zabbix-provision; then
+if grep -qx lab-zabbix-provision <<< "$services"; then
   code=$(docker wait lab-zabbix-provision)
   if [ "$code" != 0 ]; then
     echo "lab-zabbix-provision ended with exit code $code."
@@ -62,9 +122,9 @@ fi
 # Step 8.
 bash "$DEPLOY/secrets.sh" "$installation" --generated
 
-# Step 9.
-rest=$(printf '%s\n' "$services" | grep -x -e vigil-app -e demo-control || true)
-if [ -n "$rest" ]; then
+# Step 9 (nothing with the profile spike).
+rest=$(grep -x -e vigil-app -e demo-control <<< "$services" || true)
+if [ "$profile" != spike ] && [ -n "$rest" ]; then
   # shellcheck disable=SC2086 # one word per service
   compose up -d $rest
 fi
@@ -120,7 +180,7 @@ while read -r model unit recorded <&3; do
   case "$model" in
     "" | "#"*) continue ;;
   esac
-  if ! printf '%s\n' "$containers" | grep -qx "$unit"; then
+  if ! grep -qx "$unit" <<< "$containers"; then
     continue
   fi
   address=$(docker inspect --format '{{with index .NetworkSettings.Networks "vigil-net"}}{{.IPAddress}}{{end}}' "$unit" < /dev/null)

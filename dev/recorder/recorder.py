@@ -134,6 +134,8 @@ def make_handler(recordings, tokens, log):
             url = urlsplit(self.path)
             if url.path == "/_recorder/health":
                 self._send(200, {"ok": True})
+            elif url.path == "/actuator/health/liveness":
+                self._send(200, {"status": "UP"})
             elif url.path == "/_recorder/calls":
                 after = parse_qs(url.query).get("after", ["0"])[0]
                 self._send(200, recordings.after(int(after) if after.isdigit() else 0))

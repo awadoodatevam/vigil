@@ -37,7 +37,26 @@ COPIED = [
     "deploy/status.sh",
     "deploy/gpu.sh",
     "deploy/models.sh",
+    "deploy/fetch.sh",
+    "deploy/db",
+    "demo/monitoring/prometheus",
+    "demo/monitoring/alertmanager",
+    "docs/31-demo-data/README.md",
+    "docs/31-demo-data/01-tenant-identity.yaml",
+    "docs/31-demo-data/02-service-map.yaml",
+    "docs/31-demo-data/03-monitoring.yaml",
+    "docs/31-demo-data/04-operations-actions-recovery.yaml",
+    "docs/31-demo-data/05-routing-escalation.yaml",
+    "docs/31-demo-data/06-workflow.yaml",
+    "docs/31-demo-data/07-settings.yaml",
+    "docs/31-demo-data/08-runbooks.md",
+    "docs/31-demo-data/09-past-incidents.csv",
+    "docs/31-demo-data/10-lab-and-faults.yaml",
 ]
+# The Maven wrapper of the temporary root (P-32): records its arguments in the fakes' log.
+MVNW_STUB = """#!/usr/bin/env bash
+printf '{"command": "mvnw", "args": [%s]}\\n' "$(printf '"%s",' "$@" | sed 's/,$//')" >> "$FAKE_LOG"
+"""
 
 
 def search_path():
@@ -70,6 +89,8 @@ class Harness:
                 shutil.copytree(source, target)
             else:
                 shutil.copy2(source, target)
+        (self.root / "mvnw").write_text(MVNW_STUB)
+        (self.root / "mvnw").chmod(0o755)
         self.vigil_root.mkdir()
         self.log_path.write_text("")
         self.seed()
