@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 50-architecture (ID prefix `AR-`) |
-| Version | 1.10 |
-| Date | 10 November 2026 |
+| Version | 1.11 |
+| Date | 15 November 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 5 closed. Amended by Round 6 (`60-build-plan` BP-A-01 to BP-A-10, BP-A-15, BP-A-16) and during the build (BP-A-17, BP-A-19, BP-A-20, BP-A-21, BP-A-22, BP-A-23, BP-A-24, BP-A-29, BP-A-30). |
+| Status | Baseline (owner reviewed). Round 5 closed. Amended by Round 6 (`60-build-plan` BP-A-01 to BP-A-10, BP-A-15, BP-A-16) and during the build (BP-A-17, BP-A-19, BP-A-20, BP-A-21, BP-A-22, BP-A-23, BP-A-24, BP-A-29, BP-A-30, BP-A-31). |
 
 ## 1. Purpose
 
@@ -691,7 +691,7 @@ Unit tests per module (JUnit 5); module tests with Spring Modulith's module test
 
 | ID | Spike | Pass condition | Proves |
 | --- | --- | --- | --- |
-| AR-SP-01 | Live updates through the load balancer, from Pakistan | A test page on `demo.${demo_domain}`, opened in a browser in Pakistan, receives 200 notices sent over 10 minutes, each within 1 s of the server's send time; a stream idle for 5 minutes stays open with 15-second heartbeats; after the server closes it at 300 s the browser reconnects within 5 s; the load balancer reaches `vigil-app` through the published port, and a lab container cannot open a connection to `vigil-app` except through the public name (AR-S-08). | AR-ASM-03; AR-I-04 |
+| AR-SP-01 | Live updates through the load balancer, from Pakistan | A test page on `demo.${demo_domain}`, opened in a browser in Pakistan, receives 200 notices sent over 10 minutes, each within 1 s of the server's send time (with `vigil-app`: a page of `vigil-web` with the streams of a storm, the delay measured against the fastest notice; amendment `60-build-plan` BP-A-31); a stream idle for 5 minutes stays open with 15-second heartbeats; after the server closes it at 300 s the browser reconnects within 5 s; the load balancer reaches `vigil-app` through the published port, and a lab container cannot open a connection to `vigil-app` except through the public name (AR-S-08). | AR-ASM-03; AR-I-04 |
 | AR-SP-02 | Email from Amazon SES to Techfinity's shared mailboxes | 10 messages to each of 2 shared mailboxes arrive in the inbox (not junk) within 60 s each, with every line and the link intact. | AR-ASM-04; AR-K-20 |
 | AR-SP-03 | Main host capacity | During 3 storms of SB-T-01 with `vigil-app` processing them, host CPU stays at or below 80% and memory at or below 85%, averaged over each 10 s, and SB-TL-02 to SB-TL-04 hold. | AR-ASM-05; AR-H-01 |
 | SB-T-01 | Lab storm timing (Round 3), extended | Also: the Zabbix connection test of AR-K-01 passes with a bearer API token on Zabbix 7.0.12 or later; Zabbix messages have the keys of Section 12.3 with `tags` as an array; Alertmanager accepts the basic authentication of AR-X-02, Prometheus sends its alerts with basic authentication, and Alertmanager sends the bearer token of Section 12.4; every webhook call passes the load balancer to `vigil-app`. | AR-K-01, AR-K-02; AR-ASM-07 |
@@ -971,3 +971,4 @@ Carried open items still open: CTX-O-01, CTX-O-05; SL-O-19; SB-O-03; DD-O-03.
 | 1.8 | 21 Oct 2026 | Build amendment `60-build-plan` BP-A-24 (CTX-D-045): AR-B-06 refuses any tag written in the file, names the complete list of parser messages, and applies to seed part 5. |
 | 1.9 | 3 Nov 2026 | Build amendment `60-build-plan` BP-A-29 (owner decision CTX-D-060): the secret `jira` carries the token's expiry date `expires_on` (AR-S-13, AR-K-04); `deploy/secrets.sh` prints it, asks for the renewal fewer than 30 days before it, and stops on a missing, invalid or past date (AR-H-07); the Status line lists BP-A-29. |
 | 1.10 | 10 Nov 2026 | Build amendment `60-build-plan` BP-A-30 (owner decision CTX-D-062): AR-TM-01 gives batched embedding calls (more than one text) 90 s; a call with one text keeps 30 s; AR-R-09 inserts an immutable record once after the call. |
+| 1.11 | 15 Nov 2026 | Build amendment `60-build-plan` BP-A-31 (owner decision CTX-D-095): AR-SP-01 with `vigil-app` runs on a page of `vigil-web` during a storm and measures each notice's delay against the fastest notice. |
