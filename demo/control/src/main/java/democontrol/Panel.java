@@ -37,6 +37,7 @@ class Panel {
   private LastResult last;
 
   private Button running;
+  private long generation;
   private Instant runStarted;
   private boolean labClear;
   private boolean vigilReady;
@@ -65,6 +66,11 @@ class Panel {
 
   synchronized boolean connected() {
     return labAnswered && vigilAnswered;
+  }
+
+  /** Counts the accepted "Clear all faults" and "Reset" presses (spec 6.4 item 3). */
+  synchronized long generation() {
+    return generation;
   }
 
   synchronized boolean operationRunning() {
@@ -119,6 +125,7 @@ class Panel {
       stormLabel = button.label;
     }
     if (button == Button.CLEAR || button == Button.RESET) {
+      generation++;
       running = button;
       runStarted = now;
       labClear = false;

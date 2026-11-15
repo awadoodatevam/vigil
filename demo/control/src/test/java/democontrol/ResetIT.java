@@ -326,4 +326,63 @@ class ResetIT {
     assertThat(Wiring.SETTLE).isEqualTo(Duration.ofSeconds(12));
     assertThat(Wiring.LIMIT).isLessThan(Duration.ofSeconds(60));
   }
+
+  @Test
+  @DisplayName("AR-B-03 an unexpected error in a branch fails the reset and frees the panel")
+  void unexpectedError() throws Exception {
+    fixture(Duration.ofSeconds(2)).faultsAnswer().labReads(0).vigilAnswers(Fixture.succeeded());
+    Lab broken =
+        new Lab(fixture.settings, fixture.secrets) {
+          @Override
+          Counts read() {
+            throw new IllegalArgumentException("bad read");
+          }
+        };
+    Operations operations =
+        new Operations(
+            fixture.panel,
+            broken,
+            fixture.vigilClient,
+            fixture.settings.values(),
+            fixture.clock,
+            Duration.ofSeconds(2),
+            Duration.ofMillis(200));
+    assertThat(operations.press(Button.RESET.key).refusal()).isNull();
+    LastResult result = fixture.awaitResult("Reset", Duration.ofSeconds(10));
+    assertThat(result.error()).isEqualTo("Unexpected error: IllegalArgumentException: bad read");
+    assertThat(fixture.panel.operationRunning()).isFalse();
+    assertThat(requests(fixture.vigil)).noneMatch(r -> r.getUrl().equals(ALIAS));
+
+    // a branch that never answers: the reset ends at the limit plus 5 s and stops the branches.
+    Vigil stuck =
+        new Vigil(fixture.settings, fixture.secrets) {
+          @Override
+          String createTenant(String name, Duration timeout) {
+            long end = System.nanoTime() + Duration.ofSeconds(12).toNanos();
+            while (System.nanoTime() < end) {
+              try {
+                Thread.sleep(50);
+              } catch (InterruptedException e) {
+                // keeps not answering
+              }
+            }
+            return Fixture.TENANT;
+          }
+        };
+    operations =
+        new Operations(
+            fixture.panel,
+            fixture.labClient,
+            stuck,
+            fixture.settings.values(),
+            fixture.clock,
+            Duration.ofSeconds(2),
+            Duration.ofMillis(200));
+    assertThat(operations.press(Button.RESET.key).refusal()).isNull();
+    result = fixture.awaitResult("Reset", Duration.ofSeconds(15));
+    assertThat(result.error()).isEqualTo("Reset did not finish within 7 s.");
+    assertThat(result.seconds()).isBetween(new BigDecimal("7.0"), new BigDecimal("8.0"));
+    assertThat(fixture.panel.operationRunning()).isFalse();
+    assertThat(fixture.panel.refusal(Button.RESET)).isNull();
+  }
 }

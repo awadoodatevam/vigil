@@ -195,6 +195,7 @@ class CloudCut:
         self.resolver = resolver
         self.log = log or (lambda line: print(line, flush=True))
         self.addresses = []
+        self.attempted = []
 
     def program(self):
         """The iptables program whose DOCKER-USER chain exists (Docker's backend on the host decides)."""
@@ -236,10 +237,12 @@ class CloudCut:
 
     def add_new(self):
         """Blocks every resolved address that is not blocked yet; True when one was added."""
+        self.attempted = []
         program = self.program()
         added = False
         for address in self.resolved():
             if address not in self.addresses:
+                self.attempted.append(address)
                 self.block(program, address)
                 self.addresses.append(address)
                 self.log(f"SL-F-4: blocked {address}")
@@ -257,11 +260,22 @@ class CloudCut:
         """Removes the rules of the stored addresses while -C finds them; the addresses are forgotten."""
         program = self.program()
         for address in list(self.addresses):
-            for source in SOURCES:
-                rule = self.rule(source, address)
-                while self.host([program, "-C", "DOCKER-USER", *rule])[0] == 0:
-                    self._must([program, "-D", "DOCKER-USER", *rule])
+            self._remove(program, address)
             self.addresses.remove(address)
+
+    def undo(self):
+        """After a failed inject: the rules of the addresses it tried are removed and the addresses forgotten."""
+        program = self.program()
+        for address in self.attempted:
+            self._remove(program, address)
+        self.addresses = [address for address in self.addresses if address not in self.attempted]
+        self.attempted = []
+
+    def _remove(self, program, address):
+        for source in SOURCES:
+            rule = self.rule(source, address)
+            while self.host([program, "-C", "DOCKER-USER", *rule])[0] == 0:
+                self._must([program, "-D", "DOCKER-USER", *rule])
 
 
 class Faults:
@@ -345,13 +359,24 @@ class Faults:
                     self.stop_loop = None
                 self.cloud.clear()
         except ChainNotFound:
+            self._undo(which)
             return f"{CLOUD} {which} failed: the DOCKER-USER chain was not found"
         except CommandFailed as failure:
             self.log(failure.output.rstrip("\n"))
+            self._undo(which)
             return f"{CLOUD} {which} failed ({failure.describe()}"
         if which == "inject":
             self._start_loop()
         return None
+
+    def _undo(self, which):
+        """A failed SL-F-4 inject leaves no rule (P-31 review item 4); a failure of the undo is logged."""
+        if which != "inject":
+            return
+        try:
+            self.cloud.undo()
+        except (CommandFailed, ChainNotFound) as error:
+            self.log(f"SL-F-4 undo failed{_describe(error)}")
 
     def inject(self, fault):
         with self.lock:

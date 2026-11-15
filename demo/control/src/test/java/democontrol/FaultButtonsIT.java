@@ -121,4 +121,27 @@ class FaultButtonsIT {
         () -> fixture.lastResult().error().startsWith("demo-faults: "), Duration.ofSeconds(10));
     assertThat(active()).containsExactly("SL-F-4");
   }
+
+  @Test
+  @DisplayName(
+      "SL-A3-02 a clear pressed during a storm button's injects stops the remaining injects")
+  void clearStopsInjects() {
+    fixture.labReads(0);
+    fixture.lab.stubFor(
+        post(urlEqualTo("/faults/SL-F-1/inject"))
+            .willReturn(okJson("{\"active\":[\"SL-F-1\"]}").withFixedDelay(1000)));
+    fixture.lab.stubFor(post(urlEqualTo("/faults/clear")).willReturn(okJson("{\"active\":[]}")));
+    fixture.lab.stubFor(
+        post(urlEqualTo("/faults/SL-F-3/inject")).willReturn(okJson("{\"active\":[\"SL-F-3\"]}")));
+    assertThat(fixture.operations.press(Button.STORM.key).refusal()).isNull();
+    Fixture.until(() -> faultCalls().size() == 1, Duration.ofSeconds(2));
+    assertThat(fixture.operations.press(Button.CLEAR.key).refusal()).isNull();
+    LastResult result = fixture.awaitResult("Clear all faults", Duration.ofSeconds(5));
+    assertThat(result.completed()).isTrue();
+    Fixture.sleep(Duration.ofMillis(500));
+    assertThat(faultCalls()).containsExactly("/faults/SL-F-1/inject", "/faults/clear");
+    // the storm button's stop is not a failure: the last result stays the clear's.
+    assertThat(fixture.lastResult().operation()).isEqualTo("Clear all faults");
+    assertThat(active()).isEmpty();
+  }
 }

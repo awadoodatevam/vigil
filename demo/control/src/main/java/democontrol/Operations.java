@@ -69,6 +69,7 @@ class Operations {
     if (button == null) {
       return new Press(false, null);
     }
+    long generation = panel.generation();
     String refusal = panel.accept(button);
     if (refusal != null) {
       return new Press(true, refusal);
@@ -78,7 +79,7 @@ class Operations {
     switch (button) {
       case CLEAR -> threads.execute(() -> clear(panel.runStarted()));
       case RESET -> threads.execute(() -> reset(panel.runStarted()));
-      default -> threads.execute(() -> inject(button, started));
+      default -> threads.execute(() -> inject(button, started, generation));
     }
     return new Press(true, null);
   }
@@ -99,12 +100,31 @@ class Operations {
     return new LastResult(operation, outcome, now, since(started), a, quiet, b, error);
   }
 
-  private void inject(Button button, Instant started) {
-    for (String fault : button.faults.stream().sorted().toList()) {
+  /** The error text of an unexpected exception. */
+  static String unexpected(RuntimeException e) {
+    String message = e.getMessage();
+    String name = e.getClass().getSimpleName();
+    return "Unexpected error: "
+        + (message == null || message.isEmpty() ? name : name + ": " + message);
+  }
+
+  private void inject(Button button, Instant started, long generation) {
+    List<String> faults = button.faults.stream().sorted().toList();
+    for (int index = 0; index < faults.size(); index++) {
+      if (index > 0 && panel.generation() != generation) {
+        LOG.info("{} stopped: a later Clear all faults or Reset was accepted", button.label);
+        return;
+      }
+      String error = null;
       try {
-        lab.inject(fault);
+        lab.inject(faults.get(index));
       } catch (Failed e) {
-        LastResult result = result(button.label, started, null, null, null, e.getMessage());
+        error = e.getMessage();
+      } catch (RuntimeException e) {
+        error = unexpected(e);
+      }
+      if (error != null) {
+        LastResult result = result(button.label, started, null, null, null, error);
         panel.faultButtonFailed(result);
         log(result);
         return;
@@ -120,6 +140,8 @@ class Operations {
       clear.run();
     } catch (Failed e) {
       error = e.getMessage();
+    } catch (RuntimeException e) {
+      error = unexpected(e);
     } catch (Stopped e) {
       throw new IllegalStateException(e);
     }
@@ -140,6 +162,8 @@ class Operations {
             outcomes.add("");
           } catch (Failed e) {
             outcomes.add(e.getMessage());
+          } catch (RuntimeException e) {
+            outcomes.add(unexpected(e));
           } catch (Stopped e) {
             // the reset has already failed
           }
@@ -168,9 +192,15 @@ class Operations {
           panel.branchBDone();
         });
     String error = null;
+    Duration bound = limit.plusSeconds(5);
+    Instant end = started.plus(bound);
     try {
       for (int branch = 0; branch < 2 && error == null; branch++) {
-        String outcome = outcomes.take();
+        Duration wait = until(end, end);
+        String outcome = outcomes.poll(wait.toNanos(), TimeUnit.NANOSECONDS);
+        if (outcome == null) {
+          outcome = "Reset did not finish within " + bound.toSeconds() + " s.";
+        }
         error = outcome.isEmpty() ? null : outcome;
       }
       if (error == null) {
@@ -178,6 +208,8 @@ class Operations {
       }
     } catch (Failed e) {
       error = e.getMessage();
+    } catch (RuntimeException e) {
+      error = unexpected(e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       error = "interrupted";
@@ -307,7 +339,9 @@ class Operations {
       quiet.set(since(clearedAt));
       if (clock.instant().plus(settle).isAfter(deadline)) {
         stop.sleep(left(deadline));
-        throw notQuiet(null, counts);
+        throw new Failed(
+            "The lab became quiet after %d s, too late for the %d s settle time within %d s."
+                .formatted(quiet.get().longValue(), settle.toSeconds(), limit.toSeconds()));
       }
       stop.sleep(settle);
     }

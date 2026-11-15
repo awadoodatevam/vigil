@@ -289,7 +289,10 @@ def test_zabbix(lab):
         if trigger["description"] in expected:
             expression, component = expected[trigger["description"]]
             assert trigger["expression"] == expression and ("component", component) in tags
+        elif trigger["description"].startswith("Database write errors on schema "):
+            assert "#1:now-10s" in trigger["expression"] and "now-20s" not in trigger["expression"]
         else:
+            assert trigger["description"].startswith("SMS queue growing on route ")
             assert "#1:now-20s" in trigger["expression"]
 
     media = lab.admin("mediatype.get", {"output": "extend", "filter": {"name": ["Vigil webhook"]}})

@@ -414,3 +414,25 @@ def test_no_call_to_vigil():
     text = (HERE / "faults.py").read_text()
     assert "http://" not in text and "https://" not in text
     assert "vigil.test" not in text and "8080" not in text and "/api/v1" not in text
+
+
+def test_sl_f_4_failed_inject_leaves_no_rule(tmp_path):
+    """AR-X-03 a failed SL-F-4 inject leaves no rule."""
+
+    class FailingSecond(FakeHost):
+        """conntrack fails for the second address, after the first address's rules and the first rule of the second."""
+
+        def __call__(self, command):
+            if command[0] == "conntrack" and "162.159.140.245" in command:
+                self.ran.append(command)
+                return 2, "conntrack: Operation failed\n"
+            return super().__call__(command)
+
+    host = FailingSecond()
+    made = cloud_faults(tmp_path, host)
+    status, body = made.inject("SL-F-4")
+    assert status == 500 and body["error"].startswith("SL-F-4 inject failed (exit 2): conntrack: Operation failed")
+    assert host.rules == []
+    assert any(c[1] == "-I" and "162.159.140.245/32" in c for c in host.ran)
+    assert made.cloud.addresses == [] and made.active == set() and made.stop_loop is None
+    assert not (tmp_path / "state.json").exists() or json.loads((tmp_path / "state.json").read_text()) == {"active": []}

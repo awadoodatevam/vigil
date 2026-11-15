@@ -157,5 +157,51 @@ class ClearIT {
     Fixture.until(
         () -> fixture.lastResult().error().startsWith("demo-faults: "), Duration.ofSeconds(5));
     assertThat(fixture.panel.view().get("active")).asList().hasSize(2);
+
+    // quiet after about 2 s: the 2 s settle time would end after the 3 s limit.
+    fixture.close();
+    fixture = new Fixture(folder.resolve("late"), Duration.ofSeconds(3), Duration.ofSeconds(2));
+    fixture.connected().faultsAnswer().labReads(1, 0);
+    fixture.panel.accept(Button.STORM);
+    fixture.operations.press(Button.CLEAR.key);
+    result = fixture.awaitResult("Clear all faults", Duration.ofSeconds(10));
+    assertThat(result.error())
+        .isEqualTo("The lab became quiet after 2 s, too late for the 2 s settle time within 3 s.");
+    assertThat(result.seconds()).isGreaterThanOrEqualTo(new BigDecimal("3.0"));
+  }
+
+  @Test
+  @DisplayName("DC-S12-05 an unexpected error fails Clear all faults and frees the panel")
+  void unexpectedError() throws Exception {
+    fixture = new Fixture(folder, Duration.ofSeconds(5), Duration.ofSeconds(1)).connected();
+    fixture.faultsAnswer();
+    Lab broken =
+        new Lab(fixture.settings, fixture.secrets) {
+          @Override
+          Counts read() {
+            throw new IllegalStateException("boom");
+          }
+        };
+    Operations operations =
+        new Operations(
+            fixture.panel,
+            broken,
+            fixture.vigilClient,
+            fixture.settings.values(),
+            fixture.clock,
+            Duration.ofSeconds(5),
+            Duration.ofSeconds(1));
+    fixture.panel.accept(Button.STORM);
+    assertThat(operations.press(Button.CLEAR.key).refusal()).isNull();
+    LastResult result = fixture.awaitResult("Clear all faults", Duration.ofSeconds(5));
+    assertThat(result.error()).isEqualTo("Unexpected error: IllegalStateException: boom");
+    assertThat(fixture.panel.operationRunning()).isFalse();
+    assertThat(fixture.panel.status())
+        .isEqualTo(
+            "Clear all faults failed after 0 s: Unexpected error: IllegalStateException: boom");
+    assertThat(Operations.unexpected(new IllegalStateException()))
+        .isEqualTo("Unexpected error: IllegalStateException");
+    // the panel is free: the next press starts.
+    assertThat(operations.press(Button.CUT_CLOUD_AI.key).refusal()).isNull();
   }
 }
