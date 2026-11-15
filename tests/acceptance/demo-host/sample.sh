@@ -34,7 +34,9 @@ case "$action" in
   *) usage ;;
 esac
 files=""
-for file in "$@"; do
+while [ "$#" -gt 0 ]; do
+  file=$1
+  shift
   case "$file" in
     /*) ;;
     *) file="$CALLER_DIR/$file" ;;
