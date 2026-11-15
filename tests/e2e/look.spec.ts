@@ -201,7 +201,7 @@ test("VD-S-02 the no-access page", async ({ page }) => {
   await screenshot(page, "no-access-1280");
 });
 
-test("VD-S-03 the error states", async ({ page }) => {
+test("VD-S-03 the error states", { tag: "@local" }, async ({ page }) => {
   await signIn(page, "presenter");
   await page.goto("/incidents/00000000-0000-4000-8000-000000000000");
   await expect(

@@ -1,6 +1,8 @@
 // The suite control (P-31 spec Section 6.8, CTX-D-093 (11)): the demo control panel at control.vigil.test:8090 on the
 // local installation — its login, buttons and guards, SB-T-05's "Clear all faults" after a storm and five resets in a
-// row (the first after SL-F-1 with SL-F-2), and the new tenant of a reset. Run by deploy/local.sh e2e control.
+// row (the first after SL-F-1 with SL-F-2), and the new tenant of a reset. Run by deploy/local.sh e2e control; on the
+// demo installation by tests/acceptance/demo-host/e2e.sh {installation} control, with VIGIL_CONTROL_URL and
+// VIGIL_BASE_URL (P-32 spec Section 6.8).
 import { mkdirSync, readFileSync } from "node:fs";
 import {
   expect,
@@ -11,8 +13,9 @@ import {
 } from "@playwright/test";
 import { SCREENS, password as seedPassword, screenshot } from "./helpers";
 
-const CONTROL = "http://control.vigil.test:8090";
-const VIGIL = "http://demo.vigil.test:8080";
+const CONTROL =
+  process.env.VIGIL_CONTROL_URL ?? "http://control.vigil.test:8090";
+const VIGIL = process.env.VIGIL_BASE_URL ?? "http://demo.vigil.test:8080";
 const MINUTE = 60_000;
 /** DD-F-10 storm_arrival: every storm alert within 120 s of the storm button. */
 const STORM_ARRIVAL = 120_000;

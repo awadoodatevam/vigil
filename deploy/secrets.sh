@@ -50,8 +50,9 @@ own() {
   fi
 }
 
-# The served units, one line each in the order of units.yaml: "{unit} {user} {secret} ...".
-services=$(docker compose -p vigil -f "$DEPLOY/compose.yaml" --env-file "$DEPLOY/.env" config --services)
+# The served units, one line each in the order of units.yaml: "{unit} {user} {secret} ...". The services of every
+# compose profile count: the spike deployment's recorder and storm spike read vigil-app's and demo-control's folders.
+services=$(docker compose -p vigil -f "$DEPLOY/compose.yaml" --env-file "$DEPLOY/.env" --profile "*" config --services)
 served=$(SERVICES="$services" python3 - "$DEPLOY/units.yaml" <<'PYTHON'
 import os
 import sys

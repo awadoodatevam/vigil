@@ -1,5 +1,6 @@
 """The storm driver's calls (P-27 spec Sections 6.1 and 6.2): vigil-api with sessions and the installation token,
-demo-faults, the lab's monitoring (read only), the dev fakes, Mailpit and the Jira status; the reset of AR-B-03.
+demo-faults, the lab's monitoring (read only), the dev fakes, Mailpit and the Jira status; the reset of AR-B-03; the
+demo control panel (P-32 spec Section 6.7).
 
 Standard library only (BP-R-04). No proxy of the environment is used. No secret value is printed or returned in a
 message: bearer and basic headers are built in memory from the mounted secret files.
@@ -192,6 +193,37 @@ class Lab:
             return not self.zabbix_problems() and not self.alertmanager_firing()
         except Unreachable:
             return False
+
+
+class Control:
+    """The demo control panel's JSON interface as the operator (P-31 spec Section 6.3; P-32 spec Section 6.7 item 1):
+    the sign-in, a button press and the state. The password is sent only in the sign-in's body."""
+
+    def __init__(self, base_url, password):
+        self.base_url = base_url.rstrip("/")
+        self._password = password
+        self._cookie = None
+
+    def _call(self, method, path, body=None):
+        headers = {"Cookie": self._cookie} if self._cookie else {}
+        status, response_headers, raw = request(method, self.base_url + path, body, headers)
+        return status, response_headers, parse_json(raw)
+
+    def login(self):
+        status, headers, _ = self._call("POST", "/api/session", {"username": "operator", "password": self._password})
+        if status != 204:
+            raise Failed(f"Sign-in to the control panel answered HTTP {status}.")
+        self._cookie = (headers.get("Set-Cookie") or "").split(";", 1)[0]
+
+    def press(self, key):
+        """(status, body) of POST /api/buttons/{key}."""
+        status, _, body = self._call("POST", f"/api/buttons/{key}", {})
+        return status, body
+
+    def state(self):
+        """The body of GET /api/state, or None when it does not answer 200."""
+        status, _, body = self._call("GET", "/api/state")
+        return body if status == 200 and isinstance(body, dict) else None
 
 
 def multipart(field, filename, content):

@@ -259,20 +259,24 @@ test("DC-S01-04 sign out shows You are signed out.", async ({ page }) => {
   await expect(page).toHaveURL(/\/login\?next=%2Fincidents$/);
 });
 
-test("AR-B-10 a host with no alias shows the error state", async ({ page }) => {
-  await page.goto("http://vigil-app:8080/login");
-  await expect(
-    page.getByText("Could not load this page. This address is not set up."),
-  ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
-  await expect(page.getByLabel("Username")).toHaveCount(0);
-  await expect(banner(page)).toHaveCount(0);
-  await expect(page).toHaveTitle("");
-  await page.goto("http://vigil-app:8080/incidents");
-  await expect(
-    page.getByText("Could not load this page. This address is not set up."),
-  ).toBeVisible();
-});
+test(
+  "AR-B-10 a host with no alias shows the error state",
+  { tag: "@local" },
+  async ({ page }) => {
+    await page.goto("http://vigil-app:8080/login");
+    await expect(
+      page.getByText("Could not load this page. This address is not set up."),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
+    await expect(page.getByLabel("Username")).toHaveCount(0);
+    await expect(banner(page)).toHaveCount(0);
+    await expect(page).toHaveTitle("");
+    await page.goto("http://vigil-app:8080/incidents");
+    await expect(
+      page.getByText("Could not load this page. This address is not set up."),
+    ).toBeVisible();
+  },
+);
 
 test("AR-W-01 / opens the incident list", async ({ page }) => {
   await signIn(page, "presenter");

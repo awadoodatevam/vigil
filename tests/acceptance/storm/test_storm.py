@@ -139,6 +139,9 @@ class World:
         self.clear_event = None
         self.tenant_event = None
         self.csrf = "csrf-value-for-tests"
+        self.control_presses = []
+        self.control_active = []
+        self.control_outcome = "completed"
 
     # Times
     def t(self, seconds):
@@ -617,10 +620,49 @@ class World:
         report_issue = {**storm_issue, "id": "10002", "key": "NOC-2", "status": "To Do", "comments": []}
         return [storm_issue, report_issue] if self.notified() else []
 
+    # The demo control panel (P-32 spec Section 6.7): a reset takes 15 s.
+    def control_state(self):
+        last = None
+        resets = [at for key, at in self.control_presses if key == "reset"]
+        if resets and self.clock.time() >= resets[-1] + 15:
+            failed = self.control_outcome != "completed"
+            last = {
+                "operation": "Reset",
+                "outcome": self.control_outcome,
+                "finished_at": iso(resets[-1] + 15),
+                "seconds": 15.004,
+                "branch_a_seconds": 14.2,
+                "quiet_seconds": 2.1,
+                "branch_b_seconds": None if failed else 3.5,
+                "error": "Branch B: the seed import ended failed." if failed else None,
+            }
+        active = [{"fault": fault, "name": fault, "since": iso(self.injected_at)} for fault in self.control_active]
+        return {"product": "Techfinity", "active": active, "status": "Idle", "last_result": last}
+
+    def control_answer(self, method, clean, headers, body):
+        if clean == "/api/session" and method == "POST":
+            ok = body == {"username": "operator", "password": "control-password-value"}
+            return (204, None) if ok else (401, {})
+        if headers.get("Cookie") != "control_session=control-session-value":
+            return 401, {}
+        if clean == "/api/state" and method == "GET":
+            return 200, self.control_state()
+        if match := re.fullmatch(r"/api/buttons/([a-z-]+)", clean):
+            if method != "POST" or headers.get("Content-Type") != "application/json" or body != {}:
+                return 400, {}
+            self.control_presses.append((match.group(1), self.clock.time()))
+            if match.group(1) == "storm":
+                self.injected_at = self.clock.time()
+                self.control_active = ["SL-F-1", "SL-F-3"]
+            return 202, {}
+        return 404, {}
+
     # HTTP
     def answer(self, method, path, headers, body):
         self.calls.append((method, path, self.clock.time()))
         clean = path.split("?")[0]
+        if clean == "/api/session" or clean == "/api/state" or clean.startswith("/api/buttons/"):
+            return self.control_answer(method, clean, headers, body)
         if clean == "/faults/clear":
             if self.clear_event is not None:
                 self.tenant_event.wait(5)
@@ -712,10 +754,12 @@ def serve(world):
             except ValueError:
                 body = None
             status, answer = world.answer(self.command, self.path, self.headers, body)
-            data = json.dumps(answer).encode()
+            data = b"" if status == 204 else json.dumps(answer).encode()
             self.send_response(status)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(data)))
+            if self.path == "/api/session" and status == 204:
+                self.send_header("Set-Cookie", "control_session=control-session-value; Path=/; HttpOnly; Secure")
             if self.path == "/api/v1/session":
                 self.send_header("Set-Cookie", "vigil_session=session-value; Path=/; HttpOnly; SameSite=Lax")
                 self.send_header("Set-Cookie", f"vigil_csrf={world.csrf}; Path=/; SameSite=Strict")
@@ -763,7 +807,7 @@ def make_root(tmp_path, profile="test"):
 def config_for(world, tmp_path, mode="immediate", deliveries="fakes", profile="test"):
     root = make_root(tmp_path)
     config = storm.Config(mode, deliveries, {"VIGIL_LAB_PROFILE": profile, "VIGIL_BASE_URL": world.base}, root)
-    for name in ("faults_url", "alertmanager_url", "teams_url", "jira_fake_url", "mailpit_url"):
+    for name in ("faults_url", "alertmanager_url", "teams_url", "jira_url", "mailpit_url"):
         setattr(config, name, world.base)
     config.zabbix_url = world.base + "/api_jsonrpc.php"
     return config
@@ -795,6 +839,7 @@ KEYS = [
     "times",
     "investigation",
     "checklist",
+    "measured",
     "checks",
     "not_run",
     "passed",
@@ -816,8 +861,11 @@ def test_immediate_run_passes(world, tmp_path):
     assert set(result["reset"]) == {"branch_a_seconds", "quiet_seconds", "branch_b_seconds", "total_seconds"}
     assert result["incidents"]["storm"] == {"incident_id": STORM_ID, "number": 1, "ticket_key": "NOC-1"}
     assert result["investigation"]["runbooks_cited"] == ["RB-DB-01"]
-    assert set(result["times"]) == {"SB-TL-01", "SB-TL-02", "SB-TL-04", "SB-TL-06", "SB-TL-07", "SB-TL-08", "SB-TL-10"}
+    assert set(result["times"]) == {
+        "SB-TL-01", "SB-TL-02", "SB-TL-03", "SB-TL-04", "SB-TL-06", "SB-TL-07", "SB-TL-08", "SB-TL-10"
+    }  # fmt: skip
     assert result["times"]["SB-TL-04"] == 30.0
+    assert result["times"]["SB-TL-03"] == 60.0
     names = [f"{c['id']} {c['name']}" for c in result["checks"]]
     assert "SB-R-06 repeatability result" in names and "SB-S05 ticket" in names
     assert result["not_run"] == [
@@ -923,11 +971,16 @@ def test_usage(capsys):
     for arguments in ([], ["--mode"], ["--mode", "fast"], ["--deliveries", "fakes"], ["--mode", "script", "x"]):
         assert storm.main(arguments) == 2
         assert capsys.readouterr().out == storm.USAGE + "\n"
-    assert storm.parse_arguments(["--mode", "script", "--deliveries", "checklist"]) == ("script", "checklist", "driver")
-    assert storm.parse_arguments(["--mode", "immediate"]) == ("immediate", "fakes", "driver")
-    assert storm.parse_arguments(["--mode", "immediate", "--acts", "pages"]) == ("immediate", "fakes", "pages")
+    assert storm.parse_arguments(["--mode", "script", "--deliveries", "checklist"]) == (
+        "script", "checklist", "driver", "local", None
+    )  # fmt: skip
+    assert storm.parse_arguments(["--mode", "immediate"]) == ("immediate", "fakes", "driver", "local", None)
+    assert storm.parse_arguments(["--mode", "immediate", "--acts", "pages"]) == (
+        "immediate", "fakes", "pages", "local", None
+    )  # fmt: skip
     assert storm.USAGE == (
         "Usage: storm.py --mode immediate|script [--deliveries fakes|checklist] [--acts driver|pages]"
+        " [--via local|control] [--measured FILE]"
     )
 
 
@@ -942,7 +995,13 @@ def test_pages_refused_in_mode_script(capsys):
         assert storm.parse_arguments(arguments) is None
         assert storm.main(arguments) == 2
         assert capsys.readouterr().out == storm.USAGE + "\n"
-    assert storm.parse_arguments(["--mode", "script", "--acts", "driver"]) == ("script", "fakes", "driver")
+    assert storm.parse_arguments(["--mode", "script", "--acts", "driver"]) == (
+        "script",
+        "fakes",
+        "driver",
+        "local",
+        None,
+    )
 
 
 def on_pages(world, acknowledge=True):
@@ -1370,3 +1429,136 @@ def test_image_base_and_standard_library_only():
                 continue
             for module in modules:
                 assert module in sys.stdlib_module_names or module in local, (name, module)
+
+
+# The demo installation (P-32 spec Section 6.7)
+
+LAB_SECRETS = ("installation-token", "zabbix-api", "alertmanager-password")
+
+
+def control_driver(world, tmp_path, mode="immediate", acts="driver", measured=None, profile="test"):
+    """A driver with --via control --deliveries checklist: the lab's secrets are not there to be read."""
+    root = make_root(tmp_path)
+    for name in LAB_SECRETS:
+        (root / "run" / "secrets" / "vigil-app" / name).unlink()
+    (root / "run" / "secrets" / "demo-control" / "faults-token").unlink()
+    (root / "run" / "state" / "bundle.zip").unlink()
+    (root / "run" / "secrets" / "demo-control" / "control-password").write_text("control-password-value")
+    environment = {
+        "VIGIL_LAB_PROFILE": profile,
+        "VIGIL_BASE_URL": world.base,
+        "VIGIL_CONTROL_URL": world.base,
+        "VIGIL_JIRA_URL": world.base,
+    }
+    config = storm.Config(mode, "checklist", environment, root, acts=acts, via="control", measured=measured)
+    lines = []
+    driver = storm.Driver(config, clock=world.clock.time, sleep=world.clock.sleep, out=lines.append)
+    code = driver.run()
+    result = json.loads(sorted(config.results.glob("storm-*.json"))[-1].read_text())
+    return code, result, driver, lines
+
+
+def lab_calls(world):
+    return [
+        path
+        for _, path, _ in world.calls
+        if path.startswith(("/faults/", "/api_jsonrpc.php", "/api/v2/alerts", "/api/v1/installation", "/_fakes/"))
+    ]
+
+
+def test_control_run(world, tmp_path):
+    """SB-T-02 --via control resets and storms through the control panel and reads nothing of the lab."""
+    code, result, driver, lines = control_driver(world, tmp_path)
+    assert code == 0, [c for c in result["checks"] if not c["passed"]]
+    assert lab_calls(world) == []
+    presses = [(key, at) for key, at in world.control_presses]
+    assert [key for key, _ in presses] == ["reset", "storm"]
+    assert checks.epoch(result["t0"]) == presses[1][1]
+    assert result["reset"] == {
+        "branch_a_seconds": 14.2,
+        "quiet_seconds": 2.1,
+        "branch_b_seconds": 3.5,
+        "total_seconds": 15.004,
+    }
+    state_reads = [at for method, path, at in world.calls if path == "/api/state"]
+    assert state_reads[1] - state_reads[0] == 1
+    assert result["tenant_id"] is None and result["checklist"] is not None and result["measured"] is None
+    assert result["times"]["SB-TL-03"] == 60.0 and result["times"]["SB-TL-04"] == 50.0
+    assert "step 1 Reset: through the control panel, " + json.dumps(result["reset"]) in lines
+    assert any(line.startswith("step 4 Storm: the storm button pressed, SL-F-1 and SL-F-3 active") for line in lines)
+    assert storm.parse_arguments(["--mode", "script", "--via", "control"]) is None
+    assert storm.parse_arguments(["--mode", "script", "--via", "control", "--deliveries", "checklist"]) == (
+        "script", "checklist", "driver", "control", None
+    )  # fmt: skip
+    assert storm.parse_arguments(["--mode", "script", "--via", "lab", "--deliveries", "checklist"]) is None
+    for secret in ("control-password-value", "jira-token-value"):
+        assert secret not in json.dumps(result) and secret not in "\n".join(lines)
+
+
+def test_control_reset_failed(world, tmp_path):
+    """SB-T-02 a failed control panel reset ends the run."""
+    world.control_outcome = "failed"
+    code, result, _, _ = control_driver(world, tmp_path)
+    assert code == 1 and result["finished"] is False
+    entries = [c for c in result["checks"] if c["id"] == "SB-T-02"]
+    assert entries[0]["name"] == "step 1 Reset finished"
+    assert entries[0]["detail"] == "The control panel's reset failed: Branch B: the seed import ended failed."
+    assert [key for key, _ in world.control_presses] == ["reset"]
+    assert result["reset"]["branch_b_seconds"] is None and result["reset"]["total_seconds"] == 15.004
+    assert lab_calls(world) == []
+
+
+def test_measured_values(world, tmp_path):
+    """SB-T-02 --measured compares with the spike's first standard run."""
+    measured = {key: value for key, value in DEV.items() if key != "measured_on"}
+    for key in ("baseline_used_pct", "injected_files", "injected_bytes", "action_files_removed",
+                "used_pct_after_action"):  # fmt: skip
+        measured[key] = int(measured[key])
+    for key in ("injected_gib", "action_gib_removed"):
+        measured[key] = float(measured[key])
+    other = dict(measured, disk_growth="9.9 GiB written to 99 files under /data in the last 15 minutes")
+    spike = tmp_path / "storm-timing-20261120T000000Z.json"
+    spike.write_text(
+        json.dumps(
+            {
+                "runs": [
+                    {"kind": "read-only", "measured": other},
+                    {"kind": "standard", "measured": measured},
+                    {"kind": "standard", "measured": other},
+                ]
+            }
+        )  # fmt: skip
+    )
+    assert checks.measured_values(spike) == {key: str(value) for key, value in measured.items()}
+    code, result, *_ = control_driver(world, tmp_path, mode="script", measured=str(spike), profile="demo")
+    assert code == 0, [c for c in result["checks"] if not c["passed"]]
+    assert result["measured"] == spike.name
+    names = {f"{c['id']} {c['name']}" for c in result["checks"]}
+    assert {"SB-S03 diagnostic values", "SB-S06 action values"} <= names
+
+    spike.write_text(json.dumps({"runs": [{"kind": "standard", "measured": other}]}))
+    world.control_presses.clear()
+    world.injected_at = world.acked_at = world.decided_at = None
+    world.control_active = []
+    code, result, *_ = control_driver(world, tmp_path / "again", mode="script", measured=str(spike), profile="demo")
+    failed = {f"{c['id']} {c['name']}": c["detail"] for c in result["checks"] if not c["passed"]}
+    assert list(failed) == ["SB-S03 diagnostic values"]
+    assert "9.9 GiB written to 99 files" in failed["SB-S03 diagnostic values"]
+
+
+def test_pages_in_mode_script(world, tmp_path):
+    """SB-T-02 --acts pages in mode script prints the script times."""
+    on_pages(world)
+    code, result, driver, lines = control_driver(world, tmp_path, mode="script", acts="pages")
+    assert result["finished"] is True and result["acts"] == "pages" and result["mode"] == "script"
+    link = f"{world.base}/m/acknowledge/{STORM_ID}"
+    approve = f"{world.base}/m/approve/{REQUEST_ID}"
+    at = lines.index(f"step 6 Acknowledge: waiting for the page at {link}")
+    assert lines[at + 1] == "acknowledge at 07:30 (T0 + 390 s)"
+    at = lines.index(f"step 7 Approve: waiting for the page at {approve}")
+    assert lines[at + 1] == "approve at 09:00 (T0 + 480 s)"
+    posts = [path for method, path, _ in world.calls if method == "POST"]
+    assert not any(path.endswith("/acknowledgements") or path.endswith("/decisions") for path in posts)
+    assert storm.parse_arguments(["--mode", "script", "--acts", "pages", "--via", "control", "--deliveries",
+                                  "checklist"]) == ("script", "checklist", "pages", "control", None)  # fmt: skip
+    assert storm.parse_arguments(["--mode", "script", "--acts", "pages", "--deliveries", "checklist"]) is None
