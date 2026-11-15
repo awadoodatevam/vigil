@@ -160,7 +160,7 @@ def test_e2e_stops_the_ai_fakes(local):
     result, calls = local("e2e", STUB_LIST="  [chromium] › a.spec.ts:3:1 › x @ai-down\nTotal: 1 test in 1 file")
     assert result.returncode == 0, result.stdout + result.stderr
     assert playwright_runs(calls) == [
-        ["--grep-invert", "@ai-down|@storm"],
+        ["--grep-invert", "@ai-down|@storm|@control"],
         ["--list", "--grep", "@ai-down"],
         ["--grep", "@ai-down"],
     ]
@@ -190,7 +190,7 @@ def test_e2e_without_ai_down_tests(local):
     """BP-R-28 the AI fakes are not stopped when the listing shows no @ai-down test."""
     result, calls = local("e2e", STUB_LIST="Error: No tests found")
     assert result.returncode == 0, result.stdout + result.stderr
-    assert playwright_runs(calls) == [["--grep-invert", "@ai-down|@storm"], ["--list", "--grep", "@ai-down"]]
+    assert playwright_runs(calls) == [["--grep-invert", "@ai-down|@storm|@control"], ["--list", "--grep", "@ai-down"]]
     assert stop_start(calls) == []
 
 
@@ -277,3 +277,36 @@ def test_third_party_images_leave_out_the_optional_image(tmp_path):
     assert not any(image.startswith("ollama/ollama:") for image in images)
     assert "ollama/ollama:" in compose
     assert all("@sha256:" in image for image in images)
+
+
+def test_e2e_control_suite(local):
+    """BP-W-02 e2e leaves out @control unless asked; e2e control runs the tests tagged @control (P-31)."""
+    result, calls = local("e2e", STUB_LIST="Error: No tests found")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert playwright_runs(calls)[0] == ["--grep-invert", "@ai-down|@storm|@control"]
+    result, calls = local("e2e", "control", STUB_LIST="Error: No tests found")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert playwright_runs(calls) == [
+        ["--grep-invert", "@ai-down", "--grep", "@control"],
+        ["--list", "--grep", "(?=.*@ai-down)(?=.*@control)"],
+    ]
+
+
+def test_up_prints_the_control_panel_address(tmp_path):
+    """BP-R-24 up prints the control panel's address."""
+    script = (ROOT / "deploy" / "local.sh").read_text()
+    function = script[script.index("addresses() {") :]
+    function = function[: function.index("\n}\n") + 3]
+    result = subprocess.run(
+        ["bash", "-c", f"set -euo pipefail\n{function}\naddresses /home/me/.vigil-local/vigil-local"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert result.stdout.splitlines()[1] == (
+        "Control panel: http://control.vigil.test:8090 (user operator; password in "
+        "/home/me/.vigil-local/vigil-local/secrets/demo-control/control-password)"
+    )
+    assert '\n  addresses "$base/$project"\n}' in script
+    compose = (ROOT / "deploy" / "local" / "compose.yaml").read_text()
+    assert '"127.0.0.1:8090:8090"' in compose and "aliases: [control.vigil.test]" in compose

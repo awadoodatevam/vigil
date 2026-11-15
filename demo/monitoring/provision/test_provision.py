@@ -167,7 +167,7 @@ def expected_objects():
                 key,
                 f"Database write errors, schema {schema}",
                 rows["LA-02"]["trigger_name"].format(schema=schema),
-                f"last(/lab-db-01/{key})>last(/lab-db-01/{key},#1:now-20s)",
+                f"last(/lab-db-01/{key})>last(/lab-db-01/{key},#1:now-10s)",
                 rows["LA-02"]["tag_component"],
             )
         )

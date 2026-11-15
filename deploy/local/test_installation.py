@@ -6,6 +6,7 @@ import json
 import os
 import stat
 import subprocess
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -33,7 +34,8 @@ VIGIL_SECRETS = {
     ],
     "vigil-migrate": ["vigil-db-owner"],
     "vigil-db": ["vigil-db-superuser", "vigil-db-owner", "vigil-db-app"],
-    "e2e": [f"seed-password-{user}" for user in USERS],
+    "demo-control": ["installation-token", "control-password"],
+    "e2e": [*[f"seed-password-{user}" for user in USERS], "control-password"],
 }
 LAB_UNITS = [
     "lab-db-01",
@@ -47,7 +49,6 @@ LAB_UNITS = [
     "lab-zabbix-web",
     "demo-faults",
 ]
-NOT_YET = {"demo-control": {"installation-token", "control-password"}}
 
 pytestmark = pytest.mark.installation
 
@@ -93,7 +94,7 @@ def test_one_value_per_name():
     for unit in ["vigil-app", "vigil-migrate", "vigil-db", *[u for u in units if u.startswith("lab-")], "demo-faults"]:
         for name in units[unit]:
             assert (SECRETS / unit / name).is_file(), (unit, name)
-    for name in set(units["demo-control"]) - NOT_YET["demo-control"]:
+    for name in units["demo-control"]:
         assert (SECRETS / "demo-control" / name).is_file(), name
     for name in VIGIL_SECRETS["e2e"]:
         assert (SECRETS / "e2e" / name).is_file(), name
@@ -109,18 +110,75 @@ def branding():
         return response.status, json.loads(response.read())
 
 
-def test_reset_makes_a_new_tenant():
-    """AR-B-04 reset makes a new tenant and moves the alias; the branding still answers."""
-    before = json.loads((BASE / "state" / "tenant.json").read_text())["tenant_id"]
+OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+
+def call(method, url, body=None, headers=None):
+    """(status, response headers, JSON body or None) without any proxy of the environment."""
+    data = None if body is None else json.dumps(body).encode()
+    request = urllib.request.Request(url, data=data, method=method, headers=dict(headers or {}))
+    if data is not None:
+        request.add_header("Content-Type", "application/json")
+    try:
+        with OPENER.open(request, timeout=30) as response:
+            status, answer_headers, raw = response.status, response.headers, response.read()
+    except urllib.error.HTTPError as error:
+        status, answer_headers, raw = error.code, error.headers, error.read()
+    return status, answer_headers, json.loads(raw) if raw else None
+
+
+def cookie(headers, name):
+    return next(h.split(";", 1)[0] for h in headers.get_all("Set-Cookie") or [] if h.startswith(name + "="))
+
+
+def test_installation_token_is_vigil_apps():
+    """BP-R-26 demo-control's installation-token is vigil-app's."""
+    control = (SECRETS / "demo-control" / "installation-token").read_bytes()
+    assert control and control == (SECRETS / "vigil-app" / "installation-token").read_bytes()
+    assert (SECRETS / "demo-control" / "control-password").read_bytes() == (
+        SECRETS / "e2e" / "control-password"
+    ).read_bytes()
+
+
+def test_demo_control_unit():
+    """AR-U-06 demo-control answers /health and is control.vigil.test on lab-net."""
+    status, _headers, _body = call("GET", "http://127.0.0.1:8090/health")
+    assert status == 200
+    info = json.loads(subprocess.run(["docker", "inspect", "demo-control"], capture_output=True, check=True).stdout)[0]
+    networks = info["NetworkSettings"]["Networks"]
+    assert list(networks) == [f"{PROJECT}_lab-net"]
+    assert "control.vigil.test" in (networks[f"{PROJECT}_lab-net"]["Aliases"] or [])
+    assert info["Config"]["User"] == "10001"
+    assert info["HostConfig"]["PortBindings"]["8090/tcp"] == [{"HostIp": "127.0.0.1", "HostPort": "8090"}]
+
+
+def test_reset_is_the_control_panels():
+    """SL-A3-03 deploy/local.sh reset is the control panel's reset (a new tenant; the last result Reset)."""
+    vigil = "http://127.0.0.1:8080"
+    host = {"Host": "demo.vigil.test:8080"}
+    password = (SECRETS / "e2e" / "seed-password-presenter").read_text()
+    status, headers, _ = call("POST", vigil + "/api/v1/session", {"username": "presenter", "password": password}, host)
+    assert status == 200
+    session = cookie(headers, "vigil_session")
     result = subprocess.run(
         [str(ROOT / "deploy" / "local.sh"), "reset"], capture_output=True, text=True, timeout=600, check=False
     )
     assert result.returncode == 0, result.stdout + result.stderr
-    after = json.loads((BASE / "state" / "tenant.json").read_text())
-    assert after["tenant_id"] != before and after["host_name"] == "demo.vigil.test"
-    assert json.loads((BASE / "state" / "seed-import.json").read_text())["tenant_id"] == after["tenant_id"]
+    assert result.stdout.splitlines()[-1].startswith("Reset completed in ")
+    status, _, _ = call("GET", vigil + "/api/v1/session", headers={**host, "Cookie": session})
+    assert status == 401
     status, answer = branding()
     assert status == 200 and answer["product_display_name"] == "Techfinity" and answer["customer_name"] == "Jazz"
+    control = (SECRETS / "demo-control" / "control-password").read_text()
+    status, headers, _ = call(
+        "POST", "http://127.0.0.1:8090/api/session", {"username": "operator", "password": control}
+    )
+    assert status == 204
+    status, _, state = call(
+        "GET", "http://127.0.0.1:8090/api/state", headers={"Cookie": cookie(headers, "control_session")}
+    )
+    assert status == 200
+    assert state["last_result"]["operation"] == "Reset" and state["last_result"]["outcome"] == "completed"
 
 
 def test_up_writes_the_lab_profile():

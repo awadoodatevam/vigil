@@ -1,6 +1,7 @@
 # BP-W-02 (P-26 spec Section 6.7, P-27 spec Section 6.7, P-28 spec Section 6.11): the local installation with the dev
 # fakes and the test profile, the Playwright suites, then the storm driver in mode immediate with the log scan of
-# AR-Q-07 alongside the Playwright suite storm (with-playwright.sh). On pull requests labelled e2e and manual runs.
+# AR-Q-07 alongside the Playwright suite storm (with-playwright.sh), then the suite control (P-31, CTX-D-093 (11)). On pull
+# requests labelled e2e and manual runs.
 name: e2e
 
 on:
@@ -71,6 +72,11 @@ jobs:
           VIGIL_LOCAL_HOME: ${{ runner.temp }}/vigil-local
           VIGIL_STORM_RESULTS: ${{ runner.temp }}/storm
         run: tests/acceptance/storm/with-playwright.sh --mode immediate
+
+      - name: control panel
+        env:
+          VIGIL_LOCAL_HOME: ${{ runner.temp }}/vigil-local
+        run: deploy/local.sh e2e control
 
       - name: logs and the dev fakes' calls
         if: failure()

@@ -2,8 +2,8 @@
 # Builds the local images (BP-R-04). --test: the images that tests use (P-03, P-04, P-05), after pulling the
 # third-party images of deploy/local/compose.yaml. --test --java: only vigil/demo-lab:local, the image the Java tests
 # use (BP-R-06), pulling only the base images of its Dockerfile (BP-R-12, P-42). --local: the images of a local
-# installation, vigil/vigil-app:local (from the JAR Maven built), vigil/dev-fakes:local, vigil/e2e:local (P-26) and the
-# storm driver vigil/storm-driver:local (P-27).
+# installation, vigil/vigil-app:local (from the JAR Maven built), vigil/dev-fakes:local, vigil/e2e:local (P-26), the
+# storm driver vigil/storm-driver:local (P-27) and vigil/demo-control:local (from the JAR Maven built, P-31).
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
@@ -25,6 +25,10 @@ fi
 
 if [ "$local_images" = "true" ] && [ ! -f app/target/vigil-app.jar ]; then
   echo "Run ./mvnw -B -pl app -DskipTests package first."
+  exit 1
+fi
+if [ "$local_images" = "true" ] && [ ! -f demo/control/target/demo-control.jar ]; then
+  echo "Run ./mvnw -B -pl app,demo/control -DskipTests package first."
   exit 1
 fi
 
@@ -83,6 +87,7 @@ fi
 
 if [ "$local_images" = "true" ]; then
   build_image vigil/vigil-app:local app
+  build_image vigil/demo-control:local demo/control
   build_image vigil/dev-fakes:local dev/fakes
   build_image vigil/e2e:local tests/e2e
   build_image vigil/storm-driver:local tests/acceptance/storm

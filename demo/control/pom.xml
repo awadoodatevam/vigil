@@ -20,12 +20,28 @@
     <java.version>25</java.version>
     <google-java-format.version>1.36.1</google-java-format.version>
     <archunit.version>1.5.1</archunit.version>
+    <!-- The pins of app (P-31 spec Section 6.1). -->
+    <bcprov.version>1.86</bcprov.version>
+    <wiremock.version>3.13.2</wiremock.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-crypto</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk18on</artifactId>
+      <version>${bcprov.version}</version>
     </dependency>
 
     <dependency>
@@ -39,9 +55,51 @@
       <version>${archunit.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.wiremock</groupId>
+      <artifactId>wiremock-standalone</artifactId>
+      <version>${wiremock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>tools.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
+    <finalName>demo-control</finalName>
+    <!-- AR-X-04, AR-X-05: the demo data and the demo installation's values are built into the JAR (P-31 spec 6.2). -->
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>${project.basedir}/../../docs/31-demo-data</directory>
+        <targetPath>demo-data</targetPath>
+        <includes>
+          <include>README.md</include>
+          <include>01-tenant-identity.yaml</include>
+          <include>02-service-map.yaml</include>
+          <include>03-monitoring.yaml</include>
+          <include>04-operations-actions-recovery.yaml</include>
+          <include>05-routing-escalation.yaml</include>
+          <include>06-workflow.yaml</include>
+          <include>07-settings.yaml</include>
+          <include>08-runbooks.md</include>
+          <include>09-past-incidents.csv</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${project.basedir}/../../deploy/values</directory>
+        <targetPath>values</targetPath>
+        <includes>
+          <include>demo.yaml</include>
+        </includes>
+      </resource>
+    </resources>
+
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>

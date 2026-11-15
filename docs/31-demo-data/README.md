@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 31-demo-data (ID prefix `DD-`) |
-| Version | 1.5 |
-| Date | 12 October 2026 |
+| Version | 1.6 |
+| Date | 15 November 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 3 closed. Amended by Round 4 (`40-demo-cut` DC-A-04, DC-A-05, DC-A-09, DC-A-17) Round 5 (`50-architecture` AR-A-12, AR-A-13, AR-A-15) and Round 6 (`60-build-plan` BP-A-01, BP-A-04, BP-A-05, BP-A-15); build amendment `60-build-plan` BP-A-18 (CTX-D-035). |
 
@@ -115,3 +115,4 @@ See `30-jazz-storyboard` Section 17 (one review covers both outputs of Round 3).
 | 1.3 | 12 Oct 2026 | Round 6 amendments (`60-build-plan` BP-A-01, BP-A-04, BP-A-05, BP-A-15; CTX-D-029): DD-F-07 external connector addresses and `email-demo` STARTTLS become the placeholders `endpoint.jira`, `endpoint.smtp`, `smtp_starttls`, `endpoint.claude`, `endpoint.openai`, `endpoint.local_embedding` (replacing `jira_site`; `email-demo` in block style); DD-F-10 webhook base address is the lab value `${webhook_base_url}`, `lab_db_server` adds `filesystem_setup` and the `demo` and `test` size profiles; DD-R-05, DD-F-12, DD-K-14 and DD-K-16 updated and `tools/check_data.py` adds the size profile check (49 checks); DD-O-03 "Resolved in" P-04 and P-32. |
 | 1.4 | 15 Oct 2026 | Build amendment `60-build-plan` BP-A-18 (CTX-D-035): DD-F-10 SL-F-1 step (2) gives the `df` percentage per size profile; `lab_db_server.development_values` holds the values of SB-T-01's development run (P-04). The seeded files are unchanged (DD-F-10 is not seeded); `bundle_version` follows this version (DD-R-11). |
 | 1.5 | 16 Oct 2026 | From the P-04 report (CTX-D-037): DD-ASM-03 proved by the development run of SB-T-01; DD-ASM-05's baseline percentage refuted (47 %), its injection limits hold; DD-F-10 `baseline_used_pct` comment. The seeded files are unchanged; `bundle_version` follows this version (DD-R-11). |
+| 1.6 | 15 Nov 2026 | From the P-31 report, document feedback 4 (owner decision, 15 Nov 2026; recorded as CTX-D-094): DD-F-10 `monitoring_configuration.zabbix_triggers` LA-02 counts the write errors of the last 10 s (was 20 s), so the lab is quiet sooner after 'Clear all faults' and SB-T-05's 40 s target keeps a margin. The seeded files are unchanged; `bundle_version` follows this version (DD-R-11). |

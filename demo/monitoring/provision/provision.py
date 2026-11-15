@@ -82,7 +82,7 @@ def lab_objects():
                 key,
                 f"Database write errors, schema {schema}",
                 f"Database write errors on schema {schema}",
-                f"last(/lab-db-01/{key})>last(/lab-db-01/{key},#1:now-20s)",
+                f"last(/lab-db-01/{key})>last(/lab-db-01/{key},#1:now-10s)",
                 "db-subscriber",
             )
         )

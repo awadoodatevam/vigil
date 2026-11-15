@@ -1,0 +1,439 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 442B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/eclipse-temurin:25.0.4.1_1-jre-noble@sha256:d9a39a23634650173f1e2bbc176227af9728587ecf0f4b62d53e9355cd7a19ab
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/2] FROM docker.io/library/eclipse-temurin:25.0.4.1_1-jre-noble@sha256:d9a39a23634650173f1e2bbc176227af9728587ecf0f4b62d53e9355cd7a19ab
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 70B done
+#5 DONE 0.0s
+
+#6 [2/2] COPY target/vigil-app.jar /app/vigil-app.jar
+#6 CACHED
+
+#7 exporting to image
+#7 exporting layers done
+#7 writing image sha256:10169f41d4a3fe17b40d752e84aa10d224aad0bbee577f6a8dd07b996cee296d done
+#7 naming to docker.io/vigil/vigil-app:local done
+#7 DONE 0.0s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/mr05tdzksec98dz4p12n8zk01
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 560B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/eclipse-temurin:25.0.4.1_1-jre-noble@sha256:d9a39a23634650173f1e2bbc176227af9728587ecf0f4b62d53e9355cd7a19ab
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/3] FROM docker.io/library/eclipse-temurin:25.0.4.1_1-jre-noble@sha256:d9a39a23634650173f1e2bbc176227af9728587ecf0f4b62d53e9355cd7a19ab
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 73B done
+#5 DONE 0.0s
+
+#6 [2/3] COPY target/demo-control.jar /app/demo-control.jar
+#6 CACHED
+
+#7 [3/3] RUN mkdir -p /var/lib/demo-control && chown 10001:10001 /var/lib/demo-control
+#7 CACHED
+
+#8 exporting to image
+#8 exporting layers done
+#8 writing image sha256:c06013c389caa2e7bbfea8cde8f592af273d0d4d7c7a02b9e8e87d9c5bc2aec3 done
+#8 naming to docker.io/vigil/demo-control:local done
+#8 DONE 0.0s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/nr68k0vaas4wc5z8riyor1i9d
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.71kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [stage-0 1/4] FROM docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 31B done
+#5 DONE 0.0s
+
+#6 [stage-0 3/4] COPY fakes.py /opt/fakes/
+#6 CACHED
+
+#7 [stage-0 2/4] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444     set -eu;     cp /etc/apt/sources.list.d/ubuntu.sources /tmp/ubuntu.sources.vigil-backup;     if [ -n "${UBUNTU_MIRROR:-}" ]; then       sed -i -e "s|http://archive.ubuntu.com/ubuntu/|${UBUNTU_MIRROR}|g"         -e "s|http://security.ubuntu.com/ubuntu/|${UBUNTU_MIRROR}|g" /etc/apt/sources.list.d/ubuntu.sources;     fi;     if [ -f /run/secrets/ca_bundle ]; then       echo 'Acquire::https::CAInfo "/run/secrets/ca_bundle";' > /etc/apt/apt.conf.d/99vigil-build-ca;       sed -i 's|http://|https://|g' /etc/apt/sources.list.d/ubuntu.sources;     fi;     apt-get -o Acquire::Retries=5 update --error-on=any;     DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=5 install -y --no-install-recommends python3 tzdata;     rm -f /etc/apt/apt.conf.d/99vigil-build-ca;     mv /tmp/ubuntu.sources.vigil-backup /etc/apt/sources.list.d/ubuntu.sources;     rm -rf /var/lib/apt/lists/*
+#7 CACHED
+
+#8 [stage-0 4/4] WORKDIR /opt/fakes
+#8 CACHED
+
+#9 exporting to image
+#9 exporting layers done
+#9 writing image sha256:0ec8ab67ec42ceea622369b3d2f30e9c397d7648b78c828e6c3b860c2d363aa5 done
+#9 naming to docker.io/vigil/dev-fakes:local done
+#9 DONE 0.0s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/w33p1017i8u6lmtcnbeopt97o
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 692B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for mcr.microsoft.com/playwright:v1.65.0-noble@sha256:9beb546099e11f52d62e505537914870e01a67e0e6b00ae41da4775324e73dbe
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 53B done
+#3 DONE 0.0s
+
+#4 [stage-0 1/4] FROM mcr.microsoft.com/playwright:v1.65.0-noble@sha256:9beb546099e11f52d62e505537914870e01a67e0e6b00ae41da4775324e73dbe
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 72B done
+#5 DONE 0.0s
+
+#6 [stage-0 2/4] WORKDIR /e2e
+#6 CACHED
+
+#7 [stage-0 3/4] COPY package.json package-lock.json ./
+#7 CACHED
+
+#8 [stage-0 4/4] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444 sh -c 'if [ -f /run/secrets/ca_bundle ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/ca_bundle; fi; npm ci'
+#8 CACHED
+
+#9 exporting to image
+#9 exporting layers done
+#9 writing image sha256:ed60869f8ff1e6435326f7fb38d3de2fa8367e5f21f62883687ef958e23d6618 done
+#9 naming to docker.io/vigil/e2e:local done
+#9 DONE 0.0s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/tlzb6hwkl4w2th1xzvqjl8lb4
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.63kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 50B done
+#3 DONE 0.0s
+
+#4 [stage-0 1/3] FROM docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 99B done
+#5 DONE 0.0s
+
+#6 [stage-0 2/3] RUN --mount=type=secret,id=ca_bundle,required=false,mode=0444     set -eu;     cp /etc/apt/sources.list.d/ubuntu.sources /tmp/ubuntu.sources.vigil-backup;     if [ -n "${UBUNTU_MIRROR:-}" ]; then       sed -i -e "s|http://archive.ubuntu.com/ubuntu/|${UBUNTU_MIRROR}|g"         -e "s|http://security.ubuntu.com/ubuntu/|${UBUNTU_MIRROR}|g" /etc/apt/sources.list.d/ubuntu.sources;     fi;     if [ -f /run/secrets/ca_bundle ]; then       echo 'Acquire::https::CAInfo "/run/secrets/ca_bundle";' > /etc/apt/apt.conf.d/99vigil-build-ca;       sed -i 's|http://|https://|g' /etc/apt/sources.list.d/ubuntu.sources;     fi;     apt-get -o Acquire::Retries=5 update --error-on=any;     DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=5 install -y --no-install-recommends python3 ca-certificates tzdata;     rm -f /etc/apt/apt.conf.d/99vigil-build-ca;     mv /tmp/ubuntu.sources.vigil-backup /etc/apt/sources.list.d/ubuntu.sources;     rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 [stage-0 3/3] COPY *.py /opt/storm/
+#7 CACHED
+
+#8 exporting to image
+#8 exporting layers done
+#8 writing image sha256:60110904ba36f1e98ff831ead76596155b8f27b68d3c2591e34b90f971d48949 done
+#8 naming to docker.io/vigil/storm-driver:local done
+#8 DONE 0.0s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/hs4mkh6m1lx6726pafr92agpo
+ Volume vigil-local_lab-zabbix-db-data Creating 
+ Volume vigil-local_lab-zabbix-db-data Creating 
+ Network vigil-local_lab-net Creating 
+ Volume vigil-local_demo-faults-state Creating 
+ Volume vigil-local_demo-faults-state Creating 
+ Volume vigil-local_lab-db-01-data Creating 
+ Volume vigil-local_lab-db-01-data Creating 
+ Network vigil-local_lab-net Creating 
+ Volume vigil-local_lab-zabbix-db-data Created 
+ Volume vigil-local_lab-zabbix-db-data Created 
+ Volume vigil-local_demo-faults-state Created 
+ Volume vigil-local_demo-faults-state Created 
+ Volume vigil-local_lab-db-01-data Created 
+ Volume vigil-local_lab-db-01-data Created 
+ Network vigil-local_lab-net Created 
+ Network vigil-local_lab-net Created 
+ Container lab-db-01 Creating 
+ Container lab-alertmanager Creating 
+ Container lab-zabbix-db Creating 
+ Container lab-rpt-01 Creating 
+ Container lab-rpt-01 Created 
+ Container lab-db-01 Created 
+ Container lab-api-01 Creating 
+ Container lab-alertmanager Created 
+ Container lab-zabbix-db Created 
+ Container lab-zabbix-web Creating 
+ Container lab-zabbix-server Creating 
+ Container lab-zabbix-web Created 
+ Container lab-api-01 Created 
+ Container lab-vas-01 Creating 
+ Container lab-zabbix-server Created 
+ Container lab-vas-01 Created 
+ Container lab-probe-01 Creating 
+ Container lab-probe-01 Created 
+ Container demo-faults Creating 
+ Container lab-prometheus Creating 
+ Container demo-faults Created 
+ Container lab-prometheus Created 
+ Container lab-alertmanager Starting 
+ Container lab-db-01 Starting 
+ Container lab-rpt-01 Starting 
+ Container lab-zabbix-db Starting 
+ Container lab-alertmanager Started 
+ Container lab-db-01 Started 
+ Container lab-db-01 Waiting 
+ Container lab-rpt-01 Started 
+ Container lab-rpt-01 Waiting 
+ Container lab-zabbix-db Started 
+ Container lab-zabbix-db Waiting 
+ Container lab-db-01 Healthy 
+ Container lab-api-01 Starting 
+ Container lab-api-01 Started 
+ Container lab-api-01 Waiting 
+ Container lab-rpt-01 Healthy 
+ Container lab-zabbix-db Healthy 
+ Container lab-zabbix-web Starting 
+ Container lab-zabbix-server Starting 
+ Container lab-zabbix-web Started 
+ Container lab-zabbix-server Started 
+ Container lab-api-01 Healthy 
+ Container lab-vas-01 Starting 
+ Container lab-vas-01 Started 
+ Container lab-vas-01 Waiting 
+ Container lab-vas-01 Healthy 
+ Container lab-probe-01 Starting 
+ Container lab-probe-01 Started 
+ Container lab-probe-01 Waiting 
+ Container lab-probe-01 Healthy 
+ Container demo-faults Starting 
+ Container lab-prometheus Starting 
+ Container demo-faults Started 
+ Container lab-prometheus Started 
+ Container lab-zabbix-server Running 
+ Container lab-zabbix-db Running 
+ Container lab-zabbix-web Running 
+ Container lab-zabbix-provision Creating 
+ Container lab-zabbix-provision Created 
+ Container lab-zabbix-db Waiting 
+ Container lab-zabbix-db Healthy 
+ Container lab-zabbix-provision Starting 
+ Container lab-zabbix-provision Started 
+ Volume vigil-local_vigil-db-data Creating 
+ Volume vigil-local_vigil-db-data Creating 
+ Network vigil-local_vigil-net Creating 
+ Network vigil-local_vigil-net Creating 
+ Volume vigil-local_vigil-db-data Created 
+ Volume vigil-local_vigil-db-data Created 
+ Network vigil-local_vigil-net Created 
+ Network vigil-local_vigil-net Created 
+ Container claude-fake Creating 
+ Container openai-fake Creating 
+ Container vigil-db Creating 
+ Container mailpit Creating 
+ Container ollama-llm-fake Creating 
+ Container ollama-embed-fake Creating 
+ Container teams-fake Creating 
+ Container jira-fake Creating 
+ Container teams-fake Created 
+ Container ollama-embed-fake Created 
+ Container vigil-db Created 
+ Container vigil-migrate Creating 
+ Container jira-fake Created 
+ Container ollama-llm-fake Created 
+ Container mailpit Created 
+ Container claude-fake Created 
+ Container openai-fake Created 
+ Container vigil-migrate Created 
+ Container vigil-app Creating 
+ Container vigil-app Created 
+ Container ollama-llm-fake Starting 
+ Container claude-fake Starting 
+ Container jira-fake Starting 
+ Container vigil-db Starting 
+ Container mailpit Starting 
+ Container openai-fake Starting 
+ Container teams-fake Starting 
+ Container ollama-embed-fake Starting 
+ Container teams-fake Started 
+ Container ollama-embed-fake Started 
+ Container mailpit Started 
+ Container jira-fake Started 
+ Container claude-fake Started 
+ Container openai-fake Started 
+ Container ollama-llm-fake Started 
+ Container vigil-db Started 
+ Container vigil-db Waiting 
+ Container vigil-db Healthy 
+ Container vigil-migrate Starting 
+ Container vigil-migrate Started 
+ Container vigil-migrate Waiting 
+ Container vigil-migrate Exited 
+ Container vigil-app Starting 
+ Container vigil-app Started 
+ Volume vigil-local_demo-control-state Creating 
+ Volume vigil-local_demo-control-state Creating 
+ Volume vigil-local_demo-control-state Created 
+ Volume vigil-local_demo-control-state Created 
+ Container demo-control Creating 
+ Container demo-control Created 
+ Container demo-control Starting 
+ Container demo-control Started 
+Tenant 01a1de48-2d05-700b-bef1-e0d541cae04a is ready at demo.vigil.test.
+Vigil: http://demo.vigil.test:8080 (user presenter; password in /Users/awadood/.vigil-local/vigil-local/secrets/vigil-app/seed-password-presenter)
+Control panel: http://control.vigil.test:8090 (user operator; password in /Users/awadood/.vigil-local/vigil-local/secrets/demo-control/control-password)
+ Container vigil-local-e2e-run-40321322e649 Creating 
+ Container vigil-local-e2e-run-40321322e649 Created 
+
+Running 5 tests using 1 worker
+
+  ✓  1 [chromium] › tests/control.spec.ts:143:1 › DC-S12-01 the login and its refusal @control (523ms)
+  ✓  2 [chromium] › tests/control.spec.ts:165:1 › DC-S12-02 the buttons, descriptions and link @control (176ms)
+clear: {"operation":"Clear all faults","outcome":"completed","finished_at":"2026-11-15T08:34:14.583Z","seconds":40.191,"branch_a_seconds":null,"quiet_seconds":28.087,"branch_b_seconds":null,"error":null}
+  ✓  3 [chromium] › tests/control.spec.ts:193:1 › SB-T-05 Clear all faults after a storm @control (2.7m)
+reset: {"operation":"Reset","outcome":"completed","finished_at":"2026-11-15T08:36:59.596Z","seconds":40.257,"branch_a_seconds":40.231,"quiet_seconds":28.068,"branch_b_seconds":1.078,"error":null}
+reset: {"operation":"Reset","outcome":"completed","finished_at":"2026-11-15T08:37:12.488Z","seconds":12.142,"branch_a_seconds":12.116,"quiet_seconds":0.025,"branch_b_seconds":1.039,"error":null}
+reset: {"operation":"Reset","outcome":"completed","finished_at":"2026-11-15T08:37:25.812Z","seconds":12.116,"branch_a_seconds":12.091,"quiet_seconds":0.018,"branch_b_seconds":1.03,"error":null}
+reset: {"operation":"Reset","outcome":"completed","finished_at":"2026-11-15T08:37:38.675Z","seconds":12.113,"branch_a_seconds":12.1,"quiet_seconds":0.017,"branch_b_seconds":1.031,"error":null}
+reset: {"operation":"Reset","outcome":"completed","finished_at":"2026-11-15T08:37:51.578Z","seconds":12.099,"branch_a_seconds":12.09,"quiet_seconds":0.017,"branch_b_seconds":1.036,"error":null}
+  ✓  4 [chromium] › tests/control.spec.ts:249:1 › SB-T-05 five resets in a row, the first after SL-F-1 with SL-F-2 @control (3.6m)
+  ✓  5 [chromium] › tests/control.spec.ts:315:1 › AR-B-02 a reset gives Vigil a new tenant @control (96ms)
+
+  Slow test file: [chromium] › tests/control.spec.ts (6.3m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  5 passed (6.4m)
+Reset completed in 12 s
+ Container claude-fake Stopping 
+ Container openai-fake Stopping 
+ Container teams-fake Stopping 
+ Container lab-prometheus Stopping 
+ Container lab-zabbix-provision Stopping 
+ Container demo-faults Stopping 
+ Container jira-fake Stopping 
+ Container vigil-app Stopping 
+ Container lab-alertmanager Stopping 
+ Container mailpit Stopping 
+ Container ollama-embed-fake Stopping 
+ Container demo-control Stopping 
+ Container ollama-llm-fake Stopping 
+ Container lab-zabbix-provision Stopped 
+ Container lab-zabbix-provision Removing 
+ Container lab-zabbix-provision Removed 
+ Container lab-zabbix-web Stopping 
+ Container lab-zabbix-server Stopping 
+ Container lab-prometheus Stopped 
+ Container lab-prometheus Removing 
+ Container lab-prometheus Removed 
+ Container lab-alertmanager Stopped 
+ Container lab-alertmanager Removing 
+ Container lab-alertmanager Removed 
+ Container lab-zabbix-web Stopped 
+ Container lab-zabbix-web Removing 
+ Container lab-zabbix-web Removed 
+ Container demo-control Stopped 
+ Container demo-control Removing 
+ Container demo-control Removed 
+ Container lab-zabbix-server Stopped 
+ Container lab-zabbix-server Removing 
+ Container lab-zabbix-server Removed 
+ Container lab-zabbix-db Stopping 
+ Container mailpit Stopped 
+ Container mailpit Removing 
+ Container mailpit Removed 
+ Container vigil-app Stopped 
+ Container vigil-app Removing 
+ Container vigil-app Removed 
+ Container vigil-migrate Stopping 
+ Container vigil-migrate Stopped 
+ Container vigil-migrate Removing 
+ Container vigil-migrate Removed 
+ Container vigil-db Stopping 
+ Container lab-zabbix-db Stopped 
+ Container lab-zabbix-db Removing 
+ Container lab-zabbix-db Removed 
+ Container vigil-db Stopped 
+ Container vigil-db Removing 
+ Container vigil-db Removed 
+ Container demo-faults Stopped 
+ Container demo-faults Removing 
+ Container demo-faults Removed 
+ Container lab-probe-01 Stopping 
+ Container lab-rpt-01 Stopping 
+ Container lab-rpt-01 Stopped 
+ Container lab-rpt-01 Removing 
+ Container lab-rpt-01 Removed 
+ Container lab-probe-01 Stopped 
+ Container lab-probe-01 Removing 
+ Container lab-probe-01 Removed 
+ Container lab-vas-01 Stopping 
+ Container ollama-embed-fake Stopped 
+ Container ollama-embed-fake Removing 
+ Container ollama-embed-fake Removed 
+ Container claude-fake Stopped 
+ Container claude-fake Removing 
+ Container claude-fake Removed 
+ Container jira-fake Stopped 
+ Container jira-fake Removing 
+ Container jira-fake Removed 
+ Container ollama-llm-fake Stopped 
+ Container ollama-llm-fake Removing 
+ Container ollama-llm-fake Removed 
+ Container teams-fake Stopped 
+ Container teams-fake Removing 
+ Container teams-fake Removed 
+ Container openai-fake Stopped 
+ Container openai-fake Removing 
+ Container openai-fake Removed 
+ Container lab-vas-01 Stopped 
+ Container lab-vas-01 Removing 
+ Container lab-vas-01 Removed 
+ Container lab-api-01 Stopping 
+ Container lab-api-01 Stopped 
+ Container lab-api-01 Removing 
+ Container lab-api-01 Removed 
+ Container lab-db-01 Stopping 
+ Container lab-db-01 Stopped 
+ Container lab-db-01 Removing 
+ Container lab-db-01 Removed 
+ Volume vigil-local_vigil-db-data Removing 
+ Volume vigil-local_lab-zabbix-db-data Removing 
+ Volume vigil-local_demo-control-state Removing 
+ Volume vigil-local_demo-faults-state Removing 
+ Volume vigil-local_lab-db-01-data Removing 
+ Network vigil-local_lab-net Removing 
+ Network vigil-local_vigil-net Removing 
+ Volume vigil-local_vigil-db-data Removed 
+ Volume vigil-local_lab-zabbix-db-data Removed 
+ Volume vigil-local_demo-control-state Removed 
+ Volume vigil-local_demo-faults-state Removed 
+ Volume vigil-local_lab-db-01-data Removed 
+ Network vigil-local_vigil-net Removed 
+ Network vigil-local_lab-net Removed 

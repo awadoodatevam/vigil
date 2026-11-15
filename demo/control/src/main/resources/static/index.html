@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demo control panel</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        font-size: 16px;
+        line-height: 1.4;
+        color: #1b1b1b;
+        background: #f6f6f6;
+      }
+      #top {
+        margin: 0;
+        padding: 8px 16px;
+        background: #4a3b00;
+        color: #fff;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+      }
+      main {
+        max-width: 760px;
+        padding: 16px;
+      }
+      form label {
+        display: block;
+        margin-top: 12px;
+      }
+      input {
+        width: 100%;
+        max-width: 320px;
+        padding: 6px;
+        font-size: 16px;
+      }
+      button {
+        padding: 8px 14px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      button:disabled {
+        cursor: not-allowed;
+      }
+      form button {
+        margin-top: 16px;
+      }
+      #buttons {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      #buttons li {
+        margin: 0 0 12px;
+        padding: 8px;
+        background: #fff;
+        border: 1px solid #ccc;
+      }
+      .description {
+        margin: 4px 0 0;
+        overflow-wrap: anywhere;
+      }
+      .reason,
+      #login-error {
+        margin: 4px 0 0;
+        color: #9b1c1c;
+        overflow-wrap: anywhere;
+      }
+      #faults p,
+      #status,
+      #clock {
+        margin: 4px 0;
+        overflow-wrap: anywhere;
+      }
+      #status {
+        font-weight: 600;
+      }
+      dialog button {
+        margin-right: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <p id="top"></p>
+    <main>
+      <section id="login" hidden>
+        <form id="login-form">
+          <label for="username">Username</label>
+          <input id="username" name="username" autocomplete="username" />
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" />
+          <button type="submit">Sign in</button>
+          <p id="login-error"></p>
+        </form>
+      </section>
+      <section id="panel" hidden>
+        <ul id="buttons"></ul>
+        <div id="faults"></div>
+        <p id="status"></p>
+        <p id="clock" hidden></p>
+        <p><a id="open" target="_blank" rel="noopener noreferrer"></a></p>
+      </section>
+    </main>
+    <dialog id="confirm">
+      <p>Reset now? This ends the current demo run.</p>
+      <button type="button" id="confirm-cancel">Cancel</button>
+      <button type="button" id="confirm-reset">Reset</button>
+    </dialog>
+    <script>
+      "use strict";
+      const elements = {};
+      const reasons = {};
+      let built = false;
+
+      function byId(id) {
+        return document.getElementById(id);
+      }
+
+      function setTop(product) {
+        byId("top").textContent = "Demo control panel — demo-only, not part of " + product + ".";
+      }
+
+      function showLogin() {
+        byId("panel").hidden = true;
+        byId("login").hidden = false;
+      }
+
+      function two(value) {
+        return String(value).padStart(2, "0");
+      }
+
+      function clockTime(iso) {
+        const time = new Date(iso);
+        return two(time.getHours()) + ":" + two(time.getMinutes()) + ":" + two(time.getSeconds());
+      }
+
+      function build(state) {
+        const list = byId("buttons");
+        for (const button of state.buttons) {
+          const item = document.createElement("li");
+          const element = document.createElement("button");
+          element.type = "button";
+          element.addEventListener("click", () => press(button.key));
+          const description = document.createElement("p");
+          description.className = "description";
+          const reason = document.createElement("p");
+          reason.className = "reason";
+          item.append(element, description, reason);
+          list.append(item);
+          elements[button.key] = { element, description, reason };
+        }
+        built = true;
+      }
+
+      function render(state) {
+        setTop(state.product);
+        byId("login").hidden = true;
+        byId("panel").hidden = false;
+        if (!built) {
+          build(state);
+        }
+        for (const button of state.buttons) {
+          const parts = elements[button.key];
+          parts.element.textContent = button.label;
+          parts.description.textContent = button.description;
+          const reason = reasons[button.key] ?? button.refused;
+          parts.reason.textContent = reason ?? "";
+          parts.reason.hidden = reason == null;
+          parts.element.disabled = !state.connected || button.refused != null;
+        }
+        const faults = byId("faults");
+        const status = byId("status");
+        if (!state.connected) {
+          faults.replaceChildren(line("Connecting…"));
+          status.textContent = "Connecting…";
+          status.hidden = true;
+        } else {
+          const lines = [line("Active faults:")];
+          if (state.active.length === 0) {
+            lines.push(line("No active faults."));
+          }
+          for (const fault of state.active) {
+            lines.push(line(fault.fault + " " + fault.name + " since " + clockTime(fault.since)));
+          }
+          faults.replaceChildren(...lines);
+          status.textContent = state.status;
+          status.hidden = false;
+        }
+        const clock = byId("clock");
+        clock.textContent = state.storm_clock ?? "";
+        clock.hidden = state.storm_clock == null;
+        const open = byId("open");
+        open.textContent = "Open " + state.product;
+        open.href = state.vigil_url + "/login";
+      }
+
+      function line(text) {
+        const element = document.createElement("p");
+        element.textContent = text;
+        return element;
+      }
+
+      async function refresh() {
+        let response;
+        try {
+          response = await fetch("/api/state", { cache: "no-store" });
+        } catch {
+          return;
+        }
+        const body = await response.json().catch(() => ({}));
+        for (const key of Object.keys(reasons)) {
+          delete reasons[key];
+        }
+        if (response.status === 401) {
+          if (body.product) {
+            setTop(body.product);
+          }
+          showLogin();
+        } else if (response.ok) {
+          render(body);
+        }
+      }
+
+      async function press(key) {
+        if (key === "reset") {
+          const dialog = byId("confirm");
+          dialog.showModal();
+          byId("confirm-cancel").focus();
+          return;
+        }
+        await send(key);
+      }
+
+      async function send(key) {
+        const response = await fetch("/api/buttons/" + key, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        });
+        if (response.status === 409) {
+          const body = await response.json();
+          reasons[key] = body.reason;
+          const parts = elements[key];
+          parts.reason.textContent = body.reason;
+          parts.reason.hidden = false;
+        } else if (response.status === 401) {
+          showLogin();
+        }
+      }
+
+      byId("confirm-cancel").addEventListener("click", () => byId("confirm").close());
+      byId("confirm-reset").addEventListener("click", () => {
+        byId("confirm").close();
+        send("reset");
+      });
+
+      byId("login-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const response = await fetch("/api/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: byId("username").value,
+            password: byId("password").value,
+          }),
+        });
+        if (response.status === 204) {
+          byId("login-error").textContent = "";
+          byId("password").value = "";
+          await refresh();
+        } else if (response.status === 401) {
+          byId("login-error").textContent = "Username or password is incorrect.";
+        }
+      });
+
+      refresh();
+      setInterval(refresh, 1000);
+    </script>
+  </body>
+</html>
