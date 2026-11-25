@@ -33,7 +33,7 @@ case "$action" in
     ;;
   *) usage ;;
 esac
-files=""
+files=()
 while [ "$#" -gt 0 ]; do
   file=$1
   shift
@@ -45,7 +45,7 @@ while [ "$#" -gt 0 ]; do
     echo "No file $file."
     exit 1
   fi
-  files="$files $file"
+  files+=("$file")
 done
 
 check_identity
@@ -60,8 +60,7 @@ WORK=$(temp_folder)
 trap "rm -rf '$WORK'" EXIT
 deploy/fetch.sh "$I" /srv/vigil/logs/sample.csv "$WORK/sample.csv"
 mkdir -p spikes/results
-# shellcheck disable=SC2086 # one word per file
-python3 - "$WORK/sample.csv" spikes/results/P-32-AR-SP-03.json $files <<'PYTHON'
+python3 - "$WORK/sample.csv" spikes/results/P-32-AR-SP-03.json "${files[@]}" <<'PYTHON'
 import csv
 import json
 import os

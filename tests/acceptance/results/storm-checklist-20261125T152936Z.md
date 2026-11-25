@@ -1,0 +1,14 @@
+- [ ] Teams channel Database Operations: "Demo environment — fictional data - [P1] INC-0002 Subscriber DB server: Disk full — 3 services affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a2134d-6b24-7695-ad49-aeeac5efc5f5
+- [ ] Teams channel VAS Service Owners: "Demo environment — fictional data - [P1] INC-0002 Subscriber DB server: Disk full — 3 services affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a2134d-6b24-7695-ad49-aeeac5efc5f5
+- [ ] Teams channel NOC L1: "Demo environment — fictional data - [P1] INC-0002 Subscriber DB server: Disk full — 3 services affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a2134d-6b24-7695-ad49-aeeac5efc5f5
+- [ ] mailbox of Database Operations: "Demo environment — fictional data - [P1] INC-0002 Subscriber DB server: Disk full — 3 services affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a2134d-6b24-7695-ad49-aeeac5efc5f5
+- [ ] mailbox of VAS Service Owners: "Demo environment — fictional data - [P1] INC-0002 Subscriber DB server: Disk full — 3 services affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a2134d-6b24-7695-ad49-aeeac5efc5f5
+- [ ] mailbox of NOC L1: "Demo environment — fictional data - [P1] INC-0002 Subscriber DB server: Disk full — 3 services affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a2134d-6b24-7695-ad49-aeeac5efc5f5
+- [ ] Teams channel IT Applications: "Demo environment — fictional data - [P4] INC-0001 Report export job: Report export job failed — 1 service affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a2134d-6f12-7052-850e-9a6879d61dfb
+- [ ] mailbox of IT Applications: "Demo environment — fictional data - [P4] INC-0001 Report export job: Report export job failed — 1 service affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a2134d-6f12-7052-850e-9a6879d61dfb
+- [x] no message in Teams channel NOC Shift Lead
+- [x] no message in Teams channel NOC Management
+- [x] no message in Teams channel Customer Care
+- [x] no message in mailbox of NOC Shift Lead
+- [x] no message in mailbox of NOC Management
+- [x] no message in mailbox of Customer Care

@@ -1,0 +1,56 @@
+{
+  "spike": "AR-SP-03",
+  "sampled": {
+    "every_s": 10,
+    "count": 562,
+    "from": "2026-11-25T14:08:09Z",
+    "to": "2026-11-25T15:41:39Z"
+  },
+  "storms": [
+    {
+      "result_file": "storm-script-20261125T142957Z.json",
+      "t0": "2026-11-25T14:30:21.796Z",
+      "end_after_t0_s": 571.781,
+      "samples": 57,
+      "cpu_max_pct": 27.2,
+      "memory_max_pct": 19.7,
+      "SB-TL-01": 30.203,
+      "SB-TL-02": 70.784,
+      "SB-TL-03": 71.521,
+      "SB-TL-04": 82.241
+    },
+    {
+      "result_file": "storm-script-20261125T144259Z.json",
+      "t0": "2026-11-25T14:43:29.186Z",
+      "end_after_t0_s": 318.718,
+      "samples": 31,
+      "cpu_max_pct": 20.3,
+      "memory_max_pct": 19.7,
+      "SB-TL-01": 30.813,
+      "SB-TL-02": 71.409,
+      "SB-TL-03": 72.154,
+      "SB-TL-04": 82.088
+    },
+    {
+      "result_file": "storm-immediate-20261125T145531Z.json",
+      "t0": "2026-11-25T14:56:12.686Z",
+      "end_after_t0_s": 205.298,
+      "samples": 20,
+      "cpu_max_pct": 23.1,
+      "memory_max_pct": 19.7,
+      "SB-TL-01": 30.313,
+      "SB-TL-02": 70.921,
+      "SB-TL-03": 71.67,
+      "SB-TL-04": 80.68
+    }
+  ],
+  "criteria": {
+    "cpu_80": true,
+    "memory_85": true,
+    "sb_tl_02": true,
+    "sb_tl_03": true,
+    "sb_tl_04": true,
+    "storms_3": true
+  },
+  "passed": true
+}

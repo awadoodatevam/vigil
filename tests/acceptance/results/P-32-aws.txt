@@ -1,0 +1,470 @@
+== date
+Wed Nov 25 13:40:42 UTC 2026
+aws-cli/2.38.1 Python/3.14.6 Darwin/27.2.0 exe/arm64
+caller: arn:aws:iam::653271908574:user/abdul-admin
+exit 0
+== status
+main host: i-0512f130bee88b091 running
+gpu host: i-076737f05bf4a7c7a stopped
+bootstrap main 1 docker 29.1.3 compose 2.40.3
+docker 29.1.3
+compose 2.40.3
+release: "p32-1"
+deployed_at: "2026-11-25T13:32:57Z"
+NAME                   STATE     STATUS
+demo-control           running   Up 7 minutes (healthy)
+demo-faults            running   Up 3 hours (healthy)
+lab-alertmanager       running   Up 3 hours
+lab-api-01             running   Up 3 hours (healthy)
+lab-db-01              running   Up 3 hours (healthy)
+lab-probe-01           running   Up 3 hours (healthy)
+lab-prometheus         running   Up 3 hours
+lab-rpt-01             running   Up 3 hours (healthy)
+lab-vas-01             running   Up 3 hours (healthy)
+lab-zabbix-db          running   Up 3 hours (healthy)
+lab-zabbix-provision   exited    Exited (0) 7 minutes ago
+lab-zabbix-server      running   Up 3 hours
+lab-zabbix-web         running   Up 3 hours (healthy)
+vigil-app              running   Up 7 minutes
+vigil-db               running   Up 3 hours (healthy)
+vigil-embed            running   Up 4 hours
+vigil-migrate          exited    Exited (0) 7 minutes ago
+vigil-app: secrets readable
+demo-control: secrets readable
+demo-faults: secrets readable
+vigil-db: secrets readable
+lab-zabbix-db: secrets readable
+lab-zabbix-server: secrets readable
+lab-zabbix-web: secrets readable
+lab-prometheus: secrets readable
+lab-alertmanager: secrets readable
+lab-db-01: secrets readable
+vigil-app health: {"components":{"correlation":{"status":"UP"},"db":{"details":{"database":"PostgreSQL","validationQuery":"isValid()"},"status":"UP"},"diskSpace":{"details":{"total":102888095744,"free":86371008512,"threshold":10485760,"path":"/.","exists":true},"status":"UP"},"livenessState":{"status":"UP"},"ping":{"status":"UP"},"readinessState":{"status":"UP"},"ssl":{"details":{"expiringChains":[],"invalidChains":[],"validChains":[]},"status":"UP"}},"groups":["liveness","readiness"],"status":"UP"}
+embeddinggemma 85462619ee721b466c5927d109d4cb765861907d5417b9109caebc4e614679f1 matches models.lock
+exit 0
+== load-balancer
+target group vigil-app i-0512f130bee88b091:8080 healthy
+target group demo-control i-0512f130bee88b091:8090 healthy
+exit 0
+== main-host
+-- bootstrap
+bootstrap main 1 docker 29.1.3 compose 2.40.3
+exit 0
+-- chrony
+Reference ID    : A9FEA97B (169.254.169.123)
+Stratum         : 2
+Ref time (UTC)  : Wed Nov 25 13:40:53 2026
+System time     : 0.000001555 seconds slow of NTP time
+Last offset     : -0.000001800 seconds
+RMS offset      : 0.000000913 seconds
+Frequency       : 1.432 ppm fast
+Residual freq   : -0.001 ppm
+Skew            : 0.018 ppm
+Root delay      : 0.000141169 seconds
+Root dispersion : 0.000044763 seconds
+Update interval : 16.0 seconds
+Leap status     : Normal
+exit 0
+-- timedatectl
+               Local time: Wed 2026-11-25 13:41:06 UTC
+           Universal time: Wed 2026-11-25 13:41:06 UTC
+                 RTC time: Wed 2026-11-25 13:41:06
+                Time zone: UTC (UTC, +0000)
+System clock synchronized: yes
+              NTP service: active
+          RTC in local TZ: no
+exit 0
+-- docker-user
+-N DOCKER-USER
+-A DOCKER-USER -s 172.31.0.0/24 -d 172.30.0.10/32 -m conntrack --ctstate NEW -j DROP
+exit 0
+-- published-ports
+demo-control	10.40.1.10:8090->8090/tcp
+vigil-app	10.40.1.10:8080->8080/tcp
+lab-prometheus	9090/tcp
+demo-faults	
+lab-probe-01	
+lab-vas-01	
+lab-zabbix-server	10051/tcp
+lab-zabbix-web	8080/tcp, 8443/tcp
+lab-api-01	
+lab-zabbix-db	5432/tcp
+vigil-db	5432/tcp
+lab-alertmanager	9093/tcp
+lab-rpt-01	
+lab-db-01	
+vigil-embed	11434/tcp
+exit 0
+-- lab-to-app
+lab-to-app blocked after 5.01 s: timed out
+exit 0
+-- lab-public-name
+lab-public-name 200
+exit 0
+-- deployed
+release: "p32-1"
+deployed_at: "2026-11-25T13:32:57Z"
+images:
+  demo-control: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-control@sha256:21abea0098c401ae5dcc7a7c97f1ffc653200944163315f30104a13df7f19adc"
+  demo-faults: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-faults@sha256:06dfa619bdd32a3c2c5e2fb2fcc4873452c6f2f446de2883845ee3cc3b641b06"
+  lab-alertmanager: "prom/alertmanager@sha256:e9733bafb1bdef9b00e25a21f8f99dc26a22224bf16641ad754d1649f4c3357a"
+  lab-api-01: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-lab@sha256:4a83e7c518a3117801ac53e1f3b143f0e572d2c6d2f661bba5fb4d8f259cd9bc"
+  lab-db-01: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-lab@sha256:4a83e7c518a3117801ac53e1f3b143f0e572d2c6d2f661bba5fb4d8f259cd9bc"
+  lab-probe-01: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-lab@sha256:4a83e7c518a3117801ac53e1f3b143f0e572d2c6d2f661bba5fb4d8f259cd9bc"
+  lab-prometheus: "prom/prometheus@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e"
+  lab-rpt-01: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-lab@sha256:4a83e7c518a3117801ac53e1f3b143f0e572d2c6d2f661bba5fb4d8f259cd9bc"
+  lab-vas-01: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-lab@sha256:4a83e7c518a3117801ac53e1f3b143f0e572d2c6d2f661bba5fb4d8f259cd9bc"
+  lab-zabbix-db: "postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d"
+  lab-zabbix-server: "zabbix/zabbix-server-pgsql@sha256:bdfe90847bd259a6da448db1e6ae83f5f439224654ed767296a8d57a088975b9"
+  lab-zabbix-web: "zabbix/zabbix-web-nginx-pgsql@sha256:d9ce0774cb6036ce5d49c9c8d46bf1474dad98aae810350de0d5068dd679b92d"
+  vigil-app: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/vigil-app@sha256:d87ee4e912c9fcbeadc477869535c1998fe9eb6bb1dcc9c7ce33cf90611f156d"
+  vigil-db: "pgvector/pgvector@sha256:ac08538c6f8b9904c33c8224c5e5706dbe760aca29db1d096972b4052c22a75d"
+  vigil-embed: "ollama/ollama@sha256:5d3a2f25f9825628daba94dc0b1d421c7d57d6c03ae5faa9ba050e058bab8241"
+exit 0
+-- env
+VIGIL_RELEASE=p32-1
+COMPOSE_PROFILES=vigil
+exit 0
+-- services
+lab-db-01
+lab-api-01
+lab-vas-01
+lab-probe-01
+lab-rpt-01
+demo-faults
+lab-zabbix-db
+lab-zabbix-server
+lab-zabbix-web
+lab-zabbix-provision
+vigil-db
+vigil-migrate
+vigil-app
+demo-control
+lab-alertmanager
+lab-prometheus
+vigil-embed
+exit 0
+exit 0
+== https
+-- http-redirect
+HTTP/1.1 301 Moved Permanently
+Server: awselb/2.0
+Date: Wed, 25 Nov 2026 13:41:14 GMT
+Content-Type: text/html
+Content-Length: 134
+Connection: keep-alive
+Location: https://demo.vigil.solviclabs.com:443/
+
+status 301
+-- https-demo
+status 200
+-- actuator-404
+status 404
+-- https-control
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demo control panel</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        font-size: 16px;
+        line-height: 1.4;
+        color: #1b1b1b;
+        background: #f6f6f6;
+      }
+      #top {
+        margin: 0;
+        padding: 8px 16px;
+        background: #4a3b00;
+        color: #fff;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+      }
+      main {
+        max-width: 760px;
+        padding: 16px;
+      }
+      form label {
+        display: block;
+        margin-top: 12px;
+      }
+      input {
+        width: 100%;
+        max-width: 320px;
+        padding: 6px;
+        font-size: 16px;
+      }
+      button {
+        padding: 8px 14px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      button:disabled {
+        cursor: not-allowed;
+      }
+      form button {
+        margin-top: 16px;
+      }
+      #buttons {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      #buttons li {
+        margin: 0 0 12px;
+        padding: 8px;
+        background: #fff;
+        border: 1px solid #ccc;
+      }
+      .description {
+        margin: 4px 0 0;
+        overflow-wrap: anywhere;
+      }
+      .reason,
+      #login-error {
+        margin: 4px 0 0;
+        color: #9b1c1c;
+        overflow-wrap: anywhere;
+      }
+      #faults p,
+      #status,
+      #clock {
+        margin: 4px 0;
+        overflow-wrap: anywhere;
+      }
+      #status {
+        font-weight: 600;
+      }
+      dialog button {
+        margin-right: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <p id="top"></p>
+    <main>
+      <section id="login" hidden>
+        <form id="login-form">
+          <label for="username">Username</label>
+          <input id="username" name="username" autocomplete="username" />
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" />
+          <button type="submit">Sign in</button>
+          <p id="login-error"></p>
+        </form>
+      </section>
+      <section id="panel" hidden>
+        <ul id="buttons"></ul>
+        <div id="faults"></div>
+        <p id="status"></p>
+        <p id="clock" hidden></p>
+        <p><a id="open" target="_blank" rel="noopener noreferrer"></a></p>
+      </section>
+    </main>
+    <dialog id="confirm">
+      <p>Reset now? This ends the current demo run.</p>
+      <button type="button" id="confirm-cancel">Cancel</button>
+      <button type="button" id="confirm-reset">Reset</button>
+    </dialog>
+    <script>
+      "use strict";
+      const elements = {};
+      const reasons = {};
+      let built = false;
+
+      function byId(id) {
+        return document.getElementById(id);
+      }
+
+      function setTop(product) {
+        byId("top").textContent = "Demo control panel — demo-only, not part of " + product + ".";
+      }
+
+      function showLogin() {
+        byId("panel").hidden = true;
+        byId("login").hidden = false;
+      }
+
+      function two(value) {
+        return String(value).padStart(2, "0");
+      }
+
+      function clockTime(iso) {
+        const time = new Date(iso);
+        return two(time.getHours()) + ":" + two(time.getMinutes()) + ":" + two(time.getSeconds());
+      }
+
+      function build(state) {
+        const list = byId("buttons");
+        for (const button of state.buttons) {
+          const item = document.createElement("li");
+          const element = document.createElement("button");
+          element.type = "button";
+          element.addEventListener("click", () => press(button.key));
+          const description = document.createElement("p");
+          description.className = "description";
+          const reason = document.createElement("p");
+          reason.className = "reason";
+          item.append(element, description, reason);
+          list.append(item);
+          elements[button.key] = { element, description, reason };
+        }
+        built = true;
+      }
+
+      function render(state) {
+        setTop(state.product);
+        byId("login").hidden = true;
+        byId("panel").hidden = false;
+        if (!built) {
+          build(state);
+        }
+        for (const button of state.buttons) {
+          const parts = elements[button.key];
+          parts.element.textContent = button.label;
+          parts.description.textContent = button.description;
+          const reason = reasons[button.key] ?? button.refused;
+          parts.reason.textContent = reason ?? "";
+          parts.reason.hidden = reason == null;
+          parts.element.disabled = !state.connected || button.refused != null;
+        }
+        const faults = byId("faults");
+        const status = byId("status");
+        if (!state.connected) {
+          faults.replaceChildren(line("Connecting…"));
+          status.textContent = "Connecting…";
+          status.hidden = true;
+        } else {
+          const lines = [line("Active faults:")];
+          if (state.active.length === 0) {
+            lines.push(line("No active faults."));
+          }
+          for (const fault of state.active) {
+            lines.push(line(fault.fault + " " + fault.name + " since " + clockTime(fault.since)));
+          }
+          faults.replaceChildren(...lines);
+          status.textContent = state.status;
+          status.hidden = false;
+        }
+        const clock = byId("clock");
+        clock.textContent = state.storm_clock ?? "";
+        clock.hidden = state.storm_clock == null;
+        const open = byId("open");
+        open.textContent = "Open " + state.product;
+        open.href = state.vigil_url + "/login";
+      }
+
+      function line(text) {
+        const element = document.createElement("p");
+        element.textContent = text;
+        return element;
+      }
+
+      async function refresh() {
+        let response;
+        try {
+          response = await fetch("/api/state", { cache: "no-store" });
+        } catch {
+          return;
+        }
+        const body = await response.json().catch(() => ({}));
+        for (const key of Object.keys(reasons)) {
+          delete reasons[key];
+        }
+        if (response.status === 401) {
+          if (body.product) {
+            setTop(body.product);
+          }
+          showLogin();
+        } else if (response.ok) {
+          render(body);
+        }
+      }
+
+      async function press(key) {
+        if (key === "reset") {
+          const dialog = byId("confirm");
+          dialog.showModal();
+          byId("confirm-cancel").focus();
+          return;
+        }
+        await send(key);
+      }
+
+      async function send(key) {
+        const response = await fetch("/api/buttons/" + key, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        });
+        if (response.status === 409) {
+          const body = await response.json();
+          reasons[key] = body.reason;
+          const parts = elements[key];
+          parts.reason.textContent = body.reason;
+          parts.reason.hidden = false;
+        } else if (response.status === 401) {
+          showLogin();
+        }
+      }
+
+      byId("confirm-cancel").addEventListener("click", () => byId("confirm").close());
+      byId("confirm-reset").addEventListener("click", () => {
+        byId("confirm").close();
+        send("reset");
+      });
+
+      byId("login-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const response = await fetch("/api/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: byId("username").value,
+            password: byId("password").value,
+          }),
+        });
+        if (response.status === 204) {
+          byId("login-error").textContent = "";
+          byId("password").value = "";
+          await refresh();
+        } else if (response.status === 401) {
+          byId("login-error").textContent = "Username or password is incorrect.";
+        }
+      });
+
+      refresh();
+      setInterval(refresh, 1000);
+    </script>
+  </body>
+</html>
+
+status 200
+-- unknown-host-404
+status 404
+-- tls-1.1-refused
+curl: (35) LibreSSL/3.3.6: error:1404B42E:SSL routines:ST_CONNECT:tlsv1 alert protocol version
+exit code 35
+exit 0
+PASS http-redirect
+PASS https-demo
+PASS actuator-404
+PASS https-control
+PASS unknown-host-404
+PASS tls-1.1-refused
+PASS targets-healthy
+PASS published-ports
+PASS DOCKER-USER
+PASS lab-to-app-blocked
+PASS lab-public-name
+PASS secrets-readable
+PASS correlation
+PASS clock
+PASS release

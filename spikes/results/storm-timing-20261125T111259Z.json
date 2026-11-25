@@ -1,0 +1,1320 @@
+{
+  "spike": "SB-T-01",
+  "started_at": "2026-11-25T11:13:04Z",
+  "finished_at": "2026-11-25T13:03:57Z",
+  "finished": true,
+  "profile": "demo",
+  "machine": "x86_64",
+  "arguments": {
+    "storms": 10,
+    "extra": [
+      "read-only",
+      "clear"
+    ],
+    "out": "/results/storm-timing-20261125T111259Z.json",
+    "save_recordings": false
+  },
+  "versions": {
+    "zabbix": "7.0.31",
+    "prometheus": "3.15.0",
+    "alertmanager": "0.34.1"
+  },
+  "checks": {
+    "zabbix_connection_test": {
+      "passed": true,
+      "detail": "HTTP 200 with a result array"
+    },
+    "alertmanager_connection_test": {
+      "passed": true,
+      "detail": "HTTP 200"
+    },
+    "alertmanager_requires_auth": {
+      "passed": true,
+      "detail": "HTTP 401"
+    },
+    "prometheus_targets_up": {
+      "passed": true,
+      "detail": "4 jobs up"
+    },
+    "start_clear": {
+      "passed": true,
+      "detail": "HTTP 200 {\"active\": []}"
+    },
+    "baseline_window": {
+      "passed": true,
+      "detail": "724"
+    }
+  },
+  "runs": [
+    {
+      "kind": "standard",
+      "index": 1,
+      "faults": [
+        "SL-F-1",
+        "SL-F-3"
+      ],
+      "t0": "2026-11-25T11:25:20.671Z",
+      "action_end": "2026-11-25T11:27:51.885Z",
+      "clear_at": "2026-11-25T11:33:21.525Z",
+      "measured": {
+        "baseline_used_pct": 47,
+        "used_pct_after_injection": 100,
+        "avail_bytes_after_injection": 67104768,
+        "injected_files": 34,
+        "injected_bytes": 9167810560,
+        "injected_gib": 8.5,
+        "disk_usage": "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)",
+        "largest_folders": "Largest folder under /data: /data/txlog_archive (8.5 GiB)",
+        "disk_growth": "8.5 GiB written to 34 files under /data in the last 15 minutes",
+        "action_files_removed": 34,
+        "action_gib_removed": 8.5,
+        "used_pct_after_action": 47
+      },
+      "timing": {
+        "first_arrival_s": 1.8,
+        "last_arrival_s": 31.9,
+        "max_gap_s": 10.4,
+        "sl_f_3_arrival_s": 0.9,
+        "last_resolve_after_action_s": 29.6,
+        "last_resolve_after_clear_s": 10.0
+      },
+      "counts": {
+        "storm_firing": 126,
+        "zabbix_firing": 31,
+        "alertmanager_firing": 95,
+        "sl_f_3_firing": 1,
+        "still_firing_after_action": null
+      },
+      "checks": {
+        "arrival": {
+          "passed": true,
+          "detail": ""
+        },
+        "exactly_once": {
+          "passed": true,
+          "detail": ""
+        },
+        "counts": {
+          "passed": true,
+          "detail": "counted (126, 31, 95, 1), expected (126, 31, 95, 1)"
+        },
+        "no_unexpected": {
+          "passed": true,
+          "detail": ""
+        },
+        "max_gap": {
+          "passed": true,
+          "detail": "largest gap 10.4 s"
+        },
+        "sl_f_3": {
+          "passed": true,
+          "detail": "arrived after 0.9 s"
+        },
+        "precondition": {
+          "passed": true,
+          "detail": "fs_used_pct 100, avail_bytes 67104768"
+        },
+        "disk_growth": {
+          "passed": true,
+          "detail": "disk_growth 34 files, 9167810560 bytes; injected (34, 9167810560)"
+        },
+        "action": {
+          "passed": true,
+          "detail": "removed 34 files, 9167810560 bytes; used 47 % after, 47 % before"
+        },
+        "resolve_after_action": {
+          "passed": true,
+          "detail": ""
+        },
+        "no_refire": {
+          "passed": true,
+          "detail": ""
+        },
+        "resolve_after_clear": {
+          "passed": true,
+          "detail": ""
+        },
+        "messages": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_before": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_after": {
+          "passed": true,
+          "detail": ""
+        },
+        "steps": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "passed": true
+    },
+    {
+      "kind": "standard",
+      "index": 2,
+      "faults": [
+        "SL-F-1",
+        "SL-F-3"
+      ],
+      "t0": "2026-11-25T11:34:25.797Z",
+      "action_end": "2026-11-25T11:36:57.009Z",
+      "clear_at": "2026-11-25T11:42:24.530Z",
+      "measured": {
+        "baseline_used_pct": 47,
+        "used_pct_after_injection": 100,
+        "avail_bytes_after_injection": 67104768,
+        "injected_files": 34,
+        "injected_bytes": 9167810560,
+        "injected_gib": 8.5,
+        "disk_usage": "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)",
+        "largest_folders": "Largest folder under /data: /data/txlog_archive (8.5 GiB)",
+        "disk_growth": "8.5 GiB written to 34 files under /data in the last 15 minutes",
+        "action_files_removed": 34,
+        "action_gib_removed": 8.5,
+        "used_pct_after_action": 47
+      },
+      "timing": {
+        "first_arrival_s": 4.7,
+        "last_arrival_s": 31.7,
+        "max_gap_s": 10.4,
+        "sl_f_3_arrival_s": 5.7,
+        "last_resolve_after_action_s": 27.5,
+        "last_resolve_after_clear_s": 7.0
+      },
+      "counts": {
+        "storm_firing": 126,
+        "zabbix_firing": 31,
+        "alertmanager_firing": 95,
+        "sl_f_3_firing": 1,
+        "still_firing_after_action": null
+      },
+      "checks": {
+        "arrival": {
+          "passed": true,
+          "detail": ""
+        },
+        "exactly_once": {
+          "passed": true,
+          "detail": ""
+        },
+        "counts": {
+          "passed": true,
+          "detail": "counted (126, 31, 95, 1), expected (126, 31, 95, 1)"
+        },
+        "no_unexpected": {
+          "passed": true,
+          "detail": ""
+        },
+        "max_gap": {
+          "passed": true,
+          "detail": "largest gap 10.4 s"
+        },
+        "sl_f_3": {
+          "passed": true,
+          "detail": "arrived after 5.7 s"
+        },
+        "precondition": {
+          "passed": true,
+          "detail": "fs_used_pct 100, avail_bytes 67104768"
+        },
+        "disk_growth": {
+          "passed": true,
+          "detail": "disk_growth 34 files, 9167810560 bytes; injected (34, 9167810560)"
+        },
+        "action": {
+          "passed": true,
+          "detail": "removed 34 files, 9167810560 bytes; used 47 % after, 47 % before"
+        },
+        "resolve_after_action": {
+          "passed": true,
+          "detail": ""
+        },
+        "no_refire": {
+          "passed": true,
+          "detail": ""
+        },
+        "resolve_after_clear": {
+          "passed": true,
+          "detail": ""
+        },
+        "messages": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_before": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_after": {
+          "passed": true,
+          "detail": ""
+        },
+        "steps": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "passed": true
+    },
+    {
+      "kind": "standard",
+      "index": 3,
+      "faults": [
+        "SL-F-1",
+        "SL-F-3"
+      ],
+      "t0": "2026-11-25T11:43:28.795Z",
+      "action_end": "2026-11-25T11:46:00.001Z",
+      "clear_at": "2026-11-25T11:51:26.527Z",
+      "measured": {
+        "baseline_used_pct": 47,
+        "used_pct_after_injection": 100,
+        "avail_bytes_after_injection": 67104768,
+        "injected_files": 34,
+        "injected_bytes": 9167810560,
+        "injected_gib": 8.5,
+        "disk_usage": "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)",
+        "largest_folders": "Largest folder under /data: /data/txlog_archive (8.5 GiB)",
+        "disk_growth": "8.5 GiB written to 34 files under /data in the last 15 minutes",
+        "action_files_removed": 34,
+        "action_gib_removed": 8.5,
+        "used_pct_after_action": 47
+      },
+      "timing": {
+        "first_arrival_s": 1.7,
+        "last_arrival_s": 31.7,
+        "max_gap_s": 15.0,
+        "sl_f_3_arrival_s": 2.7,
+        "last_resolve_after_action_s": 26.5,
+        "last_resolve_after_clear_s": 5.0
+      },
+      "counts": {
+        "storm_firing": 126,
+        "zabbix_firing": 31,
+        "alertmanager_firing": 95,
+        "sl_f_3_firing": 1,
+        "still_firing_after_action": null
+      },
+      "checks": {
+        "arrival": {
+          "passed": true,
+          "detail": ""
+        },
+        "exactly_once": {
+          "passed": true,
+          "detail": ""
+        },
+        "counts": {
+          "passed": true,
+          "detail": "counted (126, 31, 95, 1), expected (126, 31, 95, 1)"
+        },
+        "no_unexpected": {
+          "passed": true,
+          "detail": ""
+        },
+        "max_gap": {
+          "passed": true,
+          "detail": "largest gap 15.0 s"
+        },
+        "sl_f_3": {
+          "passed": true,
+          "detail": "arrived after 2.7 s"
+        },
+        "precondition": {
+          "passed": true,
+          "detail": "fs_used_pct 100, avail_bytes 67104768"
+        },
+        "disk_growth": {
+          "passed": true,
+          "detail": "disk_growth 34 files, 9167810560 bytes; injected (34, 9167810560)"
+        },
+        "action": {
+          "passed": true,
+          "detail": "removed 34 files, 9167810560 bytes; used 47 % after, 47 % before"
+        },
+        "resolve_after_action": {
+          "passed": true,
+          "detail": ""
+        },
+        "no_refire": {
+          "passed": true,
+          "detail": ""
+        },
+        "resolve_after_clear": {
+          "passed": true,
+          "detail": ""
+        },
+        "messages": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_before": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_after": {
+          "passed": true,
+          "detail": ""
+        },
+        "steps": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "passed": true
+    },
+    {
+      "kind": "standard",
+      "index": 4,
+      "faults": [
+        "SL-F-1",
+        "SL-F-3"
+      ],
+      "t0": "2026-11-25T11:52:30.779Z",
+      "action_end": "2026-11-25T11:55:01.985Z",
+      "clear_at": "2026-11-25T12:00:31.525Z",
+      "measured": {
+        "baseline_used_pct": 47,
+        "used_pct_after_injection": 100,
+        "avail_bytes_after_injection": 67104768,
+        "injected_files": 34,
+        "injected_bytes": 9167810560,
+        "injected_gib": 8.5,
+        "disk_usage": "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)",
+        "largest_folders": "Largest folder under /data: /data/txlog_archive (8.5 GiB)",
+        "disk_growth": "8.5 GiB written to 34 files under /data in the last 15 minutes",
+        "action_files_removed": 34,
+        "action_gib_removed": 8.5,
+        "used_pct_after_action": 47
+      },
+      "timing": {
+        "first_arrival_s": 1.7,
+        "last_arrival_s": 31.8,
+        "max_gap_s": 10.4,
+        "sl_f_3_arrival_s": 0.7,
+        "last_resolve_after_action_s": 29.5,
+        "last_resolve_after_clear_s": 10.0
+      },
+      "counts": {
+        "storm_firing": 126,
+        "zabbix_firing": 31,
+        "alertmanager_firing": 95,
+        "sl_f_3_firing": 1,
+        "still_firing_after_action": null
+      },
+      "checks": {
+        "arrival": {
+          "passed": true,
+          "detail": ""
+        },
+        "exactly_once": {
+          "passed": true,
+          "detail": ""
+        },
+        "counts": {
+          "passed": true,
+          "detail": "counted (126, 31, 95, 1), expected (126, 31, 95, 1)"
+        },
+        "no_unexpected": {
+          "passed": true,
+          "detail": ""
+        },
+        "max_gap": {
+          "passed": true,
+          "detail": "largest gap 10.4 s"
+        },
+        "sl_f_3": {
+          "passed": true,
+          "detail": "arrived after 0.7 s"
+        },
+        "precondition": {
+          "passed": true,
+          "detail": "fs_used_pct 100, avail_bytes 67104768"
+        },
+        "disk_growth": {
+          "passed": true,
+          "detail": "disk_growth 34 files, 9167810560 bytes; injected (34, 9167810560)"
+        },
+        "action": {
+          "passed": true,
+          "detail": "removed 34 files, 9167810560 bytes; used 47 % after, 47 % before"
+        },
+        "resolve_after_action": {
+          "passed": true,
+          "detail": ""
+        },
+        "no_refire": {
+          "passed": true,
+          "detail": ""
+        },
+        "resolve_after_clear": {
+          "passed": true,
+          "detail": ""
+        },
+        "messages": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_before": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_after": {
+          "passed": true,
+          "detail": ""
+        },
+        "steps": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "passed": true
+    },
+    {
+      "kind": "standard",
+      "index": 5,
+      "faults": [
+        "SL-F-1",
+        "SL-F-3"
+      ],
+      "t0": "2026-11-25T12:01:35.811Z",
+      "action_end": "2026-11-25T12:04:07.010Z",
+      "clear_at": "2026-11-25T12:09:36.522Z",
+      "measured": {
+        "baseline_used_pct": 47,
+        "used_pct_after_injection": 100,
+        "avail_bytes_after_injection": 67104768,
+        "injected_files": 34,
+        "injected_bytes": 9167810560,
+        "injected_gib": 8.5,
+        "disk_usage": "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)",
+        "largest_folders": "Largest folder under /data: /data/txlog_archive (8.5 GiB)",
+        "disk_growth": "8.5 GiB written to 34 files under /data in the last 15 minutes",
+        "action_files_removed": 34,
+        "action_gib_removed": 8.5,
+        "used_pct_after_action": 47
+      },
+      "timing": {
+        "first_arrival_s": 4.7,
+        "last_arrival_s": 31.7,
+        "max_gap_s": 10.4,
+        "sl_f_3_arrival_s": 5.7,
+        "last_resolve_after_action_s": 29.5,
+        "last_resolve_after_clear_s": 5.0
+      },
+      "counts": {
+        "storm_firing": 126,
+        "zabbix_firing": 31,
+        "alertmanager_firing": 95,
+        "sl_f_3_firing": 1,
+        "still_firing_after_action": null
+      },
+      "checks": {
+        "arrival": {
+          "passed": true,
+          "detail": ""
+        },
+        "exactly_once": {
+          "passed": true,
+          "detail": ""
+        },
+        "counts": {
+          "passed": true,
+          "detail": "counted (126, 31, 95, 1), expected (126, 31, 95, 1)"
+        },
+        "no_unexpected": {
+          "passed": true,
+          "detail": ""
+        },
+        "max_gap": {
+          "passed": true,
+          "detail": "largest gap 10.4 s"
+        },
+        "sl_f_3": {
+          "passed": true,
+          "detail": "arrived after 5.7 s"
+        },
+        "precondition": {
+          "passed": true,
+          "detail": "fs_used_pct 100, avail_bytes 67104768"
+        },
+        "disk_growth": {
+          "passed": true,
+          "detail": "disk_growth 34 files, 9167810560 bytes; injected (34, 9167810560)"
+        },
+        "action": {
+          "passed": true,
+          "detail": "removed 34 files, 9167810560 bytes; used 47 % after, 47 % before"
+        },
+        "resolve_after_action": {
+          "passed": true,
+          "detail": ""
+        },
+        "no_refire": {
+          "passed": true,
+          "detail": ""
+        },
+        "resolve_after_clear": {
+          "passed": true,
+          "detail": ""
+        },
+        "messages": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_before": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_after": {
+          "passed": true,
+          "detail": ""
+        },
+        "steps": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "passed": true
+    },
+    {
+      "kind": "standard",
+      "index": 6,
+      "faults": [
+        "SL-F-1",
+        "SL-F-3"
+      ],
+      "t0": "2026-11-25T12:10:40.776Z",
+      "action_end": "2026-11-25T12:13:11.981Z",
+      "clear_at": "2026-11-25T12:18:41.524Z",
+      "measured": {
+        "baseline_used_pct": 47,
+        "used_pct_after_injection": 100,
+        "avail_bytes_after_injection": 67104768,
+        "injected_files": 34,
+        "injected_bytes": 9167810560,
+        "injected_gib": 8.5,
+        "disk_usage": "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)",
+        "largest_folders": "Largest folder under /data: /data/txlog_archive (8.5 GiB)",
+        "disk_growth": "8.5 GiB written to 34 files under /data in the last 15 minutes",
+        "action_files_removed": 34,
+        "action_gib_removed": 8.5,
+        "used_pct_after_action": 47
+      },
+      "timing": {
+        "first_arrival_s": 1.8,
+        "last_arrival_s": 31.7,
+        "max_gap_s": 10.5,
+        "sl_f_3_arrival_s": 0.7,
+        "last_resolve_after_action_s": 29.5,
+        "last_resolve_after_clear_s": 10.0
+      },
+      "counts": {
+        "storm_firing": 126,
+        "zabbix_firing": 31,
+        "alertmanager_firing": 95,
+        "sl_f_3_firing": 1,
+        "still_firing_after_action": null
+      },
+      "checks": {
+        "arrival": {
+          "passed": true,
+          "detail": ""
+        },
+        "exactly_once": {
+          "passed": true,
+          "detail": ""
+        },
+        "counts": {
+          "passed": true,
+          "detail": "counted (126, 31, 95, 1), expected (126, 31, 95, 1)"
+        },
+        "no_unexpected": {
+          "passed": true,
+          "detail": ""
+        },
+        "max_gap": {
+          "passed": true,
+          "detail": "largest gap 10.5 s"
+        },
+        "sl_f_3": {
+          "passed": true,
+          "detail": "arrived after 0.7 s"
+        },
+        "precondition": {
+          "passed": true,
+          "detail": "fs_used_pct 100, avail_bytes 67104768"
+        },
+        "disk_growth": {
+          "passed": true,
+          "detail": "disk_growth 34 files, 9167810560 bytes; injected (34, 9167810560)"
+        },
+        "action": {
+          "passed": true,
+          "detail": "removed 34 files, 9167810560 bytes; used 47 % after, 47 % before"
+        },
+        "resolve_after_action": {
+          "passed": true,
+          "detail": ""
+        },
+        "no_refire": {
+          "passed": true,
+          "detail": ""
+        },
+        "resolve_after_clear": {
+          "passed": true,
+          "detail": ""
+        },
+        "messages": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_before": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_after": {
+          "passed": true,
+          "detail": ""
+        },
+        "steps": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "passed": true
+    },
+    {
+      "kind": "standard",
+      "index": 7,
+      "faults": [
+        "SL-F-1",
+        "SL-F-3"
+      ],
+      "t0": "2026-11-25T12:19:45.796Z",
+      "action_end": "2026-11-25T12:22:16.994Z",
+      "clear_at": "2026-11-25T12:27:46.525Z",
+      "measured": {
+        "baseline_used_pct": 47,
+        "used_pct_after_injection": 100,
+        "avail_bytes_after_injection": 67104768,
+        "injected_files": 34,
+        "injected_bytes": 9167810560,
+        "injected_gib": 8.5,
+        "disk_usage": "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)",
+        "largest_folders": "Largest folder under /data: /data/txlog_archive (8.5 GiB)",
+        "disk_growth": "8.5 GiB written to 34 files under /data in the last 15 minutes",
+        "action_files_removed": 34,
+        "action_gib_removed": 8.5,
+        "used_pct_after_action": 47
+      },
+      "timing": {
+        "first_arrival_s": 4.7,
+        "last_arrival_s": 31.7,
+        "max_gap_s": 10.4,
+        "sl_f_3_arrival_s": 5.7,
+        "last_resolve_after_action_s": 29.5,
+        "last_resolve_after_clear_s": 5.0
+      },
+      "counts": {
+        "storm_firing": 126,
+        "zabbix_firing": 31,
+        "alertmanager_firing": 95,
+        "sl_f_3_firing": 1,
+        "still_firing_after_action": null
+      },
+      "checks": {
+        "arrival": {
+          "passed": true,
+          "detail": ""
+        },
+        "exactly_once": {
+          "passed": true,
+          "detail": ""
+        },
+        "counts": {
+          "passed": true,
+          "detail": "counted (126, 31, 95, 1), expected (126, 31, 95, 1)"
+        },
+        "no_unexpected": {
+          "passed": true,
+          "detail": ""
+        },
+        "max_gap": {
+          "passed": true,
+          "detail": "largest gap 10.4 s"
+        },
+        "sl_f_3": {
+          "passed": true,
+          "detail": "arrived after 5.7 s"
+        },
+        "precondition": {
+          "passed": true,
+          "detail": "fs_used_pct 100, avail_bytes 67104768"
+        },
+        "disk_growth": {
+          "passed": true,
+          "detail": "disk_growth 34 files, 9167810560 bytes; injected (34, 9167810560)"
+        },
+        "action": {
+          "passed": true,
+          "detail": "removed 34 files, 9167810560 bytes; used 47 % after, 47 % before"
+        },
+        "resolve_after_action": {
+          "passed": true,
+          "detail": ""
+        },
+        "no_refire": {
+          "passed": true,
+          "detail": ""
+        },
+        "resolve_after_clear": {
+          "passed": true,
+          "detail": ""
+        },
+        "messages": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_before": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_after": {
+          "passed": true,
+          "detail": ""
+        },
+        "steps": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "passed": true
+    },
+    {
+      "kind": "standard",
+      "index": 8,
+      "faults": [
+        "SL-F-1",
+        "SL-F-3"
+      ],
+      "t0": "2026-11-25T12:28:50.795Z",
+      "action_end": "2026-11-25T12:31:22.001Z",
+      "clear_at": "2026-11-25T12:36:46.928Z",
+      "measured": {
+        "baseline_used_pct": 47,
+        "used_pct_after_injection": 100,
+        "avail_bytes_after_injection": 67104768,
+        "injected_files": 34,
+        "injected_bytes": 9167810560,
+        "injected_gib": 8.5,
+        "disk_usage": "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)",
+        "largest_folders": "Largest folder under /data: /data/txlog_archive (8.5 GiB)",
+        "disk_growth": "8.5 GiB written to 34 files under /data in the last 15 minutes",
+        "action_files_removed": 34,
+        "action_gib_removed": 8.5,
+        "used_pct_after_action": 47
+      },
+      "timing": {
+        "first_arrival_s": 1.7,
+        "last_arrival_s": 31.7,
+        "max_gap_s": 10.4,
+        "sl_f_3_arrival_s": 0.7,
+        "last_resolve_after_action_s": 24.9,
+        "last_resolve_after_clear_s": 4.6
+      },
+      "counts": {
+        "storm_firing": 126,
+        "zabbix_firing": 31,
+        "alertmanager_firing": 95,
+        "sl_f_3_firing": 1,
+        "still_firing_after_action": null
+      },
+      "checks": {
+        "arrival": {
+          "passed": true,
+          "detail": ""
+        },
+        "exactly_once": {
+          "passed": true,
+          "detail": ""
+        },
+        "counts": {
+          "passed": true,
+          "detail": "counted (126, 31, 95, 1), expected (126, 31, 95, 1)"
+        },
+        "no_unexpected": {
+          "passed": true,
+          "detail": ""
+        },
+        "max_gap": {
+          "passed": true,
+          "detail": "largest gap 10.4 s"
+        },
+        "sl_f_3": {
+          "passed": true,
+          "detail": "arrived after 0.7 s"
+        },
+        "precondition": {
+          "passed": true,
+          "detail": "fs_used_pct 100, avail_bytes 67104768"
+        },
+        "disk_growth": {
+          "passed": true,
+          "detail": "disk_growth 34 files, 9167810560 bytes; injected (34, 9167810560)"
+        },
+        "action": {
+          "passed": true,
+          "detail": "removed 34 files, 9167810560 bytes; used 47 % after, 47 % before"
+        },
+        "resolve_after_action": {
+          "passed": true,
+          "detail": ""
+        },
+        "no_refire": {
+          "passed": true,
+          "detail": ""
+        },
+        "resolve_after_clear": {
+          "passed": true,
+          "detail": ""
+        },
+        "messages": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_before": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_after": {
+          "passed": true,
+          "detail": ""
+        },
+        "steps": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "passed": true
+    },
+    {
+      "kind": "standard",
+      "index": 9,
+      "faults": [
+        "SL-F-1",
+        "SL-F-3"
+      ],
+      "t0": "2026-11-25T12:37:51.190Z",
+      "action_end": "2026-11-25T12:40:22.377Z",
+      "clear_at": "2026-11-25T12:45:51.532Z",
+      "measured": {
+        "baseline_used_pct": 47,
+        "used_pct_after_injection": 100,
+        "avail_bytes_after_injection": 67104768,
+        "injected_files": 34,
+        "injected_bytes": 9167810560,
+        "injected_gib": 8.5,
+        "disk_usage": "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)",
+        "largest_folders": "Largest folder under /data: /data/txlog_archive (8.5 GiB)",
+        "disk_growth": "8.5 GiB written to 34 files under /data in the last 15 minutes",
+        "action_files_removed": 34,
+        "action_gib_removed": 8.5,
+        "used_pct_after_action": 47
+      },
+      "timing": {
+        "first_arrival_s": 1.3,
+        "last_arrival_s": 31.3,
+        "max_gap_s": 10.4,
+        "sl_f_3_arrival_s": 0.3,
+        "last_resolve_after_action_s": 29.1,
+        "last_resolve_after_clear_s": 10.0
+      },
+      "counts": {
+        "storm_firing": 126,
+        "zabbix_firing": 31,
+        "alertmanager_firing": 95,
+        "sl_f_3_firing": 1,
+        "still_firing_after_action": null
+      },
+      "checks": {
+        "arrival": {
+          "passed": true,
+          "detail": ""
+        },
+        "exactly_once": {
+          "passed": true,
+          "detail": ""
+        },
+        "counts": {
+          "passed": true,
+          "detail": "counted (126, 31, 95, 1), expected (126, 31, 95, 1)"
+        },
+        "no_unexpected": {
+          "passed": true,
+          "detail": ""
+        },
+        "max_gap": {
+          "passed": true,
+          "detail": "largest gap 10.4 s"
+        },
+        "sl_f_3": {
+          "passed": true,
+          "detail": "arrived after 0.3 s"
+        },
+        "precondition": {
+          "passed": true,
+          "detail": "fs_used_pct 100, avail_bytes 67104768"
+        },
+        "disk_growth": {
+          "passed": true,
+          "detail": "disk_growth 34 files, 9167810560 bytes; injected (34, 9167810560)"
+        },
+        "action": {
+          "passed": true,
+          "detail": "removed 34 files, 9167810560 bytes; used 47 % after, 47 % before"
+        },
+        "resolve_after_action": {
+          "passed": true,
+          "detail": ""
+        },
+        "no_refire": {
+          "passed": true,
+          "detail": ""
+        },
+        "resolve_after_clear": {
+          "passed": true,
+          "detail": ""
+        },
+        "messages": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_before": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_after": {
+          "passed": true,
+          "detail": ""
+        },
+        "steps": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "passed": true
+    },
+    {
+      "kind": "standard",
+      "index": 10,
+      "faults": [
+        "SL-F-1",
+        "SL-F-3"
+      ],
+      "t0": "2026-11-25T12:46:55.806Z",
+      "action_end": "2026-11-25T12:49:26.992Z",
+      "clear_at": "2026-11-25T12:54:54.526Z",
+      "measured": {
+        "baseline_used_pct": 47,
+        "used_pct_after_injection": 100,
+        "avail_bytes_after_injection": 67104768,
+        "injected_files": 34,
+        "injected_bytes": 9167810560,
+        "injected_gib": 8.5,
+        "disk_usage": "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)",
+        "largest_folders": "Largest folder under /data: /data/txlog_archive (8.5 GiB)",
+        "disk_growth": "8.5 GiB written to 34 files under /data in the last 15 minutes",
+        "action_files_removed": 34,
+        "action_gib_removed": 8.5,
+        "used_pct_after_action": 47
+      },
+      "timing": {
+        "first_arrival_s": 4.7,
+        "last_arrival_s": 31.7,
+        "max_gap_s": 10.4,
+        "sl_f_3_arrival_s": 5.7,
+        "last_resolve_after_action_s": 27.5,
+        "last_resolve_after_clear_s": 7.0
+      },
+      "counts": {
+        "storm_firing": 126,
+        "zabbix_firing": 31,
+        "alertmanager_firing": 95,
+        "sl_f_3_firing": 1,
+        "still_firing_after_action": null
+      },
+      "checks": {
+        "arrival": {
+          "passed": true,
+          "detail": ""
+        },
+        "exactly_once": {
+          "passed": true,
+          "detail": ""
+        },
+        "counts": {
+          "passed": true,
+          "detail": "counted (126, 31, 95, 1), expected (126, 31, 95, 1)"
+        },
+        "no_unexpected": {
+          "passed": true,
+          "detail": ""
+        },
+        "max_gap": {
+          "passed": true,
+          "detail": "largest gap 10.4 s"
+        },
+        "sl_f_3": {
+          "passed": true,
+          "detail": "arrived after 5.7 s"
+        },
+        "precondition": {
+          "passed": true,
+          "detail": "fs_used_pct 100, avail_bytes 67104768"
+        },
+        "disk_growth": {
+          "passed": true,
+          "detail": "disk_growth 34 files, 9167810560 bytes; injected (34, 9167810560)"
+        },
+        "action": {
+          "passed": true,
+          "detail": "removed 34 files, 9167810560 bytes; used 47 % after, 47 % before"
+        },
+        "resolve_after_action": {
+          "passed": true,
+          "detail": ""
+        },
+        "no_refire": {
+          "passed": true,
+          "detail": ""
+        },
+        "resolve_after_clear": {
+          "passed": true,
+          "detail": ""
+        },
+        "messages": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_before": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_after": {
+          "passed": true,
+          "detail": ""
+        },
+        "steps": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "passed": true
+    },
+    {
+      "kind": "read-only",
+      "index": 1,
+      "faults": [
+        "SL-F-1",
+        "SL-F-2",
+        "SL-F-3"
+      ],
+      "t0": "2026-11-25T12:55:58.778Z",
+      "action_end": "2026-11-25T12:58:30.017Z",
+      "clear_at": "2026-11-25T12:59:30.072Z",
+      "measured": {
+        "baseline_used_pct": 47,
+        "used_pct_after_injection": 100,
+        "avail_bytes_after_injection": 67104768,
+        "injected_files": 34,
+        "injected_bytes": 9167810560,
+        "injected_gib": 8.5,
+        "disk_usage": "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)",
+        "largest_folders": "Largest folder under /data: /data/txlog_archive (8.5 GiB)",
+        "disk_growth": "8.5 GiB written to 34 files under /data in the last 15 minutes",
+        "action_files_removed": 34,
+        "action_gib_removed": 8.5,
+        "used_pct_after_action": 47
+      },
+      "timing": {
+        "first_arrival_s": 1.7,
+        "last_arrival_s": 30.8,
+        "max_gap_s": 14.0,
+        "sl_f_3_arrival_s": 2.8,
+        "last_resolve_after_action_s": 11.9,
+        "last_resolve_after_clear_s": 24.4
+      },
+      "counts": {
+        "storm_firing": 126,
+        "zabbix_firing": 31,
+        "alertmanager_firing": 95,
+        "sl_f_3_firing": 1,
+        "still_firing_after_action": 124
+      },
+      "checks": {
+        "arrival": {
+          "passed": true,
+          "detail": ""
+        },
+        "exactly_once": {
+          "passed": true,
+          "detail": ""
+        },
+        "counts": {
+          "passed": true,
+          "detail": "counted (126, 31, 95, 1), expected (126, 31, 95, 1)"
+        },
+        "no_unexpected": {
+          "passed": true,
+          "detail": ""
+        },
+        "max_gap": {
+          "passed": true,
+          "detail": "largest gap 14.0 s"
+        },
+        "sl_f_3": {
+          "passed": true,
+          "detail": "arrived after 2.8 s"
+        },
+        "precondition": {
+          "passed": true,
+          "detail": "fs_used_pct 100, avail_bytes 67104768"
+        },
+        "disk_growth": {
+          "passed": true,
+          "detail": "disk_growth 34 files, 9167810560 bytes; injected (34, 9167810560)"
+        },
+        "action": {
+          "passed": true,
+          "detail": "removed 34 files, 9167810560 bytes; used 47 % after, 47 % before"
+        },
+        "sl_f_2": {
+          "passed": true,
+          "detail": ""
+        },
+        "resolve_after_clear": {
+          "passed": true,
+          "detail": ""
+        },
+        "messages": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_before": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_after": {
+          "passed": true,
+          "detail": ""
+        },
+        "steps": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "passed": true
+    },
+    {
+      "kind": "clear",
+      "index": 1,
+      "faults": [
+        "SL-F-1",
+        "SL-F-3"
+      ],
+      "t0": "2026-11-25T13:00:34.324Z",
+      "action_end": null,
+      "clear_at": "2026-11-25T13:03:05.298Z",
+      "measured": {
+        "baseline_used_pct": 47,
+        "used_pct_after_injection": 100,
+        "avail_bytes_after_injection": 67104768,
+        "injected_files": 34,
+        "injected_bytes": 9167810560,
+        "injected_gib": 8.5,
+        "disk_usage": "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)",
+        "largest_folders": "Largest folder under /data: /data/txlog_archive (8.5 GiB)",
+        "disk_growth": "8.5 GiB written to 34 files under /data in the last 15 minutes",
+        "action_files_removed": null,
+        "action_gib_removed": null,
+        "used_pct_after_action": null
+      },
+      "timing": {
+        "first_arrival_s": 1.2,
+        "last_arrival_s": 30.2,
+        "max_gap_s": 11.0,
+        "sl_f_3_arrival_s": 7.2,
+        "last_resolve_after_action_s": null,
+        "last_resolve_after_clear_s": 28.2
+      },
+      "counts": {
+        "storm_firing": 126,
+        "zabbix_firing": 31,
+        "alertmanager_firing": 95,
+        "sl_f_3_firing": 1,
+        "still_firing_after_action": null
+      },
+      "checks": {
+        "arrival": {
+          "passed": true,
+          "detail": ""
+        },
+        "exactly_once": {
+          "passed": true,
+          "detail": ""
+        },
+        "counts": {
+          "passed": true,
+          "detail": "counted (126, 31, 95, 1), expected (126, 31, 95, 1)"
+        },
+        "no_unexpected": {
+          "passed": true,
+          "detail": ""
+        },
+        "max_gap": {
+          "passed": true,
+          "detail": "largest gap 11.0 s"
+        },
+        "sl_f_3": {
+          "passed": true,
+          "detail": "arrived after 7.2 s"
+        },
+        "precondition": {
+          "passed": true,
+          "detail": "fs_used_pct 100, avail_bytes 67104768"
+        },
+        "disk_growth": {
+          "passed": true,
+          "detail": "disk_growth 34 files, 9167810560 bytes; injected (34, 9167810560)"
+        },
+        "resolve_after_clear": {
+          "passed": true,
+          "detail": ""
+        },
+        "messages": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_before": {
+          "passed": true,
+          "detail": ""
+        },
+        "quiet_after": {
+          "passed": true,
+          "detail": ""
+        },
+        "steps": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "passed": true
+    }
+  ],
+  "passed": true
+}
