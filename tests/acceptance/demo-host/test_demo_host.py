@@ -535,3 +535,21 @@ def test_check_verdicts(harness):
     result = run(harness, "check.sh", "demo", **environment)
     assert result.returncode == 0, result.stdout
     assert "PASS lab-public-name" in result.stdout.splitlines()
+
+
+def test_sample_paths_with_spaces(harness, tmp_path):
+    """AR-SP-03 sample.sh stop passes driver result files whose path holds a space as one argument each."""
+    harness.seed(instances=MAIN)
+    (harness.root / "deploy" / "fetch.sh").write_text(FETCH_STUB)
+    logs = harness.vigil_root / "logs"
+    logs.mkdir()
+    rows = ["time,cpu_pct,memory_pct"] + [f"2026-11-20T10:{m:02d}:00Z,30.0,40.0" for m in range(10)]
+    (logs / "sample.csv").write_text("\n".join(rows) + "\n")
+    folder = tmp_path / "Run results"
+    folder.mkdir()
+    times = {"SB-TL-01": 100.0, "SB-TL-02": 141.5, "SB-TL-03": 150.0, "SB-TL-04": 200.0, "SB-TL-10": 590.0}
+    files = [driver_result(folder / f"storm {n}.json", "2026-11-20T10:00:00.000Z", times) for n in range(3)]
+    result = run(harness, "sample.sh", "demo", "stop", *map(str, files))
+    report = json.loads((harness.root / "spikes" / "results" / "P-32-AR-SP-03.json").read_text())
+    assert [s["result_file"] for s in report["storms"]] == ["storm 0.json", "storm 1.json", "storm 2.json"]
+    assert report["passed"] is True and result.returncode == 0, result.stdout + result.stderr

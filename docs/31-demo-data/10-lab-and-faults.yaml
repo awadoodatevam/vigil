@@ -30,17 +30,17 @@ lab_db_server:
     test: {device_size_gib: 4, /data/db: 0.8, /data/export: 0.1}
   baseline_content: {/data/db: "6 GiB (database files)", /data/export: "1 GiB (export files)", /data/txlog_archive: "empty"}
   baseline_used_gib: 7
-  baseline_used_pct: measured           # development value 47 (development_values, P-04); final value P-32
+  baseline_used_pct: 47                 # final value: SB-T-01 on the main host (P-32, 2026-11-25), equal to the development value
   no_purge_job: "No archive shipping or purge job runs in the lab; the nightly purge exists only in the story and in RB-DB-01. Only the registered action and the clear step delete archive files."
-  injected_size: "about 8.8 GiB (16 GiB device - 7 GiB baseline - XFS overhead - 64 MiB free); it MUST be larger than the largest baseline folder plus 1 GiB (so /data/txlog_archive is the largest folder) and at most the 12 GiB action limit (so the action removes every injected file). Measured by SB-T-01."
+  injected_size: "34 files, 8.5 GiB (9167810560 bytes) (16 GiB device - 7 GiB baseline - XFS overhead - 64 MiB free); it MUST be larger than the largest baseline folder plus 1 GiB (so /data/txlog_archive is the largest folder) and at most the 12 GiB action limit (so the action removes every injected file). Measured by SB-T-01 on the main host (P-32, 2026-11-25)."
   files_never_touched: "No reset, fault or clear step creates, changes or touches any file under /data/db or /data/export, so their change times stay older than any diagnostic period."
   permissions: "Folders under /data are readable and traversable by the diagnostic user's group; the action user owns /data/txlog_archive and can delete files in it; neither user can write anywhere else under /data."
   clock: "every lab host and the Vigil server run in UTC, synchronised by NTP"
-  expected_diagnostics_after_SL-F-1:   # exact values are measured by SB-T-01 and recorded here
-    disk_usage: "/data is 100% full (<used> of <size> GiB used, 0.1 GiB free)"
-    largest_folders_top1: "/data/txlog_archive (<size> GiB)"
-    disk_growth: "<gib> GiB written to <files> files under /data in the last 15 minutes"
-  expected_action_result: "every injected file removed (<files> files, <gib> GiB, both measured, under the 12 GiB limit); /data returns to its baseline percentage"
+  expected_diagnostics_after_SL-F-1:   # exact values measured by SB-T-01 on the main host (P-32, 2026-11-25)
+    disk_usage: "/data is 100% full (15.9 of 15.9 GiB used, 0.1 GiB free)"
+    largest_folders_top1: "/data/txlog_archive (8.5 GiB)"
+    disk_growth: "8.5 GiB written to 34 files under /data in the last 15 minutes"
+  expected_action_result: "every injected file removed (34 files, 8.5 GiB, both measured, under the 12 GiB limit); /data returns to its baseline percentage"
   development_values:                  # SB-T-01 development run (60-build-plan P-04, BP-A-18): owner's Mac, profile demo; final values P-32
     measured_on: 2026-10-16              # UTC date of the run, YYYY-MM-DD
     baseline_used_pct: 47        # fs_used_pct before injection
