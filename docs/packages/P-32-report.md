@@ -120,6 +120,8 @@ Owner's decision of 25 Nov 2026: gzip compression and long cache times for `vigi
 
 `tools/check-all.sh` in this session on `0e8c7a8` (the build commit; later commits change only this report and the argument loop of `tests/acceptance/demo-host/sample.sh`, whose tests and `shellcheck` were run again): **all checks passed** — step 2 `BUILD SUCCESS`, step 3 with the lab tests (the branch changes `deploy/local/`, `dev/recorder/` and `spikes/storm-timing/`): 605 passed, 1 skipped, 6 deselected (12 min 18 s); steps 4 to 7 passed.
 
+After the owner-run results (25 Nov 2026), `tools/check-all.sh` on `8fd19c6` (the test fixes, the DD-F-10 values and the owner's `sample.sh` fix; the next commit changes only this report): **all checks passed** — step 2 `BUILD SUCCESS`; step 3 with the lab tests: 606 passed, 1 skipped, 6 deselected (13 min 17 s); the data checks 49 of 49; steps 4 to 7 passed. `tools/loc.sh origin/main HEAD` stays 316.
+
 Results of done-check item 3 (lab profile `test`): the suite `control`'s measured values: "Clear all faults" 40.196 s with quiet 28.026 s; reset after SL-F-1, SL-F-2 and SL-F-4 40.309 s (branch A 40.297 s, branch B 1.087 s); four more resets 12.161 to 12.187 s. The driver's run `storm-immediate-20261115T103448Z.json` (not committed: a cloud run).
 
 ## 11. Follow-up items for later packages
