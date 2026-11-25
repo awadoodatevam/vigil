@@ -450,7 +450,7 @@ def check_table(harness, changes=None):
                 r"(?s)^exec lab-api-01 python3 -c .*172\.30\.0\.10",
                 [(changes.get("lab", "lab-to-app blocked after 5.00 s: timed out\n"), 0)],
             ),  # fmt: skip
-            ("docker", r"^exec lab-api-01 python3 -c ", [("lab-public-name 200\n", 0)]),
+            ("docker", r"^exec lab-api-01 python3 -c ", [(changes.get("public", "lab-public-name 200\n"), 0)]),
             (
                 "docker",
                 r"^compose -p vigil -f \S+ --env-file \S+ config --services$",
@@ -490,7 +490,7 @@ def check_table(harness, changes=None):
 
 
 def test_check_verdicts(harness):
-    """AR-S-08 check.sh's verdicts on fake outputs."""
+    """AR-S-08 check.sh's verdicts on fake outputs; lab-public-name passes on 200 and on 404 unknown_host."""
     tools = dict(HOST_TOOLS)
     path = tool_stubs(harness, tools)
     environment = {"PATH": path, "VIGIL_TLS_CURL": str(harness.base / "stubs" / "tls-curl")}
@@ -518,6 +518,9 @@ def test_check_verdicts(harness):
         ),  # fmt: skip
         ({"health": HEALTH.replace('"correlation":{"status":"UP"}', '"correlation":{"status":"DOWN"}')}, "correlation"),
         ({"control_targets": ["unhealthy"]}, "targets-healthy"),
+        ({"public": "lab-public-name 404 \n"}, "lab-public-name"),
+        ({"public": "lab-public-name 502 \n"}, "lab-public-name"),
+        ({"public": "lab-public-name failed: timed out\n"}, "lab-public-name"),
     ):
         harness.log_path.write_text("")
         check_table(harness, changes)
@@ -525,3 +528,10 @@ def test_check_verdicts(harness):
         assert result.returncode == 1
         verdicts = result.stdout.splitlines()[-15:]
         assert [v for v in verdicts if v.startswith("FAIL")] == [f"FAIL {failing}"], verdicts
+
+    # lab-public-name passes on 404 unknown_host: Vigil answered through the public name before any tenant exists.
+    harness.log_path.write_text("")
+    check_table(harness, {"public": "lab-public-name 404 unknown_host\n"})
+    result = run(harness, "check.sh", "demo", **environment)
+    assert result.returncode == 0, result.stdout
+    assert "PASS lab-public-name" in result.stdout.splitlines()

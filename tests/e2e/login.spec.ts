@@ -26,7 +26,10 @@ test(
     await expect(banner(page)).toHaveText(LABEL);
     await expect(page.getByText("Techfinity", { exact: true })).toBeVisible();
     await expect(page.getByText("Jazz", { exact: true })).toBeVisible();
-    const boxes = [];
+    // One layout snapshot: the page settles first, then the six boxes are read in one call (P-32: separate reads
+    // could straddle a re-render on a slow link).
+    await page.waitForLoadState("networkidle");
+    const elements = [];
     for (const locator of [
       page.getByText("Techfinity", { exact: true }),
       page.getByText("Jazz", { exact: true }),
@@ -35,8 +38,16 @@ test(
       page.getByLabel("Password"),
       page.getByRole("button", { name: "Sign in" }),
     ]) {
-      boxes.push((await locator.boundingBox())!);
+      elements.push((await locator.elementHandle())!);
     }
+    const boxes = await page.evaluate(
+      (nodes) =>
+        nodes.map((node) => {
+          const box = node.getBoundingClientRect();
+          return { x: box.x, y: box.y, height: box.height };
+        }),
+      elements,
+    );
     for (let i = 1; i < boxes.length; i++) {
       expect(boxes[i].y).toBeGreaterThanOrEqual(
         boxes[i - 1].y + boxes[i - 1].height,

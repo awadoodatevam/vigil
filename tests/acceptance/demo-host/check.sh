@@ -215,6 +215,11 @@ def release():
     )
 
 
+def public_name():
+    """200, or 404 unknown_host: Vigil answered through the public name before any tenant alias exists (AR-I-02)."""
+    return re.search(r"^lab-public-name (200|404 unknown_host)$", host.get("lab-public-name", ""), re.M) is not None
+
+
 CHECKS = [
     ("http-redirect", http_redirect),
     ("https-demo", lambda: status_of(https.get("https-demo", "")) == "200"),
@@ -226,7 +231,7 @@ CHECKS = [
     ("published-ports", published),
     ("DOCKER-USER", docker_user),
     ("lab-to-app-blocked", lambda: "lab-to-app blocked after " in host.get("lab-to-app", "")),
-    ("lab-public-name", lambda: re.search(r"^lab-public-name 200$", host.get("lab-public-name", ""), re.M) is not None),
+    ("lab-public-name", public_name),
     ("secrets-readable", secrets_readable),
     ("correlation", correlation),
     ("clock", clock),

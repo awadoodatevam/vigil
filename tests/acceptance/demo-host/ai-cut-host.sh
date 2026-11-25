@@ -3,8 +3,9 @@
 # by run_on_host while SL-F-4 is active: for 10 minutes, every 30 s, from a container sharing vigil-app's network
 # namespace (the deployed demo-faults image, python3), a TCP connection with TLS handshake to the Claude and OpenAI
 # APIs, the Jira site, the public name and the Teams webhook host, each within 5 s, and an SMTP session to SES up to
-# STARTTLS and its handshake. One line per attempt; the Teams host is read here from vigil-app's secret, passed to the
-# container on its standard input and never printed.
+# STARTTLS and its handshake. One line per attempt, with the error of every address tried (create_connection with
+# all_errors, so an IPv4 rejection shows beside an IPv6 "Network is unreachable"); the Teams host is read here from
+# vigil-app's secret, passed to the container on its standard input and never printed.
 #   ai-cut-host.sh {public host name of Vigil} {Jira host}
 set -euo pipefail
 
@@ -48,7 +49,7 @@ targets = [
 
 def tls(host):
     start = time.monotonic()
-    with socket.create_connection((host, 443), timeout=LIMIT) as raw:
+    with socket.create_connection((host, 443), timeout=LIMIT, all_errors=True) as raw:
         raw.settimeout(max(0.1, LIMIT - (time.monotonic() - start)))
         with context.wrap_socket(raw, server_hostname=host):
             pass
@@ -62,13 +63,21 @@ def starttls():
         smtp.starttls(context=context)
 
 
+def describe(error, secret):
+    """The error of every address tried (an ExceptionGroup of create_connection), each as its class and message."""
+    errors = list(error.exceptions) if isinstance(error, ExceptionGroup) else [error]
+    if secret:
+        return "; ".join(type(e).__name__ for e in errors)
+    return "; ".join(type(e).__name__ + ": " + str(e).replace("\n", " ") for e in errors)
+
+
 def attempt(number, kind, label, call, secret=False):
     start = time.monotonic()
     try:
         call()
         outcome = "connected"
     except Exception as error:
-        outcome = "failed " + type(error).__name__ + ("" if secret else ": " + str(error).replace("\n", " "))
+        outcome = "failed " + describe(error, secret)
     seconds = time.monotonic() - start
     now = datetime.now(timezone.utc).strftime("%H:%M:%SZ")
     print(f"round {number} {now} {kind} {label} {seconds:.2f} s {outcome}", flush=True)
