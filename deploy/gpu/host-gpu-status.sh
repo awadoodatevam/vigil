@@ -16,7 +16,7 @@ else
     case "$model" in
       "" | "#"*) continue ;;
     esac
-    if ! printf '%s\n' "$running" | grep -qx "$unit"; then
+    if ! grep -qx "$unit" <<< "$running"; then
       continue
     fi
     if ! tags=$(curl -sS --max-time 10 http://10.40.1.20:11434/api/tags < /dev/null 2> /dev/null); then

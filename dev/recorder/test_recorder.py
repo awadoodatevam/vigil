@@ -122,3 +122,16 @@ def test_missing_secret(setup):
     with pytest.raises(SystemExit) as stopped:
         recorder.make_server(("127.0.0.1", 0), out, folder, lines.append)
     assert stopped.value.code == 1 and lines == ["missing secret webhook-alertmanager"]
+
+
+def test_target_group_health(setup):
+    """AR-H-05 the recorder answers the target group's health check without recording it."""
+    folder, out, _tokens = setup
+    running = Running(folder, out)
+    try:
+        assert running.request("GET", "/actuator/health/liveness") == (200, {"status": "UP"})
+        assert running.request("GET", "/actuator/health") == (404, {"error": "not found"})
+        assert running.request("GET", "/_recorder/calls") == (200, [])
+        assert list(out.iterdir()) == []
+    finally:
+        running.close()

@@ -1,6 +1,6 @@
 // The smoke suite of the local installation (P-26 spec Section 7, CTX-D-081 (1)): the page, a login with a seed
 // password, the seed import and the branding. P-28 adds the login page, the banner and the incident list (login.spec.ts,
-// incidents.spec.ts).
+// incidents.spec.ts). Every test is tagged @local: it needs the local installation (P-32 spec Section 6.8 item 2).
 import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 
@@ -9,7 +9,7 @@ const STATE = "/run/state";
 
 test(
   "BP-R-24 Vigil answers at demo.vigil.test:8080 inside the compose network",
-  { tag: "@smoke" },
+  { tag: ["@smoke", "@local"] },
   async ({ page }) => {
     const response = await page.goto("/");
     expect(response?.status()).toBe(200);
@@ -19,7 +19,7 @@ test(
 
 test(
   "BP-R-25 login over plain HTTP sets a session cookie without Secure",
-  { tag: "@smoke" },
+  { tag: ["@smoke", "@local"] },
   async ({ request }) => {
     const password = readFileSync(`${SECRETS}/seed-password-presenter`, "utf8");
     const login = await request.post("/api/v1/session", {
@@ -50,7 +50,7 @@ test(
 
 test(
   "AR-Q-10 the bundle built by bundle.py imported with all 17 parts succeeded",
-  { tag: "@smoke" },
+  { tag: ["@smoke", "@local"] },
   async () => {
     const answer = JSON.parse(
       readFileSync(`${STATE}/seed-import.json`, "utf8"),
@@ -65,7 +65,7 @@ test(
 
 test(
   "AR-Q-10 the imported tenant answers its branding",
-  { tag: "@smoke" },
+  { tag: ["@smoke", "@local"] },
   async ({ request }) => {
     const response = await request.get("/api/v1/public/branding");
     expect(response.status()).toBe(200);

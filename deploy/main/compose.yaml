@@ -1,6 +1,8 @@
-# The main host of the demo installation (AR-H-01; P-05 spec Section 6.3): in P-05 the SSE probe at vigil-app's
-# addresses and vigil-embed; P-32 adds the other units. Every variable has a default, so the file validates without
-# any secret or deployment value. Logs: Docker's local driver from the host's daemon configuration (AR-H-12).
+# The main host of the demo installation (AR-H-01, AR Section 6; P-32 spec Section 6.3): every unit of the main host,
+# with the compose profiles vigil (vigil-app, demo-control) and spike (the webhook recorder at vigil-app's addresses,
+# for SB-T-01 only), chosen by COMPOSE_PROFILES in the deployment's .env (deploy/deploy.sh [--spike]). Each unit is as
+# in deploy/local/compose.yaml except the differences of BP-R-25. Every variable has a default, so the file validates
+# without any secret or deployment value. Logs: Docker's local driver from the host's daemon configuration (AR-H-12).
 name: vigil
 
 networks:
@@ -20,12 +22,372 @@ networks:
           gateway: 172.31.0.1
 
 volumes:
+  vigil-db-data:
   vigil-embed-models:
+  lab-db-01-data:
+  lab-zabbix-db-data:
+  demo-faults-state:
+  demo-control-state:
 
 services:
-  sse-probe:
-    image: ${VIGIL_REGISTRY:-registry.invalid}/${VIGIL_INSTALLATION:-demo}/sse-probe:${VIGIL_RELEASE:-unset}
-    container_name: sse-probe
+  vigil-db:
+    image: pgvector/pgvector:0.8.7-pg17@sha256:ac08538c6f8b9904c33c8224c5e5706dbe760aca29db1d096972b4052c22a75d
+    container_name: vigil-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: vigil
+      POSTGRES_PASSWORD_FILE: /run/secrets/vigil/vigil-db-superuser
+    networks: [vigil-net]
+    volumes:
+      - vigil-db-data:/var/lib/postgresql/data
+      - type: bind
+        source: /srv/vigil/deploy/db/init
+        target: /docker-entrypoint-initdb.d
+        read_only: true
+      - type: bind
+        source: /srv/vigil/secrets/vigil-db
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "psql -h 127.0.0.1 -U postgres -d vigil -tAc \"select 1 from pg_roles where rolname = 'vigil_app'\" | grep -qx 1"
+      interval: 2s
+      timeout: 2s
+      retries: 60
+
+  vigil-migrate:
+    image: ${VIGIL_REGISTRY:-registry.invalid}/${VIGIL_INSTALLATION:-demo}/vigil-app:${VIGIL_RELEASE:-unset}
+    container_name: vigil-migrate
+    user: "10001"
+    environment:
+      SPRING_PROFILES_ACTIVE: migrate
+    depends_on:
+      vigil-db: {condition: service_healthy}
+    networks: [vigil-net]
+    volumes:
+      - type: bind
+        source: /srv/vigil/secrets/vigil-migrate
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: "no"
+
+  vigil-app:
+    image: ${VIGIL_REGISTRY:-registry.invalid}/${VIGIL_INSTALLATION:-demo}/vigil-app:${VIGIL_RELEASE:-unset}
+    container_name: vigil-app
+    profiles: ["vigil"]
+    user: "10001"
+    command:
+      - --vigil.http.bind-address=172.30.0.10
+      - --management.endpoint.health.show-details=always
+    depends_on:
+      vigil-migrate: {condition: service_completed_successfully}
+    networks:
+      vigil-net:
+        ipv4_address: 172.30.0.10
+        gw_priority: 1
+      lab-net:
+        ipv4_address: 172.31.0.10
+        gw_priority: 0
+    ports:
+      - "10.40.1.10:8080:8080"
+    volumes:
+      - type: bind
+        source: /srv/vigil/secrets/vigil-app
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: unless-stopped
+
+  vigil-embed:
+    image: ollama/ollama:0.40.5@sha256:5d3a2f25f9825628daba94dc0b1d421c7d57d6c03ae5faa9ba050e058bab8241
+    container_name: vigil-embed
+    networks: [vigil-net]
+    volumes:
+      - vigil-embed-models:/root/.ollama
+    restart: unless-stopped
+
+  lab-db-01:
+    image: ${VIGIL_REGISTRY:-registry.invalid}/${VIGIL_INSTALLATION:-demo}/demo-lab:${VIGIL_RELEASE:-unset}
+    container_name: lab-db-01
+    hostname: lab-db-01
+    environment:
+      LAB_ROLE: lab-db-01
+      LAB_PROFILE: ${VIGIL_LAB_PROFILE:-demo}
+    privileged: true
+    networks: [lab-net]
+    volumes:
+      - lab-db-01-data:/var/lib/lab-data
+      - type: bind
+        source: /srv/vigil/secrets/lab-db-01
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: unless-stopped
+    healthcheck: &lab-health
+      test: ["CMD", "test", "-f", "/run/lab/ready"]
+      interval: 2s
+      timeout: 2s
+      retries: 60
+
+  lab-api-01:
+    image: ${VIGIL_REGISTRY:-registry.invalid}/${VIGIL_INSTALLATION:-demo}/demo-lab:${VIGIL_RELEASE:-unset}
+    container_name: lab-api-01
+    hostname: lab-api-01
+    environment:
+      LAB_ROLE: lab-api-01
+    networks: [lab-net]
+    depends_on:
+      lab-db-01: {condition: service_healthy}
+    restart: unless-stopped
+    healthcheck: *lab-health
+
+  lab-vas-01:
+    image: ${VIGIL_REGISTRY:-registry.invalid}/${VIGIL_INSTALLATION:-demo}/demo-lab:${VIGIL_RELEASE:-unset}
+    container_name: lab-vas-01
+    hostname: lab-vas-01
+    environment:
+      LAB_ROLE: lab-vas-01
+    networks: [lab-net]
+    depends_on:
+      lab-db-01: {condition: service_healthy}
+      lab-api-01: {condition: service_healthy}
+    restart: unless-stopped
+    healthcheck: *lab-health
+
+  lab-probe-01:
+    image: ${VIGIL_REGISTRY:-registry.invalid}/${VIGIL_INSTALLATION:-demo}/demo-lab:${VIGIL_RELEASE:-unset}
+    container_name: lab-probe-01
+    hostname: lab-probe-01
+    environment:
+      LAB_ROLE: lab-probe-01
+    networks: [lab-net]
+    depends_on:
+      lab-vas-01: {condition: service_healthy}
+    restart: unless-stopped
+    healthcheck: *lab-health
+
+  lab-rpt-01:
+    image: ${VIGIL_REGISTRY:-registry.invalid}/${VIGIL_INSTALLATION:-demo}/demo-lab:${VIGIL_RELEASE:-unset}
+    container_name: lab-rpt-01
+    hostname: lab-rpt-01
+    environment:
+      LAB_ROLE: lab-rpt-01
+    networks: [lab-net]
+    restart: unless-stopped
+    healthcheck: *lab-health
+
+  lab-zabbix-db:
+    image: postgres:16.15@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+    container_name: lab-zabbix-db
+    environment:
+      POSTGRES_USER: zabbix
+      POSTGRES_DB: zabbix
+      POSTGRES_PASSWORD_FILE: /run/secrets/vigil/zabbix-db-password
+    networks: [lab-net]
+    volumes:
+      - lab-zabbix-db-data:/var/lib/postgresql/data
+      - type: bind
+        source: /srv/vigil/secrets/lab-zabbix-db
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "zabbix", "-d", "zabbix"]
+      interval: 2s
+      timeout: 2s
+      retries: 60
+
+  lab-zabbix-server:
+    image: zabbix/zabbix-server-pgsql:alpine-7.0.31@sha256:bdfe90847bd259a6da448db1e6ae83f5f439224654ed767296a8d57a088975b9
+    container_name: lab-zabbix-server
+    environment:
+      DB_SERVER_HOST: lab-zabbix-db
+      POSTGRES_USER: zabbix
+      POSTGRES_DB: zabbix
+      POSTGRES_PASSWORD_FILE: /run/secrets/vigil/zabbix-db-password
+    depends_on:
+      lab-zabbix-db: {condition: service_healthy}
+    networks: [lab-net]
+    volumes:
+      - type: bind
+        source: /srv/vigil/secrets/lab-zabbix-server
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: unless-stopped
+
+  lab-zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:alpine-7.0.31@sha256:d9ce0774cb6036ce5d49c9c8d46bf1474dad98aae810350de0d5068dd679b92d
+    container_name: lab-zabbix-web
+    environment:
+      ZBX_SERVER_HOST: lab-zabbix-server
+      DB_SERVER_HOST: lab-zabbix-db
+      POSTGRES_USER: zabbix
+      POSTGRES_DB: zabbix
+      POSTGRES_PASSWORD_FILE: /run/secrets/vigil/zabbix-db-password
+      PHP_TZ: UTC
+    depends_on:
+      lab-zabbix-db: {condition: service_healthy}
+    networks: [lab-net]
+    volumes:
+      - type: bind
+        source: /srv/vigil/secrets/lab-zabbix-web
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: unless-stopped
+
+  lab-zabbix-provision:
+    image: ${VIGIL_REGISTRY:-registry.invalid}/${VIGIL_INSTALLATION:-demo}/lab-zabbix-provision:${VIGIL_RELEASE:-unset}
+    container_name: lab-zabbix-provision
+    user: "10001"
+    environment:
+      WEBHOOK_BASE_URL: ${VIGIL_WEBHOOK_BASE_URL:-https://demo.invalid}
+      ZABBIX_URL: http://lab-zabbix-web:8080
+    depends_on:
+      lab-zabbix-web: {condition: service_started}
+      lab-zabbix-server: {condition: service_started}
+    networks: [lab-net]
+    volumes:
+      - type: bind
+        source: /srv/vigil/secrets/lab-zabbix-provision
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /srv/vigil/generated
+        target: /srv/vigil/generated
+        bind:
+          create_host_path: false
+    restart: "no"
+
+  lab-prometheus:
+    image: prom/prometheus:v3.15.0@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
+    container_name: lab-prometheus
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus"]
+    depends_on: &lab-hosts-healthy
+      lab-db-01: {condition: service_healthy}
+      lab-api-01: {condition: service_healthy}
+      lab-vas-01: {condition: service_healthy}
+      lab-probe-01: {condition: service_healthy}
+      lab-rpt-01: {condition: service_healthy}
+    networks: [lab-net]
+    volumes:
+      - type: bind
+        source: /srv/vigil/deploy/monitoring/prometheus
+        target: /etc/prometheus
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /srv/vigil/secrets/lab-prometheus
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: unless-stopped
+
+  lab-alertmanager:
+    image: prom/alertmanager:v0.34.1@sha256:e9733bafb1bdef9b00e25a21f8f99dc26a22224bf16641ad754d1649f4c3357a
+    container_name: lab-alertmanager
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --web.config.file=/run/secrets/vigil/alertmanager-web-config
+      - --storage.path=/alertmanager
+      - --cluster.listen-address=
+    networks: [lab-net]
+    volumes:
+      - type: bind
+        source: /srv/vigil/config/alertmanager.yml
+        target: /etc/alertmanager/alertmanager.yml
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /srv/vigil/secrets/lab-alertmanager
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: unless-stopped
+
+  demo-faults:
+    image: ${VIGIL_REGISTRY:-registry.invalid}/${VIGIL_INSTALLATION:-demo}/demo-faults:${VIGIL_RELEASE:-unset}
+    container_name: demo-faults
+    network_mode: host
+    user: "0"
+    cap_add: [NET_ADMIN, NET_RAW]
+    environment:
+      FAULTS_LISTEN: 172.31.0.1:8091
+    depends_on: *lab-hosts-healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - demo-faults-state:/var/lib/demo-faults
+      - type: bind
+        source: /srv/vigil/secrets/demo-faults
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/usr/bin/python3", "-c", "import socket; socket.create_connection(('172.31.0.1', 8091), 2)"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  demo-control:
+    image: ${VIGIL_REGISTRY:-registry.invalid}/${VIGIL_INSTALLATION:-demo}/demo-control:${VIGIL_RELEASE:-unset}
+    container_name: demo-control
+    profiles: ["vigil"]
+    user: "10001"
+    command:
+      - --demo-control.vigil-url=https://demo.${VIGIL_DEMO_DOMAIN:-demo.invalid}
+    networks: [lab-net]
+    ports:
+      - "10.40.1.10:8090:8090"
+    volumes:
+      - demo-control-state:/var/lib/demo-control
+      - type: bind
+        source: /srv/vigil/secrets/demo-control
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /srv/vigil/values/derived.yaml
+        target: /run/values/derived.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        - "exec 3<>/dev/tcp/127.0.0.1/8090 && printf 'GET /health HTTP/1.0\\r\\n\\r\\n' >&3 && head -n 1 <&3 | grep -q ' 200 '"
+      interval: 2s
+      timeout: 2s
+      retries: 60
+
+  dev-recorder:
+    image: ${VIGIL_REGISTRY:-registry.invalid}/${VIGIL_INSTALLATION:-demo}/dev-recorder:${VIGIL_RELEASE:-unset}
+    container_name: dev-recorder
+    profiles: ["spike"]
     user: "10001"
     networks:
       vigil-net:
@@ -36,14 +398,25 @@ services:
         gw_priority: 0
     ports:
       - "10.40.1.10:8080:8080"
-    environment:
-      PROBE_ADDRESS: 172.30.0.10
-    restart: unless-stopped
-
-  vigil-embed:
-    image: ollama/ollama:0.40.5@sha256:5d3a2f25f9825628daba94dc0b1d421c7d57d6c03ae5faa9ba050e058bab8241
-    container_name: vigil-embed
-    networks: [vigil-net]
     volumes:
-      - vigil-embed-models:/root/.ollama
+      - type: bind
+        source: /srv/vigil/secrets/vigil-app
+        target: /run/secrets/vigil
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /srv/vigil/spike/recordings
+        target: /recordings
+        bind:
+          create_host_path: false
     restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - /usr/bin/python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/_recorder/health', timeout=2)"
+      interval: 2s
+      timeout: 2s
+      retries: 30

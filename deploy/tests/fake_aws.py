@@ -8,6 +8,7 @@ JSON file named by FAKE_AWS_STATE, which each test seeds (complete list of keys,
 - "instances": {instance id: {"Name": ..., "State": ..., "Online": true or false}};
 - "images": {repository: [tags]};
 - "objects": {"s3://bucket/key": base64 content};
+- "load_balancers": {name: DNS name} and "target_groups": {name: [target health state, ...]} (P-32);
 - "errors": {"{service} {operation}": error code}: the call then exits 254 with the CLI's error text;
 - "calls" (written): every call with its arguments and region;
 - "commands" (written): every send-command with its parameters, output and exit code.
@@ -283,6 +284,28 @@ def answer(state, service, operation, options, positional, state_path):
             return send_command(state, options, state_path)
         if operation == "start-session":
             return start_session(state, options, state_path)
+    if service == "elbv2":
+        if operation == "describe-load-balancers":
+            name = one(options, "names")
+            if name not in state.get("load_balancers", {}):
+                raise Fail("LoadBalancerNotFound")
+            arn = f"arn:aws:elasticloadbalancing:us-east-1:1:loadbalancer/app/{name}/1"
+            return {"LoadBalancers": [{"LoadBalancerName": name, "LoadBalancerArn": arn,
+                                       "DNSName": state["load_balancers"][name]}]}  # fmt: skip
+        if operation == "describe-target-groups":
+            name = one(options, "names")
+            if name not in state.get("target_groups", {}):
+                raise Fail("TargetGroupNotFound")
+            arn = f"arn:aws:elasticloadbalancing:us-east-1:1:targetgroup/{name}/1"
+            return {"TargetGroups": [{"TargetGroupName": name, "TargetGroupArn": arn}]}
+        if operation == "describe-target-health":
+            name = one(options, "target-group-arn").split("/")[-2]
+            healths = state.get("target_groups", {}).get(name, [])
+            return {
+                "TargetHealthDescriptions": [
+                    {"Target": {"Id": "i-0main", "Port": 8080}, "TargetHealth": {"State": health}} for health in healths
+                ]
+            }
     if (service, operation) == ("ecr", "describe-images"):
         return describe_images(state, options)
     if (service, operation) == ("ecr", "get-login-password"):

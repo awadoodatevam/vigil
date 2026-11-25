@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 30-jazz-storyboard (ID prefix `SB-`) |
-| Version | 1.3 |
-| Date | 12 October 2026 |
+| Version | 1.4 |
+| Date | 15 November 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 3 closed (restarted 10 October 2026). Amended by Round 4 (`40-demo-cut` DC-A-04), Round 5 (`50-architecture` AR-A-14) and Round 6 (`60-build-plan` BP-A-11, BP-A-15). |
+| Status | Baseline (owner reviewed). Round 3 closed (restarted 10 October 2026). Amended by Round 4 (`40-demo-cut` DC-A-04), Round 5 (`50-architecture` AR-A-14) and Round 6 (`60-build-plan` BP-A-11, BP-A-15) and during the build (BP-A-32). |
 
 ## 1. Purpose
 
@@ -348,7 +348,7 @@ These are carried into the build plan (Round 6). Each proves an assumption or a 
 | ID | Test | Pass condition | Proves |
 | --- | --- | --- | --- |
 | SB-T-01 | Lab storm timing and values | 10 storms in a row from a cleared lab, each meeting every timing target of DD-F-10 (126 firing entries, each alert exactly once, all within 120 s, no gap above 25 s, both disk_full alerts included; resolves within 60 s after the action; no re-firing within 300 s). The spike records the measured values of DD-F-10. | DD-ASM-02, DD-ASM-03, DD-ASM-05, SL-ASM-01, DM-ASM-05; SB-TL-01, SB-TL-09 |
-| SB-T-02 | Primary demo repeatability | 5 runs from a reset, driven through Vigil's public interface (logging in as `noc-l1` and `dbops-engineer`), each giving the SB-R-06 result and every exact value of SB-S01 to SB-S09. The driver resets through the installation operations and the lab fault interface with the steps of `50-architecture` AR-B-03, and builds the Acknowledge and Approval links with the forms of `50-architecture` Section 10.3 from the incident and approval request identifiers it reads through `vigil-api` (AR-I-21, AR-I-27). Jira status is read through the Jira API (read only). In a local installation (`60-build-plan` Section 11) the driver checks the links and the Teams and email delivery against the dev fakes' recorded messages and Mailpit; on the demo installation the owner checks the channels and mailboxes from a checklist the driver writes (`60-build-plan` BP-A-11). | SL-A3-04 |
+| SB-T-02 | Primary demo repeatability | 5 runs from a reset, driven through Vigil's public interface (logging in as `noc-l1` and `dbops-engineer`), each giving the SB-R-06 result and every exact value of SB-S01 to SB-S09. The driver resets through the installation operations and the lab fault interface with the steps of `50-architecture` AR-B-03 (on the demo installation through the control panel's "Reset", which performs them, and starts the storm with its storm button; amendment `60-build-plan` BP-A-32), and builds the Acknowledge and Approval links with the forms of `50-architecture` Section 10.3 from the incident and approval request identifiers it reads through `vigil-api` (AR-I-21, AR-I-27). Jira status is read through the Jira API (read only). In a local installation (`60-build-plan` Section 11) the driver checks the links and the Teams and email delivery against the dev fakes' recorded messages and Mailpit; on the demo installation the owner checks the channels and mailboxes from a checklist the driver writes (`60-build-plan` BP-A-11). | SL-A3-04 |
 | SB-T-03 | Similarity | With the chosen local embedding model: the storm's best match is PI-1001 with score 1.00 (a tie on the rounded score also goes to PI-1001, DM-E66-R1); the same text gives the same vector twice. | DD-ASM-04, SL-ASM-04 |
 | SB-T-04 | Step times | Over 5 runs: diagnostics finish within 15 s after the incident leaves `forming`; SL-T-1 and SL-T-2 with Claude, ticket creation and message sending finish within 60 s after that; the action ends within 15 s after Approve (rechecks included). The local model's SL-T-1 answer time is recorded for CTX-O-04. | SB-TL-03, SB-TL-04, SB-TL-08 |
 | SB-T-05 | Reset and clear | "Clear all faults" resolves every lab alert within 40 s and completes within 52 s; a full reset, whose lab clear runs in parallel with the Vigil reset (DD-F-10, SB-D-12), completes within 60 s, 5 times in a row, including after SB-D07 (SL-F-1 and SL-F-2 active). | SL-A3-03; DM-ASM-08 |
@@ -465,3 +465,4 @@ Open items resolved by this round are listed in Section 10. Carried open items s
 | 1.1 | 10 Oct 2026 | Round 4 amendments (`40-demo-cut` DC-A-04, CTX-D-022, CTX-D-024): narrator lines say "Techfinity"; admin display name "Platform Administrator"; demo Team "Techfinity Demo"; SB-S01 forming display, SB-D02 step 3 wording and step 9 order; SB-O-02 closed. |
 | 1.2 | 12 Oct 2026 | Round 5 amendments (`50-architecture` AR-A-14, CTX-D-025): SB-SET-03 items (3) to (5); SB-SET-07 GPU host check; SB-D07 step 1 log-in wording; SB-ASM-01 wording; SB-O-01 closed. |
 | 1.3 | 12 Oct 2026 | Round 6 amendments (`60-build-plan` BP-A-11, BP-A-15, CTX-D-029): SB-T-02 driver links, reset and delivery checks; SB-O-03 "Resolved in" P-04 and P-32. |
+| 1.4 | 15 Nov 2026 | Build amendment `60-build-plan` BP-A-32 (owner decision CTX-D-095): on the demo installation SB-T-02's driver resets and starts the storm through the control panel. |

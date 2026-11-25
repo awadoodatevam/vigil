@@ -29,8 +29,10 @@ export async function signedInThrough(
   const context = await browser.newContext(MOBILE);
   const page = await context.newPage();
   await page.goto(path);
+  // A cold page over a slow link takes more than the default 5 s (P-32, the demo host).
   await expect(page).toHaveURL(
     new RegExp(`/login\\?next=${encodeURIComponent(path)}$`),
+    { timeout: 30_000 },
   );
   await fillSignIn(page, username);
   await expect(page).toHaveURL(addressOf(path));

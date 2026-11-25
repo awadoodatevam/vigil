@@ -662,7 +662,7 @@ e2e() {
     playwright --grep-invert @ai-down --grep "@$suite" || status=1
     pattern="(?=.*@ai-down)(?=.*@$suite)"
   else
-    playwright --grep-invert "@ai-down|@storm|@control" || status=1
+    playwright --grep-invert "@ai-down|@storm|@control|@live" || status=1
   fi
   listing=$(playwright --list --grep "$pattern" 2>&1 || true)
   count=$(printf '%s\n' "$listing" | sed -n 's/^Total: \([0-9][0-9]*\) test.*/\1/p' | head -n 1)

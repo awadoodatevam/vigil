@@ -61,7 +61,7 @@ def prepare(harness, tmp_path, services):
         [
             (
                 "docker",
-                r"^compose -p vigil -f \S+/compose\.yaml --env-file \S+/\.env config --services$",
+                r"^compose -p vigil -f \S+/compose\.yaml --env-file \S+/\.env --profile \* config --services$",
                 [("\n".join(services) + "\n", 0)],
             )
         ]

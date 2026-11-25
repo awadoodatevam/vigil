@@ -26,7 +26,10 @@ test(
     await expect(banner(page)).toHaveText(LABEL);
     await expect(page.getByText("Techfinity", { exact: true })).toBeVisible();
     await expect(page.getByText("Jazz", { exact: true })).toBeVisible();
-    const boxes = [];
+    // One layout snapshot: the page settles first, then the six boxes are read in one call (P-32: separate reads
+    // could straddle a re-render on a slow link).
+    await page.waitForLoadState("networkidle");
+    const elements = [];
     for (const locator of [
       page.getByText("Techfinity", { exact: true }),
       page.getByText("Jazz", { exact: true }),
@@ -35,8 +38,16 @@ test(
       page.getByLabel("Password"),
       page.getByRole("button", { name: "Sign in" }),
     ]) {
-      boxes.push((await locator.boundingBox())!);
+      elements.push((await locator.elementHandle())!);
     }
+    const boxes = await page.evaluate(
+      (nodes) =>
+        nodes.map((node) => {
+          const box = node.getBoundingClientRect();
+          return { x: box.x, y: box.y, height: box.height };
+        }),
+      elements,
+    );
     for (let i = 1; i < boxes.length; i++) {
       expect(boxes[i].y).toBeGreaterThanOrEqual(
         boxes[i - 1].y + boxes[i - 1].height,
@@ -259,20 +270,24 @@ test("DC-S01-04 sign out shows You are signed out.", async ({ page }) => {
   await expect(page).toHaveURL(/\/login\?next=%2Fincidents$/);
 });
 
-test("AR-B-10 a host with no alias shows the error state", async ({ page }) => {
-  await page.goto("http://vigil-app:8080/login");
-  await expect(
-    page.getByText("Could not load this page. This address is not set up."),
-  ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
-  await expect(page.getByLabel("Username")).toHaveCount(0);
-  await expect(banner(page)).toHaveCount(0);
-  await expect(page).toHaveTitle("");
-  await page.goto("http://vigil-app:8080/incidents");
-  await expect(
-    page.getByText("Could not load this page. This address is not set up."),
-  ).toBeVisible();
-});
+test(
+  "AR-B-10 a host with no alias shows the error state",
+  { tag: "@local" },
+  async ({ page }) => {
+    await page.goto("http://vigil-app:8080/login");
+    await expect(
+      page.getByText("Could not load this page. This address is not set up."),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
+    await expect(page.getByLabel("Username")).toHaveCount(0);
+    await expect(banner(page)).toHaveCount(0);
+    await expect(page).toHaveTitle("");
+    await page.goto("http://vigil-app:8080/incidents");
+    await expect(
+      page.getByText("Could not load this page. This address is not set up."),
+    ).toBeVisible();
+  },
+);
 
 test("AR-W-01 / opens the incident list", async ({ page }) => {
   await signIn(page, "presenter");

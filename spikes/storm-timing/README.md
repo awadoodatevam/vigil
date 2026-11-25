@@ -9,6 +9,15 @@ spikes/storm-timing/run.sh [--storms N] [--extra LIST] [--save-recordings] [--fo
 
 `run.sh` starts the container `storm-spike` (image `vigil/storm-spike:local`, compose profile `spike`) on `lab-net`, detached by default (`--foreground` waits and exits with the spike's exit code), and prints `result file {path}`. Arguments: `--storms N` standard storms (default 10), `--extra` a subset of `read-only,clear` or `none` (default `read-only,clear`), `--save-recordings` writes the calls of standard storm 1 to `dev/fakes/recordings/monitoring/` (refused when that folder already holds a `*.json` file). `VIGIL_SPIKE_RESULTS` and `VIGIL_SPIKE_SAVE` change the results and recordings folders. A run of 10 storms takes about 2 hours: a new lab first waits up to 16 minutes until its baseline files are older than the 15-minute `disk_growth` period, and each standard storm waits 300 s after its last resolve.
 
+## The final run on the main host (P-32)
+
+```bash
+deploy/deploy.sh {installation} {release} --spike
+spikes/storm-timing/main-host.sh {installation} {release} [--storms N] [--extra LIST]
+```
+
+The spike deployment (compose profile `spike`) runs the lab with the webhook recorder at `vigil-app`'s addresses behind the load balancer, so every webhook passes `https://demo.{demo_domain}` (lab profile `demo`). `main-host.sh` refuses unless `deploy/status.sh` shows `dev-recorder` running; it starts the container `storm-spike` (image `{registry}/{installation}/storm-spike:{release}`) on `lab-net` through Systems Manager (`host-spike.sh start`: the secrets of `vigil-app` and `demo-control`, the deployed data at `/demo-data`, results in `/srv/vigil/spike/results`), reads its state and last 3 log lines every 5 minutes (`host-spike.sh state`), and when it has exited copies `storm-timing-{UTC time}.json` to `spikes/results/` with `deploy/fetch.sh` and exits with the spike's exit code. Tests: `test_main_host.py`.
+
 ## What it does
 
 Once: waits until the recorder, the 32 Zabbix items, the 4 Prometheus targets and Alertmanager are ready (300 s); records the connection checks (AR-K-01 test call with the `vigil` token, AR-K-02 test, Alertmanager refuses a request without credentials, Prometheus targets up) and the versions; clears SL-F-1 to SL-F-3; with at least one standard storm, waits until `disk_growth` reports 0 files (the baseline window).
