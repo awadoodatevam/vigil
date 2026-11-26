@@ -225,7 +225,22 @@ test("VD-S-08 the heading row and the four tiles on one row", async ({
   expect(heading.y).toBeLessThan(refresh.y + refresh.height);
   const tag = page.locator("main section [data-kind]").first();
   await expect(tag).toHaveText("Illustrative baseline");
-  await expect(tag).toHaveCSS("border", "1.5px dashed rgb(139, 151, 168)");
+  // Chromium computes the 1.5px border as 1px (whole CSS pixels, at device scale factor 1 and 2), so the width is
+  // read from the rule that applies to the tag, and the style and colour from the computed style (report Section 3).
+  const declared = await tag.evaluate((element) =>
+    [...document.styleSheets]
+      .flatMap((sheet) => [...sheet.cssRules])
+      .filter(
+        (rule): rule is CSSStyleRule =>
+          rule instanceof CSSStyleRule &&
+          rule.style.border !== "" &&
+          element.matches(rule.selectorText),
+      )
+      .map((rule) => rule.style.border),
+  );
+  expect(declared).toEqual(["1.5px dashed var(--vd-gray-400)"]);
+  await expect(tag).toHaveCSS("border-top-style", "dashed");
+  await expect(tag).toHaveCSS("border-top-color", "rgb(139, 151, 168)");
 });
 
 test("VD-R-12 Tab reaches Refresh with the focus ring", async ({ page }) => {
