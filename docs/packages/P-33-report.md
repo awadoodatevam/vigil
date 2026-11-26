@@ -87,4 +87,4 @@ Done-check item 3, in the build session (cloud, lab profile `test`, mode `immedi
 
 ## 12. Pull request
 
-PR_LINE
+Opened with the GitHub tool: [awadoodatevam/vigil#38](https://github.com/awadoodatevam/vigil/pull/38), "P-33: Dashboard screen", base `main`.
