@@ -65,7 +65,7 @@ it("VD-R-01 the texts of the P-28 screens are unchanged", () => {
     "Demo environment — fictional data",
   );
   expect(render(<Header {...HEADER} />)).toBe(
-    "TechfinityJazzIncidentsTimes in UTC+05:00Demo PresenterSign out",
+    "TechfinityJazzIncidentsDashboardTimes in UTC+05:00Demo PresenterSign out",
   );
   expect(
     render(

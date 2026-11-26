@@ -8,7 +8,10 @@ import { Customer } from "./Customer";
 import styles from "./layout.module.css";
 
 /** The navigation items built so far, in the order of DC-U-04 (BP-R-22). */
-export const NAVIGATION = [{ label: "Incidents", path: "/incidents" }] as const;
+export const NAVIGATION = [
+  { label: "Incidents", path: "/incidents" },
+  { label: "Dashboard", path: "/dashboard" },
+] as const;
 
 export interface HeaderProps {
   settings: TenantSettings;

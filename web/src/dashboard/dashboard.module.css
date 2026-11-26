@@ -1,0 +1,122 @@
+/* The dashboard of docs/45-visual-design.md (VD-S-08): the heading row with "Refresh", the tiles (VD-C-28) and the
+   data line. */
+
+/* The heading row: the page heading without its own margin, "Refresh" on the right. */
+.headingRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vd-space-2) var(--vd-space-4);
+  margin: 0 0 var(--vd-space-4);
+}
+
+.headingRow > h1 {
+  margin: 0;
+}
+
+/* "Refresh": the secondary button (VD-C-09). */
+.refresh {
+  padding: 9px var(--vd-space-4);
+  font: inherit;
+  font-size: var(--vd-size-14);
+  font-weight: 600;
+  color: var(--vd-text);
+  background: var(--vd-surface);
+  border: 1px solid var(--vd-border);
+  border-radius: var(--vd-radius-sm);
+  box-shadow: var(--vd-shadow-1);
+  cursor: pointer;
+  transition: background var(--vd-fast);
+}
+
+.refresh:hover {
+  background: var(--vd-gray-25);
+}
+
+.refresh:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Loading in a card in place of the tiles and the data line (VD-C-13). */
+.loadingCard {
+  background: var(--vd-surface);
+  border: 1px solid var(--vd-border);
+  border-radius: var(--vd-radius);
+  box-shadow: var(--vd-shadow-1);
+}
+
+/* The tiles (VD-C-28): a wrapping row of cards 16px apart. */
+.tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vd-space-4);
+}
+
+.tile {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  padding: var(--vd-space-4) var(--vd-space-5);
+  background: var(--vd-surface);
+  border: 1px solid var(--vd-border);
+  border-radius: var(--vd-radius);
+  box-shadow: var(--vd-shadow-1);
+}
+
+/* The name: the label role. */
+.name {
+  margin: 0;
+  font-size: var(--vd-size-13);
+  font-weight: 500;
+  color: var(--vd-text-2);
+}
+
+/* The value: the stat value role; "no data" in the same role in the third text colour. */
+.value,
+.noData {
+  margin: var(--vd-space-1) 0 0;
+  font-size: var(--vd-size-30);
+  line-height: 36px;
+  letter-spacing: -0.02em;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--vd-text);
+}
+
+.noData {
+  color: var(--vd-text-3);
+}
+
+.definition {
+  margin: 6px 0 var(--vd-space-3);
+  font-size: var(--vd-size-13);
+  line-height: 18px;
+  color: var(--vd-text-2);
+}
+
+/* The baseline line at the bottom of the tile: the value, then its tag (VD-C-16). */
+.baseline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--vd-space-1) var(--vd-space-2);
+  margin: auto 0 0;
+  padding-top: var(--vd-space-3);
+  border-top: 1px solid var(--vd-border-2);
+}
+
+.baselineValue {
+  font-size: var(--vd-size-14);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--vd-text);
+}
+
+/* The data line (DC-S10-03), 12px under the tiles. */
+.dataLine {
+  margin: var(--vd-space-3) 0 0;
+  font-size: var(--vd-size-14);
+  color: var(--vd-text-2);
+}

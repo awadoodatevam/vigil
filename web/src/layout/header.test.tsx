@@ -3,7 +3,7 @@ import { MemoryRouter } from "react-router";
 import { expect, it } from "vitest";
 import type { TenantSettings } from "../api/types";
 import { Banner } from "./Banner";
-import { Header, type HeaderProps } from "./Header";
+import { Header, NAVIGATION, type HeaderProps } from "./Header";
 import styles from "./layout.module.css";
 
 const SETTINGS: TenantSettings = {
@@ -38,7 +38,7 @@ const text = (html: string) =>
 
 it("DC-U-03 the header items from left to right", () => {
   expect(text(render())).toBe(
-    "|Techfinity|Jazz|Incidents|Times in UTC+05:00|Demo Presenter|Sign out|",
+    "|Techfinity|Jazz|Incidents|Dashboard|Times in UTC+05:00|Demo Presenter|Sign out|",
   );
 });
 
@@ -46,7 +46,7 @@ it("DC-U-03 the customer logo when the tenant has one, with the customer name as
   const html = render({ settings: { ...SETTINGS, has_logo: true } });
   expect(html).toContain('src="/api/v1/public/logo" alt="Jazz"');
   expect(text(html)).toBe(
-    "|Techfinity|Incidents|Times in UTC+05:00|Demo Presenter|Sign out|",
+    "|Techfinity|Incidents|Dashboard|Times in UTC+05:00|Demo Presenter|Sign out|",
   );
 });
 
@@ -78,4 +78,34 @@ it("DC-U-01 the banner shows the label exactly, and no banner for a null or empt
   );
   expect(renderToStaticMarkup(<Banner label={null} />)).toBe("");
   expect(renderToStaticMarkup(<Banner label="" />)).toBe("");
+});
+
+it("DC-U-04 the navigation lists Incidents and Dashboard in this order", () => {
+  const html = render();
+  const links = [
+    ...html.matchAll(/<a\b[^>]*href="([^"]*)"[^>]*>([^<]*)<\/a>/g),
+  ].map((match) => [match[2], match[1]]);
+  expect(links).toEqual([
+    ["Incidents", "/incidents"],
+    ["Dashboard", "/dashboard"],
+  ]);
+});
+
+it("BP-R-22 only the built screens are navigation items", () => {
+  expect(NAVIGATION.map((item) => item.label)).toEqual([
+    "Incidents",
+    "Dashboard",
+  ]);
+});
+
+it("DC-U-04 Dashboard is marked on /dashboard", () => {
+  const html = render({}, "/dashboard");
+  const links = [...html.matchAll(/<a\b([^>]*)>([^<]*)<\/a>/g)];
+  const marked = links.filter((match) =>
+    match[1].includes('aria-current="page"'),
+  );
+  expect(marked.map((match) => match[2])).toEqual(["Dashboard"]);
+  const current = links.filter((match) => match[1].includes(styles.navCurrent));
+  expect(current.map((match) => match[2])).toEqual(["Dashboard"]);
+  expect(render({}, "/dashboard/more")).not.toContain('aria-current="page"');
 });

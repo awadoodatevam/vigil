@@ -36,3 +36,4 @@ export type ApprovalPage = Schemas["ApprovalPage"];
 export type NewDecision = Schemas["NewDecision"];
 export type DecisionRequest = Schemas["DecisionRequest"];
 export type Refusal = NonNullable<Schemas["Refusal"]>;
+export type Dashboard = Schemas["Dashboard"];

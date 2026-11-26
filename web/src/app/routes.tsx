@@ -1,9 +1,11 @@
-// The routes of P-28, the incident workspace of P-29 and the mobile pages of P-30 (AR-W-01, complete list): every
-// other path, the paths of AR-W-01 not built yet included, shows the not-found state (CTX-D-085 (1)). The workspace and
-// the mobile pages load as lazy screens, so a mobile page loads only the code it needs (AR-W-07, CTX-D-091 (3)).
+// The routes of P-28, the incident workspace of P-29, the mobile pages of P-30 and the dashboard of P-33 (AR-W-01,
+// complete list): every other path, the paths of AR-W-01 not built yet included, shows the not-found state
+// (CTX-D-085 (1)). The workspace and the mobile pages load as lazy screens, so a mobile page loads only the code it
+// needs (AR-W-07, CTX-D-091 (3)); the dashboard is not lazy.
 import { lazy, Suspense, type ReactNode } from "react";
 import { Navigate, type RouteObject } from "react-router";
 import type { TenantSettings } from "../api/types";
+import { DashboardPage } from "../dashboard/DashboardPage";
 import { IncidentsPage } from "../incidents/IncidentsPage";
 import { LoginPage } from "../login/LoginPage";
 import { NoAccessPage } from "../login/NoAccessPage";
@@ -17,6 +19,7 @@ export type Screen =
   | "workspace"
   | "acknowledge"
   | "approve"
+  | "dashboard"
   | "to-incidents"
   | "not-found";
 
@@ -28,6 +31,7 @@ export const ROUTE_TABLE: readonly { path: string; screen: Screen }[] = [
   { path: "/incidents/:incidentId", screen: "workspace" },
   { path: "/m/acknowledge/:incidentId", screen: "acknowledge" },
   { path: "/m/approve/:requestId", screen: "approve" },
+  { path: "/dashboard", screen: "dashboard" },
   { path: "/", screen: "to-incidents" },
   { path: "*", screen: "not-found" },
 ];
@@ -79,6 +83,8 @@ function element(screen: Screen, branding: TenantSettings) {
           <ApprovalPage />
         </Lazy>
       );
+    case "dashboard":
+      return <DashboardPage />;
     case "to-incidents":
       return <Navigate to="/incidents" replace />;
     case "not-found":

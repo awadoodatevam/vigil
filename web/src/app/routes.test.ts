@@ -25,6 +25,7 @@ it("AR-W-01 the route table of P-28", () => {
     "/incidents/:incidentId",
     "/m/acknowledge/:incidentId",
     "/m/approve/:requestId",
+    "/dashboard",
     "/",
     "*",
   ]);
@@ -40,7 +41,6 @@ it("AR-W-01 every other path, the paths not built yet included, shows the not-fo
     "/setup",
     "/routing",
     "/ai",
-    "/dashboard",
     "/audit",
     "/anything/else",
   ]) {
@@ -79,10 +79,33 @@ it("AR-W-01 the mobile routes", () => {
   expect(paths.indexOf("/m/acknowledge/:incidentId")).toBe(
     paths.indexOf("/incidents/:incidentId") + 1,
   );
-  expect(paths.indexOf("/m/approve/:requestId")).toBe(paths.indexOf("/") - 1);
+  expect(paths.indexOf("/m/approve/:requestId")).toBe(
+    paths.indexOf("/dashboard") - 1,
+  );
   expect(screenOf("/m/acknowledge")).toBe("not-found");
   expect(screenOf("/m/approve")).toBe("not-found");
   expect(screenOf(`/m/acknowledge/${ID}/more`)).toBe("not-found");
+});
+
+it("SL-A4-10 /dashboard is the dashboard", () => {
+  expect(screenOf("/dashboard")).toBe("dashboard");
+  expect(screenOf("/dashboard/more")).toBe("not-found");
+});
+
+it("AR-W-01 /dashboard follows /m/approve/:requestId and is not lazy", () => {
+  const paths = ROUTE_TABLE.map((route) => route.path);
+  expect(paths.indexOf("/dashboard")).toBe(
+    paths.indexOf("/m/approve/:requestId") + 1,
+  );
+  expect(paths.indexOf("/dashboard")).toBe(paths.indexOf("/") - 1);
+  expect(ROUTE_TABLE).toContainEqual({
+    path: "/dashboard",
+    screen: "dashboard",
+  });
+  expect(LAZY_SCREENS as readonly string[]).not.toContain("dashboard");
+  const route = routes(BRANDING).find((r) => r.id === "dashboard")!;
+  const element = route.element as { type?: { name?: string } };
+  expect(element.type?.name).toBe("DashboardPage");
 });
 
 it("SL-A4-04 /m/acknowledge/{id} is the Acknowledge page", () => {

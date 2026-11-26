@@ -1,5 +1,6 @@
-// The incident list, the incident workspace and the mobile pages during a storm driver run (P-28, P-29 and P-30 spec
-// Section 7, CTX-D-085 (9), CTX-D-089 (12), CTX-D-091 (7)): run only by the suite storm, which
+// The incident list, the incident workspace and the mobile pages during a storm driver run, and the dashboard after it
+// (P-28, P-29, P-30 and P-33 spec Section 7, CTX-D-085 (9), CTX-D-089 (12), CTX-D-091 (7), CTX-D-097 (8)): run only by
+// the suite storm, which
 // tests/acceptance/storm/with-playwright.sh starts before the driver. One serial file sharing one page for the list
 // and further browser contexts for the storm workspace and the mobile pages.
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -10,6 +11,14 @@ import {
   type Locator,
   type Page,
 } from "@playwright/test";
+import {
+  dataLineOf,
+  formulas,
+  shown,
+  tiles,
+  type Answer,
+  type Header,
+} from "./dashboard";
 import { fillSignIn, SCREENS, screenshot, signIn } from "./helpers";
 import {
   blocks,
@@ -1461,3 +1470,71 @@ test(
     await expect(page).toHaveURL(new RegExp(`/incidents/${first}$`));
   },
 );
+
+test("SB-S09 the dashboard after the run", { tag: "@storm" }, async () => {
+  const ids: string[] = [];
+  await expect(async () => {
+    const answer = await page.request.get("/api/v1/incidents");
+    expect(answer.status()).toBe(200);
+    const items = (await answer.json()).items as {
+      incident_id: string;
+      title: string;
+    }[];
+    const storm = items.find((item) => item.title === STORM_TITLE);
+    const report = items.find((item) => item.title === REPORT_TITLE);
+    expect(storm).toBeDefined();
+    expect(report).toBeDefined();
+    const header = (await (
+      await page.request.get(`/api/v1/incidents/${storm!.incident_id}`)
+    ).json()) as Header;
+    expect(header.acknowledged).not.toBeNull();
+    expect(header.resolved_at).not.toBeNull();
+    ids.splice(0, ids.length, storm!.incident_id, report!.incident_id);
+  }).toPass({ timeout: 10 * MINUTE });
+  await page
+    .getByRole("banner")
+    .getByRole("link", { name: "Dashboard" })
+    .click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  const refresh = page.getByRole("button", { name: "Refresh" });
+  await expect(async () => {
+    const headers: Header[] = [];
+    for (const id of ids) {
+      const answer = await page.request.get(`/api/v1/incidents/${id}`);
+      expect(answer.status()).toBe(200);
+      headers.push((await answer.json()) as Header);
+    }
+    const read = page.waitForResponse("**/api/v1/dashboard");
+    await refresh.click();
+    await read;
+    await expect(page.locator("main section")).toHaveCount(4);
+    await expect(refresh).toBeEnabled();
+    const screen = await tiles(page);
+    expect(screen.map((tile) => tile.value)).toEqual(formulas(headers));
+    await expect(dataLineOf(page)).toHaveText(
+      "Includes 2 live incidents and 50 imported past incidents labelled 'Fictional record'.",
+    );
+    const answer = await page.request.get("/api/v1/dashboard");
+    expect(answer.status()).toBe(200);
+    const expected = shown((await answer.json()) as Answer);
+    expect(screen.map((tile) => tile.value)).toEqual(expected.values);
+    expect(screen.map((tile) => tile.baseline)).toEqual(expected.baselines);
+    await expect(dataLineOf(page)).toHaveText(expected.dataLine);
+  }).toPass({ timeout: 2 * MINUTE });
+  if (MODE === "script") {
+    const screen = await tiles(page);
+    expect(screen.map((tile) => tile.value)).toEqual([
+      "5.7 min",
+      "40.5 min",
+      "650",
+      "47",
+    ]);
+    expect(screen.map((tile) => tile.baseline)).toEqual([
+      "11.0 min Illustrative baseline",
+      "72.0 min Illustrative baseline",
+      "0 Illustrative baseline",
+      "0 Illustrative baseline",
+    ]);
+  }
+  await screenshot(page, "dashboard-storm-1280");
+});

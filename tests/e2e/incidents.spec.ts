@@ -14,7 +14,7 @@ test(
     ).toBeVisible();
     const header = page.getByRole("banner");
     await expect(header).toHaveText(
-      /^TechfinityJazzIncidentsTimes in UTC\+05:00Demo PresenterSign out$/,
+      /^TechfinityJazzIncidentsDashboardTimes in UTC\+05:00Demo PresenterSign out$/,
     );
     const current = header.getByRole("link", { name: "Incidents" });
     await expect(current).toHaveAttribute("aria-current", "page");

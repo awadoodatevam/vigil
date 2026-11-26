@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.36 |
-| Date | 15 November 2026 |
+| Version | 1.37 |
+| Date | 26 November 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
 
@@ -553,7 +553,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | S (estimate about 450, CTX-D-095 (12)); P-05, P-30, P-31; BP-OT-03 to BP-OT-09, BP-OT-11, BP-OT-14 |
+| Size; depends on; owner tasks | S (`tools/loc.sh` 316, CTX-D-096 (1)); P-05, P-30, P-31; BP-OT-03 to BP-OT-09, BP-OT-11, BP-OT-14 |
 | Builds | `deploy/main/compose.yaml` with every unit of AR §6 and the compose profiles `vigil` and `spike` (the webhook recorder at `vigil-app`'s addresses, for SB-T-01 only; CTX-D-095 (2)); `deploy/build.sh` and `release.yml` with the JARs and every image (CTX-D-095 (1)); the deployment's values in `.env`, the Alertmanager configuration and the profile switch; `deploy/fetch.sh`; `deploy/values/demo.yaml` complete; the first deployment of the demo installation; the storm timing spike on the main host (`spikes/storm-timing/main-host.sh`); the storm driver's `--via control` and `--measured`; Playwright against the demo host (`VIGIL_CONTROL_URL`, `VIGIL_JIRA_URL`, tag `@local`, suite `live`); `tests/acceptance/demo-host/` (secrets, suites, storm runs, checks, AI cut, capacity sampler). |
 | Requirements built | SL-A3-05; AR-H-01 to AR-H-13 (with the Vigil units); AR §6 including AR-U-03 and AR-U-04; SL-CP-1. Proves AR-ASM-03 (AR-SP-01), AR-ASM-05 (AR-SP-03), AR-ASM-13. |
 | Tests | Owner-run on the main host: SB-T-01 final (10 storms through the load balancer with the recorder); SB-T-05 (the suite `control` against `control.${demo_domain}`, 5 resets, the first after SL-F-1 with SL-F-2); AR-SP-01 with `vigil-app` (the suite `live` during a storm, CTX-D-095 (6)) and the lab-to-`vigil-app` check; `deploy/status.sh` reports readable secret directories (AR-ASM-13); AR-SP-03 over three storm runs; SB-T-09 part one (with SL-F-4 active for 10 minutes, Claude and OpenAI unreachable within 5 s from `vigil-app`'s network namespace, Jira, Teams, SES and the public name reachable; CTX-D-095 (8)); the storm driver in mode `script` through the public names and the control panel with the real Jira, Teams and SES (SB-T-02 first pass, with the Playwright suite `storm`); the SL-CP-1 run with the owner acting on the phone; the Playwright suites of P-28 to P-30 against the demo host. In the gate: the compose files, the build, deployment, fetch and status scripts, the driver's control-panel mode and the demo-host tooling against fakes. |
@@ -567,11 +567,11 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | S; P-32; none |
-| Builds | DC-S10 and its navigation item. |
-| Requirements built | SL-A1-09, SL-A4-10; DC-S10-01 to DC-S10-05. |
-| Tests | Playwright: the starting state shows SB-V-38; after a storm driver run in mode `script` the values of SB-S09 (in mode `immediate`, the values the formulas of DM-R-53 give from the run's own times). |
-| Runs in | BP-E-01, BP-E-02 |
+| Size; depends on; owner tasks | S (estimate about 300, CTX-D-097 (10)); P-32; none |
+| Builds | DC-S10 and its navigation item: AR-I-80 read on opening and on "Refresh" only, with loading and error states (CTX-D-097 (2)); the look of `45-visual-design` v1.3 (VD-C-28, VD-S-08; CTX-D-097 (11)). |
+| Requirements built | SL-A1-09, SL-A4-10; DC-S10-01 to DC-S10-05; VD-C-28, VD-S-08. |
+| Tests | Playwright: the starting state shows SB-V-38 (the default suites, on a tenant without alerts, CTX-D-097 (8)); after a storm driver run the screen equals AR-I-80 and the values the formulas of DM-R-53 give from the run's own times, and in mode `script` the values of SB-S09 (owner-run Mac step in the `demo` profile); "Refresh" reads again; a failed read; a user without `view`. |
+| Runs in | BP-E-01, BP-E-02, BP-E-03 |
 
 #### P-34 Primary demo hardening
 
@@ -1102,3 +1102,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.34 | 14 Nov 2026 | From the P-29 report (BP-L-8, CTX-D-090): the P-29 entry records `tools/loc.sh` 2,543 (L). For the P-30 spec (BP-L-1, CTX-D-091): BP-W-02 names the acting pages; the P-30 entry's size (M, estimate), builds (lazy screens, `45-visual-design` v1.2, the items carried from P-43, the driver's `--acts pages`), requirements and tests (the pages act during the storm in mode `immediate`). No behaviour of Vigil changes beyond the carried items. |
 | 1.35 | 14 Nov 2026 | From the P-30 report (BP-L-8, CTX-D-092): the P-30 entry records `tools/loc.sh` 1,435 (M). For the P-31 spec (BP-L-1, CTX-D-093): the P-31 entry's size (M, estimate), builds (the local installation's `demo-control` and `deploy/local.sh reset`), requirements and tests (the suite `control`, SB-T-05 local run); BP-R-04 names `vigil/demo-control:local`; BP-W-02 the suite `control`; Section 11.1 SL-F-4's rules in a local installation; Section 11.4 `product_display_name`. No behaviour of Vigil changes. |
 | 1.36 | 15 Nov 2026 | From the P-31 report (BP-L-8, CTX-D-094): the P-31 entry records `tools/loc.sh` 2,060 (L). For the P-32 spec (BP-L-1, CTX-D-095): the P-32 entry's size (S, estimate), builds (the compose profiles, the recorder and the storm spike for SB-T-01, `deploy/fetch.sh`, the driver's control-panel mode, Playwright against the demo host, `tests/acceptance/demo-host/`) and tests; Section 5.1 `tests/acceptance/demo-host/`; Section 7.7; Section 9 AR-SP-01; BP-W-03 (Java and Node.js, the JARs and every image); Section 10.3 (`deploy/deploy.sh --spike`, `deploy/fetch.sh`); amendments BP-A-31 (`50-architecture` v1.11) and BP-A-32 (`30-jazz-storyboard` v1.4). No behaviour of Vigil changes. |
+| 1.37 | 26 Nov 2026 | From the P-32 report (BP-L-8, CTX-D-096): the P-32 entry records `tools/loc.sh` 316 (S). For the P-33 spec (BP-L-1, CTX-D-097): the P-33 entry's size (S, estimate), builds (the read on opening and on "Refresh", `45-visual-design` v1.3), requirements (VD-C-28, VD-S-08), tests (SB-V-38 in the default suites; the formulas of DM-R-53 in both modes; the owner-run Mac step in mode `script`) and environments (BP-E-03). |
