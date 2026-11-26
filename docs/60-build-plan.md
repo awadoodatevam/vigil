@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document | 60-build-plan (ID prefix `BP-`) |
-| Version | 1.37 |
+| Version | 1.38 |
 | Date | 26 November 2026 |
 | Owner | Abdul Wadood |
 | Status | Baseline (owner reviewed). Round 6 closed. |
@@ -567,7 +567,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | S (estimate about 300, CTX-D-097 (10)); P-32; none |
+| Size; depends on; owner tasks | S (`tools/loc.sh` 236, CTX-D-098 (1)); P-32; none |
 | Builds | DC-S10 and its navigation item: AR-I-80 read on opening and on "Refresh" only, with loading and error states (CTX-D-097 (2)); the look of `45-visual-design` v1.3 (VD-C-28, VD-S-08; CTX-D-097 (11)). |
 | Requirements built | SL-A1-09, SL-A4-10; DC-S10-01 to DC-S10-05; VD-C-28, VD-S-08. |
 | Tests | Playwright: the starting state shows SB-V-38 (the default suites, on a tenant without alerts, CTX-D-097 (8)); after a storm driver run the screen equals AR-I-80 and the values the formulas of DM-R-53 give from the run's own times, and in mode `script` the values of SB-S09 (owner-run Mac step in the `demo` profile); "Refresh" reads again; a failed read; a user without `view`. |
@@ -577,12 +577,12 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 | Item | Content |
 | --- | --- |
-| Size; depends on; owner tasks | M; P-33; BP-OT-12 |
-| Builds | Fixes found by the tests below; the prompt rewording AR-G-12 allows when RB-DB-01 is cited in fewer than 4 of 5 runs, or when fewer than 4 of 5 local-model SL-T-1 answers are accepted (CTX-D-065 (2)); no new feature. |
-| Requirements built | SL-A3-04; SL-A3-08 (primary demo part); SL-CP-2. |
-| Tests | Owner-run on the demo installation: SB-T-02 (5 runs from a reset, mode `script`, every exact value of SB-S01 to SB-S09); SB-T-03 in the product with `embeddinggemma`; SB-T-04 (all step times and the local model within 45 s; also the product's SL-T-1 answers of the local model under PM-M17-03's checks, at least 4 of 5 accepted, a rewording within AR-G-12 otherwise, CTX-D-065 (2)); SB-T-08 (two rehearsals with the senior manager); the backup video of the primary demo. |
+| Size; depends on; owner tasks | S (estimate about 10, CTX-D-099 (1)); P-33; BP-OT-12 |
+| Builds | `vigil-app` sends the web application's built files gzip-compressed (amendment BP-A-33, AR-W-01); the demo control panel in Vigil's look, its fonts served by `demo-control` (`45-visual-design` v1.4: VD-R-15, VD-C-29, VD-S-09; CTX-D-096 (5)); the storm driver records the approve time and the summary length; `tests/acceptance/demo-host/series.sh` and `series.py` (SB-T-02's five runs, judged), `rehearsal.py` (SB-T-08), `check.sh`'s `assets-gzip`; `spikes/providers/run.sh … --package P-34`; fixes found by the tests below, in fix rounds, including the prompt rewording AR-G-12 allows when RB-DB-01 is cited in fewer than 4 of 5 runs, or when fewer than 4 of 5 local-model SL-T-1 answers are accepted (CTX-D-065 (2), CTX-D-099 (8), (9)); no new feature. |
+| Requirements built | SL-A3-04; SL-A3-08 (primary demo part); SL-CP-2; AR-W-01 (compression); VD-R-15, VD-C-29, VD-S-09. |
+| Tests | Owner-run on the demo installation, on a release built on the Mac (CTX-D-099 (10)): SB-T-02 (5 runs in a row, each from the control panel's Reset, mode `script`, every exact value of SB-S01 to SB-S09, the five checklists ticked, the Playwright suite `storm` beside each run with the dashboard's SB-S09 on the demo host); SB-T-03 in the product with `embeddinggemma` (PI-1001 at 1.00 in every run); SB-T-04 (all step times from the five runs; the product's SL-T-1 request on the local model through `spikes/providers/run.sh local-model --package P-34`, at least 4 of 5 answers accepted under PM-M17-03's checks, each within 45 s, a rewording within AR-G-12 otherwise, CTX-D-065 (2)); RB-DB-01 cited in at least 4 of 5 runs (AR-G-12); `check.sh` with `assets-gzip`; the default suites and the suite `control` against the demo host; SB-T-08 (two rehearsals with the senior manager, recorded, judged by `rehearsal.py`); the backup video of the primary demo. In the gate: the compression and the uncompressed live stream, the panel's page, tokens and fonts, the tooling against fakes. In the cloud session: the suite `control` with the panel's look tests. |
 | Done-check | The SL-CP-2 review of Section 8.3 passes. |
-| Runs in | BP-E-01, BP-E-03, BP-E-04, BP-E-05 |
+| Runs in | BP-E-01, BP-E-02, BP-E-03, BP-E-04, BP-E-05 |
 
 ### 7.5 Phase E — Deep dives, to SL-CP-3
 
@@ -656,7 +656,7 @@ Cross-cutting items have no package of their own; every package whose code they 
 
 ### 7.7 Size summary
 
-7 packages S, 20 packages M, 17 packages L, 44 packages in all (P-31 became L in v1.36, from its line count, and P-32 S, from its estimate; P-44 added in v1.32; P-27 became S in v1.30, from its estimate; P-43 became M in v1.29, from its line count, and P-26 from its estimate; P-25 became M in v1.28, from its line count; P-25 was split into P-25 (L) and P-43 (L) in v1.27, and the S and M counts corrected to the entries; P-42 added in v1.22; P-23 became L in v1.25, from its estimate; P-21 became L in v1.24, from its line count; P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14 and L in v1.15, from its line count; P-16 became L in v1.15; P-17 was split into P-17 and P-41 in v1.16; P-18 became L in v1.17; P-19 became L in v1.20, from its line count). With one cloud session for S, one to two for M and two to three for L, the estimate is about 66 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
+8 packages S, 19 packages M, 17 packages L, 44 packages in all (P-34 became S in v1.38, from its estimate; P-31 became L in v1.36, from its line count, and P-32 S, from its estimate; P-44 added in v1.32; P-27 became S in v1.30, from its estimate; P-43 became M in v1.29, from its line count, and P-26 from its estimate; P-25 became M in v1.28, from its line count; P-25 was split into P-25 (L) and P-43 (L) in v1.27, and the S and M counts corrected to the entries; P-42 added in v1.22; P-23 became L in v1.25, from its estimate; P-21 became L in v1.24, from its line count; P-05 became L in v1.7, P-13 in v1.12; P-15 became M in v1.14 and L in v1.15, from its line count; P-16 became L in v1.15; P-17 was split into P-17 and P-41 in v1.16; P-18 became L in v1.17; P-19 became L in v1.20, from its line count). With one cloud session for S, one to two for M and two to three for L, the estimate is about 66 cloud sessions, plus review time and owner-run steps. This is an effort estimate for planning, not a date (CTX-C-05).
 
 ## 8. Phases, order and checkpoints
 
@@ -1015,6 +1015,7 @@ Written into the named documents at the close of this round, 12 Oct 2026: `00-co
 | BP-A-30 | `50-architecture` AR-TM-01, AR-R-09 | Owner decision CTX-D-062 (10 Nov 2026, for P-19). The whole-call timeout of an embedding call is 30 s for a call with one text (a live similarity search) and 90 s for a call with more texts (the batched calls of seed import and re-embedding, AR-G-30), because P-06 measured 24 s for the first batched call of the 50 past-incident texts while `embeddinggemma` was loading (CTX-D-061 (5)). Also (Claude's recommendation CTX-D-062 (7)): AR-R-09's record before and after an external call does not apply to an immutable entity, which is inserted once after the call (DM-E-74). |
 | BP-A-31 | `50-architecture` AR-SP-01 | Owner decision CTX-D-095 (15 Nov 2026, for P-32). P-32's run of AR-SP-01 with `vigil-app` uses no test page of its own: a Playwright page of `vigil-web` on `demo.${demo_domain}`, run in the owner's Mac in Pakistan, signs in and opens two streams of AR-I-04 (`alerts,incidents`, which receive the notices of a storm, and `tenant`, which stays idle); a notice's delay is its arrival skew (the browser's arrival time minus the notice's `at`) minus the smallest skew, plus half the smallest round trip of 20 requests, so no clock offset between the browser and the server is needed; the other criteria are unchanged. |
 | BP-A-32 | `30-jazz-storyboard` SB-T-02 | Owner decision CTX-D-095 (15 Nov 2026, for P-32). On the demo installation the driver resets through the control panel's "Reset" (which performs AR-B-03's steps, AR-X-04) and starts the storm with its storm button, so it reaches Vigil and the lab only through the public names; in a local installation it resets with AR-B-03's steps itself (CTX-D-083 (3)). |
+| BP-A-33 | `50-architecture` AR-W-01 | CTX-D-099 (2) (26 Nov 2026, for P-34), from the owner's decision of 25 Nov 2026 (CTX-D-096 (3) item 6). `vigil-app` sends a built file of the web application whose type is HTML, CSS, JavaScript or SVG and whose size is at least 2,048 bytes gzip-compressed (`Content-Encoding: gzip`) when the request accepts gzip; no other answer is compressed (API answers; the live stream, which a compressing server would buffer, AR-I-04). The long cache times of AR-W-01 are unchanged. |
 
 ### 17.3 Assumptions (complete list)
 
@@ -1103,3 +1104,4 @@ Carried open items still open: CTX-O-01 (no date yet; owner answer 1; BP-A-14); 
 | 1.35 | 14 Nov 2026 | From the P-30 report (BP-L-8, CTX-D-092): the P-30 entry records `tools/loc.sh` 1,435 (M). For the P-31 spec (BP-L-1, CTX-D-093): the P-31 entry's size (M, estimate), builds (the local installation's `demo-control` and `deploy/local.sh reset`), requirements and tests (the suite `control`, SB-T-05 local run); BP-R-04 names `vigil/demo-control:local`; BP-W-02 the suite `control`; Section 11.1 SL-F-4's rules in a local installation; Section 11.4 `product_display_name`. No behaviour of Vigil changes. |
 | 1.36 | 15 Nov 2026 | From the P-31 report (BP-L-8, CTX-D-094): the P-31 entry records `tools/loc.sh` 2,060 (L). For the P-32 spec (BP-L-1, CTX-D-095): the P-32 entry's size (S, estimate), builds (the compose profiles, the recorder and the storm spike for SB-T-01, `deploy/fetch.sh`, the driver's control-panel mode, Playwright against the demo host, `tests/acceptance/demo-host/`) and tests; Section 5.1 `tests/acceptance/demo-host/`; Section 7.7; Section 9 AR-SP-01; BP-W-03 (Java and Node.js, the JARs and every image); Section 10.3 (`deploy/deploy.sh --spike`, `deploy/fetch.sh`); amendments BP-A-31 (`50-architecture` v1.11) and BP-A-32 (`30-jazz-storyboard` v1.4). No behaviour of Vigil changes. |
 | 1.37 | 26 Nov 2026 | From the P-32 report (BP-L-8, CTX-D-096): the P-32 entry records `tools/loc.sh` 316 (S). For the P-33 spec (BP-L-1, CTX-D-097): the P-33 entry's size (S, estimate), builds (the read on opening and on "Refresh", `45-visual-design` v1.3), requirements (VD-C-28, VD-S-08), tests (SB-V-38 in the default suites; the formulas of DM-R-53 in both modes; the owner-run Mac step in mode `script`) and environments (BP-E-03). |
+| 1.38 | 26 Nov 2026 | From the P-33 report (BP-L-8, CTX-D-098): the P-33 entry records `tools/loc.sh` 236 (S). For the P-34 spec (BP-L-1, CTX-D-099): the P-34 entry's size (S, estimate), builds (the compression, the control panel's look, the series and rehearsal tooling, fix rounds), requirements, tests and environments; Section 7.7; amendment BP-A-33 (`50-architecture` v1.12, AR-W-01). |
