@@ -1139,4 +1139,4 @@ To be written by the Claude project after the last recording session (spec Secti
 
 ## 13. Pull request
 
-PR_LINE
+Opened with the GitHub tool: [awadoodatevam/vigil#39](https://github.com/awadoodatevam/vigil/pull/39), "P-34: Primary demo hardening", base `main`.
