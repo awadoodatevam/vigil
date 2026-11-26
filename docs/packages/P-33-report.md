@@ -6,7 +6,7 @@
 | Branch | `p-33-dashboard` |
 | Pin date (BP-R-08) | 26 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (Temurin 25.0.4.1) |
-| State | Built; the gate command passes (Section 10). Done-check item 3 in this session (lab profile `test`, mode `immediate`): `deploy/local.sh up` (exit 0), `deploy/local.sh e2e` (54 of 54 passed), `VIGIL_STORM_RESULTS=$HOME/storm-results tests/acceptance/storm/with-playwright.sh` (exit 0: the 33 `@storm` tests passed, "SB-S09 the dashboard after the run" among them; the driver passed 33 of 33 checks; AR-Q-07 passed), `deploy/local.sh down --volumes` (exit 0); the four screenshots are committed under `tests/acceptance/results/P-33/` (Section 8). The owner-run Mac step (spec Section 6.7) and the label `e2e` are open. |
+| State | Built; the gate command passes (Section 10). Done-check item 3 in this session (lab profile `test`, mode `immediate`): `deploy/local.sh up` (exit 0), `deploy/local.sh e2e` (54 of 54 passed), `VIGIL_STORM_RESULTS=$HOME/storm-results tests/acceptance/storm/with-playwright.sh` (exit 0: the 33 `@storm` tests passed, "SB-S09 the dashboard after the run" among them; the driver passed 33 of 33 checks; AR-Q-07 passed), `deploy/local.sh down --volumes` (exit 0); the four screenshots are committed under `tests/acceptance/results/P-33/` (Section 8). The owner-run Mac step (spec Section 6.7) passed on 26 Nov 2026 (Section 8). |
 
 ## 1. What was built
 
@@ -59,7 +59,14 @@ None under `docs/` besides this report. The files of spec Section 9: `tests/acce
 
 ## 8. Owner-run results
 
-Owner-run on the Mac (spec Section 6.7): **not yet done**: `down --volumes`, `up --profile demo`, the wait for `/data`, `deploy/local.sh e2e`, `with-playwright.sh --mode script` (the dashboard test then checks SB-S09's exact values "5.7 min", "40.5 min", "650", "47" and the four baselines), the copy of `dashboard-*.png` into `tests/acceptance/results/P-33-mac/`, the look at `http://demo.vigil.test:8080/dashboard` with "Refresh", `down --volumes`, the commit, and the label `e2e` on the pull request.
+Owner-run on the Mac (spec Section 6.7), 26 Nov 2026, branch at `c010960`, profile `demo` (`tests/acceptance/results/P-33-mac.txt`, `P-33-mac/`):
+
+- `deploy/local.sh down --volumes`, then `deploy/local.sh up --profile demo`: "Tenant 01a2171f-f437-7308-acec-36159244d928 is ready at demo.vigil.test."; the `/data` check printed `0`.
+- `deploy/local.sh e2e`: **54 passed** (14.0 s), the nine `dashboard.spec.ts` tests among them.
+- `with-playwright.sh --mode script`, first attempt: the driver passed every check (`storm-script-20261126T100931Z.json`; acknowledged at T0 + 390 s, approved at T0 + 480 s; "SB-S09 dashboard formulas" and "SB-S09 dashboard values" passed), but the suite `storm` stopped at test 13, P-29's "DC-S03-07 countdowns and the observation window were counted" (one sample of `s-approve` showing "Waiting" without its countdown), so the 20 later tests, "SB-S09 the dashboard after the run" among them, did not run (12 passed, 1 failed). P-33 changes no file of the workspace or the canvas; the failure did not come back (next item).
+- `with-playwright.sh --mode script`, second attempt on the same installation: **33 passed** (10.2 min); the driver passed every check (`storm-script-20261126T102433Z.json`; T0 2026-11-26T10:24:55.525Z, acknowledged 10:31:25.551Z (T0 + 390 s), approved 10:32:55.553Z (T0 + 480 s), resolved 10:34:27.144Z, NOC-4 `Done`); **"SB-S09 the dashboard after the run" passed** with SB-S09's exact values "5.7 min", "40.5 min", "650", "47" and the baselines "11.0 min", "72.0 min", "0", "0", each with "Illustrative baseline"; AR-Q-07 passed.
+- By hand: the owner opened the dashboard as `presenter` and saw the same values; "Refresh" read them again.
+- Screenshots copied into `tests/acceptance/results/P-33-mac/` (`dashboard-start-1280`, `dashboard-loading-1280`, `dashboard-error-1280`, `dashboard-storm-1280`); then `deploy/local.sh down --volumes`.
 
 Done-check item 3, in the build session (cloud, lab profile `test`, mode `immediate`):
 
@@ -82,7 +89,8 @@ Done-check item 3, in the build session (cloud, lab profile `test`, mode `immedi
 
 - P-34: the dashboard on the demo installation, SB-T-02's five runs and the SL-CP-2 review.
 - P-37 to P-39: their navigation items join `NAVIGATION` after "Dashboard" in DC-U-04's order (BP-R-22).
-- The owner: the Mac step of spec Section 6.7 and the label `e2e` on the pull request; the choice in Section 4 item 1 (keep 1.5px or not).
+- The owner: the label `e2e` on the pull request; the choice in Section 4 item 1 (keep 1.5px or not).
+- P-34: P-29's "DC-S03-07 countdowns and the observation window were counted" failed once in mode `script` on the Mac (an `s-approve` sample showing "Waiting" without its countdown) and passed on the next run; watch it in SB-T-02's runs.
 
 ## 12. Pull request
 
