@@ -27,7 +27,9 @@ INSTANCES = {
     "i-0gpu": {"Name": "vigil-demo-gpu", "State": "running"},
 }
 EMBED_ADDRESS = "172.30.0.7"
-USAGE = "Usage: spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20] | teams | email\n"
+USAGE = (
+    "Usage: spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20|P-34] | teams | email\n"
+)
 
 
 def executable(path, text):
@@ -252,6 +254,39 @@ def test_package_p20(tmp_path):
     check_forward(root, "10.40.1.20")
 
 
+def test_package_p34(tmp_path):
+    """AR-G-12 run.sh local-model --package P-34 writes P-34-SB-T-04.json, no P-06 result file and no recording under
+    dev/fakes; its temporary recording folder is removed."""
+    root = Root(tmp_path)
+    temporary = tmp_path / "tmp"
+    temporary.mkdir()
+    fake = test_local_model_spike.FakeOllama()
+    with spike_fakes.FakeServer(fake) as server:
+        result = root.run(
+            "local-model",
+            "--package",
+            "P-34",
+            FAKE_AWS_FORWARD=server.address.removeprefix("http://"),
+            TMPDIR=str(temporary),
+        )
+    assert result.returncode == 0, result.stdout + result.stderr
+    path = root.results / "P-34-SB-T-04.json"
+    assert result.stdout.splitlines()[-1] == f"result: {path}"
+    assert sorted(item.name for item in root.results.iterdir()) == ["P-34-SB-T-04.json"]
+    content = json.loads(path.read_text())
+    assert content["passed"] is True
+    assert [check["name"] for check in content["checks"]] == [
+        "model-present", "warm-up", "chat-1", "accepted-1", "chat-2", "accepted-2", "chat-3", "accepted-3",
+        "chat-4", "accepted-4", "chat-5", "accepted-5", "gpu-fit",
+    ]  # fmt: skip
+    assert content["rejection_reasons"] == [[]] * 5
+    assert fake.chats == 5
+    assert not root.recordings.exists()
+    assert not (root.root / "dev").exists()
+    assert list(temporary.iterdir()) == []
+    check_forward(root, "10.40.1.20")
+
+
 def test_package_p20_direct_spike(tmp_path):
     """AR-G-12 run.sh jira --package P-20 sets the package and a temporary recording folder, removed when it stops."""
     root = Root(tmp_path)
@@ -441,7 +476,12 @@ def test_teams(tmp_path):
     assert sorted(item.name for item in (root.recordings / "teams").iterdir()) == [
         f"{n:04d}-post-{key}.json" for n, key in enumerate(test_teams_spike.KEYS, start=1)
     ]
-    for arguments in (["teams", "--package", "P-20"], ["email", "--package", "P-20"], ["teams", "email"]):
+    for arguments in (
+        ["teams", "--package", "P-20"],
+        ["email", "--package", "P-20"],
+        ["teams", "--package", "P-34"],
+        ["teams", "email"],
+    ):
         result = root.run(*arguments)
         assert result.returncode == 2, arguments
         assert result.stdout == USAGE

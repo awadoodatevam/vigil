@@ -2,9 +2,10 @@
 # Runs one provider spike of P-06 on the Mac (spec Section 6.9): jira, claude and openai directly; similarity and
 # local-model through a Systems Manager port forward to vigil-embed on the main host or vigil-llm on the GPU host; the
 # P-07 spikes teams and email directly (P-07 spec Section 6.7), with standard input passed on for the owner's answers.
-#   spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20] | teams | email
-# --package P-20 (P-20 spec Section 6.14) writes spikes/results/P-20-{spike}.json and keeps the recordings in a temporary
-# folder, removed at the end, so dev/fakes/recordings/ and the P-06-*.json result files stay as they are.
+#   spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20|P-34] | teams | email
+# --package P-20 (P-20 spec Section 6.14) or P-34 (P-34 spec Section 6.6) writes spikes/results/{package}-{spike}.json
+# and keeps the recordings in a temporary folder, removed at the end, so dev/fakes/recordings/ and the P-06-*.json
+# result files stay as they are.
 # Runs with macOS's bash 3.2; the spikes run in the virtual environment spikes/providers/.venv (Python 3.12).
 set -euo pipefail
 
@@ -13,11 +14,11 @@ cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 . deploy/lib/aws.sh
 
 usage() {
-  echo "Usage: spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20] | teams | email"
+  echo "Usage: spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20|P-34] | teams | email"
   exit 2
 }
 
-if [ "$#" -ne 1 ] && { [ "$#" -ne 3 ] || [ "$2" != --package ] || [ "$3" != P-20 ]; }; then
+if [ "$#" -ne 1 ] && { [ "$#" -ne 3 ] || [ "$2" != --package ] || { [ "$3" != P-20 ] && [ "$3" != P-34 ]; }; }; then
   usage
 fi
 case "$1" in
@@ -35,7 +36,7 @@ if [ "$#" -eq 3 ]; then
   recordings=$(mktemp -d)
   # shellcheck disable=SC2064 # the folder is fixed now
   trap "rm -rf '$recordings'" EXIT
-  export VIGIL_SPIKE_PACKAGE=P-20 VIGIL_SPIKE_RECORDINGS="$recordings"
+  export VIGIL_SPIKE_PACKAGE="$3" VIGIL_SPIKE_RECORDINGS="$recordings"
 fi
 check_identity
 

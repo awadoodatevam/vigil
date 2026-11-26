@@ -193,6 +193,203 @@ test("DC-S12-02 the buttons, descriptions and link", TAG, async () => {
   await screenshot(page, "control-idle");
 });
 
+/** VD-C-09: the secondary button's computed colours, border, type and padding. */
+const SECONDARY = {
+  color: "rgb(20, 26, 35)",
+  backgroundColor: "rgb(255, 255, 255)",
+  borderTopWidth: "1px",
+  borderTopStyle: "solid",
+  borderTopColor: "rgb(213, 219, 228)",
+  fontSize: "14px",
+  fontWeight: "600",
+  paddingTop: "9px",
+  paddingLeft: "16px",
+  borderTopLeftRadius: "6px",
+};
+const FOCUS_ACCENT = "rgb(47, 111, 237)";
+
+async function computed(
+  locator: ReturnType<Page["locator"]>,
+  keys: string[],
+): Promise<Record<string, string>> {
+  return locator.evaluate((element, names) => {
+    const style = getComputedStyle(element);
+    return Object.fromEntries(
+      names.map((name) => [
+        name,
+        style.getPropertyValue(
+          name.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase()),
+        ),
+      ]),
+    );
+  }, keys);
+}
+
+/** Signs in on another page of its own context, as signIn does on the suite's page. */
+async function signInOn(other: Page): Promise<void> {
+  await other.getByLabel("Username").fill("operator");
+  await other.getByLabel("Password").fill(controlPassword());
+  await other.getByRole("button", { name: "Sign in" }).click();
+  await expect(other.locator("#status")).toBeVisible({ timeout: 30_000 });
+}
+
+test("VD-S-09 the control panel in Vigil's look", TAG, async ({ browser }) => {
+  const origin = new URL(CONTROL).origin;
+  const context = await browser.newContext({
+    baseURL: CONTROL,
+    viewport: { width: 1280, height: 800 },
+  });
+  const look = await context.newPage();
+  const requests: string[] = [];
+  const fonts: { url: string; status: number }[] = [];
+  look.on("request", (request) => requests.push(request.url()));
+  look.on("response", (response) => {
+    if (response.url().includes("/fonts/")) {
+      fonts.push({ url: response.url(), status: response.status() });
+    }
+  });
+  try {
+    await look.goto("/");
+    await expect(look.locator("#login-form")).toBeVisible();
+    await screenshot(look, "control-login-1280");
+    await signInOn(look);
+    await expect(look.locator("#status")).toHaveText(
+      /^(Idle|Reset completed in \d+ s|Clear all faults completed in \d+ s)$/,
+    );
+    await look.evaluate(() => document.fonts.ready);
+    expect(
+      await look.evaluate(() => getComputedStyle(document.body).fontFamily),
+    ).toMatch(/^"Inter Variable"/);
+    expect(
+      await look.evaluate(() => document.fonts.check('15px "Inter Variable"')),
+    ).toBe(true);
+    expect(fonts.map((font) => new URL(font.url).pathname)).toContain(
+      "/fonts/inter-latin-wght-normal.woff2",
+    );
+    for (const font of fonts) {
+      expect(new URL(font.url).origin).toBe(origin);
+      expect(font.status).toBe(200);
+    }
+    expect(requests.filter((url) => new URL(url).origin !== origin)).toEqual(
+      [],
+    );
+
+    expect(
+      (await computed(look.locator("#top"), ["backgroundColor"]))
+        .backgroundColor,
+    ).toBe("rgb(11, 21, 38)");
+    for (const card of ["#buttons", "#panel .state-card"]) {
+      expect(
+        await computed(look.locator(card), [
+          "backgroundColor",
+          "borderTopWidth",
+          "borderTopStyle",
+          "borderTopColor",
+        ]),
+      ).toEqual({
+        backgroundColor: "rgb(255, 255, 255)",
+        borderTopWidth: "1px",
+        borderTopStyle: "solid",
+        borderTopColor: "rgb(213, 219, 228)",
+      });
+    }
+    for (const label of [...LABELS.slice(0, 3), "Reset"]) {
+      const element = look
+        .locator("#buttons")
+        .getByRole("button", { name: label, exact: true });
+      await expect(element).toBeEnabled();
+      expect(await computed(element, Object.keys(SECONDARY))).toEqual(
+        SECONDARY,
+      );
+    }
+    await screenshot(look, "control-panel-1280");
+    await look.setViewportSize({ width: 640, height: 800 });
+    expect(
+      await look.evaluate(() => document.documentElement.scrollWidth),
+    ).toBeLessThanOrEqual(640);
+    await screenshot(look, "control-panel-640");
+  } finally {
+    await context.close();
+  }
+});
+
+test(
+  "VD-C-29 the Reset question in the confirmation dialog's look",
+  TAG,
+  async () => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await button("Reset").click();
+    const dialog = page.locator("dialog#confirm");
+    await expect(dialog).toBeVisible();
+    const cancel = dialog.getByRole("button", { name: "Cancel" });
+    const confirm = dialog.getByRole("button", { name: "Reset" });
+    const colours = [
+      "color",
+      "backgroundColor",
+      "borderTopWidth",
+      "borderTopStyle",
+      "borderTopColor",
+    ] as const;
+    expect(await computed(cancel, [...colours])).toEqual(
+      Object.fromEntries(colours.map((key) => [key, SECONDARY[key]])),
+    );
+    expect(await computed(confirm, ["backgroundColor", "color"])).toEqual({
+      backgroundColor: "rgb(217, 45, 32)",
+      color: "rgb(255, 255, 255)",
+    });
+    const left = (await cancel.boundingBox())!;
+    const right = (await confirm.boundingBox())!;
+    expect(left.x + left.width).toBeLessThanOrEqual(right.x);
+    expect(Math.abs(left.y - right.y)).toBeLessThanOrEqual(1);
+    await screenshot(page, "control-confirm-1280");
+    await cancel.click();
+    await expect(dialog).toBeHidden();
+  },
+);
+
+test(
+  "VD-R-12 Tab reaches Sign in and the buttons with the focus ring",
+  TAG,
+  async ({ browser }) => {
+    const context = await browser.newContext({
+      baseURL: CONTROL,
+      viewport: { width: 1280, height: 800 },
+    });
+    const other = await context.newPage();
+    const focused = (name: string) =>
+      other.evaluate(
+        (text) => document.activeElement?.textContent === text,
+        name,
+      );
+    try {
+      await other.goto("/");
+      await expect(other.locator("#login-form")).toBeVisible();
+      const signInButton = other.getByRole("button", { name: "Sign in" });
+      for (let tab = 0; tab < 5 && !(await focused("Sign in")); tab++) {
+        await other.keyboard.press("Tab");
+      }
+      await expect(signInButton).toBeFocused();
+      expect((await computed(signInButton, ["boxShadow"])).boxShadow).toContain(
+        FOCUS_ACCENT,
+      );
+
+      await signInOn(other);
+      const first = other.locator("#buttons button").first();
+      await expect(first).toBeEnabled();
+      await other.locator("#top").click();
+      for (let tab = 0; tab < 5 && !(await focused(LABELS[0])); tab++) {
+        await other.keyboard.press("Tab");
+      }
+      await expect(first).toBeFocused();
+      expect((await computed(first, ["boxShadow"])).boxShadow).toContain(
+        FOCUS_ACCENT,
+      );
+    } finally {
+      await context.close();
+    }
+  },
+);
+
 test("SB-T-05 Clear all faults after a storm", TAG, async () => {
   test.setTimeout(10 * MINUTE);
   await button("Storm: SL-F-1 + SL-F-3").click();

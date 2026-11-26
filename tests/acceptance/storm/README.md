@@ -34,7 +34,7 @@ A wait that reaches its limit ends the run with the entry `SB-T-02` "step {k} {n
 - `--measured FILE` (P-32): a storm timing result file; `SB-S03 diagnostic values` and `SB-S06 action values` compare with the `measured` values of its first `standard` run instead of `development_values`; the result file records the file's name under `measured`.
 - `VIGIL_JIRA_URL` (default `http://jira.fakes:8000`) is the Jira site; the Jira fake's issues are read from it with `--deliveries fakes`.
 
-The SB-TL times are recorded in the result file (`times`, seconds after T0), not checked; `SB-TL-03` is the last diagnostic result's `collected_at`, and with `--deliveries checklist` `SB-TL-04` is the start of the step `s-wait-ack`, which follows the messages (P-32, for AR-SP-03).
+The SB-TL times are recorded in the result file (`times`, seconds after T0), not checked; `SB-TL-03` is the last diagnostic result's `collected_at`, and with `--deliveries checklist` `SB-TL-04` is the start of the step `s-wait-ack`, which follows the messages (P-32, for AR-SP-03). Two more values are recorded, not checked (P-34, for SB-T-04 and its series, `tests/acceptance/demo-host/series.py`): `times.approved`, the seconds after T0 of the decision's `at` (with `--acts driver` and `--acts pages`; `null` without a decision), placed before `SB-TL-08`; and `investigation.summary_length`, the number of characters of the storm workspace's summary text that `SB-S04 investigation` reads (`null` when there is none).
 
 ## Checks (complete list)
 
