@@ -1,5 +1,5 @@
 == date
-Fri Nov 27 05:13:59 UTC 2026
+Fri Nov 27 10:25:28 UTC 2026
 aws-cli/2.38.1 Python/3.14.6 Darwin/27.2.0 exe/arm64
 caller: arn:aws:iam::653271908574:user/abdul-admin
 exit 0
@@ -9,25 +9,25 @@ gpu host: i-076737f05bf4a7c7a stopped
 bootstrap main 1 docker 29.1.3 compose 2.40.3
 docker 29.1.3
 compose 2.40.3
-release: "p34-1"
-deployed_at: "2026-11-27T05:11:42Z"
+release: "p34-2"
+deployed_at: "2026-11-27T10:22:47Z"
 NAME                   STATE     STATUS
 demo-control           running   Up 2 minutes (healthy)
 demo-faults            running   Up 2 minutes (healthy)
-lab-alertmanager       running   Up 42 hours
-lab-api-01             running   Up 2 minutes (healthy)
-lab-db-01              running   Up 2 minutes (healthy)
-lab-probe-01           running   Up 2 minutes (healthy)
-lab-prometheus         running   Up 42 hours
-lab-rpt-01             running   Up 2 minutes (healthy)
-lab-vas-01             running   Up 2 minutes (healthy)
-lab-zabbix-db          running   Up 42 hours (healthy)
-lab-zabbix-provision   exited    Exited (0) 2 minutes ago
-lab-zabbix-server      running   Up 42 hours
-lab-zabbix-web         running   Up 42 hours (healthy)
+lab-alertmanager       running   Up 47 hours
+lab-api-01             running   Up 3 minutes (healthy)
+lab-db-01              running   Up 3 minutes (healthy)
+lab-probe-01           running   Up 3 minutes (healthy)
+lab-prometheus         running   Up 47 hours
+lab-rpt-01             running   Up 3 minutes (healthy)
+lab-vas-01             running   Up 3 minutes (healthy)
+lab-zabbix-db          running   Up 47 hours (healthy)
+lab-zabbix-provision   exited    Exited (0) 3 minutes ago
+lab-zabbix-server      running   Up 47 hours
+lab-zabbix-web         running   Up 47 hours (healthy)
 vigil-app              running   Up 2 minutes
-vigil-db               running   Up 42 hours (healthy)
-vigil-embed            running   Up 43 hours
+vigil-db               running   Up 47 hours (healthy)
+vigil-embed            running   Up 2 days
 vigil-migrate          exited    Exited (0) 2 minutes ago
 vigil-app: secrets readable
 demo-control: secrets readable
@@ -39,7 +39,7 @@ lab-zabbix-web: secrets readable
 lab-prometheus: secrets readable
 lab-alertmanager: secrets readable
 lab-db-01: secrets readable
-vigil-app health: {"components":{"correlation":{"status":"UP"},"db":{"details":{"database":"PostgreSQL","validationQuery":"isValid()"},"status":"UP"},"diskSpace":{"details":{"total":102888095744,"free":85186019328,"threshold":10485760,"path":"/.","exists":true},"status":"UP"},"livenessState":{"status":"UP"},"ping":{"status":"UP"},"readinessState":{"status":"UP"},"ssl":{"details":{"expiringChains":[],"invalidChains":[],"validChains":[]},"status":"UP"}},"groups":["liveness","readiness"],"status":"UP"}
+vigil-app health: {"components":{"correlation":{"status":"UP"},"db":{"details":{"database":"PostgreSQL","validationQuery":"isValid()"},"status":"UP"},"diskSpace":{"details":{"total":102888095744,"free":85074583552,"threshold":10485760,"path":"/.","exists":true},"status":"UP"},"livenessState":{"status":"UP"},"ping":{"status":"UP"},"readinessState":{"status":"UP"},"ssl":{"details":{"expiringChains":[],"invalidChains":[],"validChains":[]},"status":"UP"}},"groups":["liveness","readiness"],"status":"UP"}
 embeddinggemma 85462619ee721b466c5927d109d4cb765861907d5417b9109caebc4e614679f1 matches models.lock
 exit 0
 == load-balancer
@@ -53,22 +53,22 @@ exit 0
 -- chrony
 Reference ID    : A9FEA97B (169.254.169.123)
 Stratum         : 2
-Ref time (UTC)  : Fri Nov 27 05:14:09 2026
-System time     : 0.000000005 seconds slow of NTP time
-Last offset     : +0.000000445 seconds
-RMS offset      : 0.000001107 seconds
-Frequency       : 1.343 ppm fast
+Ref time (UTC)  : Fri Nov 27 10:25:51 2026
+System time     : 0.000000202 seconds slow of NTP time
+Last offset     : +0.000000028 seconds
+RMS offset      : 0.000000685 seconds
+Frequency       : 1.334 ppm fast
 Residual freq   : +0.000 ppm
-Skew            : 0.013 ppm
-Root delay      : 0.000140493 seconds
-Root dispersion : 0.000041640 seconds
-Update interval : 16.1 seconds
+Skew            : 0.018 ppm
+Root delay      : 0.000150027 seconds
+Root dispersion : 0.000026694 seconds
+Update interval : 16.3 seconds
 Leap status     : Normal
 exit 0
 -- timedatectl
-               Local time: Fri 2026-11-27 05:14:22 UTC
-           Universal time: Fri 2026-11-27 05:14:22 UTC
-                 RTC time: Fri 2026-11-27 05:14:21
+               Local time: Fri 2026-11-27 10:25:52 UTC
+           Universal time: Fri 2026-11-27 10:25:52 UTC
+                 RTC time: Fri 2026-11-27 10:25:52
                 Time zone: Etc/UTC (UTC, +0000)
 System clock synchronized: yes
               NTP service: active
@@ -96,14 +96,14 @@ lab-alertmanager	9093/tcp
 vigil-embed	11434/tcp
 exit 0
 -- lab-to-app
-lab-to-app blocked after 5.00 s: timed out
+lab-to-app blocked after 5.01 s: timed out
 exit 0
 -- lab-public-name
 lab-public-name 200
 exit 0
 -- deployed
-release: "p34-1"
-deployed_at: "2026-11-27T05:11:42Z"
+release: "p34-2"
+deployed_at: "2026-11-27T10:22:47Z"
 images:
   demo-control: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-control@sha256:b27ced39e6d99a1fcf852f42be200fa63235e38aa42b2aaf1d24f31c1b20b073"
   demo-faults: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-faults@sha256:06dfa619bdd32a3c2c5e2fb2fcc4873452c6f2f446de2883845ee3cc3b641b06"
@@ -117,31 +117,31 @@ images:
   lab-zabbix-db: "postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d"
   lab-zabbix-server: "zabbix/zabbix-server-pgsql@sha256:bdfe90847bd259a6da448db1e6ae83f5f439224654ed767296a8d57a088975b9"
   lab-zabbix-web: "zabbix/zabbix-web-nginx-pgsql@sha256:d9ce0774cb6036ce5d49c9c8d46bf1474dad98aae810350de0d5068dd679b92d"
-  vigil-app: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/vigil-app@sha256:ae90eaebfefb47dce2d6e11e239c80bc35a984c4e453e1b509d81fa020b6ca80"
+  vigil-app: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/vigil-app@sha256:49a695de7d2a009de451039fd69f3aaf9c54e0014fe6ec6d6620fc1d4c42b9ce"
   vigil-db: "pgvector/pgvector@sha256:ac08538c6f8b9904c33c8224c5e5706dbe760aca29db1d096972b4052c22a75d"
   vigil-embed: "ollama/ollama@sha256:5d3a2f25f9825628daba94dc0b1d421c7d57d6c03ae5faa9ba050e058bab8241"
 exit 0
 -- env
-VIGIL_RELEASE=p34-1
+VIGIL_RELEASE=p34-2
 COMPOSE_PROFILES=vigil
 exit 0
 -- services
-lab-zabbix-db
-lab-zabbix-server
+demo-control
 lab-db-01
 lab-api-01
 lab-vas-01
 lab-probe-01
 lab-rpt-01
-demo-faults
 lab-prometheus
-vigil-embed
+lab-zabbix-db
+lab-zabbix-web
 vigil-db
 vigil-migrate
-demo-control
-lab-alertmanager
-lab-zabbix-web
 vigil-app
+demo-faults
+lab-zabbix-server
+vigil-embed
+lab-alertmanager
 lab-zabbix-provision
 exit 0
 exit 0
@@ -149,7 +149,7 @@ exit 0
 -- http-redirect
 HTTP/1.1 301 Moved Permanently
 Server: awselb/2.0
-Date: Fri, 27 Nov 2026 05:14:30 GMT
+Date: Fri, 27 Nov 2026 10:26:01 GMT
 Content-Type: text/html
 Content-Length: 134
 Connection: keep-alive
@@ -159,29 +159,29 @@ status 301
 -- https-demo
 status 200
 -- assets-gzip
-asset /assets/index-BKe-iJAI.js
+asset /assets/index-CJxaupX1.js
 with gzip:
 HTTP/2 200 
-date: Fri, 27 Nov 2026 05:14:32 GMT
+date: Fri, 27 Nov 2026 10:26:08 GMT
 content-type: text/javascript
 cache-control: max-age=31536000, immutable
-last-modified: Fri, 27 Nov 2026 05:07:49 GMT
+last-modified: Fri, 27 Nov 2026 10:17:21 GMT
 accept-ranges: bytes
 vary: accept-encoding
 content-encoding: gzip
 
-size 101516
+size 101600
 without:
 HTTP/2 200 
-date: Fri, 27 Nov 2026 05:14:34 GMT
+date: Fri, 27 Nov 2026 10:26:12 GMT
 content-type: text/javascript
-content-length: 324023
+content-length: 324345
 cache-control: max-age=31536000, immutable
-last-modified: Fri, 27 Nov 2026 05:07:49 GMT
+last-modified: Fri, 27 Nov 2026 10:17:21 GMT
 accept-ranges: bytes
 vary: accept-encoding
 
-size 324023
+size 324345
 -- actuator-404
 status 404
 -- https-control
