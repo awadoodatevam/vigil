@@ -759,3 +759,6 @@ PASS step_times_5
 PASS rb_db_01_4_of_5
 suite storm passed in 5 of 5 runs
 result tests/acceptance/results/P-34-SB-T-02.json
+2026-11-27T12:10Z deploy/gpu.sh start: AWS has no g6.xlarge capacity (AR-ASM-06)
+2026-11-27T12:12Z deploy/gpu.sh start: AWS has no g6.xlarge capacity (AR-ASM-06)
+2026-11-27T12:13Z note: the first series.py output above (FAIL checklists_5) was taken before the mailbox lines were checked; the second (every criterion PASS) after all five checklists were fully ticked. The second is the result of series P-34-series-20261127T104108Z.
