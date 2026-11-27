@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,6 +16,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.web.servlet.client.RestTestClient;
+import tools.jackson.databind.json.JsonMapper;
+import vigil.api.ApiFixture;
 import vigil.identity.api.Permission;
 import vigil.testsupport.ApiClient;
 import vigil.testsupport.TestTenants;
@@ -23,6 +26,7 @@ import vigil.testsupport.VigilTestApp;
 
 class WebAppServingIT {
 
+  private static final JsonMapper JSON = JsonMapper.builder().build();
   private static VigilTestApp app;
   private static RestTestClient client;
   private static String indexHtml;
@@ -155,16 +159,38 @@ class WebAppServingIT {
   }
 
   @Test
-  @DisplayName("AR-W-01 no other answer is compressed")
-  void noOtherAnswerIsCompressed() {
-    ApiClient.Response branding =
-        api.get("/api/v1/public/branding")
-            .host("serving.test")
-            .header("Accept-Encoding", "gzip")
-            .send();
-    assertThat(branding.status()).isEqualTo(200);
-    assertThat(branding.header("Content-Type").orElseThrow()).startsWith("application/json");
-    assertThat(branding.header("Content-Encoding")).isEmpty();
+  @DisplayName("AR-W-01 JSON answers of 2 KB or more are compressed, smaller ones are not")
+  void jsonAnswersOf2KbOrMoreAreCompressed() throws IOException {
+    // P-34 fix round 1: the storm incident's alerts section (126 alerts) is the large answer.
+    try (ApiFixture fixture = new ApiFixture()) {
+      UUID storm = fixture.storm().storm();
+      String path = "/api/v1/incidents/" + storm + "/alerts";
+      ApiClient.Response plain = fixture.as("presenter", fixture.client.get(path)).send();
+      assertThat(plain.status()).as(plain.text()).isEqualTo(200);
+      assertThat(plain.header("Content-Encoding")).isEmpty();
+      assertThat(plain.body().length).isGreaterThanOrEqualTo(2048);
+      ApiClient.Response zipped =
+          fixture
+              .as("presenter", fixture.client.get(path).header("Accept-Encoding", "gzip"))
+              .send();
+      assertThat(zipped.status()).isEqualTo(200);
+      assertThat(zipped.header("Content-Type").orElseThrow()).startsWith("application/json");
+      assertThat(zipped.header("Content-Encoding")).contains("gzip");
+      assertThat(zipped.body().length).isLessThan(plain.body().length);
+      assertThat(JSON.readTree(gunzip(zipped.body()))).isEqualTo(plain.json());
+
+      ApiClient.Response branding =
+          fixture
+              .client
+              .get("/api/v1/public/branding")
+              .host(ApiFixture.HOST)
+              .header("Accept-Encoding", "gzip")
+              .send();
+      assertThat(branding.status()).isEqualTo(200);
+      assertThat(branding.header("Content-Type").orElseThrow()).startsWith("application/json");
+      assertThat(branding.body().length).isLessThan(2048);
+      assertThat(branding.header("Content-Encoding")).isEmpty();
+    }
   }
 
   @Test
