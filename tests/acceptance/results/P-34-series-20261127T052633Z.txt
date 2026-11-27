@@ -1,0 +1,7 @@
+# P-34 SB-T-02 series 20261127T052633Z: installation demo, 5 runs, measured storm-timing-20261125T111259Z.json
+# Each run: tests/acceptance/demo-host/storm.sh demo --mode script --with-playwright; copies in /Users/awadood/.vigil-demo/demo/series/20261127T052633Z
+run 1 exit 0 result storm-script-20261127T052640Z.json checklist storm-checklist-20261127T053647Z.md
+run 2 exit 1 result storm-script-20261127T053722Z.json checklist storm-checklist-20261127T054740Z.md
+run 3 exit 1 result storm-script-20261127T054746Z.json checklist storm-checklist-20261127T055758Z.md
+run 4 exit 1 result storm-script-20261127T055804Z.json checklist storm-checklist-20261127T060823Z.md
+run 5 exit 1 result storm-script-20261127T060830Z.json checklist storm-checklist-20261127T061851Z.md

@@ -1,0 +1,652 @@
+
+Running 48 tests using 4 workers
+
+  ✓   3 [chromium] › tests/login.spec.ts:5:1 › DC-S01-01 the login page is shown without a session @smoke (3.3s)
+  ✓   1 [chromium] › tests/incidents.spec.ts:7:1 › DC-S02-01 the incident list shows its heading, the header and the strip @smoke (3.9s)
+  ✓   2 [chromium] › tests/look.spec.ts:59:1 › DC-U-01 no element other than the banner uses its colour (4.9s)
+  ✓   4 [chromium] › tests/dashboard.spec.ts:37:1 › SB-V-38 the starting state of the dashboard (5.4s)
+  ✓   5 [chromium] › tests/login.spec.ts:20:1 › DC-S01-02 the login page shows the banner, Techfinity, Jazz and the form, in one column at 375 px @smoke (3.3s)
+  ✓   6 [chromium] › tests/incidents.spec.ts:25:1 › PM-M24-01 the login and incident list screens exist (4.0s)
+  ✓   7 [chromium] › tests/look.spec.ts:70:1 › VD-C-01 the banner is sticky, at least 30 px high, yellow with dark text (3.5s)
+  ✓   8 [chromium] › tests/dashboard.spec.ts:83:1 › DC-U-04 the Dashboard item opens the dashboard and is marked (3.3s)
+  ✓   9 [chromium] › tests/login.spec.ts:63:1 › SL-A3-06 the customer name and environment label are the configured ones @smoke (2.8s)
+  ✓  10 [chromium] › tests/incidents.spec.ts:35:1 › DC-S02-02 the strip of a tenant without alerts (3.9s)
+VD-R-09 font files requested: https://demo.vigil.solviclabs.com/assets/inter-latin-wght-normal-Dx4kXJAl.woff2, https://demo.vigil.solviclabs.com/assets/jetbrains-mono-latin-wght-normal-B9CIFXIH.woff2
+  ✓  11 [chromium] › tests/look.spec.ts:91:1 › VD-R-09 the fonts are bundled and nothing loads from another host (3.6s)
+  ✓  12 [chromium] › tests/dashboard.spec.ts:106:1 › DC-U-15 the dashboard's tab title (4.1s)
+  ✓  13 [chromium] › tests/login.spec.ts:73:1 › SL-DR-03 the environment label is on the login page and the incident list (3.6s)
+  ✓  14 [chromium] › tests/incidents.spec.ts:59:1 › SL-A4-02 the incident list opens after sign-in (3.4s)
+  ✓  15 [chromium] › tests/look.spec.ts:122:1 › VD-R-10 no horizontal scrolling at 1280 × 720 (4.7s)
+  ✓  17 [chromium] › tests/login.spec.ts:83:1 › PM-M24-02 the banner and the customer are on every screen of P-28 (6.1s)
+  ✓  19 [chromium] › tests/look.spec.ts:129:1 › VD-L-04 the login at 360 px in one column (2.6s)
+  ✓  18 [chromium] › tests/mobile.spec.ts:11:1 › DC-U-13 an Acknowledge link opens the login and then the page (4.2s)
+  ✓  21 [chromium] › tests/look.spec.ts:138:1 › VD-R-12 the focus ring on Tab (2.8s)
+  ✓  20 [chromium] › tests/login.spec.ts:113:1 › DC-U-02 Techfinity is shown on the login page and in the header (3.4s)
+  ✓  16 [chromium] › tests/dashboard.spec.ts:111:1 › DC-S10-04 the values are read on opening and on Refresh only (10.5s)
+  ✓  22 [chromium] › tests/mobile.spec.ts:40:1 › SL-B-13 an Approval link without a session shows only the login (4.1s)
+  ✓  23 [chromium] › tests/look.spec.ts:153:1 › VD-R-11 no animation under reduced motion (3.6s)
+  ✓  27 [chromium] › tests/look.spec.ts:164:1 › VD-S-01 the login card is centred on the navy page (2.6s)
+  ✓  24 [chromium] › tests/login.spec.ts:124:1 › DC-U-15 the tab titles (5.8s)
+  ✓  26 [chromium] › tests/mobile.spec.ts:68:1 › AR-W-07 the mobile pages load no canvas code (5.1s)
+  ✓  25 [chromium] › tests/dashboard.spec.ts:155:1 › DC-U-09 a failed read shows the page error and Try again reads again (6.3s)
+  ✓  29 [chromium] › tests/login.spec.ts:142:1 › DC-U-01 the banner stays at the top while the page scrolls (3.9s)
+  ✓  30 [chromium] › tests/mobile.spec.ts:103:1 › DC-S04-02 the bar at 360 px (3.9s)
+  ✓  28 [chromium] › tests/look.spec.ts:179:1 › VD-S-01 the login screens (4.4s)
+  ✓  31 [chromium] › tests/dashboard.spec.ts:189:1 › DC-S10-01 a user without view is sent to the no-access page (4.1s)
+  ✓  32 [chromium] › tests/login.spec.ts:159:1 › SL-A4-01 presenter signs in (3.4s)
+  ✓  34 [chromium] › tests/look.spec.ts:198:1 › VD-S-02 the no-access page (3.1s)
+  ✓  33 [chromium] › tests/mobile.spec.ts:131:1 › VD-R-10 a mobile page at 360 px has no horizontal scrolling (3.9s)
+  ✓  35 [chromium] › tests/dashboard.spec.ts:199:1 › VD-R-10 the dashboard at 1280 × 720 has no horizontal scrolling (3.9s)
+  ✓  36 [chromium] › tests/login.spec.ts:166:1 › DC-S01-03 a wrong password is refused and the password field is emptied (3.0s)
+  ✓  37 [chromium] › tests/look.spec.ts:218:1 › VD-S-04 the empty incident list (3.6s)
+  ✓  38 [chromium] › tests/mobile.spec.ts:146:1 › VD-R-12 Tab reaches Sign out with the focus ring (3.8s)
+  ✓  40 [chromium] › tests/login.spec.ts:179:1 › DC-S01-03 presenter signs in and sees the incident list (3.2s)
+  ✓  39 [chromium] › tests/dashboard.spec.ts:208:1 › VD-S-08 the heading row and the four tiles on one row (4.5s)
+  ✓  41 [chromium] › tests/workspace.spec.ts:5:1 › DC-S03-01 an unknown incident shows Could not load this page. Not found. (4.5s)
+  ✓  43 [chromium] › tests/dashboard.spec.ts:246:1 › VD-R-12 Tab reaches Refresh with the focus ring (4.8s)
+  ✓  42 [chromium] › tests/login.spec.ts:188:1 › DC-U-13 /login with a valid session opens next; a reload of /login shows no message (5.6s)
+  ✓  44 [chromium] › tests/login.spec.ts:204:1 › DC-U-13 a page opened without a session opens after sign-in (4.8s)
+  ✓  45 [chromium] › tests/login.spec.ts:223:1 › DC-S01-05 noc-l1 sees the no-access page (6.0s)
+  ✓  46 [chromium] › tests/login.spec.ts:248:1 › DC-U-05 a user without view never sees the incident list (6.7s)
+  ✓  47 [chromium] › tests/login.spec.ts:264:1 › DC-S01-04 sign out shows You are signed out. (6.2s)
+  ✓  48 [chromium] › tests/login.spec.ts:292:1 › AR-W-01 / opens the incident list (5.3s)
+
+  48 passed (1.3m)
+
+Running 8 tests using 1 worker
+
+  ✓  1 [chromium] › tests/control.spec.ts:146:1 › DC-S12-01 the login and its refusal @control (3.2s)
+  ✓  2 [chromium] › tests/control.spec.ts:168:1 › DC-S12-02 the buttons, descriptions and link @control (175ms)
+  ✓  3 [chromium] › tests/control.spec.ts:236:1 › VD-S-09 the control panel in Vigil's look @control (3.2s)
+  ✓  4 [chromium] › tests/control.spec.ts:316:1 › VD-C-29 the Reset question in the confirmation dialog's look @control (155ms)
+  ✓  5 [chromium] › tests/control.spec.ts:350:1 › VD-R-12 Tab reaches Sign in and the buttons with the focus ring @control (2.9s)
+clear: {"operation":"Clear all faults","outcome":"completed","finished_at":"2026-11-27T05:21:29.413Z","seconds":42.117,"branch_a_seconds":null,"quiet_seconds":30.031,"branch_b_seconds":null,"error":null}
+  ✓  6 [chromium] › tests/control.spec.ts:393:1 › SB-T-05 Clear all faults after a storm @control (2.8m)
+reset: {"operation":"Reset","outcome":"completed","finished_at":"2026-11-27T05:24:17.372Z","seconds":42.272,"branch_a_seconds":42.246,"quiet_seconds":30.028,"branch_b_seconds":6.157,"error":null}
+reset: {"operation":"Reset","outcome":"completed","finished_at":"2026-11-27T05:24:31.628Z","seconds":12.137,"branch_a_seconds":12.127,"quiet_seconds":0.027,"branch_b_seconds":4.03,"error":null}
+reset: {"operation":"Reset","outcome":"completed","finished_at":"2026-11-27T05:24:44.895Z","seconds":12.137,"branch_a_seconds":12.126,"quiet_seconds":0.026,"branch_b_seconds":4.029,"error":null}
+reset: {"operation":"Reset","outcome":"completed","finished_at":"2026-11-27T05:24:58.698Z","seconds":12.177,"branch_a_seconds":12.167,"quiet_seconds":0.033,"branch_b_seconds":4.031,"error":null}
+reset: {"operation":"Reset","outcome":"completed","finished_at":"2026-11-27T05:25:12.925Z","seconds":12.155,"branch_a_seconds":12.142,"quiet_seconds":0.038,"branch_b_seconds":4.032,"error":null}
+  ✓  7 [chromium] › tests/control.spec.ts:449:1 › SB-T-05 five resets in a row, the first after SL-F-1 with SL-F-2 @control (3.7m)
+  ✓  8 [chromium] › tests/control.spec.ts:515:1 › AR-B-02 a reset gives Vigil a new tenant @control (1.3s)
+
+  Slow test file: [chromium] › tests/control.spec.ts (6.7m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  8 passed (6.7m)
+== run 1 of 5
+
+Running 33 tests using 1 worker
+
+step 1 Reset: through the control panel, {"branch_a_seconds": 12.127, "quiet_seconds": 0.024, "branch_b_seconds": 4.042, "total_seconds": 12.145}
+  ✓   1 [chromium] › tests/storm.spec.ts:158:1 › DC-S01-04 the reset ends the session and sign-in returns to the list @storm (19.8s)
+  ✓   2 [chromium] › tests/storm.spec.ts:187:1 › DC-S02-05 the new tenant's list is empty @storm (116ms)
+step 2 Starting state: three users logged in, sources healthy
+step 3 Script start: the storm is injected at once (T0 is the script's 01:00)
+step 4 Storm: the storm button pressed, SL-F-1 and SL-F-3 active (T0 2026-11-27T05:27:00.288Z)
+  ✓   3 [chromium] › tests/storm.spec.ts:202:1 › DC-S02-03 the storm builds and no forming incident is a row @storm (1.3m)
+step 5 Incidents: storm INC-0002, report INC-0001
+  ✓   4 [chromium] › tests/storm.spec.ts:249:1 › SL-A1-08 the storm workspace opens and records the run @storm (3.2s)
+step 6 Acknowledge: https://demo.vigil.solviclabs.com/m/acknowledge/01a21b78-aa80-7107-ac93-617ed7c4bc74 at 2026-11-27T05:33:31.708Z
+  ✓   5 [chromium] › tests/storm.spec.ts:409:1 › SL-A1-05 noc-l1 acknowledges on the page @storm (5.3m)
+step 7 Approve: https://demo.vigil.solviclabs.com/m/approve/01a21b7e-9baa-7525-ad6a-ff0f8a1d3701 approved at 2026-11-27T05:35:01.737Z
+  ✓   6 [chromium] › tests/storm.spec.ts:488:1 › SL-A1-06 dbops-engineer approves with confirmation @storm (1.5m)
+  ✓   7 [chromium] › tests/storm.spec.ts:644:1 › SL-A1-02 the storm and report rows @storm (1.5m)
+  ✓   8 [chromium] › tests/storm.spec.ts:680:1 › DC-U-08 the list changed without a reload @storm (7ms)
+  ✓   9 [chromium] › tests/storm.spec.ts:692:1 › VD-L-03 the incident table fits 1280 px @storm (18ms)
+  ✓  10 [chromium] › tests/storm.spec.ts:707:1 › VD-C-07 the badge and chip colours @storm (78ms)
+step 8 Recovery: resolved at 2026-11-27T05:36:32.044Z, ticket NOC-17 Done
+highlight delays (ms): [{"stepId":"s-summarise","delay":406},{"stepId":"s-ticket","delay":434},{"stepId":"s-notify","delay":454},{"stepId":"s-wait-ack","delay":471},{"stepId":"s-similar","delay":900},{"stepId":"s-approve","delay":705},{"stepId":"s-action","delay":462},{"stepId":"s-recover","delay":420},{"stepId":"s-resolve","delay":973}]
+  ✓  11 [chromium] › tests/storm.spec.ts:730:1 › SL-A1-08 the highlight followed every step change within 2 s @storm (3.6s)
+follow distances: [{"stepId":"s-investigate","distance":0,"zoom":0.8},{"stepId":"s-summarise","distance":0,"zoom":0.8},{"stepId":"s-ticket","distance":0,"zoom":0.8},{"stepId":"s-notify","distance":0,"zoom":0.8},{"stepId":"s-wait-ack","distance":0.1562347412109375,"zoom":0.8},{"stepId":"s-approve","distance":0,"zoom":0.8},{"stepId":"s-recover","distance":0.15625,"zoom":0.8},{"stepId":"s-resolve","distance":0,"zoom":0.8}]
+  ✓  12 [chromium] › tests/storm.spec.ts:755:1 › DC-S03-06 follow mode keeps the current step in view @storm (99ms)
+  ✓  13 [chromium] › tests/storm.spec.ts:769:1 › DC-S03-07 countdowns and the observation window were counted @storm (825ms)
+  ✓  14 [chromium] › tests/storm.spec.ts:789:1 › SL-A1-02 the storm workspace header, hypothesis, impact and alerts @storm (367ms)
+  ✓  15 [chromium] › tests/storm.spec.ts:861:1 › SL-A1-03 the evidence lines @storm (88ms)
+  ✓  16 [chromium] › tests/storm.spec.ts:913:1 › SL-A1-04 the AI investigation section @storm (15ms)
+  ✓  17 [chromium] › tests/storm.spec.ts:938:1 › SL-A1-06 the Response section @storm (23ms)
+  ✓  18 [chromium] › tests/storm.spec.ts:991:1 › SL-A1-07 the Recovery section @storm (19ms)
+  ✓  19 [chromium] › tests/storm.spec.ts:1011:1 › SB-S08 the finished run on the canvas and in the run steps @storm (1.4s)
+  ✓  20 [chromium] › tests/storm.spec.ts:1102:1 › VD-C-18 the band and the expanded canvas @storm (565ms)
+  ✓  21 [chromium] › tests/storm.spec.ts:1151:1 › DC-S03-13 the timeline and notified teams @storm (25ms)
+  ✓  22 [chromium] › tests/storm.spec.ts:1200:1 › DC-U-08 the workspace changed without a reload @storm (12ms)
+  ✓  23 [chromium] › tests/storm.spec.ts:1212:1 › DC-U-15 the workspace tab title @storm (14ms)
+  ✓  24 [chromium] › tests/storm.spec.ts:1218:1 › VD-S-05 the workspace fits 1280 px with its two columns @storm (13ms)
+  ✓  25 [chromium] › tests/storm.spec.ts:1239:1 › VD-C-22 the section cards and their headings @storm (15ms)
+  ✓  26 [chromium] › tests/storm.spec.ts:1262:1 › VD-C-23 the outcome words in their colours @storm (28ms)
+PASS SB-SET-07 incident list empty
+PASS SB-SET-07 sources healthy
+PASS SB-V-38 seeded dashboard
+PASS SB-V-39 baselines
+PASS SB-R-06 two incidents
+PASS SB-S01 storm alerts
+PASS SB-S01 storm alert types
+PASS SB-S01 report alert
+PASS SB-S01 storm within 120 s
+PASS SB-S02 storm header
+PASS SB-S02 grouping reasons
+PASS SB-S02 report incident
+PASS SB-S03 diagnostics
+PASS SB-S03 diagnostic values
+PASS SB-S04 routing
+PASS SB-S04 investigation
+PASS SB-S05 acknowledge page
+PASS SB-S05 timeline acknowledgement
+PASS SB-S06 similar incident
+PASS SB-S06 proposal
+PASS SB-S06 approval page
+PASS SB-S06 decision
+PASS SB-S06 action executed once
+PASS SB-S06 action result
+PASS SB-S06 action values
+PASS SB-S07 recovery
+PASS SB-S07 resolved
+PASS SB-S07 ticket resolved
+PASS SB-S08 storm run
+PASS SB-S09 dashboard formulas
+PASS SB-S09 dashboard values
+PASS SB-TL-05 no escalation
+PASS SB-R-06 repeatability result
+checklist storm-checklist-20261127T053647Z.md
+result file storm-script-20261127T052640Z.json
+  ✓  27 [chromium] › tests/storm.spec.ts:1285:1 › DC-S04-05 the refusals of the Acknowledge page @storm (11.0s)
+  ✓  28 [chromium] › tests/storm.spec.ts:1329:1 › DC-S05-06 a decided request @storm (6.5s)
+  ✓  29 [chromium] › tests/storm.spec.ts:1354:1 › PM-M24-03 the Acknowledge page is usable at 360 px @storm (3.7s)
+  ✓  30 [chromium] › tests/storm.spec.ts:1373:1 › VD-S-07 the Approval page at 360 px @storm (6.0s)
+  ✓  31 [chromium] › tests/storm.spec.ts:1406:1 › DC-S03-01 the report incident's workspace @storm (5.2s)
+  ✓  32 [chromium] › tests/storm.spec.ts:1462:1 › DC-S02-04 a click on a row opens the incident's address @storm (312ms)
+  ✓  33 [chromium] › tests/storm.spec.ts:1474:1 › SB-S09 the dashboard after the run @storm (3.0s)
+
+  Slow test file: [chromium] › tests/storm.spec.ts (10.7m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  33 passed (10.7m)
+run 1 exit 0 result storm-script-20261127T052640Z.json checklist storm-checklist-20261127T053647Z.md
+== run 2 of 5
+
+Running 33 tests using 1 worker
+
+step 1 Reset: through the control panel, {"branch_a_seconds": 20.114, "quiet_seconds": 8.026, "branch_b_seconds": 4.031, "total_seconds": 20.128}
+  ✓   1 [chromium] › tests/storm.spec.ts:158:1 › DC-S01-04 the reset ends the session and sign-in returns to the list @storm (27.3s)
+  ✓   2 [chromium] › tests/storm.spec.ts:187:1 › DC-S02-05 the new tenant's list is empty @storm (115ms)
+step 2 Starting state: three users logged in, sources healthy
+step 3 Script start: the storm is injected at once (T0 is the script's 01:00)
+step 4 Storm: the storm button pressed, SL-F-1 and SL-F-3 active (T0 2026-11-27T05:37:50.131Z)
+step 5 Incidents: storm INC-0002, report INC-0001
+  ✓   3 [chromium] › tests/storm.spec.ts:202:1 › DC-S02-03 the storm builds and no forming incident is a row @storm (1.3m)
+  ✓   4 [chromium] › tests/storm.spec.ts:249:1 › SL-A1-08 the storm workspace opens and records the run @storm (5.0s)
+step 6 Acknowledge: https://demo.vigil.solviclabs.com/m/acknowledge/01a21b82-91a5-740f-bb92-86fab55c090d at 2026-11-27T05:44:21.533Z
+  ✓   5 [chromium] › tests/storm.spec.ts:409:1 › SL-A1-05 noc-l1 acknowledges on the page @storm (5.2m)
+step 7 Approve: https://demo.vigil.solviclabs.com/m/approve/01a21b88-860e-7159-92cc-60e9c6b9b9d7 approved at 2026-11-27T05:45:52.567Z
+  ✓   6 [chromium] › tests/storm.spec.ts:488:1 › SL-A1-06 dbops-engineer approves with confirmation @storm (1.5m)
+  ✓   7 [chromium] › tests/storm.spec.ts:644:1 › SL-A1-02 the storm and report rows @storm (1.5m)
+  ✓   8 [chromium] › tests/storm.spec.ts:680:1 › DC-U-08 the list changed without a reload @storm (7ms)
+  ✓   9 [chromium] › tests/storm.spec.ts:692:1 › VD-L-03 the incident table fits 1280 px @storm (11ms)
+  ✓  10 [chromium] › tests/storm.spec.ts:707:1 › VD-C-07 the badge and chip colours @storm (85ms)
+step 8 Recovery: resolved at 2026-11-27T05:47:23.493Z, ticket NOC-19 Done
+highlight delays (ms): [{"stepId":"s-ticket","delay":4891},{"stepId":"s-notify","delay":4141},{"stepId":"s-wait-ack","delay":2067},{"stepId":"s-similar","delay":653},{"stepId":"s-approve","delay":442},{"stepId":"s-action","delay":416},{"stepId":"s-recover","delay":1298},{"stepId":"s-resolve","delay":414}]
+  ✘  11 [chromium] › tests/storm.spec.ts:730:1 › SL-A1-08 the highlight followed every step change within 2 s @storm (3.1s)
+  -  12 [chromium] › tests/storm.spec.ts:755:1 › DC-S03-06 follow mode keeps the current step in view @storm
+  -  13 [chromium] › tests/storm.spec.ts:769:1 › DC-S03-07 countdowns and the observation window were counted @storm
+  -  14 [chromium] › tests/storm.spec.ts:789:1 › SL-A1-02 the storm workspace header, hypothesis, impact and alerts @storm
+  -  15 [chromium] › tests/storm.spec.ts:861:1 › SL-A1-03 the evidence lines @storm
+  -  16 [chromium] › tests/storm.spec.ts:913:1 › SL-A1-04 the AI investigation section @storm
+  -  17 [chromium] › tests/storm.spec.ts:938:1 › SL-A1-06 the Response section @storm
+  -  18 [chromium] › tests/storm.spec.ts:991:1 › SL-A1-07 the Recovery section @storm
+  -  19 [chromium] › tests/storm.spec.ts:1011:1 › SB-S08 the finished run on the canvas and in the run steps @storm
+  -  20 [chromium] › tests/storm.spec.ts:1102:1 › VD-C-18 the band and the expanded canvas @storm
+  -  21 [chromium] › tests/storm.spec.ts:1151:1 › DC-S03-13 the timeline and notified teams @storm
+  -  22 [chromium] › tests/storm.spec.ts:1200:1 › DC-U-08 the workspace changed without a reload @storm
+  -  23 [chromium] › tests/storm.spec.ts:1212:1 › DC-U-15 the workspace tab title @storm
+  -  24 [chromium] › tests/storm.spec.ts:1218:1 › VD-S-05 the workspace fits 1280 px with its two columns @storm
+  -  25 [chromium] › tests/storm.spec.ts:1239:1 › VD-C-22 the section cards and their headings @storm
+  -  26 [chromium] › tests/storm.spec.ts:1262:1 › VD-C-23 the outcome words in their colours @storm
+  -  27 [chromium] › tests/storm.spec.ts:1285:1 › DC-S04-05 the refusals of the Acknowledge page @storm
+  -  28 [chromium] › tests/storm.spec.ts:1329:1 › DC-S05-06 a decided request @storm
+  -  29 [chromium] › tests/storm.spec.ts:1354:1 › PM-M24-03 the Acknowledge page is usable at 360 px @storm
+  -  30 [chromium] › tests/storm.spec.ts:1373:1 › VD-S-07 the Approval page at 360 px @storm
+  -  31 [chromium] › tests/storm.spec.ts:1406:1 › DC-S03-01 the report incident's workspace @storm
+  -  32 [chromium] › tests/storm.spec.ts:1462:1 › DC-S02-04 a click on a row opens the incident's address @storm
+  -  33 [chromium] › tests/storm.spec.ts:1474:1 › SB-S09 the dashboard after the run @storm
+
+
+  1) [chromium] › tests/storm.spec.ts:730:1 › SL-A1-08 the highlight followed every step change within 2 s @storm 
+
+    Error: s-ticket
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 2000
+    Received:    4891
+
+      748 |     for (const { stepId, delay } of delays) {
+      749 |       expect(delay, stepId).not.toBeNull();
+    > 750 |       expect(delay!, stepId).toBeLessThanOrEqual(2000);
+          |                              ^
+      751 |     }
+      752 |   },
+      753 | );
+        at /e2e/tests/storm.spec.ts:750:30
+
+    Error Context: run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/error-context.md
+
+    Error Context: run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › tests/storm.spec.ts:730:1 › SL-A1-08 the highlight followed every step change within 2 s @storm 
+  22 did not run
+  10 passed (10.2m)
+PASS SB-SET-07 incident list empty
+PASS SB-SET-07 sources healthy
+PASS SB-V-38 seeded dashboard
+PASS SB-V-39 baselines
+PASS SB-R-06 two incidents
+PASS SB-S01 storm alerts
+PASS SB-S01 storm alert types
+PASS SB-S01 report alert
+PASS SB-S01 storm within 120 s
+PASS SB-S02 storm header
+PASS SB-S02 grouping reasons
+PASS SB-S02 report incident
+PASS SB-S03 diagnostics
+PASS SB-S03 diagnostic values
+PASS SB-S04 routing
+PASS SB-S04 investigation
+PASS SB-S05 acknowledge page
+PASS SB-S05 timeline acknowledgement
+PASS SB-S06 similar incident
+PASS SB-S06 proposal
+PASS SB-S06 approval page
+PASS SB-S06 decision
+PASS SB-S06 action executed once
+PASS SB-S06 action result
+PASS SB-S06 action values
+PASS SB-S07 recovery
+PASS SB-S07 resolved
+PASS SB-S07 ticket resolved
+PASS SB-S08 storm run
+PASS SB-S09 dashboard formulas
+PASS SB-S09 dashboard values
+PASS SB-TL-05 no escalation
+PASS SB-R-06 repeatability result
+checklist storm-checklist-20261127T054740Z.md
+result file storm-script-20261127T053722Z.json
+The suite storm failed.
+run 2 exit 1 result storm-script-20261127T053722Z.json checklist storm-checklist-20261127T054740Z.md
+== run 3 of 5
+
+Running 33 tests using 1 worker
+
+step 1 Reset: through the control panel, {"branch_a_seconds": 16.121, "quiet_seconds": 4.023, "branch_b_seconds": 4.027, "total_seconds": 16.132}
+  ✓   1 [chromium] › tests/storm.spec.ts:158:1 › DC-S01-04 the reset ends the session and sign-in returns to the list @storm (24.0s)
+  ✓   2 [chromium] › tests/storm.spec.ts:187:1 › DC-S02-05 the new tenant's list is empty @storm (379ms)
+step 2 Starting state: three users logged in, sources healthy
+step 3 Script start: the storm is injected at once (T0 is the script's 01:00)
+step 4 Storm: the storm button pressed, SL-F-1 and SL-F-3 active (T0 2026-11-27T05:48:10.791Z)
+step 5 Incidents: storm INC-0002, report INC-0001
+  ✓   3 [chromium] › tests/storm.spec.ts:202:1 › DC-S02-03 the storm builds and no forming incident is a row @storm (1.3m)
+  ✓   4 [chromium] › tests/storm.spec.ts:249:1 › SL-A1-08 the storm workspace opens and records the run @storm (4.9s)
+step 6 Acknowledge: https://demo.vigil.solviclabs.com/m/acknowledge/01a21b8c-0f5b-7240-909f-8bbb8e3edf62 at 2026-11-27T05:54:42.195Z
+  ✓   5 [chromium] › tests/storm.spec.ts:409:1 › SL-A1-05 noc-l1 acknowledges on the page @storm (5.2m)
+step 7 Approve: https://demo.vigil.solviclabs.com/m/approve/01a21b91-fe72-70a2-a1fb-8b1b705cefa9 approved at 2026-11-27T05:56:12.236Z
+  ✓   6 [chromium] › tests/storm.spec.ts:488:1 › SL-A1-06 dbops-engineer approves with confirmation @storm (1.5m)
+  ✓   7 [chromium] › tests/storm.spec.ts:644:1 › SL-A1-02 the storm and report rows @storm (1.5m)
+  ✓   8 [chromium] › tests/storm.spec.ts:680:1 › DC-U-08 the list changed without a reload @storm (6ms)
+  ✓   9 [chromium] › tests/storm.spec.ts:692:1 › VD-L-03 the incident table fits 1280 px @storm (14ms)
+  ✓  10 [chromium] › tests/storm.spec.ts:707:1 › VD-C-07 the badge and chip colours @storm (74ms)
+step 8 Recovery: resolved at 2026-11-27T05:57:42.011Z, ticket NOC-21 Done
+highlight delays (ms): [{"stepId":"s-ticket","delay":1720},{"stepId":"s-notify","delay":6642},{"stepId":"s-wait-ack","delay":4967},{"stepId":"s-similar","delay":7269},{"stepId":"s-approve","delay":7076},{"stepId":"s-action","delay":4312},{"stepId":"s-recover","delay":3795},{"stepId":"s-resolve","delay":449}]
+  ✘  11 [chromium] › tests/storm.spec.ts:730:1 › SL-A1-08 the highlight followed every step change within 2 s @storm (3.1s)
+  -  12 [chromium] › tests/storm.spec.ts:755:1 › DC-S03-06 follow mode keeps the current step in view @storm
+  -  13 [chromium] › tests/storm.spec.ts:769:1 › DC-S03-07 countdowns and the observation window were counted @storm
+  -  14 [chromium] › tests/storm.spec.ts:789:1 › SL-A1-02 the storm workspace header, hypothesis, impact and alerts @storm
+  -  15 [chromium] › tests/storm.spec.ts:861:1 › SL-A1-03 the evidence lines @storm
+  -  16 [chromium] › tests/storm.spec.ts:913:1 › SL-A1-04 the AI investigation section @storm
+  -  17 [chromium] › tests/storm.spec.ts:938:1 › SL-A1-06 the Response section @storm
+  -  18 [chromium] › tests/storm.spec.ts:991:1 › SL-A1-07 the Recovery section @storm
+  -  19 [chromium] › tests/storm.spec.ts:1011:1 › SB-S08 the finished run on the canvas and in the run steps @storm
+  -  20 [chromium] › tests/storm.spec.ts:1102:1 › VD-C-18 the band and the expanded canvas @storm
+  -  21 [chromium] › tests/storm.spec.ts:1151:1 › DC-S03-13 the timeline and notified teams @storm
+  -  22 [chromium] › tests/storm.spec.ts:1200:1 › DC-U-08 the workspace changed without a reload @storm
+  -  23 [chromium] › tests/storm.spec.ts:1212:1 › DC-U-15 the workspace tab title @storm
+  -  24 [chromium] › tests/storm.spec.ts:1218:1 › VD-S-05 the workspace fits 1280 px with its two columns @storm
+  -  25 [chromium] › tests/storm.spec.ts:1239:1 › VD-C-22 the section cards and their headings @storm
+  -  26 [chromium] › tests/storm.spec.ts:1262:1 › VD-C-23 the outcome words in their colours @storm
+  -  27 [chromium] › tests/storm.spec.ts:1285:1 › DC-S04-05 the refusals of the Acknowledge page @storm
+  -  28 [chromium] › tests/storm.spec.ts:1329:1 › DC-S05-06 a decided request @storm
+  -  29 [chromium] › tests/storm.spec.ts:1354:1 › PM-M24-03 the Acknowledge page is usable at 360 px @storm
+  -  30 [chromium] › tests/storm.spec.ts:1373:1 › VD-S-07 the Approval page at 360 px @storm
+  -  31 [chromium] › tests/storm.spec.ts:1406:1 › DC-S03-01 the report incident's workspace @storm
+  -  32 [chromium] › tests/storm.spec.ts:1462:1 › DC-S02-04 a click on a row opens the incident's address @storm
+  -  33 [chromium] › tests/storm.spec.ts:1474:1 › SB-S09 the dashboard after the run @storm
+
+
+  1) [chromium] › tests/storm.spec.ts:730:1 › SL-A1-08 the highlight followed every step change within 2 s @storm 
+
+    Error: s-notify
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 2000
+    Received:    6642
+
+      748 |     for (const { stepId, delay } of delays) {
+      749 |       expect(delay, stepId).not.toBeNull();
+    > 750 |       expect(delay!, stepId).toBeLessThanOrEqual(2000);
+          |                              ^
+      751 |     }
+      752 |   },
+      753 | );
+        at /e2e/tests/storm.spec.ts:750:30
+
+    Error Context: run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/error-context.md
+
+    Error Context: run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › tests/storm.spec.ts:730:1 › SL-A1-08 the highlight followed every step change within 2 s @storm 
+  22 did not run
+  10 passed (10.1m)
+PASS SB-SET-07 incident list empty
+PASS SB-SET-07 sources healthy
+PASS SB-V-38 seeded dashboard
+PASS SB-V-39 baselines
+PASS SB-R-06 two incidents
+PASS SB-S01 storm alerts
+PASS SB-S01 storm alert types
+PASS SB-S01 report alert
+PASS SB-S01 storm within 120 s
+PASS SB-S02 storm header
+PASS SB-S02 grouping reasons
+PASS SB-S02 report incident
+PASS SB-S03 diagnostics
+PASS SB-S03 diagnostic values
+PASS SB-S04 routing
+PASS SB-S04 investigation
+PASS SB-S05 acknowledge page
+PASS SB-S05 timeline acknowledgement
+PASS SB-S06 similar incident
+PASS SB-S06 proposal
+PASS SB-S06 approval page
+PASS SB-S06 decision
+PASS SB-S06 action executed once
+PASS SB-S06 action result
+PASS SB-S06 action values
+PASS SB-S07 recovery
+PASS SB-S07 resolved
+PASS SB-S07 ticket resolved
+PASS SB-S08 storm run
+PASS SB-S09 dashboard formulas
+PASS SB-S09 dashboard values
+PASS SB-TL-05 no escalation
+PASS SB-R-06 repeatability result
+checklist storm-checklist-20261127T055758Z.md
+result file storm-script-20261127T054746Z.json
+The suite storm failed.
+run 3 exit 1 result storm-script-20261127T054746Z.json checklist storm-checklist-20261127T055758Z.md
+== run 4 of 5
+
+Running 33 tests using 1 worker
+
+step 1 Reset: through the control panel, {"branch_a_seconds": 18.106, "quiet_seconds": 6.021, "branch_b_seconds": 4.029, "total_seconds": 18.114}
+  ✓   1 [chromium] › tests/storm.spec.ts:158:1 › DC-S01-04 the reset ends the session and sign-in returns to the list @storm (25.8s)
+  ✓   2 [chromium] › tests/storm.spec.ts:187:1 › DC-S02-05 the new tenant's list is empty @storm (388ms)
+step 2 Starting state: three users logged in, sources healthy
+step 3 Script start: the storm is injected at once (T0 is the script's 01:00)
+step 4 Storm: the storm button pressed, SL-F-1 and SL-F-3 active (T0 2026-11-27T05:58:30.683Z)
+step 5 Incidents: storm INC-0002, report INC-0001
+  ✓   3 [chromium] › tests/storm.spec.ts:202:1 › DC-S02-03 the storm builds and no forming incident is a row @storm (1.3m)
+  ✓   4 [chromium] › tests/storm.spec.ts:249:1 › SL-A1-08 the storm workspace opens and records the run @storm (5.1s)
+step 6 Acknowledge: https://demo.vigil.solviclabs.com/m/acknowledge/01a21b95-8536-7381-8429-bb7586a269a5 at 2026-11-27T06:05:02.022Z
+  ✓   5 [chromium] › tests/storm.spec.ts:409:1 › SL-A1-05 noc-l1 acknowledges on the page @storm (5.3m)
+step 7 Approve: https://demo.vigil.solviclabs.com/m/approve/01a21b9b-73a6-74c5-a47e-9ed07b168dee approved at 2026-11-27T06:06:32.018Z
+  ✓   6 [chromium] › tests/storm.spec.ts:488:1 › SL-A1-06 dbops-engineer approves with confirmation @storm (1.5m)
+  ✓   7 [chromium] › tests/storm.spec.ts:644:1 › SL-A1-02 the storm and report rows @storm (1.5m)
+  ✓   8 [chromium] › tests/storm.spec.ts:680:1 › DC-U-08 the list changed without a reload @storm (7ms)
+  ✓   9 [chromium] › tests/storm.spec.ts:692:1 › VD-L-03 the incident table fits 1280 px @storm (10ms)
+  ✓  10 [chromium] › tests/storm.spec.ts:707:1 › VD-C-07 the badge and chip colours @storm (87ms)
+highlight delays (ms): [{"stepId":"s-ticket","delay":4640},{"stepId":"s-notify","delay":3855},{"stepId":"s-wait-ack","delay":2211},{"stepId":"s-similar","delay":608},{"stepId":"s-approve","delay":410},{"stepId":"s-action","delay":405},{"stepId":"s-recover","delay":374},{"stepId":"s-resolve","delay":404}]
+  ✘  11 [chromium] › tests/storm.spec.ts:730:1 › SL-A1-08 the highlight followed every step change within 2 s @storm (3.9s)
+  -  12 [chromium] › tests/storm.spec.ts:755:1 › DC-S03-06 follow mode keeps the current step in view @storm
+  -  13 [chromium] › tests/storm.spec.ts:769:1 › DC-S03-07 countdowns and the observation window were counted @storm
+  -  14 [chromium] › tests/storm.spec.ts:789:1 › SL-A1-02 the storm workspace header, hypothesis, impact and alerts @storm
+  -  15 [chromium] › tests/storm.spec.ts:861:1 › SL-A1-03 the evidence lines @storm
+  -  16 [chromium] › tests/storm.spec.ts:913:1 › SL-A1-04 the AI investigation section @storm
+  -  17 [chromium] › tests/storm.spec.ts:938:1 › SL-A1-06 the Response section @storm
+  -  18 [chromium] › tests/storm.spec.ts:991:1 › SL-A1-07 the Recovery section @storm
+  -  19 [chromium] › tests/storm.spec.ts:1011:1 › SB-S08 the finished run on the canvas and in the run steps @storm
+  -  20 [chromium] › tests/storm.spec.ts:1102:1 › VD-C-18 the band and the expanded canvas @storm
+  -  21 [chromium] › tests/storm.spec.ts:1151:1 › DC-S03-13 the timeline and notified teams @storm
+  -  22 [chromium] › tests/storm.spec.ts:1200:1 › DC-U-08 the workspace changed without a reload @storm
+  -  23 [chromium] › tests/storm.spec.ts:1212:1 › DC-U-15 the workspace tab title @storm
+  -  24 [chromium] › tests/storm.spec.ts:1218:1 › VD-S-05 the workspace fits 1280 px with its two columns @storm
+  -  25 [chromium] › tests/storm.spec.ts:1239:1 › VD-C-22 the section cards and their headings @storm
+  -  26 [chromium] › tests/storm.spec.ts:1262:1 › VD-C-23 the outcome words in their colours @storm
+  -  27 [chromium] › tests/storm.spec.ts:1285:1 › DC-S04-05 the refusals of the Acknowledge page @storm
+  -  28 [chromium] › tests/storm.spec.ts:1329:1 › DC-S05-06 a decided request @storm
+  -  29 [chromium] › tests/storm.spec.ts:1354:1 › PM-M24-03 the Acknowledge page is usable at 360 px @storm
+  -  30 [chromium] › tests/storm.spec.ts:1373:1 › VD-S-07 the Approval page at 360 px @storm
+  -  31 [chromium] › tests/storm.spec.ts:1406:1 › DC-S03-01 the report incident's workspace @storm
+  -  32 [chromium] › tests/storm.spec.ts:1462:1 › DC-S02-04 a click on a row opens the incident's address @storm
+  -  33 [chromium] › tests/storm.spec.ts:1474:1 › SB-S09 the dashboard after the run @storm
+
+
+  1) [chromium] › tests/storm.spec.ts:730:1 › SL-A1-08 the highlight followed every step change within 2 s @storm 
+
+    Error: s-ticket
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 2000
+    Received:    4640
+
+      748 |     for (const { stepId, delay } of delays) {
+      749 |       expect(delay, stepId).not.toBeNull();
+    > 750 |       expect(delay!, stepId).toBeLessThanOrEqual(2000);
+          |                              ^
+      751 |     }
+      752 |   },
+      753 | );
+        at /e2e/tests/storm.spec.ts:750:30
+
+    Error Context: run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/error-context.md
+
+    Error Context: run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › tests/storm.spec.ts:730:1 › SL-A1-08 the highlight followed every step change within 2 s @storm 
+  22 did not run
+  10 passed (10.1m)
+step 8 Recovery: resolved at 2026-11-27T06:08:02.132Z, ticket NOC-23 Done
+PASS SB-SET-07 incident list empty
+PASS SB-SET-07 sources healthy
+PASS SB-V-38 seeded dashboard
+PASS SB-V-39 baselines
+PASS SB-R-06 two incidents
+PASS SB-S01 storm alerts
+PASS SB-S01 storm alert types
+PASS SB-S01 report alert
+PASS SB-S01 storm within 120 s
+PASS SB-S02 storm header
+PASS SB-S02 grouping reasons
+PASS SB-S02 report incident
+PASS SB-S03 diagnostics
+PASS SB-S03 diagnostic values
+PASS SB-S04 routing
+PASS SB-S04 investigation
+PASS SB-S05 acknowledge page
+PASS SB-S05 timeline acknowledgement
+PASS SB-S06 similar incident
+PASS SB-S06 proposal
+PASS SB-S06 approval page
+PASS SB-S06 decision
+PASS SB-S06 action executed once
+PASS SB-S06 action result
+PASS SB-S06 action values
+PASS SB-S07 recovery
+PASS SB-S07 resolved
+PASS SB-S07 ticket resolved
+PASS SB-S08 storm run
+PASS SB-S09 dashboard formulas
+PASS SB-S09 dashboard values
+PASS SB-TL-05 no escalation
+PASS SB-R-06 repeatability result
+checklist storm-checklist-20261127T060823Z.md
+result file storm-script-20261127T055804Z.json
+The suite storm failed.
+run 4 exit 1 result storm-script-20261127T055804Z.json checklist storm-checklist-20261127T060823Z.md
+== run 5 of 5
+
+Running 33 tests using 1 worker
+
+step 1 Reset: through the control panel, {"branch_a_seconds": 22.113, "quiet_seconds": 10.024, "branch_b_seconds": 4.022, "total_seconds": 22.123}
+  ✓   1 [chromium] › tests/storm.spec.ts:158:1 › DC-S01-04 the reset ends the session and sign-in returns to the list @storm (31.0s)
+  ✓   2 [chromium] › tests/storm.spec.ts:187:1 › DC-S02-05 the new tenant's list is empty @storm (384ms)
+step 2 Starting state: three users logged in, sources healthy
+step 3 Script start: the storm is injected at once (T0 is the script's 01:00)
+step 4 Storm: the storm button pressed, SL-F-1 and SL-F-3 active (T0 2026-11-27T06:09:01.078Z)
+step 5 Incidents: storm INC-0002, report INC-0001
+  ✓   3 [chromium] › tests/storm.spec.ts:202:1 › DC-S02-03 the storm builds and no forming incident is a row @storm (1.3m)
+  ✓   4 [chromium] › tests/storm.spec.ts:249:1 › SL-A1-08 the storm workspace opens and records the run @storm (5.0s)
+step 6 Acknowledge: https://demo.vigil.solviclabs.com/m/acknowledge/01a21b9f-1e45-7401-9cfb-cac64f893a4f at 2026-11-27T06:15:32.495Z
+  ✓   5 [chromium] › tests/storm.spec.ts:409:1 › SL-A1-05 noc-l1 acknowledges on the page @storm (5.2m)
+step 7 Approve: https://demo.vigil.solviclabs.com/m/approve/01a21ba5-126b-708a-84c8-cd2d906d3c3a approved at 2026-11-27T06:17:02.584Z
+  ✓   6 [chromium] › tests/storm.spec.ts:488:1 › SL-A1-06 dbops-engineer approves with confirmation @storm (1.5m)
+  ✓   7 [chromium] › tests/storm.spec.ts:644:1 › SL-A1-02 the storm and report rows @storm (1.5m)
+  ✓   8 [chromium] › tests/storm.spec.ts:680:1 › DC-U-08 the list changed without a reload @storm (5ms)
+  ✓   9 [chromium] › tests/storm.spec.ts:692:1 › VD-L-03 the incident table fits 1280 px @storm (10ms)
+  ✓  10 [chromium] › tests/storm.spec.ts:707:1 › VD-C-07 the badge and chip colours @storm (81ms)
+step 8 Recovery: resolved at 2026-11-27T06:18:33.141Z, ticket NOC-25 Done
+highlight delays (ms): [{"stepId":"s-ticket","delay":4499},{"stepId":"s-notify","delay":3203},{"stepId":"s-wait-ack","delay":1595},{"stepId":"s-similar","delay":925},{"stepId":"s-approve","delay":732},{"stepId":"s-action","delay":439},{"stepId":"s-recover","delay":417},{"stepId":"s-resolve","delay":491}]
+  ✘  11 [chromium] › tests/storm.spec.ts:730:1 › SL-A1-08 the highlight followed every step change within 2 s @storm (3.1s)
+  -  12 [chromium] › tests/storm.spec.ts:755:1 › DC-S03-06 follow mode keeps the current step in view @storm
+  -  13 [chromium] › tests/storm.spec.ts:769:1 › DC-S03-07 countdowns and the observation window were counted @storm
+  -  14 [chromium] › tests/storm.spec.ts:789:1 › SL-A1-02 the storm workspace header, hypothesis, impact and alerts @storm
+  -  15 [chromium] › tests/storm.spec.ts:861:1 › SL-A1-03 the evidence lines @storm
+  -  16 [chromium] › tests/storm.spec.ts:913:1 › SL-A1-04 the AI investigation section @storm
+  -  17 [chromium] › tests/storm.spec.ts:938:1 › SL-A1-06 the Response section @storm
+  -  18 [chromium] › tests/storm.spec.ts:991:1 › SL-A1-07 the Recovery section @storm
+  -  19 [chromium] › tests/storm.spec.ts:1011:1 › SB-S08 the finished run on the canvas and in the run steps @storm
+  -  20 [chromium] › tests/storm.spec.ts:1102:1 › VD-C-18 the band and the expanded canvas @storm
+  -  21 [chromium] › tests/storm.spec.ts:1151:1 › DC-S03-13 the timeline and notified teams @storm
+  -  22 [chromium] › tests/storm.spec.ts:1200:1 › DC-U-08 the workspace changed without a reload @storm
+  -  23 [chromium] › tests/storm.spec.ts:1212:1 › DC-U-15 the workspace tab title @storm
+  -  24 [chromium] › tests/storm.spec.ts:1218:1 › VD-S-05 the workspace fits 1280 px with its two columns @storm
+  -  25 [chromium] › tests/storm.spec.ts:1239:1 › VD-C-22 the section cards and their headings @storm
+  -  26 [chromium] › tests/storm.spec.ts:1262:1 › VD-C-23 the outcome words in their colours @storm
+  -  27 [chromium] › tests/storm.spec.ts:1285:1 › DC-S04-05 the refusals of the Acknowledge page @storm
+  -  28 [chromium] › tests/storm.spec.ts:1329:1 › DC-S05-06 a decided request @storm
+  -  29 [chromium] › tests/storm.spec.ts:1354:1 › PM-M24-03 the Acknowledge page is usable at 360 px @storm
+  -  30 [chromium] › tests/storm.spec.ts:1373:1 › VD-S-07 the Approval page at 360 px @storm
+  -  31 [chromium] › tests/storm.spec.ts:1406:1 › DC-S03-01 the report incident's workspace @storm
+  -  32 [chromium] › tests/storm.spec.ts:1462:1 › DC-S02-04 a click on a row opens the incident's address @storm
+  -  33 [chromium] › tests/storm.spec.ts:1474:1 › SB-S09 the dashboard after the run @storm
+
+
+  1) [chromium] › tests/storm.spec.ts:730:1 › SL-A1-08 the highlight followed every step change within 2 s @storm 
+
+    Error: s-ticket
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 2000
+    Received:    4499
+
+      748 |     for (const { stepId, delay } of delays) {
+      749 |       expect(delay, stepId).not.toBeNull();
+    > 750 |       expect(delay!, stepId).toBeLessThanOrEqual(2000);
+          |                              ^
+      751 |     }
+      752 |   },
+      753 | );
+        at /e2e/tests/storm.spec.ts:750:30
+
+    Error Context: run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/error-context.md
+
+    Error Context: run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace run/results/storm-SL-A1-08-the-highlig-5091e-very-step-change-within-2-s-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › tests/storm.spec.ts:730:1 › SL-A1-08 the highlight followed every step change within 2 s @storm 
+  22 did not run
+  10 passed (10.2m)
+PASS SB-SET-07 incident list empty
+PASS SB-SET-07 sources healthy
+PASS SB-V-38 seeded dashboard
+PASS SB-V-39 baselines
+PASS SB-R-06 two incidents
+PASS SB-S01 storm alerts
+PASS SB-S01 storm alert types
+PASS SB-S01 report alert
+PASS SB-S01 storm within 120 s
+PASS SB-S02 storm header
+PASS SB-S02 grouping reasons
+PASS SB-S02 report incident
+PASS SB-S03 diagnostics
+PASS SB-S03 diagnostic values
+PASS SB-S04 routing
+PASS SB-S04 investigation
+PASS SB-S05 acknowledge page
+PASS SB-S05 timeline acknowledgement
+PASS SB-S06 similar incident
+PASS SB-S06 proposal
+PASS SB-S06 approval page
+PASS SB-S06 decision
+PASS SB-S06 action executed once
+PASS SB-S06 action result
+PASS SB-S06 action values
+PASS SB-S07 recovery
+PASS SB-S07 resolved
+PASS SB-S07 ticket resolved
+PASS SB-S08 storm run
+PASS SB-S09 dashboard formulas
+PASS SB-S09 dashboard values
+PASS SB-TL-05 no escalation
+PASS SB-R-06 repeatability result
+checklist storm-checklist-20261127T061851Z.md
+result file storm-script-20261127T060830Z.json
+The suite storm failed.
+run 5 exit 1 result storm-script-20261127T060830Z.json checklist storm-checklist-20261127T061851Z.md
+manifest tests/acceptance/results/P-34-series-20261127T052633Z.txt
+Usage: python3 tests/acceptance/demo-host/series.py tests/acceptance/results/P-34-series-{time}.txt
+PASS runs_5
+PASS settings_5
+PASS drivers_5
+FAIL checklists_5
+PASS repeatability_5
+PASS similar_5
+PASS step_times_5
+PASS rb_db_01_4_of_5
+suite storm passed in 1 of 5 runs
+result tests/acceptance/results/P-34-SB-T-02.json
+
+# Note (27 Nov 2026): the checklists of this first series were not ticked: fix round 1 (spec Section 6.10) repeats the series on p34-2, so checklists_5 fails here by design.
