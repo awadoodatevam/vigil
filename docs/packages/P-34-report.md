@@ -142,6 +142,17 @@ None under `docs/` besides this report (spec Section 9: no DD value is measured)
 - `deploy/local.sh down --volumes`: exit 0.
 - Screenshots committed: `tests/acceptance/results/P-34/control-login-1280.png`, `control-panel-1280.png`, `control-panel-640.png` and `control-confirm-1280.png`. In `control-confirm-1280.png` the dialog's backdrop ends at the 800px window, because the page is taller than the window and the screenshot is a full-page capture.
 
+**Cloud session, 27 November 2026, after fix round 1** (lab profile `test`):
+- `deploy/local.sh up --profile test`: exit 0.
+- `deploy/local.sh e2e`: **54 passed**.
+- `VIGIL_STORM_RESULTS=$HOME/storm-results2 tests/acceptance/storm/with-playwright.sh` (mode `immediate`), exit 0:
+  - the suite `storm` **33 passed**, SL-A1-08 and DC-S03-07 included;
+  - the driver passed **33 of 33** (`storm-immediate-20261127T103350Z.json`, outside the repository);
+  - AR-Q-07 passed.
+
+  Highlight delays (ms): `s-investigate` 59, `s-summarise` 460, `s-ticket` 422, `s-notify` 395, `s-wait-ack` 233, `s-similar` 242, `s-approve` 544, `s-action` 69, `s-recover` 182, `s-resolve` 508. This is the local installation, without the owner's link, so it shows the fix causes no regression but does not prove it on the demo host; the series on `p34-2` does that.
+- `deploy/local.sh down --volumes`: exit 0.
+
 **Owner-run, release `p34-1`, 27 November 2026** (commit `5e1b58a`; `tests/acceptance/results/P-34-aws.txt`, `P-34-demo-host.txt`, `P-34-demo-host/`):
 
 - Step 2, `check.sh demo`: **16 of 16 PASS**, `assets-gzip` included. The script `/assets/index-BKe-iJAI.js` was 101,516 bytes with gzip against 324,023 bytes without (`content-encoding: gzip`, `cache-control: max-age=31536000, immutable`).
@@ -176,17 +187,18 @@ A cloud session with "Record the owner-run results of P-34" copies their values 
 
 ## 10. Gate command result
 
-`tools/check-all.sh` passed in this session (exit 0, "== all checks passed"):
+**After fix round 1** (27 November 2026, at `fc567fd` with the report change): `tools/check-all.sh` passed (exit 0, "== all checks passed"):
 
 - (0) Docker, (1) setup version, (1a) test images.
 - (2) `./mvnw -B verify`, `BUILD SUCCESS`, 0 failures and 0 errors:
-  - web: lint, Prettier check, type check, Vitest **223 tests in 57 files**, build;
-  - `tests/e2e/`: lint, Prettier check, type check;
+  - web: Vitest **226 tests in 58 files** (the three tests of `reread.test.ts` new), lint, Prettier check, type check, build;
   - `vigil-app`: 197 unit tests and **783 integration tests**;
-  - `demo-control`: 13 unit tests and **37 integration tests**;
+  - `demo-control`: 13 unit tests and 37 integration tests;
   - Spotless.
-- (3) `ruff` and pytest: **620 passed**, 1 skipped, 6 deselected. The lab tests ran, because this package changes `demo/` (BP-R-12 step (3)).
-- (4) shellcheck, (5) data checks (49 checks, 0 failed), (6) compose validation, (7) traceability.
+- (3) `ruff` and pytest: **620 passed**, 1 skipped, 6 deselected (lab tests included).
+- (4) shellcheck, (5) data checks, (6) compose validation, (7) traceability.
+
+**First session** (26 November 2026): `tools/check-all.sh` passed with the same counts except Vitest **223 tests in 57 files**.
 
 ## 11. Follow-up items for later packages
 
