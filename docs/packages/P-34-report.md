@@ -6,13 +6,13 @@
 | Branch | `p-34-primary-demo-hardening` |
 | Pin date (BP-R-08) | 26 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (Temurin 25.0.4.1) |
-| State | Built; the gate command passes (Section 10). Done-check item 3 in this session (lab profile `test`): `deploy/local.sh up`, `deploy/local.sh e2e`, `deploy/local.sh e2e control`, `with-playwright.sh` and `deploy/local.sh down --volumes` all passed (Section 8); the four screenshots are committed under `tests/acceptance/results/P-34/`. Every owner-run step of spec Section 6.8 is still to run. |
+| State | Fix round 1 built (Section 12); the gate command passes (Section 10). The owner's next step is `p34-2` and spec Section 6.8 steps 2 to 6 again. Built in the first session; the gate command passed there too. Done-check item 3 in the first session (26 Nov 2026; lab profile `test`): `deploy/local.sh up`, `deploy/local.sh e2e`, `deploy/local.sh e2e control`, `with-playwright.sh` and `deploy/local.sh down --volumes` all passed (Section 8); the four screenshots are committed under `tests/acceptance/results/P-34/`. Owner-run on `p34-1` (27 Nov 2026): steps 2, 4, 5 and 6 (Section 8); steps 7, 9 and 10 not yet. |
 
 ## 1. What was built
 
 | Part | Requirement IDs |
 | --- | --- |
-| **Compression of the built files** (spec 6.2 item 1): `app/src/main/resources/application.properties` gains exactly `server.compression.enabled=true`, `server.compression.mime-types=text/html,text/css,text/javascript,application/javascript,image/svg+xml` and `server.compression.min-response-size=2KB`. Spring Boot 4.1's embedded Tomcat compresses the answers of `WebApplicationConfiguration`'s resource handlers with these three settings alone: no Java line and nothing else was needed (`WebAppServingIT`). `Cache-Control` is unchanged (`max-age=31536000, immutable` for `/assets/**`, `no-cache` for `index.html` and the fallback). The API answers (`application/json`, `application/problem+json`), the live stream (`text/event-stream`), the actuator answers and fonts are not in the list, so they are not compressed. `demo-control` has no compression setting. | AR-W-01 (BP-A-33), AR-I-04 |
+| **Compression of the built files and the JSON answers** (spec 6.2 item 1; `application/json` from fix round 1, Section 12): `app/src/main/resources/application.properties` gains exactly `server.compression.enabled=true`, `server.compression.mime-types=text/html,text/css,text/javascript,application/javascript,image/svg+xml,application/json` and `server.compression.min-response-size=2KB`. Spring Boot 4.1's embedded Tomcat compresses the answers of `WebApplicationConfiguration`'s resource handlers with these three settings alone: no Java line and nothing else was needed (`WebAppServingIT`). `Cache-Control` is unchanged (`max-age=31536000, immutable` for `/assets/**`, `no-cache` for `index.html` and the fallback). JSON answers of `vigil-api` of 2 KB or more are compressed (fix round 1). The error answers (`application/problem+json`), the live stream (`text/event-stream`), the actuator answers and fonts are not in the list, so they are not compressed. `demo-control` has no compression setting. | AR-W-01 (BP-A-33), AR-I-04 |
 | **`check.sh`'s `assets-gzip`** (spec 6.2 item 3, `tests/acceptance/demo-host/check.sh`): in the part `https`, after `https-demo`, the section `-- assets-gzip` fetches `https://demo.{d}/login`, takes the first `/assets/….js` path (printed as `asset {path}`), then fetches it with `curl -sS -o /dev/null -D - -w 'size %{size_download}\n'`, first with `-H 'Accept-Encoding: gzip'` (after the line `with gzip:`) and then without it (after `without:`); both sizes stay in the output. The check `assets-gzip` (after `https-demo` in the list of checks) passes when the first answer has `content-encoding: gzip` and `cache-control: max-age=31536000, immutable` (header names in any case) and its `size` is smaller than the second's. | AR-W-01 |
 | **The control panel's look** (spec 6.3, `demo/control/src/main/resources/static/index.html` only): the `<style>` is replaced by the styles of VD-R-15, VD-C-29 and VD-S-09. The page has the two `@font-face` rules (the Latin `normal` rules of the two packages' `index.css`, `src: url("/fonts/{file}") format("woff2-variations")`) and a `:root` with exactly the 44 tokens the page uses, named and valued as in `web/src/app/tokens.css` (`--vd-text` keeps `var(--vd-gray-900)` and `--vd-gray-900` is declared, and the same for every token that names another one). The page then has: the body role on `--vd-canvas` over the full window height; the navy top line; the content 760px wide at most, centred, padding 24px (16px below 600px); the login card with the VD-C-10 fields, the full-width primary "Sign in" 20px below them and the error notice, hidden while `:empty`; the button card (the `ul#buttons`, items 14px 20px apart from each other with 1px `--vd-border-2`, secondary buttons, the description, the refusal reason in the warning colour, disabled at opacity 0.55); the state card (the fault lines with the first one bold, the status with its line above it, the storm clock in mono `--vd-accent-700` tabular, the link "Open {product}" at 15px weight 600); the dialog of VD-C-27 with "Cancel" secondary and "Reset" destructive side by side; the focus ring (VD-R-12) and the reduced-motion rule (VD-R-11). Markup (VD-R-01): one `<div class="card login-card">` around the login form, one `<div class="card state-card">` around `#faults`, `#status`, `#clock` and the link's paragraph, and one `<div class="confirm-buttons">` around the dialog's two buttons. The script, every text, control, id and the order of the elements are unchanged (the script's SHA-256 equals that of `4fd1c27`). There is still one `<script>` without `src`, and no `<link>`, `@import` or `http(s)://` address. No decorative element and no product mark. | DC-S12-01, AR-T-21, VD-R-01, VD-R-09, VD-R-12, VD-R-15, VD-C-29, VD-S-09 |
 | **The panel's fonts** (spec 6.1, 6.3 item 3): `demo/control/src/main/resources/static/fonts/inter-latin-wght-normal.woff2` and `jetbrains-mono-latin-wght-normal.woff2`, byte-equal copies of the files of `@fontsource-variable/inter` and `@fontsource-variable/jetbrains-mono` 5.3.0 under `web/node_modules`; their `LICENSE` files (OFL-1.1) as `demo/control/src/main/resources/licenses/inter-LICENSE.txt` and `jetbrains-mono-LICENSE.txt`, outside `static/`, so they are not served. Spring Boot serves the fonts from `classpath:/static/fonts/` with `Content-Type: font/woff2` and without a session. Its type table already has `woff2`, so no mapping was added. | VD-R-09, AR-T-21 |
@@ -20,6 +20,7 @@
 | **SB-T-02's series** (spec 6.5): `tests/acceptance/demo-host/series.sh {installation} [--runs N] [--measured FILE]` (Mac, bash 3.2) writes the manifest `tests/acceptance/results/P-34-series-{UTC start}.txt` (two `#` comment lines, then one line per run: `run {k} exit {code} result {file} checklist {file}`). It runs `storm.sh {installation} --mode script --with-playwright [--measured FILE]` N times, keeps each exit code, finds each run's new `storm-script-*.json` and `storm-checklist-*.md` (exactly one each, else `none`), and copies the suite's `screens/` and `results/` to `~/.vigil-demo/{installation}/series/{UTC start}/run-{k}/`. A failed run does not stop the series. The script prints `manifest {path}` and exits 0 only when every run exited 0. `tests/acceptance/demo-host/series.py {manifest}` (python3, standard library only) writes `P-34-SB-T-02.json` beside the manifest with the fields, run entries and criteria of spec 6.5 item 2 (`runs_5`, `settings_5`, `drivers_5`, `checklists_5`, `repeatability_5`, `similar_5`, `step_times_5` with 15, 60 and 15 s, `rb_db_01_4_of_5`), `passed`, `suite_storm_runs_passed` and `summary_lengths`. It prints `PASS`/`FAIL` per criterion and exits 0, 1, or 2 for wrong arguments or an unreadable manifest line. | SB-T-02, SL-A3-04, SB-T-03, SB-T-04, AR-G-12, SL-ASM-04, SB-ASM-02 |
 | **The local model's SB-T-04 part** (spec 6.6): `spikes/providers/run.sh` takes `--package P-34` as it takes `--package P-20`: `VIGIL_SPIKE_PACKAGE` is the package and the recordings go to a temporary folder, removed at the end. The result is `spikes/results/P-34-{spike}.json`, so `local-model` writes `P-34-SB-T-04.json`. The usage line is exactly `Usage: spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20|P-34] | teams | email`. `common.py`'s docstrings, `spikes/providers/README.md` (the option and the row for `run.sh local-model --package P-34`) and `spikes/results/README.md` (the row `P-34-SB-T-04.json`) follow. The request and the output checks are those of P-20 (unchanged). | AR-G-12, AR-G-32, PM-M17-03, AR-ASM-12 |
 | **Rehearsals** (spec 6.7): `tests/acceptance/demo-host/rehearsal.py {file}` (python3, standard library only) reads `P-34-rehearsal-{n}.txt` in the order of spec 6.7 item 1 (`#` lines are comments, blank lines are skipped) and writes `{file without .txt}.json` with `date`, `scenes` (`{id, start_s, duration_s, budget_s, within}`, budgets 60, 120, 90, 45, 60, 105, 105, 135, 30, 60, 30 s), `length_s`, `assumptions`, `criteria` (`scenes_within_30`, `length_900`, `assumptions_yes`) and `passed`. Exit 0 or 1. A file it cannot read stops it with `Line {n}: {reason}` and exit 2: an item out of order or missing (`expected {item}, found {item}`, `{item} missing`), a repeated item, a start earlier than the one before, an unreadable time or date, an answer other than yes or no, or an extra line. | SB-T-08, SB-ASM-01, DC-ASM-01, DC-ASM-03, DC-ASM-04 |
+| **Live re-reads a notice does not cancel** (fix round 1, Fix A, spec 6.10 item 3, `web/src/live/useLiveTopics.ts`): `liveHandlers`' `invalidate` and `invalidateAll` re-read each cached query that matches a topic's keys with `invalidateQueries({ queryKey, exact: true }, { cancelRefetch: false })`, so a running read is never cancelled. A query whose read runs when a notice arrives is noted once (a set of query hashes per stream); when that read ends, the query is read once more, so the screen ends on a read that started after the last notice, with at most one extra read per query however many notices arrive meanwhile. AR-TM-04's at most once per 500 ms per topic (`live.ts`) is unchanged. | AR-W-02, DC-S03-07 |
 | **Commands** (done-check item 1): `CLAUDE.md`'s rows "Provider spikes" (`[--package P-20|P-34]`, "`--package P-34` from P-34") and "Runs against the demo installation" (`series.sh`, `series.py`, `rehearsal.py`, `docs/packages/P-34.md` Section 6.8); `README.md`'s `tests/acceptance/demo-host/` and `spikes/providers/run.sh` lines. | BP-DC-06 |
 
 Checked by review (spec part 4):
@@ -39,14 +40,21 @@ The rows checked by review through owner-run result files (SL-A3-04, SL-A3-08, S
 ## 2. Tests added
 
 **Java:**
-- `app/src/test/java/vigil/WebAppServingIT.java` (6 tests, 3 new):
+- `app/src/test/java/vigil/WebAppServingIT.java` (6 tests, 3 new; the second changed by fix round 1):
   - "AR-W-01 built files are sent gzip-compressed": the first `/assets/….js` and `….css` of `index.html`, sent with `java.net.http.HttpClient`, which does not decompress. With `Accept-Encoding: gzip` each answers `Content-Encoding: gzip` and `Cache-Control: max-age=31536000, immutable`, and its body is smaller and unzips to the file under `classpath:/static/`. Without `Accept-Encoding` each answers without `Content-Encoding`, with the same `Cache-Control` and the file's bytes.
-  - "AR-W-01 no other answer is compressed": `GET /api/v1/public/branding` with `Accept-Encoding: gzip` answers JSON without `Content-Encoding`.
+  - "AR-W-01 JSON answers of 2 KB or more are compressed, smaller ones are not" (fix round 1; it replaces "AR-W-01 no other answer is compressed"): with `ApiFixture`'s storm (127 recorded alerts), `GET /api/v1/incidents/{storm incident}/alerts` without `Accept-Encoding` answers at least 2,048 bytes without `Content-Encoding`; with `Accept-Encoding: gzip` it answers `application/json` with `Content-Encoding: gzip`, a smaller body, and unzips to the same JSON. `GET /api/v1/public/branding` (under 2,048 bytes) with `Accept-Encoding: gzip` answers without `Content-Encoding`.
   - "AR-I-04 the live stream is not compressed": a signed-in `GET /api/v1/live?topics=tenant` with `Accept-Encoding: gzip` answers `text/event-stream` without `Content-Encoding`. The test reads the head and closes the stream.
 - `demo/control/src/test/java/democontrol/InterfaceIT.java` (7 tests, 3 new):
   - "VD-R-09 the panel serves its two fonts from its own origin": `GET /fonts/{file}` without a session answers 200 `font/woff2` without `Content-Encoding`, and the bytes equal `ROOT/web/node_modules/@fontsource-variable/…/files/{file}`. The page's two `@font-face` rules name only `/fonts/…`, their families are "Inter Variable" and "JetBrains Mono Variable", and their family, style, display, weight range and `unicode-range` equal the Latin `normal` rules of the packages' `index.css`.
   - "VD-R-15 the panel's tokens are those of tokens.css": every `--vd-*` the page declares has the name and value (white space collapsed) of `ROOT/web/src/app/tokens.css`. The page declares exactly the tokens it uses outside `:root`, plus those they name. Outside `:root` the only colour literals are those VD-R-04 allows.
   - "VD-R-01 the panel's texts and controls are unchanged": the page's texts, ids, the `form`, `label`, `input`, `button`, `a` and `dialog` tags with their attributes, and the order of the elements (the wrapping cards without an id left out) equal those of the page at `4fd1c27`, written into the test; the script's SHA-256 equals that of `4fd1c27`.
+
+**Vitest** (fix round 1, `web/src/live/reread.test.ts`, a `QueryObserver` on `["incident", id]` whose reads the test answers):
+- "AR-W-02 a notice during a running read does not cancel it";
+- "AR-W-02 a notice during a running read leads to exactly one more read after it" (three notices and a reconnection during the read: one more read, then none; a notice during that read again leads to one more);
+- "AR-W-02 a notice with no read running reads at once".
+
+The first two fail with the `liveHandlers` of `p34-1` (the running read is cancelled) and pass with Fix A.
 
 **Python:**
 - `tests/acceptance/storm/test_storm.py`: "SB-T-04 the result file records the approve time and the summary length". It is parametrized over `--acts driver` and `--acts pages` and checks the `times` keys in order, `approved` as the decision's time after T0 and not later than `SB-TL-08`, and `summary_length` as the fake summary's length.
@@ -76,6 +84,7 @@ They take the screenshots `control-login-1280`, `control-panel-1280`, `control-p
 - `test_storm.py` `test_immediate_run_passes`: the expected `times` keys with `approved` and the `investigation` keys with `summary_length`.
 - `test_providers_run.py`: `USAGE` with `[--package P-20|P-34]` (the wrong-value cases are unchanged; `P-34` was not among them).
 - `test_demo_host.py` `test_check_verdicts`: the expected check list with `assets-gzip` (16 checks), and the fake table `check_table` with the answers of the three `assets-gzip` calls (Section 3 item 2).
+- Fix round 1 (the test the fix names, spec 6.9 item 1): `WebAppServingIT` "AR-W-01 no other answer is compressed" became "AR-W-01 JSON answers of 2 KB or more are compressed, smaller ones are not".
 
 ## 3. Deviations from the spec
 
@@ -88,6 +97,8 @@ They take the screenshots `control-login-1280`, `control-panel-1280`, `control-p
 4. **The dialog's buttons are 16px** (with `min-height: 48px`), as `web/src/dialog/dialog.module.css` draws VD-C-27's dialog in Vigil (P-30). VD-C-29 asks for "the dialog of VD-C-27", so the panel copies that dialog rather than VD-C-09's 14px. The buttons of the button card are VD-C-09's 14px.
 5. **A `[hidden] { display: none !important; }` rule.** The script shows and hides `#login`, `#panel`, `#clock` and each `.reason` with the `hidden` attribute. The rule keeps that working when a style also gives these elements a `display` value. It shows nothing and changes no behaviour.
 6. **"VD-S-09 the control panel in Vigil's look" uses a browser context of its own.** A context with an empty cache is needed so the font requests are seen. The test takes `control-login-1280` there before signing in (the spec's "a new context without a session shows the login card"). At idle only the Inter file is requested: the storm clock, the only mono text, is hidden. So the test requires the Inter request and checks every font request made (origin and 200), and checks that no request left the control panel's origin.
+7. **Fix round 1's large answer (Fix B's test) comes from `ApiFixture`.** The spec lets the session choose an answer of at least 2,048 bytes. `WebAppServingIT`'s own tenant has no incident, so the test starts `ApiFixture` (as `WorkspaceIT` does) and reads the storm incident's alerts section, the answer that was 77 KB in the failed runs.
+8. **Fix A re-reads each matching query on its own** (`exact: true`) instead of one `invalidateQueries` per key prefix. This is so a query whose read runs can be told from the others and read once more when its read ends. The effect on queries without a running read is the same as before: inactive ones are marked stale, active ones are read at once.
 
 ## 4. Document feedback (CTX-Q-8)
 
@@ -131,7 +142,19 @@ None under `docs/` besides this report (spec Section 9: no DD value is measured)
 - `deploy/local.sh down --volumes`: exit 0.
 - Screenshots committed: `tests/acceptance/results/P-34/control-login-1280.png`, `control-panel-1280.png`, `control-panel-640.png` and `control-confirm-1280.png`. In `control-confirm-1280.png` the dialog's backdrop ends at the 800px window, because the page is taller than the window and the screenshot is a full-page capture.
 
-**Owner-run steps (spec Section 6.8), all still to run by the owner:**
+**Owner-run, release `p34-1`, 27 November 2026** (commit `5e1b58a`; `tests/acceptance/results/P-34-aws.txt`, `P-34-demo-host.txt`, `P-34-demo-host/`):
+
+- Step 2, `check.sh demo`: **16 of 16 PASS**, `assets-gzip` included. The script `/assets/index-BKe-iJAI.js` was 101,516 bytes with gzip against 324,023 bytes without (`content-encoding: gzip`, `cache-control: max-age=31536000, immutable`).
+- Step 4, the default suites against the demo host: **48 passed**, "SB-V-38 the starting state of the dashboard" included.
+- Step 5, the suite `control`: **8 passed**, the three look tests included.
+- Step 6, SB-T-02's first series (`P-34-series-20261127T052633Z.txt`, `P-34-SB-T-02.json`): the five driver runs passed **33 of 33** checks each, and `series.py` gave:
+  - PASS: `runs_5`, `settings_5`, `drivers_5`, `repeatability_5`, `similar_5`, `step_times_5`, `rb_db_01_4_of_5`;
+  - FAIL: `checklists_5`, by design, because the owner did not tick the checklists of this series (fix round 1 repeats it; spec 6.10 item 6).
+
+  The suite `storm` passed completely in run 1 and stopped in runs 2 to 5 at "SL-A1-08 the highlight followed every step change within 2 s". Fix round 1 (Section 12) has the cause and the fix. One more `series.py` call in the log printed its usage line (a wrong argument); the next call wrote the verdict.
+- Steps 7, 9 and 10 (the local model, the rehearsals, the video) have not run.
+
+**Owner-run steps (spec Section 6.8; after fix round 1, steps 2 to 6 again on `p34-2`):**
 1. `deploy/build.sh p34-1` and `deploy/images.sh --local` on the Mac.
 2. `deploy/deploy.sh demo p34-1`, `deploy/status.sh demo` and `check.sh demo` into `P-34-aws.txt`, with `assets-gzip` and both sizes.
 3. `secrets.sh demo`, then a look at the panel and a Reset.
@@ -149,7 +172,7 @@ A cloud session with "Record the owner-run results of P-34" copies their values 
 
 ## 9. Lines of production code (`tools/loc.sh origin/main HEAD`)
 
-**0** (S; BP-R-05 limit 800; spec estimate about 10). The compression is three lines of `application.properties`, and the panel's page is HTML and CSS; neither is counted. Neither are the tooling under `tests/` and `spikes/`, the tests or the font files (BP-R-05). No Java line was needed (Section 1).
+**30** (S; BP-R-05 limit 800; spec estimate about 10, with fix rounds added): fix round 1's Fix A, `web/src/live/useLiveTopics.ts` 30 lines added (2 changed lines removed). Before fix round 1 the count was 0. The compression is lines of `application.properties`, and the panel's page is HTML and CSS; neither is counted. Neither are the tooling under `tests/` and `spikes/`, the tests or the font files (BP-R-05). No Java line was needed (Section 1).
 
 ## 10. Gate command result
 
@@ -171,7 +194,39 @@ A cloud session with "Record the owner-run results of P-34" copies their values 
 - A cloud session "Record the owner-run results of P-34" after the series and the local-model step, and again after the rehearsals and the video. It also records the result of P-29's "DC-S03-07 countdowns and the observation window were counted" in each of the five runs (spec 6.9 item 4, CTX-D-098 (5)).
 - P-40: the full demo's backup video, SB-T-09's other parts, SB-T-10 and the deep dives on the demo installation.
 
-## 12. SL-CP-2 review (`60-build-plan` Section 8.3)
+## 12. Fix round 1 (27 November 2026; spec Section 6.10)
+
+**What failed.** The first series on `p34-1`: the suite `storm` stopped in runs 2 to 5 at "SL-A1-08 the highlight followed every step change within 2 s" (DC-S03-07's 2 s). The five drivers passed 33 of 33. Per run, the driver's checks, the suite `storm`'s result and the highlight delays printed by SL-A1-08 (milliseconds from a step's start to its highlight on the canvas; from `P-34-demo-host.txt`):
+
+| Run | Driver | Suite `storm` | Highlight delays (ms) |
+| --- | --- | --- | --- |
+| 1 (`storm-script-20261127T052640Z.json`) | 33 of 33 | 33 passed | `s-summarise` 406, `s-ticket` 434, `s-notify` 454, `s-wait-ack` 471, `s-similar` 900, `s-approve` 705, `s-action` 462, `s-recover` 420, `s-resolve` 973 |
+| 2 (`…T053722Z.json`) | 33 of 33 | 10 passed, SL-A1-08 failed, 22 did not run | `s-ticket` **4891**, `s-notify` **4141**, `s-wait-ack` **2067**, `s-similar` 653, `s-approve` 442, `s-action` 416, `s-recover` 1298, `s-resolve` 414 |
+| 3 (`…T054746Z.json`) | 33 of 33 | 10 passed, SL-A1-08 failed, 22 did not run | `s-ticket` 1720, `s-notify` **6642**, `s-wait-ack` **4967**, `s-similar` **7269**, `s-approve` **7076**, `s-action` **4312**, `s-recover` **3795**, `s-resolve` 449 |
+| 4 (`…T055804Z.json`) | 33 of 33 | 10 passed, SL-A1-08 failed, 22 did not run | `s-ticket` **4640**, `s-notify` **3855**, `s-wait-ack` **2211**, `s-similar` 608, `s-approve` 410, `s-action` 405, `s-recover` 374, `s-resolve` 404 |
+| 5 (`…T060830Z.json`) | 33 of 33 | 10 passed, SL-A1-08 failed, 22 did not run | `s-ticket` **4499**, `s-notify` **3203**, `s-wait-ack` 1595, `s-similar` 925, `s-approve` 732, `s-action` 439, `s-recover` 417, `s-resolve` 491 |
+
+The step times of SB-T-04 were within their limits in every run:
+- `diagnostics_s` 1.0, 0.7, 0.7, 0.7, 0.7;
+- `ai_and_messages_s` 9.1, 9.7, 10.3, 8.4, 10.1;
+- `action_s` 0.6, 0.5, 0.5, 0.5, 0.5.
+
+RB-DB-01 was cited in 5 of 5 runs. The summary lengths were 518, 439, 507, 498 and 529. P-29's "DC-S03-07 countdowns and the observation window were counted" passed in run 1 and did not run in runs 2 to 5 (the suite stops at its first failure).
+
+**Cause** (spec 6.10 item 2, the Claude project's reading of run 2's trace): each notice of `run:{id}` and `incident:{id}` re-read the workspace's queries with `invalidateQueries`, which cancels a read still running. Over the owner's link the largest answers (alerts section about 77 KB, timeline about 42 KB, uncompressed JSON) took 1 to 2 s, so during the burst of step changes every re-read was cancelled by the next notice, and the canvas was redrawn only when the notices paused.
+
+**Fixes** (Section 1; both changes are in `fc567fd`):
+- **Fix A** (`web/src/live/useLiveTopics.ts`, AR-W-02): a notice never cancels a running read; one more read follows it.
+  - Tests: the three Vitest tests of Section 2 (`web/src/live/reread.test.ts`). Two of them fail on `p34-1`'s code.
+- **Fix B** (AR-W-01 as amended, BP-A-33): `application/json` in `server.compression.mime-types`, so JSON answers of 2 KB or more are gzip-compressed.
+  - Test: `WebAppServingIT` "AR-W-01 JSON answers of 2 KB or more are compressed, smaller ones are not".
+  - The live stream, error answers, fonts and the actuator stay uncompressed: "AR-I-04 the live stream is not compressed" still passes.
+
+**`tools/loc.sh`**: 30 lines, all Fix A (Section 9).
+
+**Then** (spec 6.10 item 6): the owner builds `p34-2`, deploys it and runs spec Section 6.8 steps 2 to 6 again, a new series of five whose checklists are ticked. Step 7 (the local model) runs once on any release, since the SL-T-1 system text is unchanged. The first series' files stay in the repository as this round's record.
+
+## 13. SL-CP-2 review (`60-build-plan` Section 8.3)
 
 ### BP-CR-02 (build session)
 
@@ -1137,6 +1192,6 @@ It adds no screen element, operation, field, setting or behaviour to Vigil (`web
 
 To be written by the Claude project after the last recording session (spec Section 9).
 
-## 13. Pull request
+## 14. Pull request
 
 Opened with the GitHub tool: [awadoodatevam/vigil#39](https://github.com/awadoodatevam/vigil/pull/39), "P-34: Primary demo hardening", base `main`.
