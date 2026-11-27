@@ -6,7 +6,7 @@
 | Branch | `p-34-primary-demo-hardening` |
 | Pin date (BP-R-08) | 26 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (Temurin 25.0.4.1) |
-| State | Fix round 1 built (Section 12); the gate command passes (Section 10). The owner's next step is `p34-2` and spec Section 6.8 steps 2 to 6 again. Built in the first session; the gate command passed there too. Done-check item 3 in the first session (26 Nov 2026; lab profile `test`): `deploy/local.sh up`, `deploy/local.sh e2e`, `deploy/local.sh e2e control`, `with-playwright.sh` and `deploy/local.sh down --volumes` all passed (Section 8); the four screenshots are committed under `tests/acceptance/results/P-34/`. Owner-run on `p34-1` (27 Nov 2026): steps 2, 4, 5 and 6 (Section 8); steps 7, 9 and 10 not yet. |
+| State | Fix round 1 built (Section 12); the gate command passes (Section 10). On `p34-2` the owner-run steps 2 to 6 passed on 27 Nov 2026 (Section 8): `check.sh` 16 of 16; the default suites and `control`; SB-T-02's five runs, every criterion passed with the suite `storm` passed in 5 of 5 runs. Still to run: step 7, the local model (3 capacity refusals so far); the two rehearsals; the backup video. Built in the first session; the gate command passed there too. Done-check item 3 in the first session (26 Nov 2026; lab profile `test`): `deploy/local.sh up`, `deploy/local.sh e2e`, `deploy/local.sh e2e control`, `with-playwright.sh` and `deploy/local.sh down --volumes` all passed (Section 8); the four screenshots are committed under `tests/acceptance/results/P-34/`. Owner-run on `p34-1` (27 Nov 2026): steps 2, 4, 5 and 6 (Section 8); steps 7, 9 and 10 not yet. |
 
 ## 1. What was built
 
@@ -165,7 +165,37 @@ None under `docs/` besides this report (spec Section 9: no DD value is measured)
   The suite `storm` passed completely in run 1 and stopped in runs 2 to 5 at "SL-A1-08 the highlight followed every step change within 2 s". Fix round 1 (Section 12) has the cause and the fix. One more `series.py` call in the log printed its usage line (a wrong argument); the next call wrote the verdict.
 - Steps 7, 9 and 10 (the local model, the rehearsals, the video) have not run.
 
-**Owner-run steps (spec Section 6.8; after fix round 1, steps 2 to 6 again on `p34-2`):**
+**Owner-run, release `p34-2` (fix round 1), 27 November 2026** (commit `b943a6a`, gpu notes `801e87b`; `tests/acceptance/results/P-34-aws.txt`, `P-34-demo-host.txt`, `P-34-demo-host/` (run 1's screenshots), `P-34-series-20261127T104108Z.txt`, `P-34-SB-T-02.json`):
+
+- **Step 2**, `check.sh demo` (10:25 UTC; `release: "p34-2"`, `VIGIL_RELEASE=p34-2`): **16 of 16 PASS**. For `assets-gzip`, `/assets/index-CJxaupX1.js` was 101,600 bytes with gzip against 324,345 bytes without. `p34-2` was deployed after `fc567fd`, and nothing under `app/`, `web/` or `demo/` has changed since, so `p34-2` holds the code of this branch.
+- **Step 4**, the default suites: **48 passed**.
+- **Step 5**, the suite `control`: **8 passed**.
+  - "Clear all faults" finished in 40.1 s (quiet after 28.0 s).
+  - The five resets took 42.2, 12.2, 12.1, 12.1 and 12.1 s.
+- **Step 6**, SB-T-02's second series (`P-34-series-20261127T104108Z.txt`, mode `script`, `--measured storm-timing-20261125T111259Z.json`): **every criterion PASS, `passed` true**:
+  - the criteria `runs_5`, `settings_5`, `drivers_5`, `checklists_5`, `repeatability_5`, `similar_5`, `step_times_5` and `rb_db_01_4_of_5` all pass;
+  - **the suite `storm` passed in 5 of 5 runs** (`suite_storm_runs_passed` 5).
+
+  `series.py` was run twice; the log keeps both outputs. The first, before the owner had checked the mailbox lines, failed only `checklists_5`. The second, after every line of the five checklists was ticked (18 of 18 in each), passed every criterion and is the series' result (the owner's note at 12:13 UTC). `P-34-SB-T-02.json` now holds this series; the first series' values are in Section 12.
+
+| Run | Result file | Driver | Suite `storm` | Checklist | `diagnostics_s` | `ai_and_messages_s` | `action_s` | RB-DB-01 | Summary length |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | `storm-script-20261127T104115Z.json` | 33 of 33 | passed | 18 of 18 ticked | 1.0 | 8.8 | 0.6 | cited | 599 |
+| 2 | `storm-script-20261127T105208Z.json` | 33 of 33 | passed | 18 of 18 ticked | 0.7 | 8.9 | 0.5 | cited | 615 |
+| 3 | `storm-script-20261127T110258Z.json` | 33 of 33 | passed | 18 of 18 ticked | 0.7 | 8.7 | 0.5 | cited | 548 |
+| 4 | `storm-script-20261127T111346Z.json` | 33 of 33 | passed | 18 of 18 ticked | 0.8 | 8.8 | 0.5 | cited | 646 |
+| 5 | `storm-script-20261127T112425Z.json` | 33 of 33 | passed | 18 of 18 ticked | 0.7 | 8.4 | 0.5 | cited | 494 |
+
+  - **SB-T-04's limits** (15, 60 and 15 s) held in every run. The `approved` time was 481.4 to 481.7 s after T0 (the script's 09:00 is T0 + 480 s), and SB-TL-08 followed it within 0.6 s.
+  - **SL-A3-04 and SB-T-03 in the product:** `repeatability_5` and `similar_5` (PI-1001's similar incident check) passed in every run.
+  - **AR-G-12:** RB-DB-01 was cited in **5 of 5** runs. Every run cited RB-API-01, RB-DB-01 and RB-USSD-01.
+  - **P-29's "DC-S03-07 countdowns and the observation window were counted"** (spec 6.9 item 4, CTX-D-098 (5)) passed in every run of this series: each run's exit code is 0, which `storm.sh` gives only when the driver and the whole suite `storm` passed. In the first series (`p34-1`) it passed in run 1 and did not run in runs 2 to 5 (Section 12).
+  - **SL-A1-08's highlight delays are not recorded for this series.** `P-34-demo-host.txt` keeps the series' printed output only up to run 1's step 5, so the per-run delays are not in the repository. They are in each run's Playwright output under `~/.vigil-demo/demo/series/20261127T104108Z/run-{k}/` on the owner's Mac. The test "SL-A1-08 the highlight followed every step change within 2 s" passed in all five runs.
+
+- **Step 7**, the local model: **not run**. `deploy/gpu.sh start` was refused three times for `g6.xlarge` capacity (AR-ASM-06), at 09:47, 12:10 and 12:12 UTC on 27 Nov 2026. Spec 6.8 step 7 asks to try again after 15 minutes, at most four times a day; the last two attempts were 2 minutes apart.
+- **Steps 9, 10, 11 and 12** (the rehearsals, the backup video, `secrets.sh --remove`, after the merge): not yet.
+
+**Owner-run steps (spec Section 6.8; after fix round 1, steps 2 to 6 again on `p34-2`, done above):**
 1. `deploy/build.sh p34-1` and `deploy/images.sh --local` on the Mac.
 2. `deploy/deploy.sh demo p34-1`, `deploy/status.sh demo` and `check.sh demo` into `P-34-aws.txt`, with `assets-gzip` and both sizes.
 3. `secrets.sh demo`, then a look at the panel and a Reset.
@@ -203,7 +233,9 @@ A cloud session with "Record the owner-run results of P-34" copies their values 
 ## 11. Follow-up items for later packages
 
 - The owner: the steps of spec Section 6.8 (Section 8 above), the label `e2e` on the pull request, and the decisions of the SL-CP-2 review (BP-CR-06, including SL-C-01).
-- A cloud session "Record the owner-run results of P-34" after the series and the local-model step, and again after the rehearsals and the video. It also records the result of P-29's "DC-S03-07 countdowns and the observation window were counted" in each of the five runs (spec 6.9 item 4, CTX-D-098 (5)).
+- A cloud session "Record the owner-run results of P-34" after the local-model step, and again after the rehearsals and the video. The series and DC-S03-07's result per run are recorded (Section 8).
+- Step 7 (the local model): when `deploy/gpu.sh start` succeeds, run `spikes/providers/run.sh local-model --package P-34`, then `deploy/gpu.sh stop`. Spec Section 11 turns repeated capacity refusals into a blocking question for the owner, since another instance type, another region or a smaller model under AR-G-32 needs a decision. This session makes no such choice. Three refusals so far, all on 27 Nov 2026.
+- The rehearsals and the video (steps 9, 10) run on the release that will be merged. That is `p34-2` unless a later fix changes Vigil or `demo-control`.
 - P-40: the full demo's backup video, SB-T-09's other parts, SB-T-10 and the deep dives on the demo installation.
 
 ## 12. Fix round 1 (27 November 2026; spec Section 6.10)
