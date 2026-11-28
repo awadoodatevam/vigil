@@ -6,7 +6,7 @@
 | Branch | `p-34-primary-demo-hardening` |
 | Pin date (BP-R-08) | 26 November 2026 |
 | Built by | Claude Code, cloud session in the environment `vigil` (Temurin 25.0.4.1) |
-| State | Fix round 1 built (Section 12); the gate command passes (Section 10). On `p34-2` the owner-run steps 2 to 6 passed on 27 Nov 2026 (Section 8): `check.sh` 16 of 16; the default suites and `control`; SB-T-02's five runs, every criterion passed with the suite `storm` passed in 5 of 5 runs. Still to run: step 7, the local model (3 capacity refusals so far); the two rehearsals; the backup video. Built in the first session; the gate command passed there too. Done-check item 3 in the first session (26 Nov 2026; lab profile `test`): `deploy/local.sh up`, `deploy/local.sh e2e`, `deploy/local.sh e2e control`, `with-playwright.sh` and `deploy/local.sh down --volumes` all passed (Section 8); the four screenshots are committed under `tests/acceptance/results/P-34/`. Owner-run on `p34-1` (27 Nov 2026): steps 2, 4, 5 and 6 (Section 8); steps 7, 9 and 10 not yet. |
+| State | Fix round 1 built (Section 12); the gate command passes (Section 10). On `p34-2` the owner-run steps 2 to 6 passed on 27 Nov 2026 (Section 8): `check.sh` 16 of 16; the default suites and `control`; SB-T-02's five runs, every criterion passed with the suite `storm` passed in 5 of 5 runs. Step 7, the local model, passed on 28 Nov 2026, after seven capacity refusals on 27 Nov: 5 of 5 answers accepted, each within 9.9 s. Still to run: the two rehearsals; the backup video. Built in the first session; the gate command passed there too. Done-check item 3 in the first session (26 Nov 2026; lab profile `test`): `deploy/local.sh up`, `deploy/local.sh e2e`, `deploy/local.sh e2e control`, `with-playwright.sh` and `deploy/local.sh down --volumes` all passed (Section 8); the four screenshots are committed under `tests/acceptance/results/P-34/`. Owner-run on `p34-1` (27 Nov 2026): steps 2, 4, 5 and 6 (Section 8); steps 7, 9 and 10 not yet. |
 
 ## 1. What was built
 
@@ -192,7 +192,13 @@ None under `docs/` besides this report (spec Section 9: no DD value is measured)
   - **P-29's "DC-S03-07 countdowns and the observation window were counted"** (spec 6.9 item 4, CTX-D-098 (5)) passed in every run of this series: each run's exit code is 0, which `storm.sh` gives only when the driver and the whole suite `storm` passed. In the first series (`p34-1`) it passed in run 1 and did not run in runs 2 to 5 (Section 12).
   - **SL-A1-08's highlight delays are not recorded for this series.** `P-34-demo-host.txt` keeps the series' printed output only up to run 1's step 5, so the per-run delays are not in the repository. They are in each run's Playwright output under `~/.vigil-demo/demo/series/20261127T104108Z/run-{k}/` on the owner's Mac. The test "SL-A1-08 the highlight followed every step change within 2 s" passed in all five runs.
 
-- **Step 7**, the local model: **not run**. `deploy/gpu.sh start` was refused three times for `g6.xlarge` capacity (AR-ASM-06), at 09:47, 12:10 and 12:12 UTC on 27 Nov 2026. Spec 6.8 step 7 asks to try again after 15 minutes, at most four times a day; the last two attempts were 2 minutes apart.
+- **Step 7**, the local model (commit `5170872`; `spikes/results/P-34-SB-T-04.json`, run `20261128T060120Z`): **passed, all 13 checks** (`model-present`, `warm-up`, `chat-1` to `chat-5`, `accepted-1` to `accepted-5`, `gpu-fit`), so spec 6.6 item 2's rule is met.
+  - **AR-G-32:** the five durations of the product's SL-T-1 request to `gemma4:12b` were **9,761, 9,846, 9,600, 9,631 and 9,636 ms** (at most 9,846 ms, against 45 s). P-06's measurement was about 16 s each.
+  - **PM-M17-03 (CTX-D-065 (2)):** **5 of 5** answers were accepted by the product's output checks (every `rejection_reasons` entry empty). All five cited RB-DB-01.
+  - **AR-ASM-12:** `gpu-fit` passed. `/api/ps` showed `gemma4:12b` with `size` equal to `size_vram` (1,471,330,384 bytes) and `context_length` 16384, the same entry as P-06's.
+  - Prompt evaluation took 8,380 tokens in each call. The answers were 176 to 219 tokens.
+  - The line `run.sh: line 134: … Terminated: 15 aws ssm start-session …` after the result is `run.sh` ending its own port forward, as it does at every end (its `EXIT` trap).
+  - Before it started, `deploy/gpu.sh start` was refused for `g6.xlarge` capacity (AR-ASM-06) **seven times on 27 Nov 2026**, at 09:47, 12:10, 12:12, 12:36, 15:32, 17:30 and 17:32 UTC. It started on 28 Nov 2026. Spec 6.8 step 7 asks for 15 minutes between attempts and at most four attempts a day; on 27 Nov there were seven, two of them 2 minutes after the one before. Since the host did start, no blocking question arose (spec Section 11).
 - **Steps 9, 10, 11 and 12** (the rehearsals, the backup video, `secrets.sh --remove`, after the merge): not yet.
 
 **Owner-run steps (spec Section 6.8; after fix round 1, steps 2 to 6 again on `p34-2`, done above):**
@@ -233,8 +239,8 @@ A cloud session with "Record the owner-run results of P-34" copies their values 
 ## 11. Follow-up items for later packages
 
 - The owner: the steps of spec Section 6.8 (Section 8 above), the label `e2e` on the pull request, and the decisions of the SL-CP-2 review (BP-CR-06, including SL-C-01).
-- A cloud session "Record the owner-run results of P-34" after the local-model step, and again after the rehearsals and the video. The series and DC-S03-07's result per run are recorded (Section 8).
-- Step 7 (the local model): when `deploy/gpu.sh start` succeeds, run `spikes/providers/run.sh local-model --package P-34`, then `deploy/gpu.sh stop`. Spec Section 11 turns repeated capacity refusals into a blocking question for the owner, since another instance type, another region or a smaller model under AR-G-32 needs a decision. This session makes no such choice. Three refusals so far, all on 27 Nov 2026.
+- A cloud session "Record the owner-run results of P-34" after the rehearsals and the video. The series, DC-S03-07's result per run and the local model are recorded (Section 8).
+- `g6.xlarge` capacity (AR-ASM-06) was refused seven times in one day before the GPU host started. P-35 to P-40, whose deep dives use the local model on the demo installation, should plan for that wait. This is not a change to any document.
 - The rehearsals and the video (steps 9, 10) run on the release that will be merged. That is `p34-2` unless a later fix changes Vigil or `demo-control`.
 - P-40: the full demo's backup video, SB-T-09's other parts, SB-T-10 and the deep dives on the demo installation.
 
