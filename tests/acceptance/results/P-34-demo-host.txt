@@ -762,3 +762,22 @@ result tests/acceptance/results/P-34-SB-T-02.json
 2026-11-27T12:10Z deploy/gpu.sh start: AWS has no g6.xlarge capacity (AR-ASM-06)
 2026-11-27T12:12Z deploy/gpu.sh start: AWS has no g6.xlarge capacity (AR-ASM-06)
 2026-11-27T12:13Z note: the first series.py output above (FAIL checklists_5) was taken before the mailbox lines were checked; the second (every criterion PASS) after all five checklists were fully ticked. The second is the result of series P-34-series-20261127T104108Z.
+2026-11-27T12:36Z deploy/gpu.sh start: AWS has no g6.xlarge capacity (AR-ASM-06)
+2026-11-27T15:32Z deploy/gpu.sh start: AWS has no g6.xlarge capacity (AR-ASM-06)
+2026-11-27T17:30Z deploy/gpu.sh start: AWS has no g6.xlarge capacity (AR-ASM-06)
+2026-11-27T17:32Z deploy/gpu.sh start: AWS has no g6.xlarge capacity (AR-ASM-06)
+model-present: passed
+warm-up: passed
+chat-1: passed
+accepted-1: passed
+chat-2: passed
+accepted-2: passed
+chat-3: passed
+accepted-3: passed
+chat-4: passed
+accepted-4: passed
+chat-5: passed
+accepted-5: passed
+gpu-fit: passed
+result: /Users/awadood/workspace/anthropic/noc automation/spikes/results/P-34-SB-T-04.json
+spikes/providers/run.sh: line 134: 84198 Terminated: 15          aws ssm start-session --target "$HOST_ID" --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters "{\"host\":[\"$address\"],\"portNumber\":[\"11434\"],\"localPortNumber\":[\"$port\"]}" < /dev/null > "$log" 2>&1

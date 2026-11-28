@@ -1,0 +1,137 @@
+{
+  "spike": "SB-T-04",
+  "run_id": "20261128T060120Z",
+  "started_at": "2026-11-28T06:01:20.868Z",
+  "finished_at": "2026-11-28T06:02:11.444Z",
+  "passed": true,
+  "checks": [
+    {
+      "name": "model-present",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "warm-up",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "chat-1",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "accepted-1",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "chat-2",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "accepted-2",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "chat-3",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "accepted-3",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "chat-4",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "accepted-4",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "chat-5",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "accepted-5",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "gpu-fit",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "durations_ms": [
+    9761,
+    9846,
+    9600,
+    9631,
+    9636
+  ],
+  "max_duration_ms": 9846,
+  "prompt_eval_counts": [
+    8380,
+    8380,
+    8380,
+    8380,
+    8380
+  ],
+  "eval_counts": [
+    219,
+    176,
+    199,
+    219,
+    219
+  ],
+  "load_durations_ns": [
+    980210,
+    1279712,
+    1084784,
+    962750,
+    1407288
+  ],
+  "prompt_eval_durations_ns": [
+    5447050000,
+    5504004000,
+    5514962000,
+    5526408000,
+    5554150000
+  ],
+  "eval_durations_ns": [
+    3137020000,
+    2518603000,
+    2857020000,
+    3193379000,
+    3163661000
+  ],
+  "ps": {
+    "name": "gemma4:12b",
+    "size": 1471330384,
+    "size_vram": 1471330384,
+    "context_length": 16384
+  },
+  "cites_rb_db_01": [
+    true,
+    true,
+    true,
+    true,
+    true
+  ],
+  "rejection_reasons": [
+    [],
+    [],
+    [],
+    [],
+    []
+  ]
+}
