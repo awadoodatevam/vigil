@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# The checks of the demo installation with Vigil deployed (P-32 spec Section 6.9 item 4; P-05's p05_aws_check.sh
-# method): prints its parts (date, status, load balancer, main host, HTTPS answers) with their exit codes and ends with
-# one line per check, PASS {check} or FAIL {check}; exits 1 when a check fails. Never prints a secret value. Run on the
-# Mac while the main host runs, after deploy/deploy.sh {installation} {release}:
+# The checks of the demo installation with Vigil deployed (P-32 spec Section 6.9 item 4; assets-gzip: P-34 spec
+# Section 6.2 item 3; P-05's p05_aws_check.sh method): prints its parts (date, status, load balancer, main host, HTTPS
+# answers) with their exit codes and ends with one line per check, PASS {check} or FAIL {check}; exits 1 when a check
+# fails. Never prints a secret value. Run on the Mac while the main host runs, after deploy/deploy.sh {installation}
+# {release}:
 #   tests/acceptance/demo-host/check.sh {installation} 2>&1 | tee tests/acceptance/results/P-32-aws.txt
 set -euo pipefail
 
@@ -70,6 +71,16 @@ part_https() {
   curl -sS -o /dev/null -D - -w 'status %{http_code}\n' "http://demo.$D/"
   echo "-- https-demo"
   curl -sS -o /dev/null -w 'status %{http_code}\n' "https://demo.$D/login"
+  echo "-- assets-gzip"
+  local asset
+  asset=$(curl -sS "https://demo.$D/login" | grep -oE '/assets/[^"'"'"']+\.js' | head -n 1 || true)
+  echo "asset $asset"
+  if [ -n "$asset" ]; then
+    echo "with gzip:"
+    curl -sS -o /dev/null -D - -w 'size %{size_download}\n' -H 'Accept-Encoding: gzip' "https://demo.$D$asset"
+    echo "without:"
+    curl -sS -o /dev/null -D - -w 'size %{size_download}\n' "https://demo.$D$asset"
+  fi
   echo "-- actuator-404"
   curl -sS -o /dev/null -w 'status %{http_code}\n' "https://demo.$D/actuator/health"
   echo "-- https-control"
@@ -129,6 +140,30 @@ def http_redirect():
     text = https.get("http-redirect", "")
     location = re.search(r"^location:\s*(\S+)", text, re.MULTILINE | re.IGNORECASE)
     return status_of(text) == "301" and bool(location) and location.group(1).startswith(f"https://demo.{domain}")
+
+
+def assets_gzip():
+    """AR-W-01 (BP-A-33): the script asked with gzip comes gzip-compressed, cached for a year and smaller."""
+    text = https.get("assets-gzip", "")
+    if "\nwithout:\n" not in "\n" + text or "with gzip:\n" not in text:
+        return False
+    zipped, plain = text.split("with gzip:\n", 1)[1].split("without:\n", 1)
+
+    def size(part):
+        sizes = re.findall(r"^size (\d+)$", part, re.MULTILINE)
+        return int(sizes[-1]) if sizes else None
+
+    def header(part, name):
+        found = re.findall(rf"^{name}:\s*(.*?)\s*$", part, re.MULTILINE | re.IGNORECASE)
+        return found[-1] if found else None
+
+    return (
+        header(zipped, "content-encoding") == "gzip"
+        and header(zipped, "cache-control") == "max-age=31536000, immutable"
+        and size(zipped) is not None
+        and size(plain) is not None
+        and size(zipped) < size(plain)
+    )
 
 
 def https_control():
@@ -223,6 +258,7 @@ def public_name():
 CHECKS = [
     ("http-redirect", http_redirect),
     ("https-demo", lambda: status_of(https.get("https-demo", "")) == "200"),
+    ("assets-gzip", assets_gzip),
     ("actuator-404", lambda: status_of(https.get("actuator-404", "")) == "404"),
     ("https-control", https_control),
     ("unknown-host-404", lambda: status_of(https.get("unknown-host-404", "")) == "404"),

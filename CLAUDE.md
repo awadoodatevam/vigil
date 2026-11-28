@@ -49,14 +49,14 @@ Under `docs/` you MAY change only: your package report; the values your spec nam
 | Requirement IDs with and without tests | `tools/trace.py` |
 | Lab only: lab hosts (from P-03); Zabbix, Prometheus, Alertmanager, `demo-faults` and the webhook recorder (from P-04) | `deploy/local.sh up --lab-only [--profile test|demo] [--project NAME]`, `deploy/local.sh down [--volumes] [--project NAME]` |
 | Storm timing spike (from P-04; needs the lab) | `spikes/storm-timing/run.sh [--storms N] [--extra LIST] [--save-recordings] [--foreground] [--project NAME]` |
-| Provider spikes (owner-run, from the Mac; from P-06; `--package P-20` from P-20; `teams` and `email` from P-07) | `spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20]`, `spikes/providers/run.sh teams|email` (from P-07) |
+| Provider spikes (owner-run, from the Mac; from P-06; `--package P-20` from P-20; `--package P-34` from P-34; `teams` and `email` from P-07) | `spikes/providers/run.sh jira|claude|openai|similarity|local-model [--package P-20|P-34]`, `spikes/providers/run.sh teams|email` (from P-07) |
 | Local installation: Vigil, lab, dev fakes (from P-26) | `deploy/local.sh up [--profile test|demo] [--values FILE] [--no-build] [--project NAME]`, `deploy/local.sh down [--volumes] [--project NAME]`, `deploy/local.sh reset [--project NAME]`, `deploy/local.sh logs [--no-follow] [SERVICE…] [--project NAME]` |
 | Build the local images that tests use (from P-03); the images of a local installation (from P-26) | `deploy/images.sh --test` (the gate command runs it); `deploy/images.sh --local` (`deploy/local.sh up` runs it) |
 | Storm driver (from P-27) | `tests/acceptance/storm/run.sh [--mode immediate|script] [--deliveries fakes|checklist] [--acts driver|pages] [--project NAME]` (`--acts` from P-30) |
 | Playwright tests (from P-26) | `deploy/local.sh e2e [suite]` |
 | Storm driver with the Playwright suite `storm` (from P-28) | `tests/acceptance/storm/with-playwright.sh [--mode immediate|script] [--project NAME]` |
 | Demo installation on AWS (owner-run, from the Mac; P-05, P-32): edge, secrets, images, deployment (`--spike` from P-32), status, file fetch (from P-32), GPU host, models | `deploy/edge.md` (the scripts `deploy/edge.sh`, `new-installation.sh`, `build.sh`, `deploy.sh`, `status.sh`, `fetch.sh`, `gpu.sh`, `models.sh`) |
-| Runs against the demo installation (owner-run, from the Mac; from P-32) | `spikes/storm-timing/main-host.sh {installation} {release}`; `tests/acceptance/demo-host/secrets.sh`, `e2e.sh`, `storm.sh`, `check.sh`, `ai-cut.sh`, `sample.sh` (`docs/packages/P-32.md` Section 6.11) |
+| Runs against the demo installation (owner-run, from the Mac; from P-32) | `spikes/storm-timing/main-host.sh {installation} {release}`; `tests/acceptance/demo-host/secrets.sh`, `e2e.sh`, `storm.sh`, `check.sh`, `ai-cut.sh`, `sample.sh` (`docs/packages/P-32.md` Section 6.11); `series.sh`, `series.py`, `rehearsal.py` (from P-34; `docs/packages/P-34.md` Section 6.8) |
 
 Builds with Testcontainers take longer than 2 minutes: run them with a longer timeout or in the background and wait for the result. A foreground command stops waiting after at most 10 minutes. In cloud sessions use the lab profile `test`.
 

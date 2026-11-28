@@ -3,9 +3,10 @@ secrets, HTTP calls, recordings, results, the owner's questions.
 
 Every spike runs in this order: read and check its arguments, inputs and secrets (a failure raises Stop and changes no
 file); remove the *.json files of its recording folder; make its calls, writing each recording as soon as the call
-ends; write its result file {package}-{spike}.json ({package} P-06, or P-20 with run.sh --package P-20; P-20 spec
-Section 6.14; P-07 for the spikes of P-07). No secret value is printed, logged or written: every file is checked
-before it is written (SecretInFile stops the spike, and nothing more is written).
+ends; write its result file {package}-{spike}.json ({package} P-06, or P-20 or P-34 with run.sh --package P-20 or
+--package P-34; P-20 spec Section 6.14, P-34 spec Section 6.6; P-07 for the spikes of P-07). No secret value is
+printed, logged or written: every file is checked before it is written (SecretInFile stops the spike, and nothing more
+is written).
 """
 
 import base64
@@ -83,7 +84,8 @@ def results_folder():
 
 
 def result_package():
-    """The package that names the result files: VIGIL_SPIKE_PACKAGE (run.sh --package P-20) or P-06 when unset."""
+    """The package that names the result files: VIGIL_SPIKE_PACKAGE (run.sh --package P-20 or --package P-34) or P-06
+    when unset."""
     return os.environ.get("VIGIL_SPIKE_PACKAGE") or "P-06"
 
 

@@ -1,0 +1,259 @@
+{
+  "driver": "storm",
+  "mode": "script",
+  "deliveries": "checklist",
+  "acts": "driver",
+  "profile": "demo",
+  "started_at": "2026-11-27T05:58:04.956Z",
+  "finished_at": "2026-11-27T06:08:23.268Z",
+  "finished": true,
+  "t0": "2026-11-27T05:58:30.683Z",
+  "tenant_id": null,
+  "reset": {
+    "branch_a_seconds": 18.106,
+    "quiet_seconds": 6.021,
+    "branch_b_seconds": 4.029,
+    "total_seconds": 18.114
+  },
+  "incidents": {
+    "storm": {
+      "incident_id": "01a21b95-8536-7381-8429-bb7586a269a5",
+      "number": 2,
+      "ticket_key": "NOC-23"
+    },
+    "report": {
+      "incident_id": "01a21b95-a480-741c-bc19-964937007af2",
+      "number": 1,
+      "ticket_key": "NOC-22"
+    }
+  },
+  "times": {
+    "SB-TL-01": 30.316,
+    "SB-TL-02": 71.766,
+    "SB-TL-03": 72.502,
+    "SB-TL-04": 80.853,
+    "SB-TL-06": 391.338,
+    "SB-TL-07": null,
+    "approved": 481.334,
+    "SB-TL-08": 481.883,
+    "SB-TL-10": 571.448
+  },
+  "investigation": {
+    "runbooks_cited": [
+      "RB-API-01",
+      "RB-DB-01",
+      "RB-USSD-01"
+    ],
+    "likely_cause": "The /data volume on the subscriber DB server srv-db-01 is 100% full, so the database refuses writes. The txlog_archive folder holds 8.5 GiB, all written in the last 15 minutes, which looks like a transaction-log archive catch-up run rather than organic DB growth. The failed writes cascade into API errors on api-balance and api-bundle, USSD gateway timeouts and synthetic probe failures, and SMS queue growth.",
+    "summary_length": 498
+  },
+  "checklist": "storm-checklist-20261127T060823Z.md",
+  "measured": "storm-timing-20261125T111259Z.json",
+  "checks": [
+    {
+      "id": "SB-SET-07",
+      "name": "incident list empty",
+      "passed": true,
+      "detail": "expected [], found []"
+    },
+    {
+      "id": "SB-SET-07",
+      "name": "sources healthy",
+      "passed": true,
+      "detail": "expected (2, 2), found (2, 2)"
+    },
+    {
+      "id": "SB-V-38",
+      "name": "seeded dashboard",
+      "passed": true,
+      "detail": "as expected"
+    },
+    {
+      "id": "SB-V-39",
+      "name": "baselines",
+      "passed": true,
+      "detail": "as expected"
+    },
+    {
+      "id": "SB-R-06",
+      "name": "two incidents",
+      "passed": true,
+      "detail": "as expected"
+    },
+    {
+      "id": "SB-S01",
+      "name": "storm alerts",
+      "passed": true,
+      "detail": "expected (126, 31, 95), found (126, 31, 95)"
+    },
+    {
+      "id": "SB-S01",
+      "name": "storm alert types",
+      "passed": true,
+      "detail": "expected ['Balance-check API errors', 'Bundle-purchase API errors', 'Database write errors', 'Disk full', 'SMS queue growth', 'Synthetic USSD session failed', 'USSD gateway timeouts'], found ['Balance-check API errors', 'Bundle-purchase API errors', 'Database write errors', 'Disk full', 'SMS queue growth', 'Synthetic USSD session failed', 'USSD gateway timeouts']"
+    },
+    {
+      "id": "SB-S01",
+      "name": "report alert",
+      "passed": true,
+      "detail": "expected ['zabbix'], found ['zabbix']"
+    },
+    {
+      "id": "SB-S01",
+      "name": "storm within 120 s",
+      "passed": true,
+      "detail": "latest fired_at T0 + 30.3 s; 0 after T0 + 120 s"
+    },
+    {
+      "id": "SB-S02",
+      "name": "storm header",
+      "passed": true,
+      "detail": "expected {'title': 'Subscriber DB server: Disk full \u2014 3 services affected', 'alert_count': 126, 'hypothesis': ['srv-db-01', 'Subscriber DB server', 6, 6], 'affected_services': ['Balance Check (USSD)', 'Bundle Purchase', 'SMS Notifications'], 'reopen_count': 0}, found {'title': 'Subscriber DB server: Disk full \u2014 3 services affected', 'alert_count': 126, 'hypothesis': ['srv-db-01', 'Subscriber DB server', 6, 6], 'affected_services': ['Balance Check (USSD)', 'Bundle Purchase', 'SMS Notifications'], 'reopen_count': 0}"
+    },
+    {
+      "id": "SB-S02",
+      "name": "grouping reasons",
+      "passed": true,
+      "detail": "as expected"
+    },
+    {
+      "id": "SB-S02",
+      "name": "report incident",
+      "passed": true,
+      "detail": "expected {'title': 'Report export job: Report export job failed \u2014 1 service affected', 'severity': 'P4', 'owner': 'it-apps', 'informed': [], 'acknowledged': None, 'escalation': None, 'state': 'open', 'run_state': 'waiting', 'steps': ['s-trigger', 's-severity', 's-summarise-2', 's-ticket-2', 's-notify-2', 's-recover-2'], 'last_step_state': 'waiting', 'notified': [('it-apps', 'incident_notification')]}, found {'title': 'Report export job: Report export job failed \u2014 1 service affected', 'severity': 'P4', 'owner': 'it-apps', 'informed': [], 'acknowledged': None, 'escalation': None, 'state': 'open', 'run_state': 'waiting', 'steps': ['s-trigger', 's-severity', 's-summarise-2', 's-ticket-2', 's-notify-2', 's-recover-2'], 'last_step_state': 'waiting', 'notified': [('it-apps', 'incident_notification')]}"
+    },
+    {
+      "id": "SB-S03",
+      "name": "diagnostics",
+      "passed": true,
+      "detail": "as expected"
+    },
+    {
+      "id": "SB-S03",
+      "name": "diagnostic values",
+      "passed": true,
+      "detail": "as expected"
+    },
+    {
+      "id": "SB-S04",
+      "name": "routing",
+      "passed": true,
+      "detail": "expected ('P1', 'db-ops', 'Database Operations', ['vas-service-owners'], 'Critical service affected'), found ('P1', 'db-ops', 'Database Operations', ['vas-service-owners'], 'Critical service affected')"
+    },
+    {
+      "id": "SB-S04",
+      "name": "investigation",
+      "passed": true,
+      "detail": "as expected; runbooks_cited ['RB-API-01', 'RB-DB-01', 'RB-USSD-01']"
+    },
+    {
+      "id": "SB-S05",
+      "name": "acknowledge page",
+      "passed": true,
+      "detail": "expected {'title': 'Subscriber DB server: Disk full \u2014 3 services affected', 'severity': 'P1', 'owner': 'Database Operations', 'summary': 'The /data volume on subscriber DB server srv-db-01 is 100% full (15.9 of 15.9 GiB), so database writes are failing. /data/txlog_archive holds 8.5 GiB written in the last 15 minutes across 34 files, which looks like a log-archive catch-up run. Impact: Balance Check and Bundle Purchase (both critical) and SMS Notifications (high). Unknown: why the burst happened, whether the archives are purgeable, and whether the DB is read-only. Alerts name srv-db-01 and lab-db-01 but point to the same volume.', 'may_act': True, 'refusal': None, 'acknowledged': None, 'answer': 201, 'after': 'Hira Baig (NOC L1)'}, found {'title': 'Subscriber DB server: Disk full \u2014 3 services affected', 'severity': 'P1', 'owner': 'Database Operations', 'summary': 'The /data volume on subscriber DB server srv-db-01 is 100% full (15.9 of 15.9 GiB), so database writes are failing. /data/txlog_archive holds 8.5 GiB written in the last 15 minutes across 34 files, which looks like a log-archive catch-up run. Impact: Balance Check and Bundle Purchase (both critical) and SMS Notifications (high). Unknown: why the burst happened, whether the archives are purgeable, and whether the DB is read-only. Alerts name srv-db-01 and lab-db-01 but point to the same volume.', 'may_act': True, 'refusal': None, 'acknowledged': None, 'answer': 201, 'after': 'Hira Baig (NOC L1)'}"
+    },
+    {
+      "id": "SB-S05",
+      "name": "timeline acknowledgement",
+      "passed": true,
+      "detail": "expected [('user', 'Hira Baig (NOC L1)', '2026-11-27T06:05:02.022Z')], found [('user', 'Hira Baig (NOC L1)', '2026-11-27T06:05:02.022Z')]"
+    },
+    {
+      "id": "SB-S06",
+      "name": "similar incident",
+      "passed": true,
+      "detail": "expected ('done', 'match', 'PI-1001', 'Subscriber DB /data full after archive catch-up run', 'Fictional record', '1.00', 4), found ('done', 'match', 'PI-1001', 'Subscriber DB /data full after archive catch-up run', 'Fictional record', '1.00', 4)"
+    },
+    {
+      "id": "SB-S06",
+      "name": "proposal",
+      "passed": true,
+      "detail": "expected ('Purge archived transaction logs', [('path', '/data/txlog_archive'), ('older_than_minutes', 1440), ('max_bytes', 12884901888)], ('lab-db-01', 'Subscriber DB server'), 'approval_required'), found ('Purge archived transaction logs', [('path', '/data/txlog_archive'), ('older_than_minutes', 1440), ('max_bytes', 12884901888)], ('lab-db-01', 'Subscriber DB server'), 'approval_required')"
+    },
+    {
+      "id": "SB-S06",
+      "name": "approval page",
+      "passed": true,
+      "detail": "as expected"
+    },
+    {
+      "id": "SB-S06",
+      "name": "decision",
+      "passed": true,
+      "detail": "expected (201, 'approved', 'Usman Tariq (DB Ops)'), found (201, 'approved', 'Usman Tariq (DB Ops)')"
+    },
+    {
+      "id": "SB-S06",
+      "name": "action executed once",
+      "passed": true,
+      "detail": "expected [(1, 1, 'succeeded', [('approval_valid', True), ('unchanged', True), ('incident_open', True), ('precondition', True)])], found [(1, 1, 'succeeded', [('approval_valid', True), ('unchanged', True), ('incident_open', True), ('precondition', True)])]; 1 action_execution entries (expected 1)"
+    },
+    {
+      "id": "SB-S06",
+      "name": "action result",
+      "passed": true,
+      "detail": "as expected"
+    },
+    {
+      "id": "SB-S06",
+      "name": "action values",
+      "passed": true,
+      "detail": "expected (34, '8.5', 100), found (34, '8.5', 100)"
+    },
+    {
+      "id": "SB-S07",
+      "name": "recovery",
+      "passed": true,
+      "detail": "expected [('Subscriber DB services recovered', 'recovered', 60, [True, True], True)], found [('Subscriber DB services recovered', 'recovered', 60, [True, True], True)]"
+    },
+    {
+      "id": "SB-S07",
+      "name": "resolved",
+      "passed": true,
+      "detail": "expected state resolved with resolved_at, no escalation, every alert resolved; found ('resolved', True, None, {'resolved': 126})"
+    },
+    {
+      "id": "SB-S07",
+      "name": "ticket resolved",
+      "passed": true,
+      "detail": "expected Done within step 8's limit, found 'Done' (NOC-23)"
+    },
+    {
+      "id": "SB-S08",
+      "name": "storm run",
+      "passed": true,
+      "detail": "expected ('finished', 1, 1, [('s-trigger', 'completed', 1), ('s-severity', 'completed', 1), ('s-diagnose', 'completed', 1), ('s-investigate', 'completed', 1), ('s-summarise', 'completed', 1), ('s-ticket', 'completed', 1), ('s-notify', 'completed', 1), ('s-wait-ack', 'completed', 1), ('s-similar', 'completed', 1), ('s-approve', 'completed', 1), ('s-action', 'completed', 1), ('s-recover', 'completed', 1), ('s-resolve', 'completed', 1)]), found ('finished', 1, 1, [('s-trigger', 'completed', 1), ('s-severity', 'completed', 1), ('s-diagnose', 'completed', 1), ('s-investigate', 'completed', 1), ('s-summarise', 'completed', 1), ('s-ticket', 'completed', 1), ('s-notify', 'completed', 1), ('s-wait-ack', 'completed', 1), ('s-similar', 'completed', 1), ('s-approve', 'completed', 1), ('s-action', 'completed', 1), ('s-recover', 'completed', 1), ('s-resolve', 'completed', 1)])"
+    },
+    {
+      "id": "SB-S09",
+      "name": "dashboard formulas",
+      "passed": true,
+      "detail": "as expected; computed time_to_acknowledge 5.7, time_to_recover 40.5, alerts_suppressed 650, incidents_merged 47"
+    },
+    {
+      "id": "SB-S09",
+      "name": "dashboard values",
+      "passed": true,
+      "detail": "expected ['5.7', '40.5', '650', '47'], found ['5.7', '40.5', '650', '47']"
+    },
+    {
+      "id": "SB-TL-05",
+      "name": "no escalation",
+      "passed": true,
+      "detail": "as expected"
+    },
+    {
+      "id": "SB-R-06",
+      "name": "repeatability result",
+      "passed": true,
+      "detail": "all eight passed"
+    }
+  ],
+  "not_run": [
+    "SB-S05 ticket",
+    "SB-S05 incident messages",
+    "SB-S06 approval messages",
+    "SB-S07 ticket comment"
+  ],
+  "passed": true
+}

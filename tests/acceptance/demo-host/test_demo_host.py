@@ -1,4 +1,5 @@
-"""Tests of the demo-host tooling (P-32 spec Section 7): the scripts run in a temporary copy of the repository with the
+"""Tests of the demo-host tooling (P-32 spec Section 7; P-34 spec Section 7: assets-gzip, series.sh, series.py,
+rehearsal.py): the scripts run in a temporary copy of the repository with the
 fakes of deploy/tests (the AWS CLI, whose ssm send-command runs the host part locally, docker and curl), a docker stub
 of their own where a container must leave a file, stubs of the host's tools, and an in-process control panel."""
 
@@ -7,6 +8,8 @@ import json
 import os
 import shutil
 import stat
+import subprocess
+import sys
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -431,6 +434,16 @@ HOST_TOOLS = {
 }
 
 
+PAGE = '<html><script type="module" crossorigin src="/assets/index-AbC123.js"></script></html>'
+ZIPPED = (
+    "HTTP/2 200 \r\ncontent-type: text/javascript\r\ncache-control: max-age=31536000, immutable\r\n"
+    "content-encoding: gzip\r\nvary: accept-encoding\r\n\r\nsize 98765\n"
+)
+PLAIN = (
+    "HTTP/2 200 \r\ncontent-type: text/javascript\r\ncache-control: max-age=31536000, immutable\r\n\r\nsize 321456\n"
+)
+
+
 def check_table(harness, changes=None):
     changes = changes or {}
     lb = "vigil-alb-1.us-east-1.elb.amazonaws.com"
@@ -469,6 +482,18 @@ def check_table(harness, changes=None):
                     )
                 ],
             ),  # fmt: skip
+            # assets-gzip (P-34): the page, then the script with and without Accept-Encoding: gzip.
+            ("curl", r"^-sS https://demo\.vigil\.solviclabs\.com/login$", [(changes.get("page", PAGE), 0)]),
+            (
+                "curl",
+                r"Accept-Encoding: gzip https://demo\.vigil\.solviclabs\.com/assets/",
+                [(changes.get("zipped", ZIPPED), 0)],
+            ),
+            (
+                "curl",
+                r"size_download\}\\n https://demo\.vigil\.solviclabs\.com/assets/",
+                [(changes.get("plain", PLAIN), 0)],
+            ),
             ("curl", r"https://demo\.vigil\.solviclabs\.com/login$", [("status 200\n", 0)]),
             ("curl", r"https://control\.", [("<html><title>Demo control panel</title></html>\nstatus 200\n", 0)]),
             ("curl", r"https://" + lb.replace(".", r"\."), [("status 404\n", 0)]),
@@ -494,14 +519,14 @@ def test_check_verdicts(harness):
     tools = dict(HOST_TOOLS)
     path = tool_stubs(harness, tools)
     environment = {"PATH": path, "VIGIL_TLS_CURL": str(harness.base / "stubs" / "tls-curl")}
-    names = ["http-redirect", "https-demo", "actuator-404", "https-control", "unknown-host-404", "tls-1.1-refused",
-             "targets-healthy", "published-ports", "DOCKER-USER", "lab-to-app-blocked", "lab-public-name",
-             "secrets-readable", "correlation", "clock", "release"]  # fmt: skip
+    names = ["http-redirect", "https-demo", "assets-gzip", "actuator-404", "https-control", "unknown-host-404",
+             "tls-1.1-refused", "targets-healthy", "published-ports", "DOCKER-USER", "lab-to-app-blocked",
+             "lab-public-name", "secrets-readable", "correlation", "clock", "release"]  # fmt: skip
     readable = check_table(harness)
     # host-status.sh checks each unit with docker exec; the fake answers 0 for each, so every unit is readable.
     result = run(harness, "check.sh", "demo", **environment)
     lines = result.stdout.splitlines()
-    assert lines[-15:] == [f"PASS {name}" for name in names], result.stdout + result.stderr
+    assert lines[-16:] == [f"PASS {name}" for name in names], result.stdout + result.stderr
     assert result.returncode == 0
     assert readable and all(f"{unit}: secrets readable" in lines for unit in UNITS)
     for part in ("== date", "== status", "== load-balancer", "== main-host", "== https"):
@@ -526,7 +551,7 @@ def test_check_verdicts(harness):
         check_table(harness, changes)
         result = run(harness, "check.sh", "demo", **environment)
         assert result.returncode == 1
-        verdicts = result.stdout.splitlines()[-15:]
+        verdicts = result.stdout.splitlines()[-16:]
         assert [v for v in verdicts if v.startswith("FAIL")] == [f"FAIL {failing}"], verdicts
 
     # lab-public-name passes on 404 unknown_host: Vigil answered through the public name before any tenant exists.
@@ -553,3 +578,367 @@ def test_sample_paths_with_spaces(harness, tmp_path):
     report = json.loads((harness.root / "spikes" / "results" / "P-32-AR-SP-03.json").read_text())
     assert [s["result_file"] for s in report["storms"]] == ["storm 0.json", "storm 1.json", "storm 2.json"]
     assert report["passed"] is True and result.returncode == 0, result.stdout + result.stderr
+
+
+def test_check_assets_gzip(harness):
+    """AR-W-01 check.sh's assets-gzip check on fake outputs: gzip, the year's cache and a smaller size pass."""
+    path = tool_stubs(harness, dict(HOST_TOOLS))
+    environment = {"PATH": path, "VIGIL_TLS_CURL": str(harness.base / "stubs" / "tls-curl")}
+    check_table(harness)
+    result = run(harness, "check.sh", "demo", **environment)
+    assert result.returncode == 0, result.stdout + result.stderr
+    lines = result.stdout.splitlines()
+    assert "PASS assets-gzip" in lines
+    assert "asset /assets/index-AbC123.js" in lines and "size 98765" in lines and "size 321456" in lines
+    calls = [c["args"] for c in harness.fake_calls("curl") if any("/assets/" in a for a in c["args"])]
+    assert calls == [
+        ["-sS", "-o", "/dev/null", "-D", "-", "-w", "size %{size_download}\\n", "-H", "Accept-Encoding: gzip",
+         "https://demo.vigil.solviclabs.com/assets/index-AbC123.js"],
+        ["-sS", "-o", "/dev/null", "-D", "-", "-w", "size %{size_download}\\n",
+         "https://demo.vigil.solviclabs.com/assets/index-AbC123.js"],
+    ]  # fmt: skip
+    for changes in (
+        {"zipped": ZIPPED.replace("content-encoding: gzip\r\n", "")},
+        {"zipped": ZIPPED.replace("max-age=31536000, immutable", "no-cache")},
+        {"zipped": ZIPPED.replace("size 98765", "size 321456")},
+        {"page": "<html></html>"},
+        {"plain": "curl: (6) Could not resolve host\n"},
+    ):
+        harness.log_path.write_text("")
+        check_table(harness, changes)
+        result = run(harness, "check.sh", "demo", **environment)
+        assert result.returncode == 1, changes
+        verdicts = result.stdout.splitlines()[-16:]
+        assert [v for v in verdicts if v.startswith("FAIL")] == ["FAIL assets-gzip"], (changes, verdicts)
+    harness.log_path.write_text("")
+    check_table(
+        harness,
+        {
+            "zipped": ZIPPED.replace("content-encoding:", "Content-Encoding:").replace(
+                "cache-control:", "Cache-CONTROL:"
+            )
+        },
+    )
+    result = run(harness, "check.sh", "demo", **environment)
+    assert "PASS assets-gzip" in result.stdout.splitlines(), "header names in any case"
+
+
+# series.sh
+
+FAKE_STORM = """#!/usr/bin/env bash
+# A fake storm.sh: records its arguments, leaves a result file and a checklist (the run's own, or none when the run's
+# number is in FAKE_NO_FILES), the suite's screens and results, and exits with the run's code of FAKE_CODES.
+set -euo pipefail
+n=$(( $(wc -l < "$FAKE_STORM_LOG") + 1 ))
+printf '%s\\n' "$*" >> "$FAKE_STORM_LOG"
+case " ${FAKE_NO_FILES:-} " in
+  *" $n "*) ;;
+  *)
+    echo "{\\"run\\": $n}" > "tests/acceptance/results/storm-script-2026112${n}T100000Z.json"
+    echo "- [ ] run $n" > "tests/acceptance/results/storm-checklist-2026112${n}T101500Z.md"
+    ;;
+esac
+mkdir -p "$HOME/.vigil-demo/demo/e2e/screens" "$HOME/.vigil-demo/demo/e2e/results"
+echo "run $n" > "$HOME/.vigil-demo/demo/e2e/screens/run-$n.png"
+echo "trace $n" > "$HOME/.vigil-demo/demo/e2e/results/trace.zip"
+code=$(echo "${FAKE_CODES:-}" | cut -d, -f"$n")
+exit "${code:-0}"
+"""
+
+
+def series_harness(harness):
+    (harness.root / "tests" / "acceptance" / "demo-host" / "storm.sh").write_text(FAKE_STORM)
+    results = harness.root / "tests" / "acceptance" / "results"
+    results.mkdir(parents=True, exist_ok=True)
+    (results / "storm-script-20261101T000000Z.json").write_text("{}")
+    log = harness.base / "storm.log"
+    log.write_text("")
+    return results, log
+
+
+def test_series_runs(harness, tmp_path):
+    """SB-T-02 series.sh runs storm.sh five times in mode script with the suite storm, keeps going after a failed run,
+    and writes the manifest"""
+    results, log = series_harness(harness)
+    spike = tmp_path / "storm-timing-20261125T111259Z.json"
+    spike.write_text("{}")
+    environment = {"FAKE_STORM_LOG": str(log), "FAKE_CODES": "0,1,0,0,0", "FAKE_NO_FILES": "4"}
+    result = run(harness, "series.sh", "demo", "--measured", str(spike), **environment)
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert log.read_text().splitlines() == [f"demo --mode script --with-playwright --measured {spike}"] * 5
+    manifests = sorted(results.glob("P-34-series-*.txt"))
+    assert len(manifests) == 1
+    stamp = manifests[0].name[len("P-34-series-") : -len(".txt")]
+    assert result.stdout.splitlines()[-1] == f"manifest tests/acceptance/results/{manifests[0].name}"
+    runs = [line for line in manifests[0].read_text().splitlines() if not line.startswith("#")]
+    assert runs == [
+        "run 1 exit 0 result storm-script-20261121T100000Z.json checklist storm-checklist-20261121T101500Z.md",
+        "run 2 exit 1 result storm-script-20261122T100000Z.json checklist storm-checklist-20261122T101500Z.md",
+        "run 3 exit 0 result storm-script-20261123T100000Z.json checklist storm-checklist-20261123T101500Z.md",
+        "run 4 exit 0 result none checklist none",
+        "run 5 exit 0 result storm-script-20261125T100000Z.json checklist storm-checklist-20261125T101500Z.md",
+    ]
+    series = harness.home / ".vigil-demo" / "demo" / "series" / stamp
+    for k in range(1, 6):
+        assert sorted(p.name for p in (series / f"run-{k}" / "screens").iterdir()) == [f"run-{k}.png"]
+        assert (series / f"run-{k}" / "results" / "trace.zip").read_text() == f"trace {k}\n"
+
+    log.write_text("")
+    for path in results.glob("P-34-series-*.txt"):
+        path.unlink()
+    result = run(harness, "series.sh", "demo", "--runs", "2", FAKE_STORM_LOG=str(log))
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert log.read_text().splitlines() == ["demo --mode script --with-playwright"] * 2
+    for arguments in ([], ["unknown"], ["demo", "--runs", "0"], ["demo", "--runs", "x"], ["demo", "--other"]):
+        assert run(harness, "series.sh", *arguments).returncode == 2, arguments
+    missing = run(harness, "series.sh", "demo", "--measured", str(tmp_path / "missing.json"))
+    assert missing.returncode == 1 and missing.stdout.strip() == f"No file {tmp_path / 'missing.json'}."
+
+
+# series.py
+
+
+def driver_run(k, cited=("RB-DB-01",), times=None, checks=None, **settings):
+    result = {
+        "driver": "storm",
+        "mode": "script",
+        "deliveries": "checklist",
+        "acts": "driver",
+        "profile": "demo",
+        "finished": True,
+        "times": times
+        or {
+            "SB-TL-01": 95.0,
+            "SB-TL-02": 150.04,
+            "SB-TL-03": 160.0,
+            "SB-TL-04": 171.26,
+            "SB-TL-06": 390.5,
+            "SB-TL-07": None,
+            "approved": 480.4,
+            "SB-TL-08": 489.0,
+            "SB-TL-10": 700.0,
+        },  # fmt: skip
+        "investigation": {"runbooks_cited": list(cited), "likely_cause": "x", "summary_length": 300 + k},
+        "checks": checks
+        or [
+            {"id": "SB-S06", "name": "similar incident", "passed": True, "detail": "PI-1001 1.00"},
+            {"id": "SB-R-06", "name": "repeatability result", "passed": True, "detail": ""},
+        ],
+        "passed": True,
+    }
+    result.update(settings)
+    return result
+
+
+def write_series(folder, runs, exits=None, ticks=None):
+    """A manifest with its result files and checklists; runs: one driver result per run."""
+    lines = ["# P-34 SB-T-02 series 20261127T090000Z: installation demo, 5 runs, measured x.json"]
+    for k, result in enumerate(runs, 1):
+        name, checklist = f"storm-script-2026112{k}T100000Z.json", f"storm-checklist-2026112{k}T101500Z.md"
+        (folder / name).write_text(json.dumps(result))
+        ticked = (ticks or {}).get(k, True)
+        last = "- [x] two" if ticked else "- [ ] two"
+        (folder / checklist).write_text(f"# Checklist\n\n- [x] Teams one\n{last}\n")
+        lines.append(f"run {k} exit {(exits or {}).get(k, 0)} result {name} checklist {checklist}")
+    manifest = folder / "P-34-series-20261127T090000Z.txt"
+    manifest.write_text("\n".join(lines) + "\n")
+    return manifest
+
+
+def series_py(manifest):
+    result = subprocess.run(
+        [sys.executable, str(HERE / "series.py"), str(manifest)], capture_output=True, text=True, check=False
+    )
+    report = manifest.parent / "P-34-SB-T-02.json"
+    return result, json.loads(report.read_text()) if report.exists() else None
+
+
+def failing(report):
+    return [name for name, passed in report["criteria"].items() if not passed]
+
+
+def test_series_py_five_good_runs(tmp_path):
+    """SB-T-02 series.py passes five good runs and fails a run whose checklist has an unticked line"""
+    manifest = write_series(tmp_path, [driver_run(k) for k in range(1, 6)])
+    result, report = series_py(manifest)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert list(report) == ["manifest", "runs", "criteria", "passed", "suite_storm_runs_passed", "summary_lengths"]
+    assert report["manifest"] == manifest.name and report["passed"] is True
+    assert list(report["criteria"]) == ["runs_5", "settings_5", "drivers_5", "checklists_5", "repeatability_5",
+                                        "similar_5", "step_times_5", "rb_db_01_4_of_5"]  # fmt: skip
+    assert result.stdout.splitlines()[:8] == [f"PASS {name}" for name in report["criteria"]]
+    first = report["runs"][0]
+    assert list(first) == ["run", "exit", "result", "checklist", "driver_passed", "suite_storm_passed", "settings",
+                           "checklist_ticked", "repeatability", "similar", "times", "step_times", "runbooks_cited",
+                           "summary_length"]  # fmt: skip
+    assert first["settings"] == {"mode": "script", "deliveries": "checklist", "acts": "driver", "profile": "demo",
+                                 "finished": True}  # fmt: skip
+    assert first["step_times"] == {"diagnostics_s": 10.0, "ai_and_messages_s": 11.3, "action_s": 8.6}
+    assert report["summary_lengths"] == [301, 302, 303, 304, 305] and report["suite_storm_runs_passed"] == 5
+
+    manifest = write_series(tmp_path, [driver_run(k) for k in range(1, 6)], ticks={3: False})
+    result, report = series_py(manifest)
+    assert result.returncode == 1 and failing(report) == ["checklists_5"]
+    assert "FAIL checklists_5" in result.stdout.splitlines()
+    assert [r["checklist_ticked"] for r in report["runs"]] == [True, True, False, True, True]
+
+    manifest = write_series(tmp_path, [driver_run(k) for k in range(1, 5)])
+    _, report = series_py(manifest)
+    assert failing(report) == ["runs_5"]
+    manifest = write_series(tmp_path, [driver_run(k) for k in range(1, 5)] + [driver_run(5, passed=False)])
+    _, report = series_py(manifest)
+    assert failing(report) == ["drivers_5"]
+    manifest = write_series(tmp_path, [driver_run(k) for k in range(1, 5)] + [driver_run(5, profile="test")])
+    _, report = series_py(manifest)
+    assert failing(report) == ["settings_5"]
+    for arguments in ([], [str(tmp_path / "missing.txt")], [str(manifest), "x"]):
+        assert subprocess.run([sys.executable, str(HERE / "series.py"), *arguments], check=False).returncode == 2
+    manifest.write_text("run 1 exit 0 result x.json\n")
+    assert series_py(manifest)[0].returncode == 2
+
+
+def test_series_py_repeatability(tmp_path):
+    """SL-A3-04 series.py needs the repeatability result in every run"""
+    checks = [
+        {"id": "SB-S06", "name": "similar incident", "passed": True},
+        {"id": "SB-R-06", "name": "repeatability result", "passed": False},
+    ]
+    runs = [driver_run(k) for k in range(1, 5)] + [driver_run(5, checks=checks)]
+    result, report = series_py(write_series(tmp_path, runs))
+    assert result.returncode == 1 and "repeatability_5" in failing(report)
+    assert [r["repeatability"] for r in report["runs"]] == [True, True, True, True, False]
+
+
+def test_series_py_similar(tmp_path):
+    """SB-T-03 series.py needs PI-1001's similar incident check in every run"""
+    checks = [{"id": "SB-R-06", "name": "repeatability result", "passed": True}]
+    runs = [driver_run(1, checks=checks)] + [driver_run(k) for k in range(2, 6)]
+    result, report = series_py(write_series(tmp_path, runs))
+    assert result.returncode == 1 and failing(report) == ["similar_5"]
+    assert [r["similar"] for r in report["runs"]] == [False, True, True, True, True]
+
+
+def test_series_py_step_times(tmp_path):
+    """SB-T-04 series.py's step times and their limits 15, 60 and 15 s"""
+    edge = {"SB-TL-02": 150.0, "SB-TL-03": 165.0, "SB-TL-04": 225.0, "approved": 480.0, "SB-TL-08": 495.0}
+    result, report = series_py(write_series(tmp_path, [driver_run(k, times=dict(edge)) for k in range(1, 6)]))
+    assert result.returncode == 0, result.stdout
+    assert report["runs"][0]["step_times"] == {"diagnostics_s": 15.0, "ai_and_messages_s": 60.0, "action_s": 15.0}
+    for key, value in (("SB-TL-03", 165.1), ("SB-TL-04", 225.2), ("SB-TL-08", 495.1), ("approved", None)):
+        late = dict(edge, **{key: value})
+        if key == "SB-TL-03":
+            late["SB-TL-04"] = 225.0
+        runs = [driver_run(k, times=dict(edge)) for k in range(1, 5)] + [driver_run(5, times=late)]
+        result, report = series_py(write_series(tmp_path, runs))
+        assert result.returncode == 1 and failing(report) == ["step_times_5"], (key, report["runs"][4])
+
+
+def test_series_py_rb_db_01(tmp_path):
+    """AR-G-12 RB-DB-01 cited in 4 of 5 runs passes and in 3 of 5 fails"""
+    runs = [driver_run(k) for k in range(1, 5)] + [driver_run(5, cited=["RB-API-01"])]
+    result, report = series_py(write_series(tmp_path, runs))
+    assert result.returncode == 0 and report["criteria"]["rb_db_01_4_of_5"] is True
+    runs = [driver_run(k) for k in range(1, 4)] + [driver_run(4, cited=[]), driver_run(5, cited=["RB-API-01"])]
+    result, report = series_py(write_series(tmp_path, runs))
+    assert result.returncode == 1 and failing(report) == ["rb_db_01_4_of_5"]
+    assert "FAIL rb_db_01_4_of_5" in result.stdout.splitlines()
+
+
+def test_series_py_failed_suite(tmp_path):
+    """SB-T-02 a failed suite storm with a passed driver is recorded, not a failed criterion"""
+    manifest = write_series(tmp_path, [driver_run(k) for k in range(1, 6)], exits={2: 1, 4: 1})
+    result, report = series_py(manifest)
+    assert result.returncode == 0 and report["passed"] is True
+    assert [r["suite_storm_passed"] for r in report["runs"]] == [True, False, True, False, True]
+    assert [r["driver_passed"] for r in report["runs"]] == [True] * 5
+    assert report["suite_storm_runs_passed"] == 3
+
+
+# rehearsal.py
+
+STARTS = ["0:05", "1:05", "3:05", "4:35", "5:20", "6:20", "8:05", "9:50", "12:05", "12:35", "13:35"]
+
+
+def rehearsal_file(folder, starts=None, end="14:05", answers=None, name="P-34-rehearsal-1.txt", order=None):
+    lines = ["# Rehearsal 1, from the Teams recording", "date 2026-12-01"]
+    lines += [f"SB-S{n:02d} {start}" for n, start in enumerate(starts or STARTS)]
+    lines.append(f"end {end}")
+    answers = answers or {}
+    lines += [f"{item} {answers.get(item, 'yes')}" for item in ("DC-ASM-01", "DC-ASM-03", "DC-ASM-04", "SB-ASM-01")]
+    if order:
+        order(lines)
+    path = folder / name
+    path.write_text("\n".join(lines) + "\n")
+    return path
+
+
+def rehearsal_py(path):
+    result = subprocess.run(
+        [sys.executable, str(HERE / "rehearsal.py"), str(path)], capture_output=True, text=True, check=False
+    )
+    report = path.with_suffix(".json")
+    return result, json.loads(report.read_text()) if report.exists() and result.returncode != 2 else None
+
+
+def test_rehearsal_budgets(tmp_path):
+    """SB-T-08 rehearsal.py's budgets ±30 s and 15:00"""
+    result, report = rehearsal_py(rehearsal_file(tmp_path))
+    assert result.returncode == 0, result.stdout
+    assert list(report) == ["date", "scenes", "length_s", "assumptions", "criteria", "passed"]
+    assert report["date"] == "2026-12-01" and report["length_s"] == 840
+    assert [s["budget_s"] for s in report["scenes"]] == [60, 120, 90, 45, 60, 105, 105, 135, 30, 60, 30]
+    assert [s["duration_s"] for s in report["scenes"]] == [s["budget_s"] for s in report["scenes"]]
+    assert report["scenes"][0] == {"id": "SB-S00", "start_s": 5, "duration_s": 60, "budget_s": 60, "within": True}
+    assert result.stdout.splitlines()[-4:-1] == ["PASS scenes_within_30", "PASS length_900", "PASS assumptions_yes"]
+
+    # SB-S03 30 s over its budget passes; 31 s over fails.
+    later = STARTS[:4] + ["5:50", "6:50", "8:35", "10:20", "12:35", "13:05", "14:05"]
+    result, report = rehearsal_py(rehearsal_file(tmp_path, later, end="14:35"))
+    assert result.returncode == 0 and report["scenes"][3]["duration_s"] == 75
+    later = STARTS[:4] + ["5:51", "6:51", "8:36", "10:21", "12:36", "13:06", "14:06"]
+    result, report = rehearsal_py(rehearsal_file(tmp_path, later, end="14:36"))
+    assert result.returncode == 1 and report["criteria"] == {
+        "scenes_within_30": False, "length_900": True, "assumptions_yes": True
+    }  # fmt: skip
+    assert [s["within"] for s in report["scenes"]].count(False) == 1
+    # Every scene 6 s longer: each within its budget, the length 906 s over 15:00.
+    budgets = (60, 120, 90, 45, 60, 105, 105, 135, 30, 60, 30)
+    seconds = [5 + sum(budgets[:n]) + 6 * n for n in range(11)]
+    starts = [f"{s // 60}:{s % 60:02d}" for s in seconds]
+    result, report = rehearsal_py(rehearsal_file(tmp_path, starts, end="15:11"))
+    assert result.returncode == 1 and report["length_s"] == 906
+    assert report["criteria"] == {"scenes_within_30": True, "length_900": False, "assumptions_yes": True}
+    for arguments in ([], [str(tmp_path / "missing.txt")], [str(tmp_path / "P-34-rehearsal-1.json")]):
+        assert subprocess.run([sys.executable, str(HERE / "rehearsal.py"), *arguments], check=False).returncode == 2
+
+
+def test_rehearsal_order(tmp_path):
+    """SB-T-08 rehearsal.py refuses an item out of order"""
+
+    def swap(lines):
+        lines[4], lines[5] = lines[5], lines[4]
+
+    cases = [
+        (swap, "Line 5: expected SB-S02, found SB-S03"),
+        (lambda lines: lines.insert(6, "SB-S01 1:05"), "Line 7: SB-S01 repeated"),
+        (lambda lines: lines.pop(6), "Line 7: expected SB-S04, found SB-S05"),
+        (lambda lines: lines.pop(), "Line 18: SB-ASM-01 missing"),
+        (lambda lines: lines.__setitem__(6, "SB-S04 4:30"), "Line 7: SB-S04 4:30 is earlier than SB-S03"),
+        (lambda lines: lines.__setitem__(6, "SB-S04 5:7"), "Line 7: unreadable time '5:7' (m:ss)"),
+        (lambda lines: lines.__setitem__(1, "date 1 Dec 2026"), "Line 2: unreadable date '1 Dec 2026' (YYYY-MM-DD)"),
+        (lambda lines: lines.__setitem__(14, "DC-ASM-01 maybe"), "Line 15: DC-ASM-01 must be yes or no"),
+        (lambda lines: lines.append("extra 1"), "Line 19: unexpected extra"),
+    ]
+    for order, message in cases:
+        path = rehearsal_file(tmp_path, order=order)
+        result, report = rehearsal_py(path)
+        assert result.returncode == 2 and result.stdout.strip() == message, (message, result.stdout)
+
+
+def test_rehearsal_assumptions(tmp_path):
+    """SB-ASM-01 rehearsal.py needs the four assumptions answered yes"""
+    for item in ("DC-ASM-01", "DC-ASM-03", "DC-ASM-04", "SB-ASM-01"):
+        result, report = rehearsal_py(rehearsal_file(tmp_path, answers={item: "no"}))
+        assert result.returncode == 1, item
+        assert report["criteria"] == {"scenes_within_30": True, "length_900": True, "assumptions_yes": False}
+        assert report["assumptions"][item] == "no"

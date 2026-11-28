@@ -1,0 +1,224 @@
+{
+  "manifest": "P-34-series-20261127T104108Z.txt",
+  "runs": [
+    {
+      "run": 1,
+      "exit": 0,
+      "result": "storm-script-20261127T104115Z.json",
+      "checklist": "storm-checklist-20261127T105124Z.md",
+      "driver_passed": true,
+      "suite_storm_passed": true,
+      "settings": {
+        "mode": "script",
+        "deliveries": "checklist",
+        "acts": "driver",
+        "profile": "demo",
+        "finished": true
+      },
+      "checklist_ticked": true,
+      "repeatability": true,
+      "similar": true,
+      "times": {
+        "SB-TL-01": 30.495,
+        "SB-TL-02": 71.107,
+        "SB-TL-03": 72.089,
+        "SB-TL-04": 80.867,
+        "SB-TL-06": 391.39,
+        "SB-TL-07": null,
+        "approved": 481.381,
+        "SB-TL-08": 481.964,
+        "SB-TL-10": 569.462
+      },
+      "step_times": {
+        "diagnostics_s": 1.0,
+        "ai_and_messages_s": 8.8,
+        "action_s": 0.6
+      },
+      "runbooks_cited": [
+        "RB-API-01",
+        "RB-DB-01",
+        "RB-USSD-01"
+      ],
+      "summary_length": 599
+    },
+    {
+      "run": 2,
+      "exit": 0,
+      "result": "storm-script-20261127T105208Z.json",
+      "checklist": "storm-checklist-20261127T110214Z.md",
+      "driver_passed": true,
+      "suite_storm_passed": true,
+      "settings": {
+        "mode": "script",
+        "deliveries": "checklist",
+        "acts": "driver",
+        "profile": "demo",
+        "finished": true
+      },
+      "checklist_ticked": true,
+      "repeatability": true,
+      "similar": true,
+      "times": {
+        "SB-TL-01": 30.967,
+        "SB-TL-02": 71.585,
+        "SB-TL-03": 72.311,
+        "SB-TL-04": 81.226,
+        "SB-TL-06": 391.418,
+        "SB-TL-07": null,
+        "approved": 481.5,
+        "SB-TL-08": 482.048,
+        "SB-TL-10": 567.286
+      },
+      "step_times": {
+        "diagnostics_s": 0.7,
+        "ai_and_messages_s": 8.9,
+        "action_s": 0.5
+      },
+      "runbooks_cited": [
+        "RB-API-01",
+        "RB-DB-01",
+        "RB-USSD-01"
+      ],
+      "summary_length": 615
+    },
+    {
+      "run": 3,
+      "exit": 0,
+      "result": "storm-script-20261127T110258Z.json",
+      "checklist": "storm-checklist-20261127T111309Z.md",
+      "driver_passed": true,
+      "suite_storm_passed": true,
+      "settings": {
+        "mode": "script",
+        "deliveries": "checklist",
+        "acts": "driver",
+        "profile": "demo",
+        "finished": true
+      },
+      "checklist_ticked": true,
+      "repeatability": true,
+      "similar": true,
+      "times": {
+        "SB-TL-01": 31.0,
+        "SB-TL-02": 71.599,
+        "SB-TL-03": 72.329,
+        "SB-TL-04": 80.982,
+        "SB-TL-06": 391.499,
+        "SB-TL-07": null,
+        "approved": 481.655,
+        "SB-TL-08": 482.202,
+        "SB-TL-10": 571.913
+      },
+      "step_times": {
+        "diagnostics_s": 0.7,
+        "ai_and_messages_s": 8.7,
+        "action_s": 0.5
+      },
+      "runbooks_cited": [
+        "RB-API-01",
+        "RB-DB-01",
+        "RB-USSD-01"
+      ],
+      "summary_length": 548
+    },
+    {
+      "run": 4,
+      "exit": 0,
+      "result": "storm-script-20261127T111346Z.json",
+      "checklist": "storm-checklist-20261127T112354Z.md",
+      "driver_passed": true,
+      "suite_storm_passed": true,
+      "settings": {
+        "mode": "script",
+        "deliveries": "checklist",
+        "acts": "driver",
+        "profile": "demo",
+        "finished": true
+      },
+      "checklist_ticked": true,
+      "repeatability": true,
+      "similar": true,
+      "times": {
+        "SB-TL-01": 31.656,
+        "SB-TL-02": 72.237,
+        "SB-TL-03": 72.987,
+        "SB-TL-04": 81.782,
+        "SB-TL-06": 391.712,
+        "SB-TL-07": null,
+        "approved": 481.561,
+        "SB-TL-08": 482.101,
+        "SB-TL-10": 567.344
+      },
+      "step_times": {
+        "diagnostics_s": 0.8,
+        "ai_and_messages_s": 8.8,
+        "action_s": 0.5
+      },
+      "runbooks_cited": [
+        "RB-API-01",
+        "RB-DB-01",
+        "RB-USSD-01"
+      ],
+      "summary_length": 646
+    },
+    {
+      "run": 5,
+      "exit": 0,
+      "result": "storm-script-20261127T112425Z.json",
+      "checklist": "storm-checklist-20261127T113442Z.md",
+      "driver_passed": true,
+      "suite_storm_passed": true,
+      "settings": {
+        "mode": "script",
+        "deliveries": "checklist",
+        "acts": "driver",
+        "profile": "demo",
+        "finished": true
+      },
+      "checklist_ticked": true,
+      "repeatability": true,
+      "similar": true,
+      "times": {
+        "SB-TL-01": 30.252,
+        "SB-TL-02": 70.845,
+        "SB-TL-03": 71.574,
+        "SB-TL-04": 80.007,
+        "SB-TL-06": 391.52,
+        "SB-TL-07": null,
+        "approved": 481.402,
+        "SB-TL-08": 481.949,
+        "SB-TL-10": 571.931
+      },
+      "step_times": {
+        "diagnostics_s": 0.7,
+        "ai_and_messages_s": 8.4,
+        "action_s": 0.5
+      },
+      "runbooks_cited": [
+        "RB-API-01",
+        "RB-DB-01",
+        "RB-USSD-01"
+      ],
+      "summary_length": 494
+    }
+  ],
+  "criteria": {
+    "runs_5": true,
+    "settings_5": true,
+    "drivers_5": true,
+    "checklists_5": true,
+    "repeatability_5": true,
+    "similar_5": true,
+    "step_times_5": true,
+    "rb_db_01_4_of_5": true
+  },
+  "passed": true,
+  "suite_storm_runs_passed": 5,
+  "summary_lengths": [
+    599,
+    615,
+    548,
+    646,
+    494
+  ]
+}

@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Document | 50-architecture (ID prefix `AR-`) |
-| Version | 1.11 |
-| Date | 15 November 2026 |
+| Version | 1.12 |
+| Date | 26 November 2026 |
 | Owner | Abdul Wadood |
-| Status | Baseline (owner reviewed). Round 5 closed. Amended by Round 6 (`60-build-plan` BP-A-01 to BP-A-10, BP-A-15, BP-A-16) and during the build (BP-A-17, BP-A-19, BP-A-20, BP-A-21, BP-A-22, BP-A-23, BP-A-24, BP-A-29, BP-A-30, BP-A-31). |
+| Status | Baseline (owner reviewed). Round 5 closed. Amended by Round 6 (`60-build-plan` BP-A-01 to BP-A-10, BP-A-15, BP-A-16) and during the build (BP-A-17, BP-A-19, BP-A-20, BP-A-21, BP-A-22, BP-A-23, BP-A-24, BP-A-29, BP-A-30, BP-A-31, BP-A-33). |
 
 ## 1. Purpose
 
@@ -395,7 +395,7 @@ Links start with the installation property `vigil.links.base` (default `https://
 
 | ID | Rule | Trace |
 | --- | --- | --- |
-| AR-W-01 | **Routes (complete list).** `/login` DC-S01; `/no-access` DC-S01-05; `/incidents` DC-S02 (`/` redirects here); `/incidents/{incident id}` DC-S03; `/m/acknowledge/{incident id}` DC-S04; `/m/approve/{approval request id}` DC-S05; `/workflow` DC-S06; `/setup` DC-S07; `/routing` DC-S08; `/ai` DC-S09 (query `request_group_id` filters the usage log, DC-S03-09); `/dashboard` DC-S10; `/audit` DC-S11. `vigil-app` answers every other path that does not start with `/api/` or `/actuator/` with `index.html` (`Cache-Control: no-cache`); built assets have content-hashed names and `Cache-Control: max-age=31536000, immutable`. | SL-A4-01 to SL-A4-11 |
+| AR-W-01 | **Routes (complete list).** `/login` DC-S01; `/no-access` DC-S01-05; `/incidents` DC-S02 (`/` redirects here); `/incidents/{incident id}` DC-S03; `/m/acknowledge/{incident id}` DC-S04; `/m/approve/{approval request id}` DC-S05; `/workflow` DC-S06; `/setup` DC-S07; `/routing` DC-S08; `/ai` DC-S09 (query `request_group_id` filters the usage log, DC-S03-09); `/dashboard` DC-S10; `/audit` DC-S11. `vigil-app` answers every other path that does not start with `/api/` or `/actuator/` with `index.html` (`Cache-Control: no-cache`); built assets have content-hashed names and `Cache-Control: max-age=31536000, immutable`. A built file of the web application whose type is HTML, CSS, JavaScript or SVG, and a JSON answer of `vigil-api`, whose size is at least 2,048 bytes is sent gzip-compressed (`Content-Encoding: gzip`) when the request accepts gzip (amendment `60-build-plan` BP-A-33); no other answer is compressed, so the live stream (AR-I-04), error answers and font files are sent as they are. | SL-A4-01 to SL-A4-11 |
 | AR-W-02 | **Data.** Screens read only through Section 10.2 operations with TanStack Query; each screen subscribes to the live topics and polls exactly as AR-I-04 and AR-I-05 state, and re-reads on each notice (at most once per 500 ms per topic). An answer that has not arrived after 15 s shows "No connection." (DC-U-09). | DC-U-08, DC-U-09 |
 | AR-W-03 | **Canvas.** Every canvas (editor DC-S06, run band DC-S03-06) is `@xyflow/react` with one custom node type per step type (card content DC-S06-05), one target handle (none on Trigger) and one source handle per named output in the order of DM Section 9 (Condition: branches in order, then `otherwise`). The run band is the same component with editing disabled; follow mode calls `setCenter` on the current step at zoom 0.8 within 0.5 s of a step change (DC-S03-06). Zoom steps 10% between 25% and 200% (DC-S06-10). | SL-WE-01 to SL-WE-06, SL-WE-10; DC-S03-06 |
 | AR-W-04 | **Auto layout (resolves DC-S06-10 "algorithm Round 5").** `elkjs` with options (complete list): `elk.algorithm` = `layered`; `elk.direction` = `RIGHT`; `elk.layered.considerModelOrder.strategy` = `NODES_AND_EDGES`; `elk.layered.spacing.nodeNodeBetweenLayers` = `80`; `elk.spacing.nodeNode` = `40`; `elk.layered.nodePlacement.strategy` = `NETWORK_SIMPLEX`; port constraint `FIXED_ORDER` with target ports on side `WEST` and source ports on side `EAST` in handle order. Node sizes are the rendered card sizes. Resulting positions are rounded to whole pixels and applied as one undoable change. | SL-WE-06; DC-S06-10 |
@@ -972,3 +972,4 @@ Carried open items still open: CTX-O-01, CTX-O-05; SL-O-19; SB-O-03; DD-O-03.
 | 1.9 | 3 Nov 2026 | Build amendment `60-build-plan` BP-A-29 (owner decision CTX-D-060): the secret `jira` carries the token's expiry date `expires_on` (AR-S-13, AR-K-04); `deploy/secrets.sh` prints it, asks for the renewal fewer than 30 days before it, and stops on a missing, invalid or past date (AR-H-07); the Status line lists BP-A-29. |
 | 1.10 | 10 Nov 2026 | Build amendment `60-build-plan` BP-A-30 (owner decision CTX-D-062): AR-TM-01 gives batched embedding calls (more than one text) 90 s; a call with one text keeps 30 s; AR-R-09 inserts an immutable record once after the call. |
 | 1.11 | 15 Nov 2026 | Build amendment `60-build-plan` BP-A-31 (owner decision CTX-D-095): AR-SP-01 with `vigil-app` runs on a page of `vigil-web` during a storm and measures each notice's delay against the fastest notice. |
+| 1.12 | 26 Nov 2026 | Build amendment `60-build-plan` BP-A-33 (CTX-D-099 (2), from the owner's decision of 25 Nov 2026, CTX-D-096 (3) item 6): AR-W-01 sends the web application's built HTML, CSS, JavaScript and SVG files of at least 2,048 bytes gzip-compressed; nothing else is compressed. Changed on 27 Nov 2026 by P-34's fix round 1 (CTX-D-099 (2)): JSON answers of `vigil-api` of at least 2,048 bytes are compressed too; the live stream stays uncompressed. |

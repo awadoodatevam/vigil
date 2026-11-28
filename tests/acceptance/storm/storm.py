@@ -614,7 +614,17 @@ class Driver:
 
     def times(self):
         d = self.data
-        keys = ("SB-TL-01", "SB-TL-02", "SB-TL-03", "SB-TL-04", "SB-TL-06", "SB-TL-07", "SB-TL-08", "SB-TL-10")
+        keys = (
+            "SB-TL-01",
+            "SB-TL-02",
+            "SB-TL-03",
+            "SB-TL-04",
+            "SB-TL-06",
+            "SB-TL-07",
+            "approved",
+            "SB-TL-08",
+            "SB-TL-10",
+        )
         result = {key: None for key in keys}
         if d.t0 is None:
             return result
@@ -645,6 +655,8 @@ class Driver:
             waits = [s.get("started_at") for s in steps if s.get("step_id") == "s-wait-ack" and s.get("started_at")]
             result["SB-TL-04"] = after(waits[0]) if waits else None
         result["SB-TL-06"] = after((d.ack_answer or {}).get("at"))
+        # The decision's time (P-34, SB-T-04's action step: SB-TL-08 - approved); recorded, not checked.
+        result["approved"] = after((d.decision or {}).get("at"))
         executions = (d.storm.get("response") or {}).get("executions") or []
         result["SB-TL-08"] = after(executions[0].get("finished_at")) if executions else None
         result["SB-TL-10"] = after((d.storm.get("header") or {}).get("resolved_at"))
@@ -728,7 +740,9 @@ class Driver:
             "reset": self.reset,
             "incidents": self.incidents_record(),
             "times": self.times(),
-            "investigation": d.results.get("investigation", {"runbooks_cited": None, "likely_cause": None}),
+            "investigation": d.results.get(
+                "investigation", {"runbooks_cited": None, "likely_cause": None, "summary_length": None}
+            ),
             "checklist": self.checklist,
             "measured": Path(self.config.measured).name if self.config.measured else None,
             "checks": all_checks,

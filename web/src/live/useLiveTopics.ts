@@ -51,21 +51,49 @@ export function queriesOf(topics: readonly string[]): QueryKey[] {
   return keys;
 }
 
+/**
+ * Re-reads the cached queries that match the key by prefix without cancelling a read that runs (P-34 fix round 1,
+ * AR-W-02): a query being read is read once more as soon as that read ends, so the screen ends on a read that started
+ * after the last notice; however many notices arrive meanwhile, one more read follows (`waiting` holds those queries).
+ */
+function reread(
+  client: QueryClient,
+  queryKey: QueryKey,
+  waiting: Set<string>,
+): void {
+  for (const query of client.getQueryCache().findAll({ queryKey })) {
+    const exact = { queryKey: query.queryKey, exact: true };
+    if (query.state.fetchStatus !== "fetching") {
+      void client.invalidateQueries(exact, { cancelRefetch: false });
+    } else if (!waiting.has(query.queryHash)) {
+      waiting.add(query.queryHash);
+      // With cancelRefetch false the promise is that of the running read.
+      void client
+        .invalidateQueries(exact, { cancelRefetch: false })
+        .finally(() => {
+          waiting.delete(query.queryHash);
+          void client.invalidateQueries(exact, { cancelRefetch: false });
+        });
+    }
+  }
+}
+
 /** The handlers of a screen's stream: each topic re-reads its queries; a reconnection re-reads all of them. */
 export function liveHandlers(
   client: QueryClient,
   topics: readonly string[],
   interrupted: (value: boolean) => void,
 ): LiveHandlers {
+  const waiting = new Set<string>();
   return {
     invalidate: (topic) => {
       for (const queryKey of topicQueries(topic)) {
-        void client.invalidateQueries({ queryKey });
+        reread(client, queryKey, waiting);
       }
     },
     invalidateAll: () => {
       for (const queryKey of queriesOf(topics)) {
-        void client.invalidateQueries({ queryKey });
+        reread(client, queryKey, waiting);
       }
     },
     interrupted,

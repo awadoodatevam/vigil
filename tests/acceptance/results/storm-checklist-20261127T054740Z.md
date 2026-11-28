@@ -1,0 +1,18 @@
+- [ ] Teams channel Database Operations: "Demo environment — fictional data - [P1] INC-0002 Subscriber DB server: Disk full — 3 services affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a21b82-91a5-740f-bb92-86fab55c090d
+- [ ] Teams channel VAS Service Owners: "Demo environment — fictional data - [P1] INC-0002 Subscriber DB server: Disk full — 3 services affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a21b82-91a5-740f-bb92-86fab55c090d
+- [ ] Teams channel NOC L1: "Demo environment — fictional data - [P1] INC-0002 Subscriber DB server: Disk full — 3 services affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a21b82-91a5-740f-bb92-86fab55c090d
+- [ ] mailbox of Database Operations: "Demo environment — fictional data - [P1] INC-0002 Subscriber DB server: Disk full — 3 services affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a21b82-91a5-740f-bb92-86fab55c090d
+- [ ] mailbox of VAS Service Owners: "Demo environment — fictional data - [P1] INC-0002 Subscriber DB server: Disk full — 3 services affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a21b82-91a5-740f-bb92-86fab55c090d
+- [ ] mailbox of NOC L1: "Demo environment — fictional data - [P1] INC-0002 Subscriber DB server: Disk full — 3 services affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a21b82-91a5-740f-bb92-86fab55c090d
+- [ ] Teams channel IT Applications: "Demo environment — fictional data - [P4] INC-0001 Report export job: Report export job failed — 1 service affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a21b82-91ba-7127-8c63-d9d9dfa9f8a4
+- [ ] mailbox of IT Applications: "Demo environment — fictional data - [P4] INC-0001 Report export job: Report export job failed — 1 service affected" with the link https://demo.vigil.solviclabs.com/m/acknowledge/01a21b82-91ba-7127-8c63-d9d9dfa9f8a4
+- [ ] Teams channel Approvals — Usman: "Demo environment — fictional data - Approval needed: Purge archived transaction logs on Subscriber DB server for INC-0002" with the link https://demo.vigil.solviclabs.com/m/approve/01a21b88-860e-7159-92cc-60e9c6b9b9d7
+- [ ] Teams channel Approvals — Farah: "Demo environment — fictional data - Approval needed: Purge archived transaction logs on Subscriber DB server for INC-0002" with the link https://demo.vigil.solviclabs.com/m/approve/01a21b88-860e-7159-92cc-60e9c6b9b9d7
+- [ ] mailbox of Usman Tariq (DB Ops): "Demo environment — fictional data - Approval needed: Purge archived transaction logs on Subscriber DB server for INC-0002" with the link https://demo.vigil.solviclabs.com/m/approve/01a21b88-860e-7159-92cc-60e9c6b9b9d7
+- [ ] mailbox of Farah Naqvi (DB Ops Lead): "Demo environment — fictional data - Approval needed: Purge archived transaction logs on Subscriber DB server for INC-0002" with the link https://demo.vigil.solviclabs.com/m/approve/01a21b88-860e-7159-92cc-60e9c6b9b9d7
+- [ ] no message in Teams channel NOC Shift Lead
+- [ ] no message in Teams channel NOC Management
+- [ ] no message in Teams channel Customer Care
+- [ ] no message in mailbox of NOC Shift Lead
+- [ ] no message in mailbox of NOC Management
+- [ ] no message in mailbox of Customer Care

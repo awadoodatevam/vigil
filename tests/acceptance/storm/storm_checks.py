@@ -541,7 +541,13 @@ def s04_investigation(d):
     summary = section.get("summary") or {}
     diagnostic_ids = {e.get("evidence_entry_id") for e in diagnostic_entries(d)}
     supplied, cited = result.get("runbooks_supplied") or [], result.get("runbooks_cited") or []
-    d.results["investigation"] = {"runbooks_cited": cited, "likely_cause": result.get("likely_cause")}
+    text = summary.get("text")
+    d.results["investigation"] = {
+        "runbooks_cited": cited,
+        "likely_cause": result.get("likely_cause"),
+        # P-34: the SL-T-2 summary's length in characters, recorded for SB-T-04, not checked.
+        "summary_length": len(text) if isinstance(text, str) else None,
+    }
     bad = []
     if section.get("ai_status") != "available":
         bad.append(f"ai_status {section.get('ai_status')}")

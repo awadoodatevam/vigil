@@ -862,8 +862,9 @@ def test_immediate_run_passes(world, tmp_path):
     assert result["incidents"]["storm"] == {"incident_id": STORM_ID, "number": 1, "ticket_key": "NOC-1"}
     assert result["investigation"]["runbooks_cited"] == ["RB-DB-01"]
     assert set(result["times"]) == {
-        "SB-TL-01", "SB-TL-02", "SB-TL-03", "SB-TL-04", "SB-TL-06", "SB-TL-07", "SB-TL-08", "SB-TL-10"
+        "SB-TL-01", "SB-TL-02", "SB-TL-03", "SB-TL-04", "SB-TL-06", "SB-TL-07", "approved", "SB-TL-08", "SB-TL-10"
     }  # fmt: skip
+    assert set(result["investigation"]) == {"runbooks_cited", "likely_cause", "summary_length"}
     assert result["times"]["SB-TL-04"] == 30.0
     assert result["times"]["SB-TL-03"] == 60.0
     names = [f"{c['id']} {c['name']}" for c in result["checks"]]
@@ -1077,6 +1078,26 @@ def test_pages_run_passes(world, tmp_path):
     }
     names = {f"{c['id']} {c['name']}" for c in result["checks"]}
     assert {"SB-S05 acknowledge page", "SB-S06 approval page", "SB-S06 decision"} <= names
+
+
+@pytest.mark.parametrize("acts", ["driver", "pages"])
+def test_approve_time_and_summary_length(world, tmp_path, acts):
+    """SB-T-04 the result file records the approve time and the summary length (--acts driver and --acts pages)."""
+    keys = ["SB-TL-01", "SB-TL-02", "SB-TL-03", "SB-TL-04", "SB-TL-06", "SB-TL-07", "approved", "SB-TL-08",
+            "SB-TL-10"]  # fmt: skip
+    if acts == "pages":
+        on_pages(world)
+        code, result, *_ = pages_driver(world, tmp_path)
+    else:
+        code, result, *_ = run_driver(world, tmp_path)
+    assert code == 0 and result["acts"] == acts
+    assert [c for c in result["checks"] if not c["passed"]] == []
+    times = result["times"]
+    assert list(times) == keys
+    assert times["approved"] == round(checks.epoch(iso(world.decided_at)) - checks.epoch(result["t0"]), 3)
+    assert times["approved"] <= times["SB-TL-08"]
+    assert list(result["investigation"]) == ["runbooks_cited", "likely_cause", "summary_length"]
+    assert result["investigation"]["summary_length"] == len(SUMMARY)
 
 
 def test_pages_run_without_acknowledgement_fails_at_its_limit(world, tmp_path, monkeypatch):

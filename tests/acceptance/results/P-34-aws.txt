@@ -1,0 +1,756 @@
+== date
+Fri Nov 27 10:25:28 UTC 2026
+aws-cli/2.38.1 Python/3.14.6 Darwin/27.2.0 exe/arm64
+caller: arn:aws:iam::653271908574:user/abdul-admin
+exit 0
+== status
+main host: i-0512f130bee88b091 running
+gpu host: i-076737f05bf4a7c7a stopped
+bootstrap main 1 docker 29.1.3 compose 2.40.3
+docker 29.1.3
+compose 2.40.3
+release: "p34-2"
+deployed_at: "2026-11-27T10:22:47Z"
+NAME                   STATE     STATUS
+demo-control           running   Up 2 minutes (healthy)
+demo-faults            running   Up 2 minutes (healthy)
+lab-alertmanager       running   Up 47 hours
+lab-api-01             running   Up 3 minutes (healthy)
+lab-db-01              running   Up 3 minutes (healthy)
+lab-probe-01           running   Up 3 minutes (healthy)
+lab-prometheus         running   Up 47 hours
+lab-rpt-01             running   Up 3 minutes (healthy)
+lab-vas-01             running   Up 3 minutes (healthy)
+lab-zabbix-db          running   Up 47 hours (healthy)
+lab-zabbix-provision   exited    Exited (0) 3 minutes ago
+lab-zabbix-server      running   Up 47 hours
+lab-zabbix-web         running   Up 47 hours (healthy)
+vigil-app              running   Up 2 minutes
+vigil-db               running   Up 47 hours (healthy)
+vigil-embed            running   Up 2 days
+vigil-migrate          exited    Exited (0) 2 minutes ago
+vigil-app: secrets readable
+demo-control: secrets readable
+demo-faults: secrets readable
+vigil-db: secrets readable
+lab-zabbix-db: secrets readable
+lab-zabbix-server: secrets readable
+lab-zabbix-web: secrets readable
+lab-prometheus: secrets readable
+lab-alertmanager: secrets readable
+lab-db-01: secrets readable
+vigil-app health: {"components":{"correlation":{"status":"UP"},"db":{"details":{"database":"PostgreSQL","validationQuery":"isValid()"},"status":"UP"},"diskSpace":{"details":{"total":102888095744,"free":85074583552,"threshold":10485760,"path":"/.","exists":true},"status":"UP"},"livenessState":{"status":"UP"},"ping":{"status":"UP"},"readinessState":{"status":"UP"},"ssl":{"details":{"expiringChains":[],"invalidChains":[],"validChains":[]},"status":"UP"}},"groups":["liveness","readiness"],"status":"UP"}
+embeddinggemma 85462619ee721b466c5927d109d4cb765861907d5417b9109caebc4e614679f1 matches models.lock
+exit 0
+== load-balancer
+target group vigil-app i-0512f130bee88b091:8080 healthy
+target group demo-control i-0512f130bee88b091:8090 healthy
+exit 0
+== main-host
+-- bootstrap
+bootstrap main 1 docker 29.1.3 compose 2.40.3
+exit 0
+-- chrony
+Reference ID    : A9FEA97B (169.254.169.123)
+Stratum         : 2
+Ref time (UTC)  : Fri Nov 27 10:25:51 2026
+System time     : 0.000000202 seconds slow of NTP time
+Last offset     : +0.000000028 seconds
+RMS offset      : 0.000000685 seconds
+Frequency       : 1.334 ppm fast
+Residual freq   : +0.000 ppm
+Skew            : 0.018 ppm
+Root delay      : 0.000150027 seconds
+Root dispersion : 0.000026694 seconds
+Update interval : 16.3 seconds
+Leap status     : Normal
+exit 0
+-- timedatectl
+               Local time: Fri 2026-11-27 10:25:52 UTC
+           Universal time: Fri 2026-11-27 10:25:52 UTC
+                 RTC time: Fri 2026-11-27 10:25:52
+                Time zone: Etc/UTC (UTC, +0000)
+System clock synchronized: yes
+              NTP service: active
+          RTC in local TZ: no
+exit 0
+-- docker-user
+-N DOCKER-USER
+-A DOCKER-USER -s 172.31.0.0/24 -d 172.30.0.10/32 -m conntrack --ctstate NEW -j DROP
+exit 0
+-- published-ports
+demo-control	10.40.1.10:8090->8090/tcp
+vigil-app	10.40.1.10:8080->8080/tcp
+demo-faults	
+lab-probe-01	
+lab-vas-01	
+lab-api-01	
+lab-db-01	
+lab-rpt-01	
+lab-prometheus	9090/tcp
+lab-zabbix-server	10051/tcp
+lab-zabbix-web	8080/tcp, 8443/tcp
+lab-zabbix-db	5432/tcp
+vigil-db	5432/tcp
+lab-alertmanager	9093/tcp
+vigil-embed	11434/tcp
+exit 0
+-- lab-to-app
+lab-to-app blocked after 5.01 s: timed out
+exit 0
+-- lab-public-name
+lab-public-name 200
+exit 0
+-- deployed
+release: "p34-2"
+deployed_at: "2026-11-27T10:22:47Z"
+images:
+  demo-control: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-control@sha256:b27ced39e6d99a1fcf852f42be200fa63235e38aa42b2aaf1d24f31c1b20b073"
+  demo-faults: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-faults@sha256:06dfa619bdd32a3c2c5e2fb2fcc4873452c6f2f446de2883845ee3cc3b641b06"
+  lab-alertmanager: "prom/alertmanager@sha256:e9733bafb1bdef9b00e25a21f8f99dc26a22224bf16641ad754d1649f4c3357a"
+  lab-api-01: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-lab@sha256:4a83e7c518a3117801ac53e1f3b143f0e572d2c6d2f661bba5fb4d8f259cd9bc"
+  lab-db-01: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-lab@sha256:4a83e7c518a3117801ac53e1f3b143f0e572d2c6d2f661bba5fb4d8f259cd9bc"
+  lab-probe-01: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-lab@sha256:4a83e7c518a3117801ac53e1f3b143f0e572d2c6d2f661bba5fb4d8f259cd9bc"
+  lab-prometheus: "prom/prometheus@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e"
+  lab-rpt-01: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-lab@sha256:4a83e7c518a3117801ac53e1f3b143f0e572d2c6d2f661bba5fb4d8f259cd9bc"
+  lab-vas-01: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/demo-lab@sha256:4a83e7c518a3117801ac53e1f3b143f0e572d2c6d2f661bba5fb4d8f259cd9bc"
+  lab-zabbix-db: "postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d"
+  lab-zabbix-server: "zabbix/zabbix-server-pgsql@sha256:bdfe90847bd259a6da448db1e6ae83f5f439224654ed767296a8d57a088975b9"
+  lab-zabbix-web: "zabbix/zabbix-web-nginx-pgsql@sha256:d9ce0774cb6036ce5d49c9c8d46bf1474dad98aae810350de0d5068dd679b92d"
+  vigil-app: "653271908574.dkr.ecr.us-east-1.amazonaws.com/demo/vigil-app@sha256:49a695de7d2a009de451039fd69f3aaf9c54e0014fe6ec6d6620fc1d4c42b9ce"
+  vigil-db: "pgvector/pgvector@sha256:ac08538c6f8b9904c33c8224c5e5706dbe760aca29db1d096972b4052c22a75d"
+  vigil-embed: "ollama/ollama@sha256:5d3a2f25f9825628daba94dc0b1d421c7d57d6c03ae5faa9ba050e058bab8241"
+exit 0
+-- env
+VIGIL_RELEASE=p34-2
+COMPOSE_PROFILES=vigil
+exit 0
+-- services
+demo-control
+lab-db-01
+lab-api-01
+lab-vas-01
+lab-probe-01
+lab-rpt-01
+lab-prometheus
+lab-zabbix-db
+lab-zabbix-web
+vigil-db
+vigil-migrate
+vigil-app
+demo-faults
+lab-zabbix-server
+vigil-embed
+lab-alertmanager
+lab-zabbix-provision
+exit 0
+exit 0
+== https
+-- http-redirect
+HTTP/1.1 301 Moved Permanently
+Server: awselb/2.0
+Date: Fri, 27 Nov 2026 10:26:01 GMT
+Content-Type: text/html
+Content-Length: 134
+Connection: keep-alive
+Location: https://demo.vigil.solviclabs.com:443/
+
+status 301
+-- https-demo
+status 200
+-- assets-gzip
+asset /assets/index-CJxaupX1.js
+with gzip:
+HTTP/2 200 
+date: Fri, 27 Nov 2026 10:26:08 GMT
+content-type: text/javascript
+cache-control: max-age=31536000, immutable
+last-modified: Fri, 27 Nov 2026 10:17:21 GMT
+accept-ranges: bytes
+vary: accept-encoding
+content-encoding: gzip
+
+size 101600
+without:
+HTTP/2 200 
+date: Fri, 27 Nov 2026 10:26:12 GMT
+content-type: text/javascript
+content-length: 324345
+cache-control: max-age=31536000, immutable
+last-modified: Fri, 27 Nov 2026 10:17:21 GMT
+accept-ranges: bytes
+vary: accept-encoding
+
+size 324345
+-- actuator-404
+status 404
+-- https-control
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demo control panel</title>
+    <style>
+      @font-face {
+        font-family: "Inter Variable";
+        font-style: normal;
+        font-display: swap;
+        font-weight: 100 900;
+        src: url("/fonts/inter-latin-wght-normal.woff2") format("woff2-variations");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "JetBrains Mono Variable";
+        font-style: normal;
+        font-display: swap;
+        font-weight: 100 800;
+        src: url("/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2-variations");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      /* The tokens this page uses, with the names and values of web/src/app/tokens.css (VD-R-15). */
+      :root {
+        --vd-gray-0: #ffffff;
+        --vd-gray-25: #f8fafc;
+        --vd-gray-50: #f1f4f8;
+        --vd-gray-100: #e6eaf0;
+        --vd-gray-200: #d5dbe4;
+        --vd-gray-500: #647083;
+        --vd-gray-600: #4a5567;
+        --vd-gray-700: #353f4f;
+        --vd-gray-900: #141a23;
+        --vd-text: var(--vd-gray-900);
+        --vd-text-2: var(--vd-gray-600);
+        --vd-canvas: var(--vd-gray-50);
+        --vd-surface: var(--vd-gray-0);
+        --vd-border: var(--vd-gray-200);
+        --vd-border-2: var(--vd-gray-100);
+        --vd-navy-900: #0b1526;
+        --vd-on-navy: #ffffff;
+        --vd-accent-500: #2f6fed;
+        --vd-accent-600: #1f5ad6;
+        --vd-accent-700: #1846ab;
+        --vd-red-50: #fdecec;
+        --vd-red-200: #f6c7c3;
+        --vd-red-600: #d92d20;
+        --vd-red-700: #b42318;
+        --vd-orange-700: #b54708;
+        --vd-warning: var(--vd-orange-700);
+        --vd-font: "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --vd-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        --vd-size-13: 13px;
+        --vd-size-14: 14px;
+        --vd-size-15: 15px;
+        --vd-size-16: 16px;
+        --vd-space-1: 4px;
+        --vd-space-3: 12px;
+        --vd-space-4: 16px;
+        --vd-space-5: 20px;
+        --vd-space-6: 24px;
+        --vd-radius-sm: 6px;
+        --vd-radius: 10px;
+        --vd-radius-lg: 14px;
+        --vd-shadow-1: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+        --vd-shadow-2: 0 8px 24px rgba(16, 24, 40, 0.1), 0 2px 6px rgba(16, 24, 40, 0.06);
+        --vd-focus-ring: 0 0 0 2px var(--vd-gray-0), 0 0 0 4px var(--vd-accent-500);
+        --vd-fast: 120ms ease-out;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      /* VD-S-09: the page, the body role (45-visual-design Section 5). */
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        min-height: 100vh;
+        font-family: var(--vd-font);
+        font-size: var(--vd-size-15);
+        line-height: 1.45;
+        font-weight: 400;
+        color: var(--vd-text);
+        background: var(--vd-canvas);
+        -webkit-font-smoothing: antialiased;
+      }
+      /* VD-C-29 top line. */
+      #top {
+        margin: 0;
+        width: 100%;
+        padding: var(--vd-space-3) var(--vd-space-6);
+        font-size: var(--vd-size-14);
+        font-weight: 600;
+        color: var(--vd-on-navy);
+        background: var(--vd-navy-900);
+        overflow-wrap: anywhere;
+      }
+      main {
+        width: 100%;
+        max-width: 760px;
+        margin: 0 auto;
+        padding: var(--vd-space-6);
+      }
+      /* VD-C-04 card. */
+      .card,
+      #buttons {
+        background: var(--vd-surface);
+        border: 1px solid var(--vd-border);
+        border-radius: var(--vd-radius);
+        box-shadow: var(--vd-shadow-1);
+      }
+      /* VD-C-29 login: a card with VD-C-10 fields, the primary button and the error notice. */
+      .login-card {
+        width: 100%;
+        max-width: 424px;
+        margin: var(--vd-space-4) auto 0;
+        padding: 28px;
+        border-radius: var(--vd-radius-lg);
+        box-shadow: var(--vd-shadow-2);
+      }
+      #login-form {
+        display: flex;
+        flex-direction: column;
+      }
+      #login-form label {
+        margin: 0 0 6px;
+        font-size: var(--vd-size-13);
+        font-weight: 600;
+        color: var(--vd-gray-700);
+      }
+      #login-form input + label {
+        margin-top: var(--vd-space-4);
+      }
+      #login-form input {
+        width: 100%;
+        padding: 10px var(--vd-space-3);
+        font: inherit;
+        font-size: var(--vd-size-15);
+        font-weight: 400;
+        color: var(--vd-text);
+        background: var(--vd-surface);
+        border: 1px solid var(--vd-gray-500);
+        border-radius: var(--vd-radius-sm);
+      }
+      #login-form input:focus {
+        border-color: var(--vd-accent-500);
+      }
+      /* VD-C-09 buttons. */
+      button {
+        padding: 9px var(--vd-space-4);
+        font: inherit;
+        font-size: var(--vd-size-14);
+        font-weight: 600;
+        border: 1px solid transparent;
+        border-radius: var(--vd-radius-sm);
+        cursor: pointer;
+        transition:
+          background var(--vd-fast),
+          border-color var(--vd-fast);
+      }
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      #login-form button {
+        width: 100%;
+        margin-top: var(--vd-space-5);
+        color: #ffffff;
+        background: var(--vd-accent-500);
+        border-color: var(--vd-accent-500);
+      }
+      #login-form button:hover {
+        background: var(--vd-accent-600);
+        border-color: var(--vd-accent-600);
+      }
+      #buttons button,
+      #confirm-cancel {
+        color: var(--vd-text);
+        background: var(--vd-surface);
+        border-color: var(--vd-border);
+        box-shadow: var(--vd-shadow-1);
+      }
+      #buttons button:hover:enabled,
+      #confirm-cancel:hover {
+        background: var(--vd-gray-25);
+      }
+      #confirm-reset {
+        color: #ffffff;
+        background: var(--vd-red-600);
+      }
+      /* VD-C-11 error notice: the login refusal, not shown while empty. */
+      #login-error {
+        margin: var(--vd-space-3) 0 0;
+        padding: var(--vd-space-3) 14px;
+        font-size: var(--vd-size-14);
+        color: var(--vd-red-700);
+        background: var(--vd-red-50);
+        border: 1px solid var(--vd-red-200);
+        border-radius: var(--vd-radius-sm);
+        overflow-wrap: anywhere;
+      }
+      #login-error:empty {
+        display: none;
+      }
+      /* VD-C-29 buttons card. */
+      #buttons {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      #buttons li {
+        padding: 14px var(--vd-space-5);
+      }
+      #buttons li + li {
+        border-top: 1px solid var(--vd-border-2);
+      }
+      .description {
+        margin: 6px 0 0;
+        font-size: var(--vd-size-14);
+        line-height: 20px;
+        color: var(--vd-text-2);
+        overflow-wrap: anywhere;
+      }
+      .reason {
+        margin: var(--vd-space-1) 0 0;
+        font-size: var(--vd-size-13);
+        font-weight: 600;
+        color: var(--vd-warning);
+        overflow-wrap: anywhere;
+      }
+      /* VD-C-29 state card. */
+      .state-card {
+        margin-top: var(--vd-space-4);
+        padding: var(--vd-space-4) var(--vd-space-5);
+      }
+      #faults p {
+        margin: 0;
+        font-size: var(--vd-size-14);
+        line-height: 20px;
+        color: var(--vd-text);
+        overflow-wrap: anywhere;
+      }
+      #faults p + p {
+        margin-top: var(--vd-space-1);
+      }
+      #faults p:first-child {
+        font-weight: 600;
+      }
+      #status {
+        margin: var(--vd-space-3) 0 0;
+        padding-top: var(--vd-space-3);
+        border-top: 1px solid var(--vd-border-2);
+        font-size: var(--vd-size-15);
+        font-weight: 600;
+        color: var(--vd-text);
+        overflow-wrap: anywhere;
+      }
+      #clock {
+        margin: 6px 0 0;
+        font-family: var(--vd-mono);
+        font-size: var(--vd-size-15);
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+        color: var(--vd-accent-700);
+        overflow-wrap: anywhere;
+      }
+      .state-card > p:last-child {
+        margin: var(--vd-space-3) 0 0;
+      }
+      /* VD-C-08 link at 15px weight 600. */
+      #open {
+        font-size: var(--vd-size-15);
+        font-weight: 600;
+        color: var(--vd-accent-600);
+        text-decoration: none;
+      }
+      #open:hover,
+      #open:focus-visible {
+        text-decoration: underline;
+      }
+      /* VD-C-27 confirmation dialog. */
+      #confirm {
+        width: calc(100% - 32px);
+        max-width: 400px;
+        margin: auto;
+        padding: var(--vd-space-5);
+        color: var(--vd-text);
+        background: var(--vd-surface);
+        border: none;
+        border-radius: var(--vd-radius-lg);
+        box-shadow: var(--vd-shadow-2);
+      }
+      #confirm::backdrop {
+        background: rgba(11, 21, 38, 0.5);
+      }
+      #confirm > p {
+        margin: 0 0 var(--vd-space-4);
+        font-size: 17px;
+        line-height: 24px;
+        font-weight: 600;
+        color: var(--vd-text);
+      }
+      .confirm-buttons {
+        display: flex;
+        gap: var(--vd-space-3);
+      }
+      .confirm-buttons button {
+        flex: 1;
+        min-height: 48px;
+        font-size: var(--vd-size-16);
+      }
+      /* VD-R-12 focus ring. */
+      :is(a, button, input):focus-visible {
+        outline: none;
+        box-shadow: var(--vd-focus-ring) !important;
+      }
+      @media (max-width: 599px) {
+        #top {
+          padding: var(--vd-space-3) var(--vd-space-4);
+        }
+        main {
+          padding: var(--vd-space-4);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <p id="top"></p>
+    <main>
+      <section id="login" hidden>
+        <div class="card login-card">
+          <form id="login-form">
+            <label for="username">Username</label>
+            <input id="username" name="username" autocomplete="username" />
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" />
+            <button type="submit">Sign in</button>
+            <p id="login-error"></p>
+          </form>
+        </div>
+      </section>
+      <section id="panel" hidden>
+        <ul id="buttons"></ul>
+        <div class="card state-card">
+          <div id="faults"></div>
+          <p id="status"></p>
+          <p id="clock" hidden></p>
+          <p><a id="open" target="_blank" rel="noopener noreferrer"></a></p>
+        </div>
+      </section>
+    </main>
+    <dialog id="confirm">
+      <p>Reset now? This ends the current demo run.</p>
+      <div class="confirm-buttons">
+        <button type="button" id="confirm-cancel">Cancel</button>
+        <button type="button" id="confirm-reset">Reset</button>
+      </div>
+    </dialog>
+    <script>
+      "use strict";
+      const elements = {};
+      const reasons = {};
+      let built = false;
+
+      function byId(id) {
+        return document.getElementById(id);
+      }
+
+      function setTop(product) {
+        byId("top").textContent = "Demo control panel — demo-only, not part of " + product + ".";
+      }
+
+      function showLogin() {
+        byId("panel").hidden = true;
+        byId("login").hidden = false;
+      }
+
+      function two(value) {
+        return String(value).padStart(2, "0");
+      }
+
+      function clockTime(iso) {
+        const time = new Date(iso);
+        return two(time.getHours()) + ":" + two(time.getMinutes()) + ":" + two(time.getSeconds());
+      }
+
+      function build(state) {
+        const list = byId("buttons");
+        for (const button of state.buttons) {
+          const item = document.createElement("li");
+          const element = document.createElement("button");
+          element.type = "button";
+          element.addEventListener("click", () => press(button.key));
+          const description = document.createElement("p");
+          description.className = "description";
+          const reason = document.createElement("p");
+          reason.className = "reason";
+          item.append(element, description, reason);
+          list.append(item);
+          elements[button.key] = { element, description, reason };
+        }
+        built = true;
+      }
+
+      function render(state) {
+        setTop(state.product);
+        byId("login").hidden = true;
+        byId("panel").hidden = false;
+        if (!built) {
+          build(state);
+        }
+        for (const button of state.buttons) {
+          const parts = elements[button.key];
+          parts.element.textContent = button.label;
+          parts.description.textContent = button.description;
+          const reason = reasons[button.key] ?? button.refused;
+          parts.reason.textContent = reason ?? "";
+          parts.reason.hidden = reason == null;
+          parts.element.disabled = !state.connected || button.refused != null;
+        }
+        const faults = byId("faults");
+        const status = byId("status");
+        if (!state.connected) {
+          faults.replaceChildren(line("Connecting…"));
+          status.textContent = "Connecting…";
+          status.hidden = true;
+        } else {
+          const lines = [line("Active faults:")];
+          if (state.active.length === 0) {
+            lines.push(line("No active faults."));
+          }
+          for (const fault of state.active) {
+            lines.push(line(fault.fault + " " + fault.name + " since " + clockTime(fault.since)));
+          }
+          faults.replaceChildren(...lines);
+          status.textContent = state.status;
+          status.hidden = false;
+        }
+        const clock = byId("clock");
+        clock.textContent = state.storm_clock ?? "";
+        clock.hidden = state.storm_clock == null;
+        const open = byId("open");
+        open.textContent = "Open " + state.product;
+        open.href = state.vigil_url + "/login";
+      }
+
+      function line(text) {
+        const element = document.createElement("p");
+        element.textContent = text;
+        return element;
+      }
+
+      async function refresh() {
+        let response;
+        try {
+          response = await fetch("/api/state", { cache: "no-store" });
+        } catch {
+          return;
+        }
+        const body = await response.json().catch(() => ({}));
+        for (const key of Object.keys(reasons)) {
+          delete reasons[key];
+        }
+        if (response.status === 401) {
+          if (body.product) {
+            setTop(body.product);
+          }
+          showLogin();
+        } else if (response.ok) {
+          render(body);
+        }
+      }
+
+      async function press(key) {
+        if (key === "reset") {
+          const dialog = byId("confirm");
+          dialog.showModal();
+          byId("confirm-cancel").focus();
+          return;
+        }
+        await send(key);
+      }
+
+      async function send(key) {
+        const response = await fetch("/api/buttons/" + key, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        });
+        if (response.status === 409) {
+          const body = await response.json();
+          reasons[key] = body.reason;
+          const parts = elements[key];
+          parts.reason.textContent = body.reason;
+          parts.reason.hidden = false;
+        } else if (response.status === 401) {
+          showLogin();
+        }
+      }
+
+      byId("confirm-cancel").addEventListener("click", () => byId("confirm").close());
+      byId("confirm-reset").addEventListener("click", () => {
+        byId("confirm").close();
+        send("reset");
+      });
+
+      byId("login-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const response = await fetch("/api/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: byId("username").value,
+            password: byId("password").value,
+          }),
+        });
+        if (response.status === 204) {
+          byId("login-error").textContent = "";
+          byId("password").value = "";
+          await refresh();
+        } else if (response.status === 401) {
+          byId("login-error").textContent = "Username or password is incorrect.";
+        }
+      });
+
+      refresh();
+      setInterval(refresh, 1000);
+    </script>
+  </body>
+</html>
+
+status 200
+-- unknown-host-404
+status 404
+-- tls-1.1-refused
+curl: (35) LibreSSL/3.3.6: error:1404B42E:SSL routines:ST_CONNECT:tlsv1 alert protocol version
+exit code 35
+exit 0
+PASS http-redirect
+PASS https-demo
+PASS assets-gzip
+PASS actuator-404
+PASS https-control
+PASS unknown-host-404
+PASS tls-1.1-refused
+PASS targets-healthy
+PASS published-ports
+PASS DOCKER-USER
+PASS lab-to-app-blocked
+PASS lab-public-name
+PASS secrets-readable
+PASS correlation
+PASS clock
+PASS release
